@@ -1,0 +1,103 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-realityos}
+      POSTGRES_USER: ${POSTGRES_USER:-realityos}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    restart: unless-stopped
+    networks: [internal]
+
+  redis:
+    image: redis:7-alpine
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    restart: unless-stopped
+    networks: [internal]
+
+  api:
+    build:
+      context: ..
+      dockerfile: backend/Dockerfile
+    env_file: ../.env
+    environment:
+      DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-realityos}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-realityos}
+      REDIS_URL: redis://redis:6379/0
+    command: ["sh", "-c", "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health/live')"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+    networks: [internal]
+
+  worker:
+    build:
+      context: ..
+      dockerfile: backend/Dockerfile
+    env_file: ../.env
+    environment:
+      DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-realityos}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-realityos}
+      REDIS_URL: redis://redis:6379/0
+    command: ["celery", "-A", "app.tasks.celery_app", "worker", "--loglevel=INFO"]
+    depends_on:
+      api:
+        condition: service_healthy
+    restart: unless-stopped
+    networks: [internal]
+
+  frontend:
+    build:
+      context: ../frontend
+      args:
+        VITE_API_URL: ""
+    restart: unless-stopped
+    networks: [internal]
+
+  display:
+    build:
+      context: ../display-webapp
+      args:
+        VITE_API_URL: ""
+    restart: unless-stopped
+    networks: [internal]
+
+  proxy:
+    image: nginx:1.27-alpine
+    ports:
+      - "${HTTP_PORT:-8080}:80"
+    volumes:
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - api
+      - frontend
+      - display
+    restart: unless-stopped
+    networks: [internal]
+
+volumes:
+  postgres_data:
+  redis_data:
+
+networks:
+  internal:
+    internal: true
