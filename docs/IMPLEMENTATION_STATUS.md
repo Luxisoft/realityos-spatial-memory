@@ -7,20 +7,20 @@
   mock processing, highlighted evidence, missing object, role restriction and
   workspace isolation.
 - Admin-panel and Display production builds passed.
-- Meta Model API documentation was reviewed. No real request was made because
-  MODEL_API_KEY was not supplied.
+- Docker Engine and Compose were installed on the target server. PostgreSQL,
+  Redis, API, Celery, panel, Display and Nginx are currently running.
+- Alembic completed against PostgreSQL 16. An authenticated proxy query returned
+  a highlighted BYTEA-backed observation, and a new capture completed through
+  Redis/Celery in Mock mode.
+- Meta Model API documentation was reviewed. The locally configured key
+  authenticated to Models but has no enabled models; Muse Spark 1.3 returned
+  model_not_found, so production runtime remains Mock.
 
-## Implemented but not environment-verified
+## Implemented but not fully environment-verified
 
-- Alembic revision and pg_trgm target PostgreSQL 16, but Docker is not installed
-  on this host, so migrations and Compose were not run here.
-- Compose defines PostgreSQL, Redis, API, Celery worker, two web clients and
-  Nginx; it needs a Docker-host smoke run.
-- Celery task exists and capture processing queues a durable job when
-  ENQUEUE_PROCESSING=true. Broker delivery was not run here.
 - Live Muse Spark, SAM and ASR clients match reviewed contracts but need a
-  non-production key and assets. SAM box parsing works; pixel-mask persistence
-  remains incomplete.
+  Meta account with the requested model entitlement. SAM box parsing works;
+  pixel-mask persistence remains incomplete.
 
 ## Not implemented
 
@@ -29,7 +29,6 @@
   bounded SQL name/alias matching.
 - Android Kotlin/Compose, DAT SDK and Mock Device Kit tests.
 - Official Ray-Ban Display toolkit and simulator validation.
-- Production TLS automation, restore test, GitHub Actions and a published PR.
+- Production TLS automation, restore test and a published PR.
 
-No claim of physical-glasses, Android, Docker, Live Meta or simulator success is
-made.
+No claim of physical-glasses, Android, Live Meta or simulator success is made.

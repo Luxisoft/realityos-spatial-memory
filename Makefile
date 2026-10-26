@@ -24,4 +24,4 @@ seed:
 	.venv/bin/python scripts/seed_demo.py
 
 compose-up:
-	docker compose -f infrastructure/docker-compose.yml up --build
+	docker compose --env-file .env -f infrastructure/docker-compose.yml up --build

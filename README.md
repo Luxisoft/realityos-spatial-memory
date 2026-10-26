@@ -33,10 +33,10 @@ Requirements: Python 3.12+, Node 22+, Docker Compose for the complete stack.
     make test
     make compose-up
 
-The proxy is available at localhost port 8080 by default. Run the synthetic seed
+The proxy is available at localhost port 8090 by default. Run the synthetic seed
 inside the API container:
 
-    docker compose -f infrastructure/docker-compose.yml exec api python /scripts/seed_demo.py
+    docker compose --env-file .env -f infrastructure/docker-compose.yml exec api python /scripts/seed_demo.py
 
 The demo credentials are SEED_ADMIN_EMAIL and SEED_ADMIN_PASSWORD in .env.
 Replace them outside a local demonstration.

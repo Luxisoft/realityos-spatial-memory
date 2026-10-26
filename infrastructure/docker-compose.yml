@@ -48,7 +48,7 @@ services:
       timeout: 5s
       retries: 10
     restart: unless-stopped
-    networks: [internal]
+    networks: [internal, egress]
 
   worker:
     build:
@@ -63,7 +63,7 @@ services:
       api:
         condition: service_healthy
     restart: unless-stopped
-    networks: [internal]
+    networks: [internal, egress]
 
   frontend:
     build:
@@ -92,7 +92,7 @@ services:
       - frontend
       - display
     restart: unless-stopped
-    networks: [internal]
+    networks: [internal, egress]
 
 volumes:
   postgres_data:
@@ -101,3 +101,4 @@ volumes:
 networks:
   internal:
     internal: true
+  egress:

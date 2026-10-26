@@ -132,15 +132,24 @@ def object_candidates(db: Session, workspace_id: uuid.UUID, question: str) -> li
         return []
     clauses = [TrackedObject.canonical_name.ilike(f"%{word}%") for word in words]
     alias_clauses = [ObjectAlias.alias.ilike(f"%{word}%") for word in words]
-    return list(
+    object_ids = list(
         db.scalars(
-            select(TrackedObject)
+            select(TrackedObject.id)
             .outerjoin(ObjectAlias, ObjectAlias.object_id == TrackedObject.id)
             .where(
                 TrackedObject.workspace_id == workspace_id,
                 or_(*clauses, *alias_clauses),
             )
             .distinct()
+        )
+    )
+    if not object_ids:
+        return []
+    return list(
+        db.scalars(
+            select(TrackedObject)
+            .where(TrackedObject.id.in_(object_ids))
+            .order_by(TrackedObject.canonical_name)
         )
     )
 
