@@ -1,0 +1,17 @@
+services:
+  api:
+    image: ${REALITYOS_BACKEND_IMAGE:?Set REALITYOS_BACKEND_IMAGE to an immutable GHCR tag}
+    pull_policy: always
+    environment:
+      META_MODE: live
+      META_GATEWAY_BASE_URL: ${META_GATEWAY_BASE_URL:?Set META_GATEWAY_BASE_URL}
+      META_GATEWAY_TOKEN: ${META_GATEWAY_TOKEN:?Set META_GATEWAY_TOKEN}
+      MODEL_API_KEY: ""
+  worker:
+    image: ${REALITYOS_BACKEND_IMAGE:?Set REALITYOS_BACKEND_IMAGE to an immutable GHCR tag}
+    pull_policy: always
+    environment:
+      META_MODE: live
+      META_GATEWAY_BASE_URL: ${META_GATEWAY_BASE_URL:?Set META_GATEWAY_BASE_URL}
+      META_GATEWAY_TOKEN: ${META_GATEWAY_TOKEN:?Set META_GATEWAY_TOKEN}
+      MODEL_API_KEY: ""

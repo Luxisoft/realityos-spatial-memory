@@ -17,8 +17,11 @@ The model IDs and endpoint contracts were checked against official Meta
 [voice reference](https://dev.meta.ai/docs/api-reference/voice/transcribe) on
 2026-10-26. A deployment-time credential check reached Models successfully, but
 its model list was empty and a Muse Spark 1.3 request returned model_not_found.
-The local key is retained outside Git, while runtime remains Mock until Meta
-enables the required models for that account.
+The original RealityOS host received an empty model catalog from its egress IP,
+while the same credential worked from an alternate network. A restricted
+gateway is therefore implemented for `meta.luxisoft.com`; it is not deployed
+until FRONTEND's preflight returns an enabled model catalog. See
+[Gateway](GATEWAY.md).
 
 META_MODE=mock is deterministic and makes no HTTP call. Each mock result is
 marked simulated.

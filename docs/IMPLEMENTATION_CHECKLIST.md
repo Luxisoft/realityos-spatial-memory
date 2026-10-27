@@ -57,7 +57,8 @@ comando, prueba o simulador. Este documento no sustituye
 - [x] `META_MODE=mock` es determinista, documentado y nunca llama a Meta.
 - [x] Fixtures mock se etiquetan como simulados.
 - [~] `META_MODE=live` usa endpoints oficiales revisados; falta llamada real con credencial.
-- [ ] Bearer `MODEL_API_KEY` permanece solo en backend/worker.
+- [x] Gateway de egreso restringe rutas Meta, inyecta la credencial y preserva multipart sin persistir medios.
+- [~] Producción moverá `MODEL_API_KEY` exclusivamente a FRONTEND; la configuración GitHub/DNS y el despliegue aún no se han ejecutado.
 - [ ] Cliente aplica timeout, límite, backoff, validación, métricas y error explícito.
 - [ ] Muse Spark se conecta a análisis, relaciones e intención cuando Live está configurado.
 - [ ] SAM 3.1 persiste caja o máscara asociada a evidencia cuando Live está configurado.
@@ -106,6 +107,8 @@ comando, prueba o simulador. Este documento no sustituye
 - [ ] Demo prueba registro, BYTEA, proceso mock, consulta, resaltado, audio y Display.
 - [ ] Demo verifica que Consultar no realiza grabación.
 - [x] GitHub Actions ejecuta checks realmente disponibles.
+- [x] Workflow versionado construye imágenes GHCR y prepara despliegue/rollback gateway y RealityOS tras merge a `main`.
+- [~] DNS, secretos GitHub y primer despliegue en FRONTEND están pendientes de configuración externa.
 - [x] README inglés y documentación de arquitectura, DB, API, Meta, Wearables, despliegue, demo y seguridad existen.
 - [x] `IMPLEMENTATION_STATUS.md` enumera pendientes y bloqueos verificables.
 - [ ] Commits por fase creados; rama/PR publicados solo con permisos reales.

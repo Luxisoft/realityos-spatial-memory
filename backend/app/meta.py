@@ -83,13 +83,22 @@ class LiveMetaModelClient(MetaModelClient):
     """Meta Model API implementation based on Responses and Voice API contracts."""
 
     def __init__(self, settings: Settings) -> None:
-        if not settings.model_api_key:
-            raise MetaProviderError("MODEL_API_KEY is required when META_MODE=live.")
         self.settings = settings
-        self.headers = {"Authorization": f"Bearer {settings.model_api_key}"}
+        if settings.meta_gateway_base_url:
+            if not settings.meta_gateway_token:
+                raise MetaProviderError(
+                    "META_GATEWAY_TOKEN is required when META_GATEWAY_BASE_URL is configured."
+                )
+            self.base_url = str(settings.meta_gateway_base_url).rstrip("/")
+            self.headers = {"X-RealityOS-Gateway-Token": settings.meta_gateway_token}
+        else:
+            if not settings.model_api_key:
+                raise MetaProviderError("MODEL_API_KEY is required when META_MODE=live without a gateway.")
+            self.base_url = str(settings.meta_api_base_url).rstrip("/")
+            self.headers = {"Authorization": f"Bearer {settings.model_api_key}"}
 
     def _request(self, method: str, path: str, **kwargs: Any) -> httpx.Response:
-        url = f"{str(self.settings.meta_api_base_url).rstrip('/')}/{path.lstrip('/')}"
+        url = f"{self.base_url}/{path.lstrip('/')}"
         last_error: Exception | None = None
         for attempt in range(self.settings.meta_max_retries + 1):
             try:

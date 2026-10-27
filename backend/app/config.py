@@ -33,6 +33,8 @@ class Settings(BaseSettings):
     meta_mode: str = "mock"
     model_api_key: str | None = None
     meta_api_base_url: AnyHttpUrl = "https://api.meta.ai/v1"
+    meta_gateway_base_url: AnyHttpUrl | None = None
+    meta_gateway_token: str | None = None
     meta_timeout_seconds: float = Field(default=30, gt=0, le=120)
     meta_max_retries: int = Field(default=2, ge=0, le=5)
     enqueue_processing: bool = True

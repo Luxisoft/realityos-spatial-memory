@@ -1,0 +1,19 @@
+services:
+  meta-gateway:
+    image: ${REALITYOS_GATEWAY_IMAGE:?Set REALITYOS_GATEWAY_IMAGE to an immutable GHCR tag}
+    pull_policy: always
+    env_file:
+      - ${META_GATEWAY_ENV_FILE:-./runtime.env}
+    ports:
+      - "127.0.0.1:${META_GATEWAY_PORT:-9088}:8080"
+    read_only: true
+    tmpfs:
+      - /tmp
+    security_opt:
+      - no-new-privileges:true
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8080/healthz')"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+    restart: unless-stopped

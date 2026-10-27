@@ -12,6 +12,8 @@ configuration and non-code files, or when the graph is unavailable.
 - Keep shared backend contracts in `backend/`; API and worker must not diverge.
 - Keep browser UI in `frontend/`, Display UI in `display-webapp/`, and phone
   and Wearables code in `android/`.
+- Keep the restricted Meta egress service in `meta-gateway/`; it must remain an
+  allowlisted gateway, never a general-purpose proxy.
 - Store synthetic fixtures only in `simulator/`; never commit credentials or
   customer media.
 - Prefer commands exposed by the root `Makefile`. Before handoff, run the
@@ -25,6 +27,8 @@ configuration and non-code files, or when the graph is unavailable.
 - State observation dates as “last seen” and keep visual confidence separate
   from confidence that an item remains there now.
 - `MODEL_API_KEY`, JWT secrets and database credentials remain server-side.
+- In production, `MODEL_API_KEY` lives only on FRONTEND's gateway runtime file;
+  RealityOS receives only its independent gateway token.
 - Mock outputs are deterministic and visibly labelled simulated.
 - Confirm current official Meta endpoint/SDK signatures before coding Live.
 
@@ -33,4 +37,6 @@ configuration and non-code files, or when the graph is unavailable.
 - Add tests with changes and cover permission and workspace isolation.
 - Do not claim an Android build, device test, live Meta request, Docker run or
   PR unless it has actually run in the applicable environment.
+- Validate gateway route allowlisting, token rejection and multipart forwarding
+  before changing gateway deployment behavior.
 - Update `docs/IMPLEMENTATION_STATUS.md` for incomplete external integrations.

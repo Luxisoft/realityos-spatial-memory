@@ -19,6 +19,8 @@ session; query endpoints are evidence-only and never start a recording.
   verified last-seen retrieval and PNG highlights.
 - Deterministic Mock Meta provider and a Live client for Muse Spark 1.3, SAM
   3.1 and Muse Voice Transcribe.
+- Optional restricted Meta egress gateway for deployments where only an
+  approved server can reach Model API. See [Gateway](docs/GATEWAY.md).
 - React administrative panel and separate 600×600 Display query web app.
 - Compose, Nginx reverse proxy, migration, synthetic seed and automated tests.
 
@@ -44,9 +46,11 @@ Replace them outside a local demonstration.
 ## Meta integration
 
 META_MODE=mock is the default and is used by seed/tests. It makes no external
-request and labels results simulated. For META_MODE=live, set MODEL_API_KEY only
-in the server environment. The application does not silently fall back to mock
-when Live fails.
+request and labels results simulated. For META_MODE=live, use either direct
+`MODEL_API_KEY` in a development-only environment or configure
+`META_GATEWAY_BASE_URL` plus `META_GATEWAY_TOKEN`; the latter keeps the Meta key
+on the gateway host. The application does not silently fall back to mock when
+Live fails.
 
 ## Quality checks
 
