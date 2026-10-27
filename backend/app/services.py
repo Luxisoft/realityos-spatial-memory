@@ -458,12 +458,14 @@ def exact_term_candidates(
         .where(TrackedObject.workspace_id == workspace_id)
     ):
         aliases_by_object.setdefault(object_id, []).append(alias)
-    return [
+    alias_matches = [
         item
         for item in tracked
-        if search_phrase(item.canonical_name) == requested
-        or any(search_phrase(alias) == requested for alias in aliases_by_object.get(item.id, []))
+        if any(search_phrase(alias) == requested for alias in aliases_by_object.get(item.id, []))
     ]
+    if alias_matches:
+        return alias_matches
+    return [item for item in tracked if search_phrase(item.canonical_name) == requested]
 
 
 def multilingual_object_candidates(

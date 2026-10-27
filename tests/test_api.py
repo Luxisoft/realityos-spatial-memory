@@ -213,6 +213,13 @@ def test_object_search_uses_aliases_and_returns_ambiguity(client, auth_headers):
                 category="power tool",
             )
         )
+        db.add(
+            TrackedObject(
+                workspace_id=uuid.UUID(workspace_id),
+                canonical_name="perforadora",
+                category="generated label collision",
+            )
+        )
         db.commit()
     alias_response = client.post(
         f"/v1/objects/{drill_id}/aliases",
@@ -227,7 +234,7 @@ def test_object_search_uses_aliases_and_returns_ambiguity(client, auth_headers):
         params={"workspace_id": workspace_id, "q": "perforadora"},
     )
     assert by_alias.status_code == 200
-    assert [item["canonical_name"] for item in by_alias.json()] == ["yellow drill"]
+    assert [item["canonical_name"] for item in by_alias.json()] == ["perforadora", "yellow drill"]
     answer_by_alias = client.post(
         "/v1/queries",
         headers=auth_headers,
