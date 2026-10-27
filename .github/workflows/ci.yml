@@ -65,6 +65,6 @@ jobs:
       # The hosted runner already includes cmdline-tools.  Invoking sdkmanager
       # directly avoids setup-android's obsolete `tools` package request.
       - run: 'yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses'
-      - run: "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "platform-tools" "platforms;android-36" "build-tools;36.0.0"
+      - run: '"$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "platform-tools" "platforms;android-36" "build-tools;36.0.0"'
       - run: ./gradlew :app:assembleDebug :app:compileDebugAndroidTestKotlin
         working-directory: android
