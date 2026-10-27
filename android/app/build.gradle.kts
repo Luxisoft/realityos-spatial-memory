@@ -22,6 +22,9 @@ android {
     targetSdk = 36
     versionCode = 1
     versionName = "0.1.0"
+    // Without this, AGP falls back to the legacy InstrumentationTestRunner,
+    // which does not discover AndroidJUnit4 MockDeviceKit tests.
+    testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     manifestPlaceholders["mwdat_application_id"] =
       localProperties.getProperty("mwdat_application_id", "0")
     manifestPlaceholders["mwdat_client_token"] =
