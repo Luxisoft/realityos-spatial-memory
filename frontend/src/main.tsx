@@ -141,7 +141,7 @@ function Register({ workspaceId, token }: { workspaceId: string; token: string }
   }
   return <section className="panel"><p className="eyebrow">REGISTRAR / CONSENTIMIENTO ACTIVO</p><h1>Nueva evidencia visual</h1>
     <form className="capture-form" onSubmit={capture}><label>Ubicación<select value={zoneId} onChange={(event) => setZoneId(event.target.value)}><option value="">Sin detalle de ubicación</option>{zones.map((zone) => <option key={zone.id} value={zone.id}>{zone.name}</option>)}</select></label>
-    <label className="dropzone">Fotografía original<input type="file" accept="image/jpeg,image/png,image/webp" onChange={(event: ChangeEvent<HTMLInputElement>) => setFile(event.target.files?.[0] ?? null)} required /><strong>{file?.name ?? "Seleccionar imagen"}</strong><small>JPEG, PNG o WebP · la fuente de verdad se guarda como BYTEA.</small></label>
+    <label className="dropzone">Evidencia original<input type="file" accept="image/jpeg,image/png,image/webp,video/mp4,video/quicktime,video/webm" onChange={(event: ChangeEvent<HTMLInputElement>) => setFile(event.target.files?.[0] ?? null)} required /><strong>{file?.name ?? "Seleccionar archivo"}</strong><small>JPEG, PNG, WebP o video MP4/MOV/WebM limitado · la fuente de verdad se guarda como BYTEA.</small></label>
     <button className="primary">Guardar y procesar</button></form><p className="status">{status}</p></section>;
 }
 

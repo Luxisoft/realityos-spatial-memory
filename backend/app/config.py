@@ -30,6 +30,7 @@ class Settings(BaseSettings):
     max_image_bytes: int = Field(default=10 * 1024 * 1024, ge=1)
     max_video_bytes: int = Field(default=50 * 1024 * 1024, ge=1)
     max_video_seconds: int = Field(default=120, ge=1)
+    max_video_frames: int = Field(default=8, ge=1, le=24)
     meta_mode: str = "mock"
     model_api_key: str | None = None
     meta_api_base_url: AnyHttpUrl = "https://api.meta.ai/v1"

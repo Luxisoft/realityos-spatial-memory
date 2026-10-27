@@ -68,7 +68,10 @@
 
 ## Not implemented
 
-- FFmpeg video ingestion, frame extraction and video traceability.
+- Video Live verification with a user-provided clip. The bounded MP4/MOV/WebM
+  pipeline and its FFmpeg test exist, but no customer clip has been processed
+  in production; streaming, audio extraction/transcription and long-video
+  processing remain out of scope.
 - Vector retrieval abstraction and optional vector database integration.
 - Android Kotlin/Compose, DAT SDK and Mock Device Kit tests.
 - Official Ray-Ban Display toolkit and simulator validation.

@@ -1,10 +1,12 @@
 from __future__ import annotations
 
 import hashlib
+import io
 import re
 import uuid
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 
+from PIL import Image
 from sqlalchemy import func, or_, select
 from sqlalchemy.orm import Session
 
@@ -13,12 +15,14 @@ from app.models import (
     CaptureSession,
     JobStatus,
     MediaAsset,
+    MediaKind,
     ObjectAlias,
     ObjectObservation,
     ProcessingJob,
     TrackedObject,
     VerificationStatus,
 )
+from app.video import extract_representative_frames, probe_video
 
 
 def normalize(value: str) -> str:
@@ -124,6 +128,7 @@ def process_job(
     client: MetaModelClient,
     *,
     sam_min_confidence: float = 0.65,
+    max_video_frames: int = 8,
 ) -> ProcessingJob:
     job = db.get(ProcessingJob, job_id)
     if job is None:
@@ -139,9 +144,116 @@ def process_job(
     job.attempts += 1
     job.started_at = datetime.now(UTC)
     try:
-        capture_session = (
-            db.get(CaptureSession, media.capture_session_id) if media.capture_session_id else None
+        if media.kind == MediaKind.VIDEO:
+            result_metadata = _process_video_asset(
+                db, media, client, sam_min_confidence, max_video_frames
+            )
+        elif media.kind == MediaKind.IMAGE:
+            result_metadata = _process_image_asset(db, media, client, sam_min_confidence)
+        else:
+            raise ValueError(f"Unsupported media kind for processing: {media.kind.value}")
+        job.status = JobStatus.COMPLETED
+        job.result_metadata = result_metadata
+        job.completed_at = datetime.now(UTC)
+    except Exception as exc:
+        job.status = JobStatus.FAILED
+        job.error_message = str(exc)[:1000]
+        job.completed_at = datetime.now(UTC)
+    return job
+
+
+def _process_video_asset(
+    db: Session,
+    video: MediaAsset,
+    client: MetaModelClient,
+    sam_min_confidence: float,
+    max_video_frames: int,
+) -> dict[str, object]:
+    info = probe_video(video.original_bytes)
+    frames = extract_representative_frames(video.original_bytes, info, max_video_frames)
+    frame_results: list[dict[str, object]] = []
+    existing_frames = {
+        int(frame.extra_metadata.get("frame_index", -1)): frame
+        for frame in db.scalars(
+            select(MediaAsset).where(MediaAsset.parent_asset_id == video.id)
         )
+    }
+    for index, (timestamp_seconds, frame_bytes) in enumerate(frames):
+        frame = existing_frames.get(index)
+        if frame is None:
+            digest = media_sha256(frame_bytes)
+            with Image.open(io.BytesIO(frame_bytes)) as image:
+                width, height = image.size
+            base_time = video.captured_at or video.created_at
+            frame = MediaAsset(
+                workspace_id=video.workspace_id,
+                # Derived frames may be byte-identical at different timestamps.
+                # Keep their traceability through parent_asset_id instead of the
+                # source session's hash-deduplication constraint.
+                capture_session_id=None,
+                parent_asset_id=video.id,
+                kind=MediaKind.IMAGE,
+                mime_type="image/jpeg",
+                original_bytes=frame_bytes,
+                sha256=digest,
+                byte_size=len(frame_bytes),
+                width=width,
+                height=height,
+                captured_at=base_time + timedelta(seconds=timestamp_seconds),
+                extra_metadata={
+                    "filename": f"{video.extra_metadata.get('filename', 'video')}-frame-{index + 1:03d}.jpg",
+                    "parent_video_id": str(video.id),
+                    "source_capture_session_id": str(video.capture_session_id),
+                    "frame_index": index,
+                    "video_timestamp_seconds": round(timestamp_seconds, 3),
+                    "timestamp_is_approximate": True,
+                },
+            )
+            db.add(frame)
+            db.flush()
+        report = _process_image_asset(db, frame, client, sam_min_confidence)
+        frame_results.append(
+            {
+                "frame_asset_id": str(frame.id),
+                "timestamp_seconds": round(timestamp_seconds, 3),
+                **report,
+            }
+        )
+    return {
+        "simulated": all(bool(item["simulated"]) for item in frame_results),
+        "source_kind": "video",
+        "duration_seconds": round(info.duration_seconds, 3),
+        "frames_extracted": len(frame_results),
+        "frames": frame_results,
+        "objects_created": [
+            object_id for item in frame_results for object_id in item["objects_created"]
+        ],
+        "segmentation_count": sum(int(item["segmentation_count"]) for item in frame_results),
+    }
+
+
+def _process_image_asset(
+    db: Session,
+    media: MediaAsset,
+    client: MetaModelClient,
+    sam_min_confidence: float,
+) -> dict[str, object]:
+    existing = db.scalar(
+        select(ObjectObservation.id).where(ObjectObservation.media_asset_id == media.id).limit(1)
+    )
+    if existing:
+        return {
+            "simulated": bool(media.extra_metadata.get("simulated", False)),
+            "objects_created": [],
+            "segmentation_count": 0,
+            "already_processed": True,
+        }
+    with db.begin_nested():
+        source_session_id = media.capture_session_id
+        if source_session_id is None and media.parent_asset_id:
+            parent = db.get(MediaAsset, media.parent_asset_id)
+            source_session_id = parent.capture_session_id if parent else None
+        capture_session = db.get(CaptureSession, source_session_id) if source_session_id else None
         context = str(media.extra_metadata.get("filename", ""))
         analysis = client.analyze_image(media.original_bytes, media.mime_type, context)
         created: list[str] = []
@@ -168,14 +280,6 @@ def process_job(
                 db.add(ObjectAlias(object_id=tracked.id, alias=object_name))
             elif tracked.category is None and detection.category:
                 tracked.category = detection.category
-            duplicate = db.scalar(
-                select(ObjectObservation).where(
-                    ObjectObservation.object_id == tracked.id,
-                    ObjectObservation.media_asset_id == media.id,
-                )
-            )
-            if duplicate:
-                continue
             segment = None
             if detection.confidence >= sam_min_confidence:
                 segments = client.segment(media.original_bytes, media.mime_type, detection.label)
@@ -186,7 +290,7 @@ def process_job(
                 workspace_id=media.workspace_id,
                 object_id=tracked.id,
                 media_asset_id=media.id,
-                capture_session_id=media.capture_session_id,
+                capture_session_id=source_session_id,
                 zone_id=capture_session.zone_id if capture_session else None,
                 created_by_id=capture_session.created_by_id if capture_session else None,
                 bounding_box=segment.bounding_box if segment else detection.bounding_box,
@@ -204,19 +308,14 @@ def process_job(
                 ),
             )
             db.add(observation)
+            db.flush()
             created.append(str(observation.id))
-        job.status = JobStatus.COMPLETED
-        job.result_metadata = {
+        media.extra_metadata = {**media.extra_metadata, "simulated": analysis.simulated}
+        return {
             "simulated": analysis.simulated,
             "objects_created": created,
             "segmentation_count": segmentation_count,
         }
-        job.completed_at = datetime.now(UTC)
-    except Exception as exc:
-        job.status = JobStatus.FAILED
-        job.error_message = str(exc)[:1000]
-        job.completed_at = datetime.now(UTC)
-    return job
 
 
 def object_candidates(db: Session, workspace_id: uuid.UUID, question: str) -> list[TrackedObject]:

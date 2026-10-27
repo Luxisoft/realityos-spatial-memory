@@ -14,7 +14,9 @@ deployed project. Create it once with `make runtime-dirs`:
 
 Upload only original photos you are authorized to use. Do not stage photos that
 show people, credentials, customer data, or unrelated private material. The API
-accepts JPEG, PNG and WebP up to 10 MiB each.
+accepts JPEG, PNG and WebP up to 10 MiB each, and MP4, MOV or WebM clips up
+to 50 MiB. Video analysis extracts a configured maximum of representative
+frames; it never processes a clip without an explicit `--process` invocation.
 
 ```bash
 scp ./taladro-amarillo.jpg \

@@ -17,6 +17,9 @@ session; query endpoints are evidence-only and never start a recording.
   RBAC and authorized binary media retrieval.
 - Original-media hashing/deduplication, logical objects, observations, history,
   verified last-seen retrieval and PNG highlights.
+- Bounded MP4/MOV/WebM ingestion: the original clip remains PostgreSQL BYTEA;
+  FFmpeg extracts a configured maximum of representative JPEG frames linked to
+  their parent video and approximate timestamps.
 - Deterministic Mock Meta provider and a Live client for Muse Spark 1.3, SAM
   3.1 and Muse Voice Transcribe.
 - Optional restricted Meta egress gateway for deployments where only an
@@ -67,6 +70,10 @@ and remaining verification work.
 For a deliberate, consent-gated test with your own photos, use the private
 staging workflow in [Manual photo test](docs/MANUAL_PHOTO_TEST.md). Staging a
 file alone does not register it or call Meta.
+
+Video is intentionally limited to short clips (default: 50 MiB, 120 seconds,
+eight sampled frames). It is not continuous recording, streaming, audio
+transcription, or long-video processing.
 
 ## Architecture and privacy
 

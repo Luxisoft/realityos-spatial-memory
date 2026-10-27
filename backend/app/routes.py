@@ -57,6 +57,7 @@ from app.security import (
     verify_password,
 )
 from app.services import create_processing_job, media_sha256, normalize, object_candidates
+from app.video import VideoProcessingError, probe_video
 
 router = APIRouter()
 
@@ -340,6 +341,7 @@ async def close_session(
 
 @router.post("/captures", response_model=CaptureResponse, status_code=status.HTTP_201_CREATED)
 async def create_capture(
+    request: Request,
     session_id: uuid.UUID = Form(...),
     captured_at: datetime | None = Form(default=None),
     file: UploadFile = File(...),
@@ -356,25 +358,44 @@ async def create_capture(
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT, detail="Capture session is closed."
         )
-    allowed = {"image/jpeg", "image/png", "image/webp"}
-    if file.content_type not in allowed:
+    image_types = {"image/jpeg", "image/png", "image/webp"}
+    video_types = {"video/mp4", "video/quicktime", "video/webm"}
+    if file.content_type not in image_types | video_types:
         raise HTTPException(
-            status_code=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE, detail="Unsupported image type."
+            status_code=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
+            detail="Unsupported image or video type.",
         )
     raw = await file.read()
-    limit = 10 * 1024 * 1024
+    settings = request.app.state.settings
+    is_video = file.content_type in video_types
+    limit = settings.max_video_bytes if is_video else settings.max_image_bytes
     if len(raw) == 0 or len(raw) > limit:
         raise HTTPException(
-            status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE, detail="Invalid image size."
+            status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+            detail="Invalid media size.",
         )
-    try:
-        with Image.open(io.BytesIO(raw)) as image:
-            width, height = image.size
-            image.verify()
-    except Exception:
-        raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="Invalid image data."
-        )
+    duration_seconds: float | None = None
+    if is_video:
+        try:
+            video_info = probe_video(raw)
+        except VideoProcessingError as exc:
+            raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(exc))
+        if video_info.duration_seconds > settings.max_video_seconds:
+            raise HTTPException(
+                status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+                detail=f"Video exceeds the {settings.max_video_seconds}-second limit.",
+            )
+        width, height = video_info.width, video_info.height
+        duration_seconds = video_info.duration_seconds
+    else:
+        try:
+            with Image.open(io.BytesIO(raw)) as image:
+                width, height = image.size
+                image.verify()
+        except Exception:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="Invalid image data."
+            )
     digest = media_sha256(raw)
     existing = db.scalar(
         select(MediaAsset).where(
@@ -387,7 +408,7 @@ async def create_capture(
     asset = MediaAsset(
         workspace_id=session.workspace_id,
         capture_session_id=session.id,
-        kind=MediaKind.IMAGE,
+        kind=MediaKind.VIDEO if is_video else MediaKind.IMAGE,
         mime_type=file.content_type,
         original_bytes=raw,
         sha256=digest,
@@ -395,7 +416,10 @@ async def create_capture(
         width=width,
         height=height,
         captured_at=captured_at,
-        extra_metadata={"filename": file.filename or "capture"},
+        extra_metadata={
+            "filename": file.filename or "capture",
+            **({"duration_seconds": duration_seconds} if duration_seconds is not None else {}),
+        },
     )
     db.add(asset)
     db.flush()

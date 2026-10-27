@@ -16,3 +16,6 @@ All routes use Bearer access tokens and workspace membership.
 Only admin and register members open sessions or upload. Only admin and query
 members call query endpoints. A retrieved image is authorized again at its media
 endpoint. Audio query accepts WAV because Meta file transcription requires it.
+Captures accept JPEG, PNG, WebP, MP4, MOV and WebM. Video limits are configured
+server-side; derived frames keep a `parent_asset_id`, approximate timestamp and
+source-video metadata while the original clip remains the BYTEA source of truth.

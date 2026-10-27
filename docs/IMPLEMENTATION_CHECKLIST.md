@@ -65,7 +65,7 @@ comando, prueba o simulador. Este documento no sustituye
 - [~] Muse Voice Transcribe está conectado solo como STT; falta una transcripción real verificada.
 - [~] Redis/Celery y la tarea están implementados; falta prueba de entrega de broker.
 - [x] Reintentos e idempotencia evitan observaciones duplicadas.
-- [ ] Vídeo limitado conserva original, frames, timestamps y trazabilidad.
+- [~] Vídeo limitado conserva original BYTEA, frames representativos, timestamps aproximados y trazabilidad; falta una prueba Live de un clip subido por usuario y no hay streaming ni audio de video.
 - [ ] Pruebas de contrato: mock, live simulado, timeout, error e idempotencia.
 
 ## Fase 4 — Panel web

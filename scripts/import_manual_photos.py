@@ -19,8 +19,16 @@ import httpx
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_INPUT_ROOT = PROJECT_ROOT / ".runtime" / "manual-captures" / "incoming"
-SUPPORTED_MIME_TYPES = {"image/jpeg", "image/png", "image/webp"}
+SUPPORTED_MIME_TYPES = {
+    "image/jpeg",
+    "image/png",
+    "image/webp",
+    "video/mp4",
+    "video/quicktime",
+    "video/webm",
+}
 MAX_IMAGE_BYTES = 10 * 1024 * 1024
+MAX_VIDEO_BYTES = 50 * 1024 * 1024
 
 
 class ImportError(RuntimeError):
@@ -44,8 +52,11 @@ def staged_images(raw_paths: list[str], input_root: Path) -> list[Path]:
         mime_type, _ = mimetypes.guess_type(full_path.name)
         if mime_type not in SUPPORTED_MIME_TYPES:
             raise ImportError(f"Unsupported image format: {full_path.name}")
-        if full_path.stat().st_size > MAX_IMAGE_BYTES:
-            raise ImportError(f"Image exceeds the 10 MiB limit: {full_path.name}")
+        byte_limit = MAX_VIDEO_BYTES if mime_type.startswith("video/") else MAX_IMAGE_BYTES
+        if full_path.stat().st_size > byte_limit:
+            raise ImportError(
+                f"Media exceeds the {byte_limit // (1024 * 1024)} MiB limit: {full_path.name}"
+            )
         resolved.append(full_path)
     return resolved
 
