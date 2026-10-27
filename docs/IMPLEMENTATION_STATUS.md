@@ -105,8 +105,11 @@
   RealityViewModel/session path, mounts Meta's in-app Display renderer, supports
   a Chrome preview server, mock media feeds/permissions/speech and excludes the
   Mock Device Kit from release. Debug and release compilation plus release-APK
-  inspection have run locally. The new controller instrumentation and manual
-  phone/Chrome preview have not yet been run in their respective environments.
+  inspection have run locally. The controller's In-App renderer and Chrome
+  preview-server tests passed in a GitHub-hosted Android 15 emulator on
+  2026-10-27 (three Mock Device Kit tests total). Interactive phone and
+  desktop-Chrome extension validation remain pending; no physical glasses test
+  is claimed.
 
 ## Not implemented
 

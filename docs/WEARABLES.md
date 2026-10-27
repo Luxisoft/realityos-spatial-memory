@@ -85,9 +85,10 @@ claimed.
   It does not prove camera, microphone, Bluetooth-audio or Display behavior on
   physical glasses.
 - The Debug-only Developer Preview adds an In-App renderer and optional Chrome
-  renderer to the actual RealityOS Android host. Its source compiles locally;
-  automated controller execution and interactive phone/Chrome validation must
-  be reported separately after each environment has run it.
+  renderer to the actual RealityOS Android host. Its controller passed on the
+  GitHub-hosted Android 15 emulator on 2026-10-27, including the renderer
+  lifecycle and Chrome preview server. Interactive phone and desktop-Chrome
+  extension validation remain pending and are not inferred from that result.
 - Release does not package Mock Device Kit. CI builds Debug and Release and
   rejects a release APK containing `com/meta/wearable/dat/mockdevice`.
 - Hardware QA must explicitly validate registration, camera/microphone

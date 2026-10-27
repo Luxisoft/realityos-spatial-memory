@@ -27,9 +27,11 @@ ANDROID_HOME=/opt/android-sdk ANDROID_SDK_ROOT=/opt/android-sdk \
   ./gradlew :app:connectedDebugAndroidTest
 ```
 
-This test passed in the GitHub Actions Android 15 emulator on 2026-10-27. It
-does not validate physical camera, microphone, Bluetooth audio, or Display
-behavior; those require compatible Meta Ray-Ban hardware.
+Three Mock Device Kit instrumentation tests passed in the GitHub Actions
+Android 15 emulator on 2026-10-27, including the Debug controller's In-App
+renderer and Chrome preview-server lifecycle. They do not validate physical
+camera, microphone, Bluetooth audio, or Display behavior; those require
+compatible Meta Ray-Ban hardware.
 
 ## Interactive virtual glasses on a phone
 
