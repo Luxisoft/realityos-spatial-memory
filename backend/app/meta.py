@@ -11,7 +11,7 @@ from typing import Any
 import httpx
 
 from app.config import Settings
-from app.schemas import ImageAnalysis, MetaDetection
+from app.schemas import ImageAnalysis, MetaDetection, QueryInterpretation
 
 
 class MetaProviderError(RuntimeError):
@@ -34,6 +34,9 @@ class MetaModelClient(ABC):
     @abstractmethod
     def transcribe_wav(self, audio: bytes) -> Transcription: ...
 
+    @abstractmethod
+    def interpret_query(self, question: str, known_terms: list[str]) -> QueryInterpretation: ...
+
 
 class MockMetaModelClient(MetaModelClient):
     """Deterministic local fixtures; deliberately makes no network request."""
@@ -41,12 +44,12 @@ class MockMetaModelClient(MetaModelClient):
     def analyze_image(self, image: bytes, mime_type: str, context: str = "") -> ImageAnalysis:
         hint = context.casefold()
         catalog = [
-            ("taladro amarillo", "herramienta eléctrica", 0.96),
-            ("martillo", "herramienta manual", 0.91),
-            ("llave inglesa", "herramienta manual", 0.89),
-            ("destornillador", "herramienta manual", 0.88),
-            ("caja de herramientas", "contenedor", 0.84),
-            ("cargador de baterías", "equipo", 0.82),
+            ("yellow drill", "power tool", 0.96),
+            ("hammer", "hand tool", 0.91),
+            ("adjustable wrench", "hand tool", 0.89),
+            ("screwdriver", "hand tool", 0.88),
+            ("toolbox", "container", 0.84),
+            ("battery charger", "equipment", 0.82),
         ]
         label, category, confidence = next(
             (row for row in catalog if row[0].split()[0] in hint),
@@ -61,8 +64,8 @@ class MockMetaModelClient(MetaModelClient):
                     category=category,
                     confidence=confidence,
                     bounding_box={"x": 0.18, "y": 0.22, "width": 0.57, "height": 0.49},
-                    spatial_description=f"Simulado: {label}, sobre una caja negra.",
-                    relationships=[{"relation": "sobre", "object": "caja negra"}],
+                    spatial_description=f"Simulated: {label}, on a black box.",
+                    relationships=[{"relation": "on", "object": "black box"}],
                 )
             ],
         )
@@ -74,12 +77,37 @@ class MockMetaModelClient(MetaModelClient):
                 category=None,
                 confidence=0.94,
                 bounding_box={"x": 0.18, "y": 0.22, "width": 0.57, "height": 0.49},
-                spatial_description="Geometría simulada; no fue inferida por SAM real.",
+                spatial_description="Simulated geometry; it was not inferred by real SAM.",
             )
         ]
 
     def transcribe_wav(self, audio: bytes) -> Transcription:
-        return Transcription(text="¿Dónde está el taladro amarillo?", simulated=True)
+        return Transcription(text="Where is the yellow drill?", simulated=True)
+
+    def interpret_query(self, question: str, known_terms: list[str]) -> QueryInterpretation:
+        """Deterministic multilingual fixture; it never calls a model or network."""
+
+        normalized = question.casefold()
+        known = {term.casefold(): term for term in known_terms}
+        for key, original in known.items():
+            if key in normalized:
+                return QueryInterpretation(terms=[original], simulated=True)
+        fixture_terms = {
+            "yellow drill": [
+                "yellow drill",
+                "taladro amarillo",
+                "perceuse jaune",
+                "gelber bohrer",
+                "黄色电钻",
+            ],
+            "hammer": ["hammer", "martillo", "marteau", "hammer"],
+            "adjustable wrench": ["adjustable wrench", "llave inglesa", "clé à molette"],
+            "screwdriver": ["screwdriver", "destornillador", "tournevis"],
+        }
+        for canonical, variants in fixture_terms.items():
+            if canonical in known and any(variant in normalized for variant in variants):
+                return QueryInterpretation(terms=[known[canonical]], simulated=True)
+        return QueryInterpretation(simulated=True)
 
 
 class LiveMetaModelClient(MetaModelClient):
@@ -154,7 +182,7 @@ class LiveMetaModelClient(MetaModelClient):
         instruction = (
             "Inspect this workspace image. Return only JSON with a detections array. "
             "Every human-readable detection field (label, category, spatial_description, "
-            "relationship and related object) must use Colombian Spanish (es-CO), except "
+            "relationship and related object) must use English, except "
             "for a visible brand, model, or technical acronym. Each detection needs label, "
             "optional category, confidence from 0 to 1, bounding_box {x,y,width,height} "
             "normalized 0..1, spatial_description, and optional relationships as objects "
@@ -182,6 +210,41 @@ class LiveMetaModelClient(MetaModelClient):
         except (KeyError, ValueError, TypeError) as exc:
             raise MetaProviderError("Muse Spark returned an invalid structured analysis.") from exc
         return ImageAnalysis(model="muse-spark-1.3", simulated=False, detections=detections)
+
+    def interpret_query(self, question: str, known_terms: list[str]) -> QueryInterpretation:
+        """Map a question in any language to terms already authorized in its workspace."""
+
+        if not known_terms:
+            return QueryInterpretation()
+        prompt = (
+            "You are a multilingual object-query interpreter. The user may write in any "
+            "language or transliteration. Match the requested physical object only against "
+            "the known workspace terms below. Return only JSON shaped as {\"terms\":[...]} "
+            "with zero, one, or several exact strings copied from known_terms. Return an "
+            "empty list when there is no confident match or when the request is ambiguous. "
+            "Never create terms, locations, evidence, or an answer.\n\n"
+            f"known_terms={json.dumps(known_terms, ensure_ascii=False)}\n"
+            f"user_question={question}"
+        )
+        payload = self._request(
+            "POST",
+            "responses",
+            json={"model": "muse-spark-1.3", "store": False, "input": prompt},
+        ).json()
+        try:
+            decoded = QueryInterpretation.model_validate(json.loads(self._output_text(payload)))
+        except (TypeError, ValueError, json.JSONDecodeError) as exc:
+            raise MetaProviderError("Muse Spark returned an invalid query interpretation.") from exc
+        allowed = {term.casefold(): term for term in known_terms}
+        return QueryInterpretation(
+            terms=list(
+                dict.fromkeys(
+                    allowed[term.casefold()]
+                    for term in decoded.terms
+                    if term.casefold() in allowed
+                )
+            )
+        )
 
     def segment(self, image: bytes, mime_type: str, prompt: str) -> list[MetaDetection]:
         body = {
@@ -216,7 +279,7 @@ class LiveMetaModelClient(MetaModelClient):
                         "width": (values["x2"] - values["x1"]) / values["w"],
                         "height": (values["y2"] - values["y1"]) / values["h"],
                     },
-                    spatial_description="Caja devuelta por SAM 3.1; la máscara se conserva para el worker.",
+                    spatial_description="Box returned by SAM 3.1; the worker retains the mask geometry.",
                 )
             )
         return boxes

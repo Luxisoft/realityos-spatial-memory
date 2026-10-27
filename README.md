@@ -17,9 +17,9 @@ session; query endpoints are evidence-only and never start a recording.
   RBAC and authorized binary media retrieval.
 - Original-media hashing/deduplication, logical objects, observations, history,
   verified last-seen retrieval and PNG highlights.
-- Bounded MP4/MOV/WebM ingestion: the original clip remains PostgreSQL BYTEA;
-  FFmpeg extracts a configured maximum of representative JPEG frames linked to
-  their parent video and approximate timestamps.
+- MP4/MOV/WebM ingestion: the original clip remains PostgreSQL BYTEA; FFmpeg
+  partitions long clips logically and extracts representative JPEG frames per
+  configured segment, linked to their parent video and approximate timestamps.
 - Deterministic Mock Meta provider and a Live client for Muse Spark 1.3, SAM
   3.1 and Muse Voice Transcribe.
 - Optional restricted Meta egress gateway for deployments where only an
@@ -71,9 +71,15 @@ For a deliberate, consent-gated test with your own photos, use the private
 staging workflow in [Manual photo test](docs/MANUAL_PHOTO_TEST.md). Staging a
 file alone does not register it or call Meta.
 
-Video is intentionally limited to short clips (default: 50 MiB, 120 seconds,
-eight sampled frames). It is not continuous recording, streaming, audio
-transcription, or long-video processing.
+Video intake has no fixed application or proxy size/duration cap by default
+(`MAX_VIDEO_BYTES=0`, `MAX_VIDEO_SECONDS=0`). Capacity remains constrained by
+PostgreSQL BYTEA's physical limits and the server's disk/RAM. Long clips are
+partitioned for bounded extraction (`VIDEO_SEGMENT_SECONDS=120`, eight sampled
+frames per segment), not streamed, audio-transcribed or treated as surveillance.
+
+English is the default evidence and answer language. Queries may be spoken or
+written in other languages: Muse Spark maps them only to existing
+workspace-local names and aliases, then PostgreSQL retrieves verified evidence.
 
 ## Architecture and privacy
 

@@ -6,7 +6,7 @@
    Nivel 2, mesa de trabajo y evidencia de los seis objetos demo: taladro
    amarillo, martillo, llave inglesa, destornillador, caja de herramientas y
    cargador de baterías.
-4. En Consultar pregunte: “¿Dónde está el taladro amarillo?”. La respuesta
+4. In Query, ask: “Where is the yellow drill?”. The response
    muestra “visto por última vez”, geometría amarilla sobre foto BYTEA y el
    marcador SIMULADA.
 5. Use Escuchar respuesta si el navegador soporta Web Speech.

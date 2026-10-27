@@ -28,9 +28,12 @@ class Settings(BaseSettings):
     refresh_token_days: int = Field(default=14, ge=1, le=90)
     cors_origins: str = "http://localhost:5173,http://localhost:5174"
     max_image_bytes: int = Field(default=10 * 1024 * 1024, ge=1)
-    max_video_bytes: int = Field(default=50 * 1024 * 1024, ge=1)
-    max_video_seconds: int = Field(default=120, ge=1)
-    max_video_frames: int = Field(default=8, ge=1, le=24)
+    # Zero disables the application-level intake cap. PostgreSQL still has its
+    # physical BYTEA limit and operators remain responsible for disk capacity.
+    max_video_bytes: int = Field(default=0, ge=0)
+    max_video_seconds: int = Field(default=0, ge=0)
+    video_segment_seconds: int = Field(default=120, ge=5, le=3600)
+    video_frames_per_segment: int = Field(default=8, ge=1, le=24)
     meta_mode: str = "mock"
     model_api_key: str | None = None
     meta_api_base_url: AnyHttpUrl = "https://api.meta.ai/v1"

@@ -167,3 +167,10 @@ class ImageAnalysis(BaseModel):
     model: str
     simulated: bool
     detections: list[MetaDetection]
+
+
+class QueryInterpretation(BaseModel):
+    """Only workspace-known terms may leave the query-understanding layer."""
+
+    terms: list[str] = Field(default_factory=list, max_length=8)
+    simulated: bool = False

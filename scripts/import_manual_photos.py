@@ -28,7 +28,9 @@ SUPPORTED_MIME_TYPES = {
     "video/webm",
 }
 MAX_IMAGE_BYTES = 10 * 1024 * 1024
-MAX_VIDEO_BYTES = 50 * 1024 * 1024
+# The server owns capacity policy. This explicit importer deliberately does not
+# duplicate a stale client-side video cap.
+MAX_VIDEO_BYTES = 0
 
 
 class ImportError(RuntimeError):
@@ -53,7 +55,7 @@ def staged_images(raw_paths: list[str], input_root: Path) -> list[Path]:
         if mime_type not in SUPPORTED_MIME_TYPES:
             raise ImportError(f"Unsupported image format: {full_path.name}")
         byte_limit = MAX_VIDEO_BYTES if mime_type.startswith("video/") else MAX_IMAGE_BYTES
-        if full_path.stat().st_size > byte_limit:
+        if byte_limit and full_path.stat().st_size > byte_limit:
             raise ImportError(
                 f"Media exceeds the {byte_limit // (1024 * 1024)} MiB limit: {full_path.name}"
             )
@@ -172,8 +174,8 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("images", nargs="+", help="Image paths inside the private staging directory.")
     parser.add_argument("--api-url", default="http://127.0.0.1:8090")
-    parser.add_argument("--workspace", default="Taller RealityOS")
-    parser.add_argument("--zone", default="Bodega A")
+    parser.add_argument("--workspace", default="RealityOS Workshop")
+    parser.add_argument("--zone", default="Storage A")
     parser.add_argument("--email", default="admin@realityos.local")
     parser.add_argument("--input-root", type=Path, default=DEFAULT_INPUT_ROOT)
     parser.add_argument("--process", action="store_true", help="Explicitly invoke the Meta pipeline.")

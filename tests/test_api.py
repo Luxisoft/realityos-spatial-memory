@@ -104,7 +104,7 @@ def test_query_returns_last_verified_evidence_and_highlight(client, auth_headers
     assert result.status_code == 200, result.text
     answer = result.json()
     assert answer["found"] is True
-    assert "visto por última vez" in answer["message"]
+    assert "was last seen" in answer["message"]
     assert answer["media_id"] == capture_id
     assert answer["simulated"] is True
     highlighted = client.get(answer["highlighted_media_url"], headers=auth_headers)
@@ -193,7 +193,7 @@ def test_processing_job_is_idempotent_and_records_mock_sam_geometry(client, auth
     assert job.attempts == 1
     assert job.result_metadata["segmentation_count"] == 1
     assert len(observations) == 1
-    assert observations[0].relationships == [{"relation": "sobre", "object": "caja negra"}]
+    assert observations[0].relationships == [{"relation": "on", "object": "black box"}]
     assert observations[0].model_name.endswith("+sam-3.1")
 
 
@@ -209,8 +209,8 @@ def test_object_search_uses_aliases_and_returns_ambiguity(client, auth_headers):
         db.add(
             TrackedObject(
                 workspace_id=uuid.UUID(workspace_id),
-                canonical_name="taladro azul",
-                category="herramienta eléctrica",
+                canonical_name="blue drill",
+                category="power tool",
             )
         )
         db.commit()
@@ -227,11 +227,27 @@ def test_object_search_uses_aliases_and_returns_ambiguity(client, auth_headers):
         params={"workspace_id": workspace_id, "q": "perforadora"},
     )
     assert by_alias.status_code == 200
-    assert [item["canonical_name"] for item in by_alias.json()] == ["taladro amarillo"]
+    assert [item["canonical_name"] for item in by_alias.json()] == ["yellow drill"]
+    answer_by_alias = client.post(
+        "/v1/queries",
+        headers=auth_headers,
+        json={"workspace_id": workspace_id, "question": "Where is the perforadora?"},
+    )
+    assert answer_by_alias.status_code == 200
+    assert answer_by_alias.json()["found"] is True
+    assert answer_by_alias.json()["message"].startswith("Yellow drill was last seen")
+    french = client.post(
+        "/v1/queries",
+        headers=auth_headers,
+        json={"workspace_id": workspace_id, "question": "Où est la perceuse jaune ?"},
+    )
+    assert french.status_code == 200
+    assert french.json()["found"] is True
+    assert french.json()["object"]["canonical_name"] == "yellow drill"
     ambiguous = client.post(
         "/v1/queries",
         headers=auth_headers,
-        json={"workspace_id": workspace_id, "question": "¿Dónde está el taladro?"},
+        json={"workspace_id": workspace_id, "question": "Where is the drill?"},
     )
     assert ambiguous.status_code == 200
     assert ambiguous.json()["ambiguous"] is True

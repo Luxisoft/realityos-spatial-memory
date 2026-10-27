@@ -32,7 +32,7 @@ export function Objects({ workspaceId, token }: { workspaceId: string; token: st
       setItems(await request<TrackedObject[]>(`/v1/objects?${params}`, token));
       setNotice("");
     } catch (error) {
-      setNotice(error instanceof Error ? error.message : "No se pudieron cargar los objetos.");
+      setNotice(error instanceof Error ? error.message : "Objects could not be loaded.");
     }
   }
 
@@ -64,24 +64,24 @@ export function Objects({ workspaceId, token }: { workspaceId: string; token: st
 
   return (
     <section className="panel catalog">
-      <p className="eyebrow">CATÁLOGO / EVIDENCIA REGISTRADA</p>
-      <h1>Objetos observados</h1>
+      <p className="eyebrow">CATALOG / RECORDED EVIDENCE</p>
+      <h1>Observed objects</h1>
       <form className="catalog-controls" onSubmit={submit}>
         <input
           value={query}
           onChange={(event) => setQuery(event.target.value)}
-          placeholder="Nombre o alias"
-          aria-label="Buscar objetos"
+          placeholder="Name or alias"
+          aria-label="Search objects"
         />
         <select value={category} onChange={(event) => setCategory(event.target.value)}>
-          <option value="">Todas las categorías</option>
+          <option value="">All categories</option>
           {categories.map((value) => <option value={value} key={value}>{value}</option>)}
         </select>
         <select value={zoneId} onChange={(event) => setZoneId(event.target.value)}>
-          <option value="">Todas las ubicaciones</option>
+          <option value="">All locations</option>
           {zones.map((zone) => <option value={zone.id} key={zone.id}>{zone.name}</option>)}
         </select>
-        <button className="primary">Filtrar</button>
+        <button className="primary">Filter</button>
       </form>
       {notice && <p className="error">{notice}</p>}
       <div className="catalog-grid">
@@ -93,25 +93,25 @@ export function Objects({ workspaceId, token }: { workspaceId: string; token: st
               onClick={() => setSelected(item)}
               type="button"
             >
-              <span>{item.category ?? "sin categoría"}</span>
+              <span>{item.category ?? "uncategorized"}</span>
               <strong>{item.canonical_name}</strong>
-              <small>Ver observaciones verificadas</small>
+              <small>View verified observations</small>
             </button>
-          )) : <p className="empty">No hay objetos que coincidan. Registra una evidencia o cambia el filtro.</p>}
+          )) : <p className="empty">No objects match. Register evidence or change the filter.</p>}
         </div>
         <aside className="history-card">
           {selected ? <>
-            <p className="eyebrow">HISTORIAL / {selected.canonical_name}</p>
-            <h2>Observaciones</h2>
+            <p className="eyebrow">HISTORY / {selected.canonical_name}</p>
+            <h2>Observations</h2>
             {history.length ? <ol>{history.map((item) => <li key={item.id}>
-              <time>{new Date(item.seen_at).toLocaleString("es-CO")}</time>
-              <strong>{item.verification_status === "verified" ? "Verificada" : item.verification_status}</strong>
-              <span>{item.spatial_description ?? "Sin detalle espacial"}</span>
-            </li>)}</ol> : <p className="empty">Aún no hay observaciones para este objeto.</p>}
+              <time>{new Date(item.seen_at).toLocaleString("en-US")}</time>
+              <strong>{item.verification_status === "verified" ? "Verified" : item.verification_status}</strong>
+              <span>{item.spatial_description ?? "No spatial detail"}</span>
+            </li>)}</ol> : <p className="empty">There are no observations for this object yet.</p>}
           </> : <>
-            <p className="eyebrow">HISTORIAL</p>
-            <h2>Selecciona un objeto</h2>
-            <p className="empty">Aquí aparece el historial de evidencia; no se inicia ninguna captura.</p>
+            <p className="eyebrow">HISTORY</p>
+            <h2>Select an object</h2>
+            <p className="empty">Evidence history appears here; it never starts capture.</p>
           </>}
         </aside>
       </div>
@@ -138,11 +138,11 @@ export function LocationMap({ workspaceId, token }: { workspaceId: string; token
   }, [zones]);
   return (
     <section className="panel map-panel">
-      <p className="eyebrow">MAPA DE UBICACIONES / JERARQUÍA DECLARADA</p>
-      <h1>Espacios, no coordenadas</h1>
-      <p className="lead">Esta vista representa zonas, estanterías y niveles registrados. No afirma una posición métrica 3D.</p>
+      <p className="eyebrow">LOCATION MAP / DECLARED HIERARCHY</p>
+      <h1>Spaces, not coordinates</h1>
+      <p className="lead">This view represents recorded zones, shelves and levels. It does not claim a metric 3D position.</p>
       {notice && <p className="error">{notice}</p>}
-      {zones.length ? <div className="location-tree"><LocationBranch parentId="root" byParent={byParent} /></div> : <p className="empty">Aún no hay ubicaciones. Crea una zona al registrar evidencia.</p>}
+      {zones.length ? <div className="location-tree"><LocationBranch parentId="root" byParent={byParent} /></div> : <p className="empty">There are no locations yet. Create a zone when registering evidence.</p>}
     </section>
   );
 }

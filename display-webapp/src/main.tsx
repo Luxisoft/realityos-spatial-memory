@@ -22,7 +22,7 @@ function Display() {
   const [password, setPassword] = useState("ChangeMeNow123!");
   const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
   const [workspace, setWorkspace] = useState("");
-  const [question, setQuestion] = useState("¿Dónde está el taladro amarillo?");
+  const [question, setQuestion] = useState("Where is the yellow drill?");
   const [result, setResult] = useState<Result | null>(null);
   const [image, setImage] = useState("");
   const [notice, setNotice] = useState("");
@@ -42,9 +42,9 @@ function Display() {
     try { setResult(await call<Result>("/v1/queries", token, { method: "POST", body: JSON.stringify({ workspace_id: workspace, question }) })); } catch (error) { setNotice(error instanceof Error ? error.message : "No disponible"); }
   }
   function speak() { if (result && "speechSynthesis" in window) speechSynthesis.speak(new SpeechSynthesisUtterance(result.tts_text)); }
-  if (!token) return <main className="screen login"><p>REALITYOS</p><h1>Memoria espacial</h1><form onSubmit={login}><input aria-label="Correo" value={email} onChange={(e) => setEmail(e.target.value)} /><input aria-label="Contraseña" type="password" value={password} onChange={(e) => setPassword(e.target.value)} /><button>Entrar</button></form>{notice && <small>{notice}</small>}</main>;
-  return <main className="screen"><header><b>R/OS</b><span>CONSULTAR · NO GRABA</span></header><form className="question" onSubmit={search}><select value={workspace} onChange={(e) => setWorkspace(e.target.value)}>{workspaces.map((item) => <option value={item.id} key={item.id}>{item.name}</option>)}</select><input value={question} onChange={(e) => setQuestion(e.target.value)} /><button>Buscar</button></form>
-    {result && <section className="answer"><div className="photo">{image && <img src={image} alt="Objeto resaltado" />}<em>{result.simulated ? "SIMULADO" : "EVIDENCIA"}</em></div><h1>{result.object?.canonical_name ?? "Sin coincidencia"}</h1><p>{result.message}</p>{result.found && <><small>{result.zone_path.join(" · ")}</small><button className="listen" onClick={speak}>Escuchar</button></>}</section>}{notice && <small>{notice}</small>}</main>;
+  if (!token) return <main className="screen login"><p>REALITYOS</p><h1>Spatial memory</h1><form onSubmit={login}><input aria-label="Email" value={email} onChange={(e) => setEmail(e.target.value)} /><input aria-label="Password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} /><button>Enter</button></form>{notice && <small>{notice}</small>}</main>;
+  return <main className="screen"><header><b>R/OS</b><span>QUERY · NO RECORDING</span></header><form className="question" onSubmit={search}><select value={workspace} onChange={(e) => setWorkspace(e.target.value)}>{workspaces.map((item) => <option value={item.id} key={item.id}>{item.name}</option>)}</select><input value={question} onChange={(e) => setQuestion(e.target.value)} /><button>Search</button></form>
+    {result && <section className="answer"><div className="photo">{image && <img src={image} alt="Highlighted object" />}<em>{result.simulated ? "SIMULATED" : "EVIDENCE"}</em></div><h1>{result.object?.canonical_name ?? "No match"}</h1><p>{result.message}</p>{result.found && <><small>{result.zone_path.join(" · ")}</small><button className="listen" onClick={speak}>Listen</button></>}</section>}{notice && <small>{notice}</small>}</main>;
 }
 
 createRoot(document.getElementById("root")!).render(<Display />);

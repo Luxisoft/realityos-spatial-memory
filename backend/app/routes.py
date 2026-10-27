@@ -56,7 +56,13 @@ from app.security import (
     decode_token,
     verify_password,
 )
-from app.services import create_processing_job, media_sha256, normalize, object_candidates
+from app.services import (
+    create_processing_job,
+    media_sha256,
+    multilingual_object_candidates,
+    normalize,
+    object_candidates,
+)
 from app.video import VideoProcessingError, probe_video
 
 router = APIRouter()
@@ -369,7 +375,7 @@ async def create_capture(
     settings = request.app.state.settings
     is_video = file.content_type in video_types
     limit = settings.max_video_bytes if is_video else settings.max_image_bytes
-    if len(raw) == 0 or len(raw) > limit:
+    if len(raw) == 0 or (limit and len(raw) > limit):
         raise HTTPException(
             status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
             detail="Invalid media size.",
@@ -380,7 +386,10 @@ async def create_capture(
             video_info = probe_video(raw)
         except VideoProcessingError as exc:
             raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(exc))
-        if video_info.duration_seconds > settings.max_video_seconds:
+        if (
+            settings.max_video_seconds
+            and video_info.duration_seconds > settings.max_video_seconds
+        ):
             raise HTTPException(
                 status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
                 detail=f"Video exceeds the {settings.max_video_seconds}-second limit.",
@@ -626,16 +635,34 @@ def _zone_path(db: Session, zone_id: uuid.UUID | None) -> list[str]:
     return list(reversed(result))
 
 
-def _answer_query(payload: QueryRequest, user: User, db: Session) -> QueryResponse:
+def _answer_query(
+    payload: QueryRequest,
+    user: User,
+    db: Session,
+    client=None,
+) -> QueryResponse:
     workspace_member(payload.workspace_id, user, db, {Role.ADMIN, Role.QUERY})
-    candidates = object_candidates(db, payload.workspace_id, payload.question)
+    candidates, interpretation_simulated = multilingual_object_candidates(
+        db, payload.workspace_id, payload.question, client
+    )
     if not candidates:
-        text = "No hay evidencia suficiente de ese objeto en este espacio."
-        return QueryResponse(found=False, message=text, tts_text=text)
+        text = "There is not enough evidence of that object in this workspace."
+        return QueryResponse(
+            found=False,
+            message=text,
+            tts_text=text,
+            simulated=interpretation_simulated,
+        )
     if len(candidates) > 1:
         names = ", ".join(candidate.canonical_name for candidate in candidates[:3])
-        text = f"Hay varias coincidencias: {names}. Indica cuál buscas."
-        return QueryResponse(found=False, ambiguous=True, message=text, tts_text=text)
+        text = f"There are several matches: {names}. Please specify which one you need."
+        return QueryResponse(
+            found=False,
+            ambiguous=True,
+            message=text,
+            tts_text=text,
+            simulated=interpretation_simulated,
+        )
     tracked = candidates[0]
     observation = db.scalar(
         select(ObjectObservation)
@@ -647,16 +674,20 @@ def _answer_query(payload: QueryRequest, user: User, db: Session) -> QueryRespon
         .order_by(desc(ObjectObservation.seen_at))
     )
     if observation is None:
-        text = f"No hay una observación verificada para {tracked.canonical_name}."
+        text = f"There is no verified observation for {tracked.canonical_name}."
         return QueryResponse(
-            found=False, message=text, object=_object_response(tracked), tts_text=text
+            found=False,
+            message=text,
+            object=_object_response(tracked),
+            tts_text=text,
+            simulated=interpretation_simulated,
         )
     path = _zone_path(db, observation.zone_id)
-    location = ", ".join(path) if path else "ubicación sin detalle"
-    detail = observation.spatial_description or "sin detalle espacial adicional"
+    location = ", ".join(path) if path else "location has no detail"
+    detail = observation.spatial_description or "no additional spatial detail"
     text = (
-        f"{tracked.canonical_name.capitalize()} fue visto por última vez en {location}, "
-        f"{detail}. Observado el {observation.seen_at.date().isoformat()}."
+        f"{tracked.canonical_name[:1].upper() + tracked.canonical_name[1:]} was last seen in "
+        f"{location}, {detail}. Observed on {observation.seen_at.date().isoformat()}."
     )
     return QueryResponse(
         found=True,
@@ -668,15 +699,22 @@ def _answer_query(payload: QueryRequest, user: User, db: Session) -> QueryRespon
         highlighted_media_url=f"/v1/media/{observation.media_asset_id}/highlighted",
         retrieval_confidence=observation.visual_confidence,
         tts_text=text,
-        simulated=observation.model_name.startswith("mock-"),
+        simulated=observation.model_name.startswith("mock-") or interpretation_simulated,
     )
 
 
 @router.post("/queries", response_model=QueryResponse)
 async def query(
-    payload: QueryRequest, user: User = Depends(get_current_user), db: Session = Depends(get_db)
+    payload: QueryRequest,
+    request: Request,
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
 ) -> QueryResponse:
-    return _answer_query(payload, user, db)
+    try:
+        client = build_meta_client(request.app.state.settings)
+    except MetaProviderError:
+        client = None
+    return _answer_query(payload, user, db, client)
 
 
 @router.post("/queries/audio", response_model=QueryResponse)
@@ -698,11 +736,12 @@ async def audio_query(
             status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE, detail="Invalid audio size."
         )
     try:
-        transcription = build_meta_client(request.app.state.settings).transcribe_wav(raw)
+        client = build_meta_client(request.app.state.settings)
+        transcription = client.transcribe_wav(raw)
     except MetaProviderError as exc:
         raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail=str(exc))
     result = _answer_query(
-        QueryRequest(workspace_id=workspace_id, question=transcription.text), user, db
+        QueryRequest(workspace_id=workspace_id, question=transcription.text), user, db, client
     )
     return result.model_copy(update={"simulated": transcription.simulated or result.simulated})
 

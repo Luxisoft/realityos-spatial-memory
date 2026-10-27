@@ -14,9 +14,12 @@ deployed project. Create it once with `make runtime-dirs`:
 
 Upload only original photos you are authorized to use. Do not stage photos that
 show people, credentials, customer data, or unrelated private material. The API
-accepts JPEG, PNG and WebP up to 10 MiB each, and MP4, MOV or WebM clips up
-to 50 MiB. Video analysis extracts a configured maximum of representative
-frames; it never processes a clip without an explicit `--process` invocation.
+accepts JPEG, PNG and WebP up to 10 MiB each, and MP4, MOV or WebM clips.
+There is no fixed application or proxy cap for video by default; PostgreSQL
+BYTEA and the server's available disk/RAM are the real capacity boundary.
+Long clips are split logically into configured time segments for representative
+frame extraction. It never processes a clip without an explicit `--process`
+invocation.
 
 ```bash
 scp ./taladro-amarillo.jpg \
@@ -33,8 +36,8 @@ starts Muse Spark and SAM processing; omit it to store capture evidence only.
 cd /var/www/realityos-spatial-memory
 .venv/bin/python scripts/import_manual_photos.py \
   --confirm-consent --process --wait \
-  --workspace "Taller RealityOS" --zone "Bodega A" \
-  /var/www/realityos-spatial-memory/.runtime/manual-captures/incoming/taladro-amarillo.jpg
+  --workspace "RealityOS Workshop" --zone "Storage A" \
+  /var/www/realityos-spatial-memory/.runtime/manual-captures/incoming/yellow-drill.jpg
 ```
 
 Use a second photo in a distinct zone for an explicit “last seen” history test.
@@ -44,6 +47,8 @@ capture automatically.
 
 ## Verify
 
-Use the Web panel or `POST /v1/queries` with “¿Dónde está el taladro amarillo?”.
-The response must identify the evidence as “last seen”, return a highlighted
-BYTEA-backed image, and never claim that the object is currently present.
+Use the Web panel or `POST /v1/queries` with “Where is the yellow drill?”. A
+query can be supplied in another language; its terms are mapped only to the
+authorized workspace vocabulary. The response must identify evidence as “last
+seen”, return a highlighted BYTEA-backed image, and never claim that the object
+is currently present.

@@ -7,10 +7,10 @@ import uuid
 from datetime import UTC, datetime, timedelta
 
 from PIL import Image
-from sqlalchemy import func, or_, select
+from sqlalchemy import and_, func, or_, select
 from sqlalchemy.orm import Session
 
-from app.meta import MetaModelClient
+from app.meta import MetaModelClient, MetaProviderError
 from app.models import (
     CaptureSession,
     JobStatus,
@@ -57,6 +57,41 @@ _QUERY_STOP_WORDS = {
     "sobre",
     "un",
     "una",
+    "and",
+    "at",
+    "find",
+    "for",
+    "from",
+    "how",
+    "i",
+    "in",
+    "is",
+    "it",
+    "locate",
+    "my",
+    "of",
+    "please",
+    "the",
+    "this",
+    "where",
+    "with",
+    "est",
+    "où",
+    "ou",
+    "dans",
+    "mon",
+    "ma",
+    "le",
+    "les",
+    "du",
+    "des",
+    "wo",
+    "ist",
+    "mein",
+    "meine",
+    "der",
+    "die",
+    "das",
 }
 
 
@@ -95,7 +130,7 @@ def _candidate_ids_statement(
 
     clauses = [TrackedObject.canonical_name.ilike(f"%{word}%") for word in phrase.split()]
     alias_clauses = [ObjectAlias.alias.ilike(f"%{word}%") for word in phrase.split()]
-    return base.where(or_(*clauses, *alias_clauses)).distinct()
+    return base.where(or_(and_(*clauses), and_(*alias_clauses))).distinct()
 
 
 def create_processing_job(
@@ -128,7 +163,8 @@ def process_job(
     client: MetaModelClient,
     *,
     sam_min_confidence: float = 0.65,
-    max_video_frames: int = 8,
+    video_segment_seconds: int = 120,
+    video_frames_per_segment: int = 8,
 ) -> ProcessingJob:
     job = db.get(ProcessingJob, job_id)
     if job is None:
@@ -145,9 +181,18 @@ def process_job(
     job.started_at = datetime.now(UTC)
     try:
         if media.kind == MediaKind.VIDEO:
-            result_metadata = _process_video_asset(
-                db, media, client, sam_min_confidence, max_video_frames
-            )
+            # All derived frames and their observations either persist together
+            # or roll back together; the original video remains available for a
+            # safe retry if any provider call fails.
+            with db.begin_nested():
+                result_metadata = _process_video_asset(
+                    db,
+                    media,
+                    client,
+                    sam_min_confidence,
+                    video_segment_seconds,
+                    video_frames_per_segment,
+                )
         elif media.kind == MediaKind.IMAGE:
             result_metadata = _process_image_asset(db, media, client, sam_min_confidence)
         else:
@@ -167,10 +212,16 @@ def _process_video_asset(
     video: MediaAsset,
     client: MetaModelClient,
     sam_min_confidence: float,
-    max_video_frames: int,
+    video_segment_seconds: int,
+    video_frames_per_segment: int,
 ) -> dict[str, object]:
     info = probe_video(video.original_bytes)
-    frames = extract_representative_frames(video.original_bytes, info, max_video_frames)
+    frames = extract_representative_frames(
+        video.original_bytes,
+        info,
+        segment_seconds=video_segment_seconds,
+        frames_per_segment=video_frames_per_segment,
+    )
     frame_results: list[dict[str, object]] = []
     existing_frames = {
         int(frame.extra_metadata.get("frame_index", -1)): frame
@@ -178,11 +229,11 @@ def _process_video_asset(
             select(MediaAsset).where(MediaAsset.parent_asset_id == video.id)
         )
     }
-    for index, (timestamp_seconds, frame_bytes) in enumerate(frames):
-        frame = existing_frames.get(index)
+    for extracted in frames:
+        frame = existing_frames.get(extracted.index)
         if frame is None:
-            digest = media_sha256(frame_bytes)
-            with Image.open(io.BytesIO(frame_bytes)) as image:
+            digest = media_sha256(extracted.bytes)
+            with Image.open(io.BytesIO(extracted.bytes)) as image:
                 width, height = image.size
             base_time = video.captured_at or video.created_at
             frame = MediaAsset(
@@ -194,18 +245,21 @@ def _process_video_asset(
                 parent_asset_id=video.id,
                 kind=MediaKind.IMAGE,
                 mime_type="image/jpeg",
-                original_bytes=frame_bytes,
+                original_bytes=extracted.bytes,
                 sha256=digest,
-                byte_size=len(frame_bytes),
+                byte_size=len(extracted.bytes),
                 width=width,
                 height=height,
-                captured_at=base_time + timedelta(seconds=timestamp_seconds),
+                captured_at=base_time + timedelta(seconds=extracted.timestamp_seconds),
                 extra_metadata={
-                    "filename": f"{video.extra_metadata.get('filename', 'video')}-frame-{index + 1:03d}.jpg",
+                    "filename": f"{video.extra_metadata.get('filename', 'video')}-frame-{extracted.index + 1:03d}.jpg",
                     "parent_video_id": str(video.id),
                     "source_capture_session_id": str(video.capture_session_id),
-                    "frame_index": index,
-                    "video_timestamp_seconds": round(timestamp_seconds, 3),
+                    "frame_index": extracted.index,
+                    "video_segment_index": extracted.segment.index,
+                    "segment_start_seconds": round(extracted.segment.start_seconds, 3),
+                    "segment_duration_seconds": round(extracted.segment.duration_seconds, 3),
+                    "video_timestamp_seconds": round(extracted.timestamp_seconds, 3),
                     "timestamp_is_approximate": True,
                 },
             )
@@ -215,7 +269,8 @@ def _process_video_asset(
         frame_results.append(
             {
                 "frame_asset_id": str(frame.id),
-                "timestamp_seconds": round(timestamp_seconds, 3),
+                "segment_index": extracted.segment.index,
+                "timestamp_seconds": round(extracted.timestamp_seconds, 3),
                 **report,
             }
         )
@@ -223,6 +278,8 @@ def _process_video_asset(
         "simulated": all(bool(item["simulated"]) for item in frame_results),
         "source_kind": "video",
         "duration_seconds": round(info.duration_seconds, 3),
+        "segment_seconds": video_segment_seconds,
+        "segments_processed": len({frame.segment.index for frame in frames}),
         "frames_extracted": len(frame_results),
         "frames": frame_results,
         "objects_created": [
@@ -318,13 +375,31 @@ def _process_image_asset(
         }
 
 
-def object_candidates(db: Session, workspace_id: uuid.UUID, question: str) -> list[TrackedObject]:
-    phrase = search_phrase(question)
-    if not phrase:
+def object_candidates(
+    db: Session,
+    workspace_id: uuid.UUID,
+    question: str,
+    *,
+    additional_terms: list[str] | None = None,
+) -> list[TrackedObject]:
+    phrases = list(
+        dict.fromkeys(
+            phrase
+            for source in [question, *(additional_terms or [])]
+            if (phrase := search_phrase(source))
+        )
+    )
+    if not phrases:
         return []
     dialect_name = db.get_bind().dialect.name
     object_ids = list(
-        db.scalars(_candidate_ids_statement(workspace_id, phrase, dialect_name)).unique()
+        dict.fromkeys(
+            object_id
+            for phrase in phrases
+            for object_id in db.scalars(
+                _candidate_ids_statement(workspace_id, phrase, dialect_name)
+            ).unique()
+        )
     )
     if not object_ids:
         return []
@@ -334,6 +409,54 @@ def object_candidates(db: Session, workspace_id: uuid.UUID, question: str) -> li
             .where(TrackedObject.id.in_(object_ids))
             .order_by(TrackedObject.canonical_name)
         )
+    )
+
+
+def workspace_terms(db: Session, workspace_id: uuid.UUID) -> list[str]:
+    """Return workspace-local vocabulary only; this is never cross-tenant data."""
+
+    canonical = list(
+        db.scalars(
+            select(TrackedObject.canonical_name)
+            .where(TrackedObject.workspace_id == workspace_id)
+            .order_by(TrackedObject.canonical_name)
+        )
+    )
+    aliases = list(
+        db.scalars(
+            select(ObjectAlias.alias)
+            .join(TrackedObject, TrackedObject.id == ObjectAlias.object_id)
+            .where(TrackedObject.workspace_id == workspace_id)
+            .order_by(ObjectAlias.alias)
+        )
+    )
+    # The request stays bounded even in very large authorized workspaces while
+    # preserving all canonical terms before optional aliases.
+    return list(dict.fromkeys([*canonical, *aliases]))[:1000]
+
+
+def multilingual_object_candidates(
+    db: Session,
+    workspace_id: uuid.UUID,
+    question: str,
+    client: MetaModelClient | None,
+) -> tuple[list[TrackedObject], bool]:
+    """Use the provider only to select existing terms; evidence remains local."""
+
+    interpreted_terms: list[str] = []
+    simulated = False
+    if client is not None:
+        try:
+            interpretation = client.interpret_query(question, workspace_terms(db, workspace_id))
+            interpreted_terms = interpretation.terms
+            simulated = interpretation.simulated
+        except MetaProviderError:
+            # Local trigram/FTS search is a safe degraded mode: it never invents
+            # a match or makes an unavailable provider look successful.
+            pass
+    return (
+        object_candidates(db, workspace_id, question, additional_terms=interpreted_terms),
+        simulated,
     )
 
 

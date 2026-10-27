@@ -32,7 +32,7 @@ def test_live_client_uses_gateway_without_model_key(monkeypatch: pytest.MonkeyPa
     assert captured["headers"] == {"X-RealityOS-Gateway-Token": "gateway-token-long-enough-for-tests"}
 
 
-def test_live_analysis_requests_spanish_human_readable_detections(
+def test_live_analysis_requests_english_human_readable_detections(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     captured: dict[str, object] = {}
@@ -59,7 +59,39 @@ def test_live_analysis_requests_spanish_human_readable_detections(
 
     payload = captured["json"]
     assert isinstance(payload, dict)
-    assert "Colombian Spanish (es-CO)" in str(payload["instructions"])
+    assert "must use English" in str(payload["instructions"])
+
+
+def test_live_query_interpretation_only_accepts_known_terms(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    captured: dict[str, object] = {}
+
+    def fake_request(method: str, url: str, **kwargs: object) -> httpx.Response:
+        captured["json"] = kwargs["json"]
+        request = httpx.Request(method, url)
+        return httpx.Response(
+            200,
+            json={"output_text": '{"terms":["yellow drill","invented object"]}'},
+            request=request,
+        )
+
+    monkeypatch.setattr(httpx, "request", fake_request)
+    client = LiveMetaModelClient(
+        Settings(
+            meta_mode="live",
+            meta_gateway_base_url="https://meta.luxisoft.com/v1",
+            meta_gateway_token="gateway-token-long-enough-for-tests",
+        )
+    )
+
+    interpretation = client.interpret_query(
+        "¿Dónde está el taladro amarillo?", ["yellow drill", "hammer"]
+    )
+
+    assert interpretation.terms == ["yellow drill"]
+    assert interpretation.simulated is False
+    assert "multilingual object-query interpreter" in str(captured["json"])
 
 
 def test_live_gateway_requires_its_own_token() -> None:

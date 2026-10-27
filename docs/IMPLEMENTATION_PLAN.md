@@ -87,7 +87,7 @@ observaciones y pruebas de contrato cubren mock, live simulado, timeout y error.
 
 ## Fase 4 — Panel administrativo web
 
-**Resultado:** panel React/TypeScript en español que recorre el producto.
+**Resultado:** panel React/TypeScript en inglés por defecto que recorre el producto.
 
 1. Crear base Vite tipada, cliente API autenticado, sesión y estados de carga,
    vacío, error y reintento.

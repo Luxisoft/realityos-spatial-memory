@@ -42,7 +42,7 @@ def synthetic_asset(name: str, location: str, color: str) -> bytes:
 
 
 def synthetic_drill() -> bytes:
-    return synthetic_asset("taladro amarillo", "Bodega A · Estantería 3 · Nivel 2", "#f0bf24")
+    return synthetic_asset("yellow drill", "Storage A · Shelf 3 · Level 2", "#f0bf24")
 
 
 def main() -> None:
@@ -61,11 +61,11 @@ def main() -> None:
             db.add(user)
             db.flush()
         workspace = db.scalar(
-            select(Workspace).where(Workspace.name == "Taller RealityOS")
+            select(Workspace).where(Workspace.name == "RealityOS Workshop")
         )
         if workspace is None:
             workspace = Workspace(
-                name="Taller RealityOS",
+                name="RealityOS Workshop",
                 description="Synthetic workshop demo",
                 created_by_id=user.id,
             )
@@ -78,12 +78,12 @@ def main() -> None:
             )
         zones: dict[str, Zone] = {}
         zone_specs = [
-            ("Bodega A", "zone", None),
-            ("Estantería 1", "shelf", "Bodega A"),
-            ("Estantería 2", "shelf", "Bodega A"),
-            ("Estantería 3", "shelf", "Bodega A"),
-            ("Nivel 2", "level", "Estantería 3"),
-            ("Mesa de trabajo", "zone", None),
+            ("Storage A", "zone", None),
+            ("Shelf 1", "shelf", "Storage A"),
+            ("Shelf 2", "shelf", "Storage A"),
+            ("Shelf 3", "shelf", "Storage A"),
+            ("Level 2", "level", "Shelf 3"),
+            ("Workbench", "zone", None),
         ]
         for name, kind, parent_name in zone_specs:
             parent = zones.get(parent_name) if parent_name else None
@@ -115,16 +115,16 @@ def main() -> None:
                 db.flush()
             zones[name] = zone
         demo_objects = [
-            ("taladro amarillo", "Nivel 2", "#f0bf24"),
-            ("martillo", "Mesa de trabajo", "#b2b6bc"),
-            ("llave inglesa", "Estantería 1", "#8b9aa8"),
-            ("destornillador", "Estantería 2", "#d94343"),
-            ("caja de herramientas", "Bodega A", "#2f495b"),
-            ("cargador de baterías", "Estantería 1", "#4c8d65"),
+            ("yellow drill", "Level 2", "#f0bf24"),
+            ("hammer", "Workbench", "#b2b6bc"),
+            ("adjustable wrench", "Shelf 1", "#8b9aa8"),
+            ("screwdriver", "Shelf 2", "#d94343"),
+            ("toolbox", "Storage A", "#2f495b"),
+            ("battery charger", "Shelf 1", "#4c8d65"),
         ]
         assets: list[MediaAsset] = []
         for object_name, zone_name, color in demo_objects:
-            raw = synthetic_drill() if object_name == "taladro amarillo" else synthetic_asset(
+            raw = synthetic_drill() if object_name == "yellow drill" else synthetic_asset(
                 object_name, zone_name, color
             )
             digest = hashlib.sha256(raw).hexdigest()

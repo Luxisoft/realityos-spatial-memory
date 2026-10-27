@@ -35,7 +35,8 @@ def process_media(job_id: str) -> dict[str, str]:
             uuid.UUID(job_id),
             build_meta_client(settings),
             sam_min_confidence=settings.sam_min_confidence,
-            max_video_frames=settings.max_video_frames,
+            video_segment_seconds=settings.video_segment_seconds,
+            video_frames_per_segment=settings.video_frames_per_segment,
         )
         db.commit()
         return {"job_id": str(job.id), "status": job.status.value}

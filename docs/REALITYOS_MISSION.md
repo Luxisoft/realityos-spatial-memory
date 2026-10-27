@@ -44,7 +44,8 @@ evidencia de una observación.
 ### Consultar — solo lectura
 
 - Un usuario autenticado elige exclusivamente un workspace autorizado y
-  pregunta por texto o voz; el idioma por defecto es `es-CO`.
+  pregunta por texto o voz; el idioma de salida por defecto es inglés, mientras
+  que la interpretación acepta consultas en otros idiomas.
 - Transcripción, interpretación, búsqueda y generación de respuesta son etapas
   separadas. Muse Voice Transcribe se usa solo como STT.
 - La recuperación devuelve evidencia almacenada: última observación verificada,
@@ -79,7 +80,7 @@ flowchart LR
 | API | Python compatible con 3.12, FastAPI, Pydantic v2, SQLAlchemy 2, Alembic, Psycopg, HTTPX |
 | Asíncrono | Redis y Celery, con jobs idempotentes |
 | Persistencia | PostgreSQL, `pg_trgm` y FTS; interfaz preparada para vectorial sin imponer pgvector |
-| Panel | React, TypeScript, Vite, responsive y en español |
+| Panel | React, TypeScript, Vite, responsive y en inglés por defecto |
 | Móvil | Kotlin, Jetpack Compose, Meta Wearables Device Access Toolkit y Mock Device Kit cuando sea posible |
 | Display | React + TypeScript independiente, 600×600, controles D-pad/teclado y toolkit oficial compatible |
 | Operación | Docker, Compose, proxy, health checks, volúmenes, CI, scripts y HTTPS configurable |

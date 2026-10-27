@@ -62,16 +62,18 @@
 ## Implemented but not fully environment-verified
 
 - Live Muse Spark, SAM and ASR clients match reviewed contracts. The production
-  gateway is verified against the real Meta model catalog from FRONTEND. A paid
-  image-analysis, segmentation or ASR inference has not been run as a deployment
-  smoke test. SAM box parsing works; pixel-mask persistence remains incomplete.
+  gateway is verified against the real Meta model catalog from FRONTEND. Paid
+  image analysis and SAM segmentation ran on consented server-local test images:
+  two jobs completed and one received a transient Meta 503. SAM box parsing
+  works; pixel-mask persistence remains incomplete.
 
 ## Not implemented
 
-- Video Live verification with a user-provided clip. The bounded MP4/MOV/WebM
-  pipeline and its FFmpeg test exist, but no customer clip has been processed
-  in production; streaming, audio extraction/transcription and long-video
-  processing remain out of scope.
+- A user-provided 60-second video was stored as original BYTEA in production,
+  but its first Live processing job received a transient Meta 503 and therefore
+  is not claimed as a completed video inference. The long-video segmentation
+  change has unit coverage but still requires deployment and Live verification.
+  Streaming and audio extraction/transcription remain out of scope.
 - Vector retrieval abstraction and optional vector database integration.
 - Android Kotlin/Compose, DAT SDK and Mock Device Kit tests.
 - Official Ray-Ban Display toolkit and simulator validation.
