@@ -58,10 +58,12 @@ from app.security import (
 )
 from app.services import (
     create_processing_job,
+    exact_term_candidates,
     media_sha256,
     multilingual_object_candidates,
     normalize,
     object_candidates,
+    verified_candidates,
 )
 from app.video import VideoProcessingError, probe_video
 
@@ -645,6 +647,13 @@ def _answer_query(
     candidates, interpretation_simulated = multilingual_object_candidates(
         db, payload.workspace_id, payload.question, client
     )
+    # A generic model label can collide with an explicit human alias. Resolve
+    # only that exact-name collision; broad requests must remain ambiguous.
+    exact_matches = exact_term_candidates(db, payload.workspace_id, payload.question)
+    if len(candidates) > 1 and len(exact_matches) > 1:
+        verified = verified_candidates(db, payload.workspace_id, candidates)
+        if len(verified) == 1:
+            candidates = verified
     if not candidates:
         text = "There is not enough evidence of that object in this workspace."
         return QueryResponse(

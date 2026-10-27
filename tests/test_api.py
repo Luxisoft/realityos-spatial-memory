@@ -5,6 +5,7 @@ import uuid
 
 from app.meta import MockMetaModelClient
 from app.models import (
+    ObjectAlias,
     ObjectObservation,
     ProcessingJob,
     Role,
@@ -213,13 +214,14 @@ def test_object_search_uses_aliases_and_returns_ambiguity(client, auth_headers):
                 category="power tool",
             )
         )
-        db.add(
-            TrackedObject(
-                workspace_id=uuid.UUID(workspace_id),
-                canonical_name="perforadora",
-                category="generated label collision",
-            )
+        collision = TrackedObject(
+            workspace_id=uuid.UUID(workspace_id),
+            canonical_name="perforadora",
+            category="generated label collision",
         )
+        db.add(collision)
+        db.flush()
+        db.add(ObjectAlias(object_id=collision.id, alias="perforadora"))
         db.commit()
     alias_response = client.post(
         f"/v1/objects/{drill_id}/aliases",

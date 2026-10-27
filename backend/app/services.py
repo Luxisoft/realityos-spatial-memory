@@ -468,6 +468,27 @@ def exact_term_candidates(
     return [item for item in tracked if search_phrase(item.canonical_name) == requested]
 
 
+def verified_candidates(
+    db: Session, workspace_id: uuid.UUID, candidates: list[TrackedObject]
+) -> list[TrackedObject]:
+    """Keep exact-name collisions honest without hiding multiple verified items."""
+
+    if not candidates:
+        return []
+    verified_ids = set(
+        db.scalars(
+            select(ObjectObservation.object_id)
+            .where(
+                ObjectObservation.workspace_id == workspace_id,
+                ObjectObservation.object_id.in_([candidate.id for candidate in candidates]),
+                ObjectObservation.verification_status == VerificationStatus.VERIFIED,
+            )
+            .distinct()
+        )
+    )
+    return [candidate for candidate in candidates if candidate.id in verified_ids]
+
+
 def multilingual_object_candidates(
     db: Session,
     workspace_id: uuid.UUID,
