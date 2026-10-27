@@ -14,6 +14,23 @@ ANDROID_HOME=/opt/android-sdk ANDROID_SDK_ROOT=/opt/android-sdk ./gradlew :app:a
 
 The APK is written to `app/build/outputs/apk/debug/app-debug.apk`.
 
+## Hardware-free Meta validation
+
+The instrumentation test uses Meta's official Mock Device Kit, not a custom
+glasses mock. It pairs the virtual `META_RAYBAN_DISPLAY`, drives its lifecycle,
+constructs the Meta Display preview renderer/test server, and sends simulated
+speech partial/final results:
+
+```bash
+cd android
+ANDROID_HOME=/opt/android-sdk ANDROID_SDK_ROOT=/opt/android-sdk \
+  ./gradlew :app:connectedDebugAndroidTest
+```
+
+This test passed in the GitHub Actions Android 15 emulator on 2026-10-27. It
+does not validate physical camera, microphone, Bluetooth audio, or Display
+behavior; those require compatible Meta Ray-Ban hardware.
+
 For local DAT Developer Mode, create an ignored `android/local.properties`:
 
 ```properties

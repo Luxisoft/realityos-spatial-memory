@@ -94,9 +94,11 @@
   only from explicit actions, uploads glasses photos and bounded HEVC clips,
   queries existing evidence through a device credential, and requests Android
   TTS output. Backend device queries now provide a short-lived signed Display
-  evidence URL and devices can list only their own workspace zones. The Android
-  app has not been installed on hardware or executed against MockDeviceKit in
-  this workspace.
+  evidence URL and devices can list only their own workspace zones. Its official
+  MockDeviceKit instrumentation smoke test passed in a GitHub-hosted Android 15
+  emulator on 2026-10-27: simulated Display pairing/lifecycle, preview
+  renderer/server, and speech controls ran successfully. It has not been
+  installed on physical hardware.
 
 ## Not implemented
 
@@ -104,10 +106,12 @@
   not been performed. Streaming ingestion and audio extraction/transcription
   from source video remain out of scope.
 - Vector retrieval abstraction and optional vector database integration.
-- Android MockDeviceKit instrumentation execution and physical Meta Ray-Ban
-  Display QA (camera, microphone, TTS route, Display rendering and recovery).
+- Physical Meta Ray-Ban Display QA (camera, microphone, TTS route, Display
+  rendering and recovery).
 - Official browser Display simulator validation for the supplementary Web App.
 - Restore test.
 
-No claim of physical-glasses, Android, an end-to-end paid visual inference or
-simulator success is made.
+No claim of physical-glasses, real camera/microphone/audio behavior, or an
+end-to-end paid visual inference is made. The official Android MockDeviceKit
+instrumentation test did pass in an emulator; it is not equivalent to hardware
+validation.

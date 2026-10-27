@@ -55,9 +55,12 @@ claimed.
 - Standalone high-quality photo and PCM audio streaming are experimental and
   are not used as the baseline RealityOS flow. Video clips are recorded from
   compressed HEVC camera frames; microphone-based query uses DAT Speech.
-- The included MockDeviceKit instrumentation smoke test pairs a Display model.
-  Run it on a compatible Android test environment; it was not executed in this
-  server-only workspace.
+- The included MockDeviceKit instrumentation smoke test passed in a
+  GitHub-hosted Android 15 emulator on 2026-10-27. It pairs Meta's simulated
+  Display model, exercises its lifecycle, creates the official Display preview
+  renderer and test server, and drives simulated speech partial/final results.
+  It does not prove camera, microphone, Bluetooth-audio or Display behavior on
+  physical glasses.
 - Hardware QA must explicitly validate registration, camera/microphone
   permission denial, Display state, photo, video, speech partial/final result,
   evidence image, TTS route, disconnect, and recovery.
