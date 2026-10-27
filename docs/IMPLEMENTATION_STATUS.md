@@ -38,6 +38,12 @@
   passed backend, gateway, web and Android jobs.
 - Successful CI runs now retain the installable Debug APK for 14 days as the
   `realityos-android-debug-apk` artifact. This is not a signed production APK.
+- Commit `24702e5` fixes PostgreSQL enum persistence for device status and
+  inventory fact provenance, and adds revision `20261027_0007` for the
+  existing `JobStatus.UNCERTAIN` contract. `make lint` and `make test` passed
+  with 37 tests locally. CI
+  [40579548167](https://github.com/Luxisoft/realityos-spatial-memory/actions/runs/40579548167)
+  passed all four jobs and published the Debug APK artifact.
 - The second Alembic migration was applied to production PostgreSQL. It enables
   PostgreSQL `pg_trgm` and creates workspace-scoped trigram and FTS indexes for
   object names and aliases. Search uses those indexes on PostgreSQL and a
@@ -84,8 +90,12 @@
 
 ## Current deployment blocker
 
-- The API, worker, web bundles and loopback proxy from `88503d5` were deployed
-  and the local proxy returned `200` for `/health/live` and `/health/ready`.
+- The API, worker, web bundles and loopback proxy from `24702e5` were deployed
+  and migration `20261027_0007` is the production head. The local proxy
+  returned `200` for `/health/live` and `/health/ready`; its live virtual-device
+  bootstrap issued a temporary device credential which successfully accessed
+  the workspace-scoped device-zones endpoint. Credential values were not
+  logged or committed.
   Public `https://realityos.luxisoft.com` is **not** deployed yet: Cloudflare
   currently routes that hostname to the LUXIPANEL origin/rule rather than this
   RealityOS server. During a paused Certbot HTTP-01 test on 2026-10-27, the
