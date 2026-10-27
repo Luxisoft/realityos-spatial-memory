@@ -4,10 +4,10 @@
 
 - Backend and gateway lint passed: ruff check backend tests meta-gateway
   gateway-tests.
-- Twelve SQLite integration tests passed: health/auth, BYTEA
-  capture/retrieval/hash, mock processing and SAM geometry, highlighted
-  evidence, missing-object and ambiguous-query handling, role restriction,
-  workspace isolation, and alias search.
+- Seventeen automated tests passed locally: twelve application tests covering
+  health/auth, BYTEA capture/retrieval/hash, mock processing and SAM geometry,
+  highlighted evidence, missing-object and ambiguous-query handling, role
+  restriction, workspace isolation and alias search; plus five gateway tests.
 - Admin-panel and Display production builds passed.
 - Docker Engine and Compose were installed on the target server. PostgreSQL,
   Redis, API, Celery, panel, Display and Nginx are currently running.
@@ -49,6 +49,12 @@
   [40435541580](https://github.com/Luxisoft/realityos-spatial-memory/actions/runs/40435541580)
   and
   [40436600135](https://github.com/Luxisoft/realityos-spatial-memory/actions/runs/40436600135).
+- Commit `e920362` added and deployed the object explorer, hierarchy map and
+  frontend/display rebuild step. Workflow
+  [40438080792](https://github.com/Luxisoft/realityos-spatial-memory/actions/runs/40438080792)
+  completed successfully; direct checks confirmed all seven Compose services
+  running, `/health/live`, `/health/ready`, and the published panel bundle
+  containing the explorer.
 
 ## Implemented but not fully environment-verified
 
