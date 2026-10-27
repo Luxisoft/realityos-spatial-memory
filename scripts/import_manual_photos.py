@@ -31,6 +31,7 @@ MAX_IMAGE_BYTES = 10 * 1024 * 1024
 # The server owns capacity policy. This explicit importer deliberately does not
 # duplicate a stale client-side video cap.
 MAX_VIDEO_BYTES = 0
+DEFAULT_WAIT_SECONDS = 30 * 60
 
 
 class ImportError(RuntimeError):
@@ -89,11 +90,15 @@ def import_images(
     images: list[Path],
     process: bool,
     wait: bool,
+    wait_seconds: int,
 ) -> list[dict[str, str]]:
     """Create an explicit capture session, upload files, and optionally process them."""
 
     base_url = api_url.rstrip("/")
-    with httpx.Client(base_url=base_url, timeout=60) as client:
+    # A long BYTEA upload and segment-by-segment Live processing can legitimately
+    # exceed the short photo timeout. The call remains explicit and bounded by
+    # the caller-selected wait period.
+    with httpx.Client(base_url=base_url, timeout=900) as client:
         tokens = response_json(
             client.post("/v1/auth/login", json={"email": email, "password": password})
         )
@@ -145,17 +150,20 @@ def import_images(
                     item["job_id"] = str(job["id"])
                 imported.append(item)
             if wait and process:
-                _wait_for_jobs(client, headers, imported)
+                _wait_for_jobs(client, headers, imported, wait_seconds)
             return imported
         finally:
             client.post(f"/v1/sessions/{session['id']}/close", headers=headers)
 
 
 def _wait_for_jobs(
-    client: httpx.Client, headers: dict[str, str], imported: list[dict[str, str]]
+    client: httpx.Client,
+    headers: dict[str, str],
+    imported: list[dict[str, str]],
+    wait_seconds: int,
 ) -> None:
     pending = {item["job_id"] for item in imported if "job_id" in item}
-    deadline = time.monotonic() + 300
+    deadline = time.monotonic() + wait_seconds
     while pending and time.monotonic() < deadline:
         for job_id in tuple(pending):
             job = response_json(client.get(f"/v1/jobs/{job_id}", headers=headers))
@@ -179,7 +187,13 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--email", default="admin@realityos.local")
     parser.add_argument("--input-root", type=Path, default=DEFAULT_INPUT_ROOT)
     parser.add_argument("--process", action="store_true", help="Explicitly invoke the Meta pipeline.")
-    parser.add_argument("--wait", action="store_true", help="Wait up to five minutes for requested jobs.")
+    parser.add_argument("--wait", action="store_true", help="Wait for requested jobs.")
+    parser.add_argument(
+        "--wait-seconds",
+        type=int,
+        default=DEFAULT_WAIT_SECONDS,
+        help="Maximum wait after --process (default: 1800 seconds).",
+    )
     parser.add_argument(
         "--confirm-consent",
         action="store_true",
@@ -194,6 +208,8 @@ def main() -> int:
         raise ImportError("Refusing upload without --confirm-consent.")
     if args.wait and not args.process:
         raise ImportError("--wait requires --process.")
+    if args.wait_seconds < 1:
+        raise ImportError("--wait-seconds must be positive.")
     password = os.environ.get("REALITYOS_IMPORT_PASSWORD") or getpass.getpass(
         "RealityOS password: "
     )
@@ -209,6 +225,7 @@ def main() -> int:
         images,
         args.process,
         args.wait,
+        args.wait_seconds,
     )
     for item in imported:
         print(" ".join(f"{key}={value}" for key, value in item.items()))
