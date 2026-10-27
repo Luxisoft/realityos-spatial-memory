@@ -153,10 +153,12 @@ class LiveMetaModelClient(MetaModelClient):
     def analyze_image(self, image: bytes, mime_type: str, context: str = "") -> ImageAnalysis:
         instruction = (
             "Inspect this workspace image. Return only JSON with a detections array. "
-            "Each detection needs label, optional category, confidence from 0 to 1, "
-            "bounding_box {x,y,width,height} normalized 0..1, spatial_description, "
-            "and optional relationships as objects with relation and object keys. "
-            "Do not claim locations that cannot be seen."
+            "Every human-readable detection field (label, category, spatial_description, "
+            "relationship and related object) must use Colombian Spanish (es-CO), except "
+            "for a visible brand, model, or technical acronym. Each detection needs label, "
+            "optional category, confidence from 0 to 1, bounding_box {x,y,width,height} "
+            "normalized 0..1, spatial_description, and optional relationships as objects "
+            "with relation and object keys. Do not claim locations that cannot be seen."
         )
         body = {
             "model": "muse-spark-1.3",

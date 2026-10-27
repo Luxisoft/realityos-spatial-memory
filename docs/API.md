@@ -9,7 +9,7 @@ All routes use Bearer access tokens and workspace membership.
 | Workspaces | list/create workspaces; list/create zones |
 | Sessions | create, read and close capture sessions |
 | Captures/jobs | upload/read capture; request processing; inspect job |
-| Objects | list/read/history; verify or reject observation. `GET /v1/objects` requires `workspace_id` and accepts `q` (name or alias), `category`, and `zone_id` filters. |
+| Objects | list/read/history; add a normalized alias; verify or reject observation. `GET /v1/objects` requires `workspace_id` and accepts `q` (name or alias), `category`, and `zone_id` filters. |
 | Query/media | text/audio query; original/highlighted media |
 | System | health live and ready |
 

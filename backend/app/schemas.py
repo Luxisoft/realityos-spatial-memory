@@ -107,6 +107,16 @@ class ObjectResponse(FromAttributes):
     attributes: dict
 
 
+class ObjectAliasCreate(BaseModel):
+    alias: str = Field(min_length=2, max_length=240)
+
+
+class ObjectAliasResponse(FromAttributes):
+    id: uuid.UUID
+    object_id: uuid.UUID
+    alias: str
+
+
 class ObservationUpdate(BaseModel):
     verification_status: Literal["verified", "rejected"]
     spatial_description: str | None = Field(default=None, max_length=3000)

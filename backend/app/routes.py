@@ -18,6 +18,7 @@ from app.models import (
     CaptureStatus,
     MediaAsset,
     MediaKind,
+    ObjectAlias,
     ObjectObservation,
     ProcessingJob,
     Role,
@@ -32,6 +33,8 @@ from app.schemas import (
     CaptureResponse,
     JobResponse,
     LoginRequest,
+    ObjectAliasCreate,
+    ObjectAliasResponse,
     ObjectResponse,
     ObservationResponse,
     ObservationUpdate,
@@ -53,7 +56,7 @@ from app.security import (
     decode_token,
     verify_password,
 )
-from app.services import create_processing_job, media_sha256, object_candidates
+from app.services import create_processing_job, media_sha256, normalize, object_candidates
 
 router = APIRouter()
 
@@ -504,6 +507,42 @@ async def get_object(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Object not found.")
     workspace_member(tracked.workspace_id, user, db)
     return _object_response(tracked)
+
+
+@router.post(
+    "/objects/{object_id}/aliases",
+    response_model=ObjectAliasResponse,
+    status_code=status.HTTP_201_CREATED,
+)
+async def create_object_alias(
+    object_id: uuid.UUID,
+    payload: ObjectAliasCreate,
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+) -> ObjectAlias:
+    tracked = db.get(TrackedObject, object_id)
+    if tracked is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Object not found.")
+    workspace_member(tracked.workspace_id, user, db, {Role.ADMIN, Role.REGISTER})
+    alias_value = normalize(payload.alias)
+    if len(alias_value) < 2:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="Alias must contain at least two meaningful characters.",
+        )
+    existing = db.scalar(
+        select(ObjectAlias).where(
+            ObjectAlias.object_id == object_id,
+            ObjectAlias.alias == alias_value,
+        )
+    )
+    if existing:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Object alias already exists.")
+    alias = ObjectAlias(object_id=object_id, alias=alias_value)
+    db.add(alias)
+    db.flush()
+    _audit(db, "object.alias_created", "object_alias", user.id, alias.id, tracked.workspace_id)
+    return alias
 
 
 @router.get("/objects/{object_id}/history", response_model=list[ObservationResponse])

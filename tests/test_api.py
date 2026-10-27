@@ -5,7 +5,6 @@ import uuid
 
 from app.meta import MockMetaModelClient
 from app.models import (
-    ObjectAlias,
     ObjectObservation,
     ProcessingJob,
     Role,
@@ -206,7 +205,7 @@ def test_object_search_uses_aliases_and_returns_ambiguity(client, auth_headers):
             select(TrackedObject).where(TrackedObject.workspace_id == uuid.UUID(workspace_id))
         )
         assert drill is not None
-        db.add(ObjectAlias(object_id=drill.id, alias="perforadora"))
+        drill_id = str(drill.id)
         db.add(
             TrackedObject(
                 workspace_id=uuid.UUID(workspace_id),
@@ -215,6 +214,13 @@ def test_object_search_uses_aliases_and_returns_ambiguity(client, auth_headers):
             )
         )
         db.commit()
+    alias_response = client.post(
+        f"/v1/objects/{drill_id}/aliases",
+        headers=auth_headers,
+        json={"alias": "Perforadora"},
+    )
+    assert alias_response.status_code == 201, alias_response.text
+    assert alias_response.json()["alias"] == "perforadora"
     by_alias = client.get(
         "/v1/objects",
         headers=auth_headers,
