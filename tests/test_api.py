@@ -106,6 +106,7 @@ def test_query_returns_last_verified_evidence_and_highlight(client, auth_headers
     answer = result.json()
     assert answer["found"] is True
     assert "was last seen" in answer["message"]
+    assert ".." not in answer["message"]
     assert answer["media_id"] == capture_id
     assert answer["simulated"] is True
     highlighted = client.get(answer["highlighted_media_url"], headers=auth_headers)

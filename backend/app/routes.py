@@ -693,7 +693,7 @@ def _answer_query(
         )
     path = _zone_path(db, observation.zone_id)
     location = ", ".join(path) if path else "location has no detail"
-    detail = observation.spatial_description or "no additional spatial detail"
+    detail = (observation.spatial_description or "no additional spatial detail").rstrip(". ")
     text = (
         f"{tracked.canonical_name[:1].upper() + tracked.canonical_name[1:]} was last seen in "
         f"{location}, {detail}. Observed on {observation.seen_at.date().isoformat()}."
