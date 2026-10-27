@@ -7,7 +7,7 @@ on:
       - backend/**
       - meta-gateway/**
       - infrastructure/**
-      - scripts/deploy/**
+      - scripts/**
       - .github/workflows/deploy-production.yml
   workflow_dispatch:
     inputs:

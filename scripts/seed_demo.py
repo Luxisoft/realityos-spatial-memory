@@ -27,17 +27,22 @@ from PIL import Image, ImageDraw
 from sqlalchemy import select
 
 
-def synthetic_drill() -> bytes:
+def synthetic_asset(name: str, location: str, color: str) -> bytes:
     image = Image.new("RGB", (960, 640), "#27312f")
     draw = ImageDraw.Draw(image)
     draw.rectangle((90, 130, 870, 520), fill="#554941")
-    draw.rectangle((240, 215, 680, 380), fill="#f0bf24")
+    draw.rounded_rectangle((240, 215, 680, 380), radius=24, fill=color)
     draw.rectangle((620, 265, 810, 325), fill="#314044")
     draw.rectangle((330, 355, 470, 485), fill="#202725")
-    draw.text((110, 95), "Taller RealityOS · Bodega A", fill="#f1f0ea")
+    draw.text((110, 75), f"Taller RealityOS · {location}", fill="#f1f0ea")
+    draw.text((110, 105), name.title(), fill="#f1f0ea")
     result = io.BytesIO()
     image.save(result, format="PNG")
     return result.getvalue()
+
+
+def synthetic_drill() -> bytes:
+    return synthetic_asset("taladro amarillo", "Bodega A · Estantería 3 · Nivel 2", "#f0bf24")
 
 
 def main() -> None:
@@ -73,59 +78,96 @@ def main() -> None:
             )
         zones: dict[str, Zone] = {}
         zone_specs = [
-            ("Bodega A", "zone"),
-            ("Estantería 1", "shelf"),
-            ("Estantería 2", "shelf"),
-            ("Estantería 3", "shelf"),
-            ("Mesa de trabajo", "zone"),
+            ("Bodega A", "zone", None),
+            ("Estantería 1", "shelf", "Bodega A"),
+            ("Estantería 2", "shelf", "Bodega A"),
+            ("Estantería 3", "shelf", "Bodega A"),
+            ("Nivel 2", "level", "Estantería 3"),
+            ("Mesa de trabajo", "zone", None),
         ]
-        for name, kind in zone_specs:
+        for name, kind, parent_name in zone_specs:
+            parent = zones.get(parent_name) if parent_name else None
             zone = db.scalar(
-                select(Zone).where(Zone.workspace_id == workspace.id, Zone.name == name)
+                select(Zone).where(
+                    Zone.workspace_id == workspace.id,
+                    Zone.name == name,
+                    Zone.parent_id == (parent.id if parent else None),
+                )
             )
+            if zone is None and parent:
+                zone = db.scalar(
+                    select(Zone).where(
+                        Zone.workspace_id == workspace.id,
+                        Zone.name == name,
+                        Zone.parent_id.is_(None),
+                    )
+                )
+                if zone:
+                    zone.parent_id = parent.id
             if zone is None:
-                zone = Zone(workspace_id=workspace.id, name=name, kind=kind)
+                zone = Zone(
+                    workspace_id=workspace.id,
+                    parent_id=parent.id if parent else None,
+                    name=name,
+                    kind=kind,
+                )
                 db.add(zone)
                 db.flush()
             zones[name] = zone
-        raw = synthetic_drill()
-        digest = hashlib.sha256(raw).hexdigest()
-        asset = db.scalar(
-            select(MediaAsset).where(
-                MediaAsset.workspace_id == workspace.id,
-                MediaAsset.sha256 == digest,
+        demo_objects = [
+            ("taladro amarillo", "Nivel 2", "#f0bf24"),
+            ("martillo", "Mesa de trabajo", "#b2b6bc"),
+            ("llave inglesa", "Estantería 1", "#8b9aa8"),
+            ("destornillador", "Estantería 2", "#d94343"),
+            ("caja de herramientas", "Bodega A", "#2f495b"),
+            ("cargador de baterías", "Estantería 1", "#4c8d65"),
+        ]
+        assets: list[MediaAsset] = []
+        for object_name, zone_name, color in demo_objects:
+            raw = synthetic_drill() if object_name == "taladro amarillo" else synthetic_asset(
+                object_name, zone_name, color
             )
-        )
-        if asset is None:
-            session = CaptureSession(
-                workspace_id=workspace.id,
-                zone_id=zones["Estantería 3"].id,
-                created_by_id=user.id,
-                status=CaptureStatus.CLOSED,
-                closed_at=datetime.now(UTC),
-                consent_confirmed=True,
+            digest = hashlib.sha256(raw).hexdigest()
+            asset = db.scalar(
+                select(MediaAsset).where(
+                    MediaAsset.workspace_id == workspace.id,
+                    MediaAsset.sha256 == digest,
+                )
             )
-            db.add(session)
-            db.flush()
-            asset = MediaAsset(
-                workspace_id=workspace.id,
-                capture_session_id=session.id,
-                kind=MediaKind.IMAGE,
-                mime_type="image/png",
-                original_bytes=raw,
-                sha256=digest,
-                byte_size=len(raw),
-                width=960,
-                height=640,
-                captured_at=datetime.now(UTC),
-                extra_metadata={"filename": "taladro_amarillo.png", "synthetic": True},
-            )
-            db.add(asset)
-            db.flush()
-        job = create_processing_job(db, asset, provider="mock")
-        process_job(db, job.id, MockMetaModelClient())
+            if asset is None:
+                session = CaptureSession(
+                    workspace_id=workspace.id,
+                    zone_id=zones[zone_name].id,
+                    created_by_id=user.id,
+                    status=CaptureStatus.CLOSED,
+                    closed_at=datetime.now(UTC),
+                    consent_confirmed=True,
+                )
+                db.add(session)
+                db.flush()
+                asset = MediaAsset(
+                    workspace_id=workspace.id,
+                    capture_session_id=session.id,
+                    kind=MediaKind.IMAGE,
+                    mime_type="image/png",
+                    original_bytes=raw,
+                    sha256=digest,
+                    byte_size=len(raw),
+                    width=960,
+                    height=640,
+                    captured_at=datetime.now(UTC),
+                    extra_metadata={
+                        "filename": f"{object_name.replace(' ', '_')}.png",
+                        "synthetic": True,
+                    },
+                )
+                db.add(asset)
+                db.flush()
+            assets.append(asset)
+            job = create_processing_job(db, asset, provider="mock")
+            process_job(db, job.id, MockMetaModelClient())
         db.commit()
-        print(f"Seed ready: workspace={workspace.id} media={asset.id} job={job.id}")
+        print(f"Seed ready: workspace={workspace.id} assets={len(assets)}")
 
 
 if __name__ == "__main__":

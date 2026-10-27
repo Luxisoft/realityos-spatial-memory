@@ -2,8 +2,10 @@
 
 1. Inicie Compose en META_MODE=mock.
 2. Ejecute el seed sintético e ingrese con la credencial configurada.
-3. Seleccione Taller RealityOS. El seed crea Bodega A, tres estanterías, mesa
-   de trabajo y evidencia de un taladro amarillo.
+3. Seleccione Taller RealityOS. El seed crea Bodega A, tres estanterías,
+   Nivel 2, mesa de trabajo y evidencia de los seis objetos demo: taladro
+   amarillo, martillo, llave inglesa, destornillador, caja de herramientas y
+   cargador de baterías.
 4. En Consultar pregunte: “¿Dónde está el taladro amarillo?”. La respuesta
    muestra “visto por última vez”, geometría amarilla sobre foto BYTEA y el
    marcador SIMULADA.
@@ -13,3 +15,6 @@
 
 El seed genera una ilustración propia con Pillow y no incluye fotos de terceros
 ni clientes.
+
+Para una prueba manual, explícita y con consentimiento usando fotos propias,
+consulte [Manual photo test](MANUAL_PHOTO_TEST.md).
