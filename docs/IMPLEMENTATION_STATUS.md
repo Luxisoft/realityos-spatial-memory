@@ -4,7 +4,7 @@
 
 - Device credential, device-session capture, key rotation/revocation, device
   workspace isolation, marketing facts, analytics and detailed Mock video-track
-  coverage were added. The current local suite has 34 passing tests.
+  coverage were added. The current local suite has 36 passing tests.
 - The frontend production build passed after adding the administrator-only
   Device Registry and Inventory Intelligence views.
 
@@ -28,6 +28,16 @@
   locally, and the gateway Docker image builds successfully.
 - GitHub Actions CI completed successfully for the published gateway branch:
   backend, web/Display and gateway jobs passed.
+- Commit `88503d5` adds a live-only virtual-device bootstrap route for the
+  Android virtual-glasses workflow. It creates a real, short-lived,
+  workspace-scoped device credential at runtime; no Model API key or device
+  credential is embedded in the APK. The redesigned Android app was compiled
+  locally in Debug and Release forms, linted, and its instrumented test source
+  compiled. The complete CI run
+  [40577511588](https://github.com/Luxisoft/realityos-spatial-memory/actions/runs/40577511588)
+  passed backend, gateway, web and Android jobs.
+- Successful CI runs now retain the installable Debug APK for 14 days as the
+  `realityos-android-debug-apk` artifact. This is not a signed production APK.
 - The second Alembic migration was applied to production PostgreSQL. It enables
   PostgreSQL `pg_trgm` and creates workspace-scoped trigram and FTS indexes for
   object names and aliases. Search uses those indexes on PostgreSQL and a
@@ -72,6 +82,23 @@
   project's Git-ignored `.runtime/manual-captures/incoming/` directory; it is
   not committed or made public.
 
+## Current deployment blocker
+
+- The API, worker, web bundles and loopback proxy from `88503d5` were deployed
+  and the local proxy returned `200` for `/health/live` and `/health/ready`.
+  Public `https://realityos.luxisoft.com` is **not** deployed yet: Cloudflare
+  currently routes that hostname to the LUXIPANEL origin/rule rather than this
+  RealityOS server. During a paused Certbot HTTP-01 test on 2026-10-27, the
+  exact temporary ACME file returned `200` directly from this server but `404`
+  through Cloudflare. Therefore Let’s Encrypt cannot issue the certificate and
+  the Android app correctly cannot obtain its HTTPS live profile yet.
+- The external correction is to exclude `realityos.luxisoft.com/*` from the
+  LUXIPANEL Cloudflare Worker/origin route and point its DNS/origin to this
+  RealityOS server (or temporarily make the A record DNS-only for certificate
+  issuance). After that correction, rerun the production workflow; it will
+  issue the certificate, install the HTTPS virtual host and make the live
+  virtual-glasses bootstrap route available.
+
 ## Implemented but not fully environment-verified
 
 - Live SAM Video Files API upload, streaming parser, RLE persistence and cleanup
@@ -110,6 +137,10 @@
   2026-10-27 (three Mock Device Kit tests total). Interactive phone and
   desktop-Chrome extension validation remain pending; no physical glasses test
   is claimed.
+
+- The virtual-device bootstrap flow has unit coverage for live profile creation,
+  key rotation and expiry, but it cannot be exercised from an Android phone
+  until the public HTTPS hostname described above is corrected.
 
 ## Not implemented
 

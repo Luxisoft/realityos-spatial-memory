@@ -14,6 +14,11 @@ ANDROID_HOME=/opt/android-sdk ANDROID_SDK_ROOT=/opt/android-sdk ./gradlew :app:a
 
 The APK is written to `app/build/outputs/apk/debug/app-debug.apk`.
 
+Every successful GitHub Actions **CI** run also retains that installable Debug
+APK for 14 days as `realityos-android-debug-apk`. This is the artifact to use
+for phone and virtual-glasses validation; the Release artifact is unsigned
+until a production signing key is configured outside the repository.
+
 ## Hardware-free Meta validation
 
 The instrumentation test uses Meta's official Mock Device Kit, not a custom

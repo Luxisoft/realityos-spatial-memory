@@ -37,3 +37,15 @@ de dispositivos virtuales por IP de Cloudflare y habilita una identidad
 temporal para el workspace `Taller de electrónica`. Esa identidad funciona
 solo con `META_MODE=live`, se entrega al teléfono por HTTPS y puede revocarse
 o reemplazarse por una credencial administrada.
+
+### Cloudflare y el primer certificado
+
+Si la zona usa un Worker o Pages para `*.luxisoft.com`, cree una ruta más
+específica `realityos.luxisoft.com/*` con Worker **None** (o excluya ese host
+de la ruta comodín). El registro DNS `A` debe apuntar a la IP pública de este
+servidor. Para el primer despliegue, la alternativa más sencilla es dejar ese
+registro como **DNS only** (nube gris), ejecutar el workflow y, cuando el
+certificado exista, reactivar el proxy de Cloudflare con SSL/TLS en **Full
+(strict)**. Una página 404 de LUXIPANEL en
+`/.well-known/acme-challenge/...` indica que Cloudflare sigue enviando el
+desafío al origen equivocado; no es un fallo de Nginx ni de Certbot.

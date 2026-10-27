@@ -78,6 +78,16 @@ jobs:
           ! unzip -p app/build/outputs/apk/release/app-release-unsigned.apk 'classes*.dex' |
             strings |
             grep -qi 'com/meta/wearable/dat/mockdevice'
+      # The debug APK is deliberately retained so a reviewer can install the
+      # exact artifact that passed the build. Release signing stays outside
+      # GitHub until a production signing key is configured as a secret.
+      - name: Publish installable debug APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: realityos-android-debug-apk
+          path: android/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
+          retention-days: 14
       # GitHub runners expose KVM but the default runner user may not have
       # access. Without this, the emulator silently falls back to TCG and a
       # cold boot can take 15+ minutes.
