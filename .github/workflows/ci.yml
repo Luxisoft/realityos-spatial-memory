@@ -88,4 +88,7 @@ jobs:
           arch: x86_64
           profile: pixel_2
           emulator-options: -no-window -noaudio -no-boot-anim -gpu swiftshader_indirect
-          script: cd android && ./gradlew :app:connectedDebugAndroidTest --stacktrace
+          script: >-
+            cd android &&
+            ./gradlew :app:connectedDebugAndroidTest --stacktrace --info ||
+            { adb logcat -d -v brief; exit 1; }

@@ -1,7 +1,7 @@
 package com.luxisoft.realityos
 
-import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import androidx.test.platform.app.InstrumentationRegistry
 import com.meta.wearable.dat.mockdevice.MockDeviceKit
 import com.meta.wearable.dat.mockdevice.api.GlassesModel
 import com.meta.wearable.dat.mockdevice.api.MockDeviceKitConfig
@@ -24,11 +24,14 @@ import org.junit.runner.RunWith
 @RunWith(AndroidJUnit4::class)
 class MockDeviceKitSmokeTest {
     private lateinit var mock: MockDeviceKitInterface
+    private lateinit var targetContext: android.content.Context
 
     @Before
     fun enable_mock_device_kit() {
-        val context = ApplicationProvider.getApplicationContext<android.content.Context>()
-        mock = MockDeviceKit.getInstance(context)
+        val instrumentation = InstrumentationRegistry.getInstrumentation()
+        targetContext = instrumentation.targetContext
+        grantRuntimePermission(instrumentation, "android.permission.BLUETOOTH_CONNECT")
+        mock = MockDeviceKit.getInstance(targetContext)
         mock.enable(
             MockDeviceKitConfig(
                 initiallyRegistered = true,
@@ -47,7 +50,6 @@ class MockDeviceKitSmokeTest {
 
     @Test
     fun simulates_a_display_glasses_lifecycle_and_preview_server() {
-        val context = ApplicationProvider.getApplicationContext<android.content.Context>()
         val pairing = mock.pairGlasses(GlassesModel.META_RAYBAN_DISPLAY)
         assertTrue(pairing.isSuccess)
         val glasses = pairing.getOrThrow()
@@ -58,7 +60,7 @@ class MockDeviceKitSmokeTest {
         assertEquals(1, mock.pairedDevices.size)
 
         // Meta supplies this renderer for a phone/browser Display preview.
-        assertNotNull(glasses.services.display.createPreviewView(context))
+        assertNotNull(glasses.services.display.createPreviewView(targetContext))
         val server = mock.startTestServer(0)
         assertTrue(server.isSuccess)
         assertTrue(server.getOrThrow() > 0)
@@ -67,5 +69,14 @@ class MockDeviceKitSmokeTest {
         glasses.services.speech.setLocale("en-US")
         glasses.services.speech.simulateTranscription("Where is the yellow drill", false, 0.92f)
         glasses.services.speech.simulateTranscription("Where is the yellow drill", true, 0.92f)
+    }
+
+    private fun grantRuntimePermission(
+        instrumentation: android.app.Instrumentation,
+        permission: String,
+    ) {
+        instrumentation.uiAutomation.executeShellCommand(
+            "pm grant ${instrumentation.targetContext.packageName} $permission",
+        ).close()
     }
 }
