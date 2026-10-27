@@ -21,7 +21,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
@@ -97,8 +96,8 @@ fun RealityWelcome(replay: Boolean, onFinish: () -> Unit) {
                         painter = painterResource(R.drawable.luxisoft_brand_mark),
                         contentDescription = stringResource(R.string.content_luxisoft_mark),
                         modifier = Modifier
-                            .size(34.dp)
-                            .clip(RoundedCornerShape(10.dp)),
+                            .width(34.dp)
+                            .height(19.dp),
                     )
                     Spacer(Modifier.width(9.dp))
                     Column(verticalArrangement = Arrangement.spacedBy(0.dp)) {
@@ -159,24 +158,24 @@ private fun WelcomePageContent(page: WelcomePage, pageIndex: Int, finalPage: Boo
         MemoryTrace(pageIndex = pageIndex)
         Spacer(Modifier.height(30.dp))
         AnimatedContent(
-            targetState = pageIndex,
+            targetState = page,
             transitionSpec = {
                 fadeIn(animationSpec = tween(320)) togetherWith fadeOut(animationSpec = tween(140))
             },
             label = "welcome-copy",
-        ) {
+        ) { targetPage ->
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 Text(
-                    stringResource(page.kicker),
+                    stringResource(targetPage.kicker),
                     style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.primary,
+                    color = MaterialTheme.colorScheme.tertiary,
                 )
                 Text(
-                    stringResource(page.title),
+                    stringResource(targetPage.title),
                     style = MaterialTheme.typography.displaySmall,
                 )
                 Text(
-                    stringResource(page.body),
+                    stringResource(targetPage.body),
                     style = MaterialTheme.typography.bodyLarge,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -266,7 +265,7 @@ private fun WelcomePagerIndicator(selected: Int, count: Int) {
                     .width(if (index == selected) 26.dp else 7.dp)
                     .clip(CircleShape)
                     .background(
-                        if (index == selected) MaterialTheme.colorScheme.primary
+                        if (index == selected) MaterialTheme.colorScheme.tertiary
                         else MaterialTheme.colorScheme.outlineVariant,
                     ),
             )
@@ -284,7 +283,7 @@ private fun CreditPlate(onLinkedIn: () -> Unit, onGitHub: () -> Unit) {
             modifier = Modifier.padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(5.dp),
         ) {
-            Text(stringResource(R.string.about_developed_by), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.primary)
+            Text(stringResource(R.string.about_developed_by), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.tertiary)
             Text(stringResource(R.string.about_creator), style = MaterialTheme.typography.titleMedium)
             Text(stringResource(R.string.about_location), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             Text("Meta AI Developer Hackathon 2026 · Luximus", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -309,7 +308,7 @@ fun AboutDestination(onReplayWelcome: () -> Unit) {
                 Text(
                     stringResource(R.string.about_eyebrow),
                     style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.primary,
+                    color = MaterialTheme.colorScheme.tertiary,
                 )
                 Text(stringResource(R.string.about_title), style = MaterialTheme.typography.headlineMedium)
             }
@@ -330,7 +329,7 @@ fun AboutDestination(onReplayWelcome: () -> Unit) {
                     modifier = Modifier.padding(20.dp),
                     verticalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
-                    Text(stringResource(R.string.about_team_title), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.primary)
+                    Text(stringResource(R.string.about_team_title), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.tertiary)
                     Text(stringResource(R.string.about_developed_by), style = MaterialTheme.typography.titleLarge)
                     Text(stringResource(R.string.about_creator), style = MaterialTheme.typography.bodyLarge)
                     Text("Luximus · ${stringResource(R.string.about_location)}", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)

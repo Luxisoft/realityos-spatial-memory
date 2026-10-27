@@ -3,6 +3,8 @@
     <string name="brand_spatial_memory">MEMORIA ESPACIAL</string>
     <string name="content_open_menu">Abrir menú de navegación</string>
     <string name="content_close_menu">Cerrar menú de navegación</string>
+    <string name="content_open_preview_controls">Abrir controles de Display</string>
+    <string name="content_close_preview_controls">Cerrar controles de Display</string>
     <string name="content_luxisoft_mark">Símbolo LUXISOFT</string>
     <string name="status_connected">Conectado</string>
     <string name="status_ready">Listo</string>
@@ -27,13 +29,17 @@
     <string name="preview_waiting_body">Registra Meta y conecta gafas compatibles desde el menú Gafas Meta. Esta pantalla no inicia captura de foto, video ni audio.</string>
     <string name="preview_open_glasses">Abrir Gafas Meta</string>
     <string name="preview_simulator_title">Vista previa Meta Display</string>
-    <string name="preview_simulator_body">Usa los controles oficiales de gafas virtuales desde Laboratorio de desarrollo. El cuadro es el renderizador de Meta, no una interfaz de teléfono recreada.</string>
+    <string name="preview_simulator_body">El renderizador oficial de Meta permanece como superficie principal. Los controles de simulación y conexión están en el drawer de controles.</string>
+    <string name="preview_controls_title">Controles de Display</string>
+    <string name="preview_controls_body">La conexión, simulación y diagnóstico quedan fuera de la vista previa de Display.</string>
     <string name="preview_select_target">Destino de vista previa</string>
     <string name="preview_in_app">En la app</string>
     <string name="preview_chrome">Chrome</string>
     <string name="preview_start_virtual">Iniciar gafas virtuales</string>
+    <string name="preview_restart_virtual">Reiniciar vista virtual</string>
     <string name="preview_stop_virtual">Detener vista previa</string>
     <string name="preview_waiting_renderer">Esperando Meta Display…</string>
+    <string name="preview_desktop_only">La simulación de Chrome solo está disponible desde los controles de Display en un escritorio conectado.</string>
     <string name="preview_chrome_title">Simulador Display para Chrome</string>
     <string name="preview_chrome_body">Conecta este teléfono por USB con depuración activada, ejecuta el comando en tu computador, abre la dirección en Chrome y habilita Meta Ray-Ban Display Simulator.</string>
     <string name="preview_disconnect_first">Desconecta la sesión Display activa antes de iniciar gafas virtuales.</string>

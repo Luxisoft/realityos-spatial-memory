@@ -3,6 +3,8 @@
     <string name="brand_spatial_memory">SPATIAL MEMORY</string>
     <string name="content_open_menu">Open navigation menu</string>
     <string name="content_close_menu">Close navigation menu</string>
+    <string name="content_open_preview_controls">Open Display controls</string>
+    <string name="content_close_preview_controls">Close Display controls</string>
     <string name="content_luxisoft_mark">LUXISOFT mark</string>
     <string name="status_connected">Connected</string>
     <string name="status_ready">Ready</string>
@@ -27,13 +29,17 @@
     <string name="preview_waiting_body">Register with Meta and connect compatible glasses from the Meta glasses menu. No photo, video or audio capture starts from this screen.</string>
     <string name="preview_open_glasses">Open Meta glasses</string>
     <string name="preview_simulator_title">Meta Display preview</string>
-    <string name="preview_simulator_body">Use the official virtual-glasses controls from Developer lab. The square below is Meta’s renderer, not a recreated phone interface.</string>
+    <string name="preview_simulator_body">The official Meta renderer remains the main surface. Simulation and connection controls are available from the controls drawer.</string>
+    <string name="preview_controls_title">Display controls</string>
+    <string name="preview_controls_body">Connection, simulation and diagnostic tools stay out of the Display preview.</string>
     <string name="preview_select_target">Preview target</string>
     <string name="preview_in_app">In app</string>
     <string name="preview_chrome">Chrome</string>
     <string name="preview_start_virtual">Start virtual glasses</string>
+    <string name="preview_restart_virtual">Restart virtual preview</string>
     <string name="preview_stop_virtual">Stop preview</string>
     <string name="preview_waiting_renderer">Waiting for Meta Display…</string>
+    <string name="preview_desktop_only">Chrome simulation is available only from Display controls on a connected desktop.</string>
     <string name="preview_chrome_title">Chrome Display Simulator</string>
     <string name="preview_chrome_body">Connect this phone by USB with debugging enabled, run the command on your computer, then open the address in Chrome and enable the Meta Ray-Ban Display Simulator.</string>
     <string name="preview_disconnect_first">Disconnect the active Display session before starting virtual glasses.</string>

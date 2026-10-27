@@ -8,25 +8,25 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
@@ -36,9 +36,10 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
@@ -49,8 +50,8 @@ import com.meta.wearable.dat.core.types.Permission
 import kotlinx.coroutines.launch
 
 /**
- * Debug-only main stage. It preserves both official simulator routes: Meta's
- * in-app renderer and the supplementary Chrome simulator route.
+ * Debug-only immersive stage. The official Mock Device Kit renderer owns the
+ * body; simulator state and testing controls live in the end drawer.
  */
 @Composable
 fun DeveloperPreviewStage(
@@ -63,90 +64,73 @@ fun DeveloperPreviewStage(
     val controller = remember(application) { application.developerPreviewController }
     val preview by controller.state.collectAsStateWithLifecycle()
     val scope = rememberCoroutineScope()
-    var selectedMode by rememberSaveable { mutableStateOf(DeveloperPreviewMode.IN_APP) }
+    var autoStartAttempted by rememberSaveable { mutableStateOf(false) }
 
-    Card(
-        modifier = modifier,
-        shape = MaterialTheme.shapes.extraLarge,
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-    ) {
-        Column(
-            modifier = Modifier.padding(18.dp),
-            verticalArrangement = Arrangement.spacedBy(14.dp),
-        ) {
-            Text(stringResource(R.string.preview_simulator_title), style = MaterialTheme.typography.titleLarge)
-            Text(
-                stringResource(R.string.preview_simulator_body),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-            PreviewStateStrip(preview)
-            if (!preview.active) {
-                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
-                Text(
-                    stringResource(R.string.preview_select_target),
-                    style = MaterialTheme.typography.labelLarge,
-                )
-                FlowRow(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
-                ) {
-                    PreviewModeButton(
-                        label = stringResource(R.string.preview_in_app),
-                        selected = selectedMode == DeveloperPreviewMode.IN_APP,
-                        onClick = { selectedMode = DeveloperPreviewMode.IN_APP },
-                    )
-                    PreviewModeButton(
-                        label = stringResource(R.string.preview_chrome),
-                        selected = selectedMode == DeveloperPreviewMode.CHROME,
-                        onClick = { selectedMode = DeveloperPreviewMode.CHROME },
-                    )
-                    Button(
-                        onClick = {
-                            scope.launch {
-                                val deviceId = controller.start(selectedMode) ?: return@launch
-                                viewModel.connectDisplay(deviceId)
-                            }
-                        },
-                        enabled = enabled,
-                    ) { Text(stringResource(R.string.preview_start_virtual)) }
-                }
-                if (!enabled) {
-                    Text(
-                        stringResource(R.string.preview_disconnect_first),
-                        color = MaterialTheme.colorScheme.secondary,
-                        style = MaterialTheme.typography.bodySmall,
-                    )
-                }
-            } else {
-                OutlinedButton(
+    // The Debug host starts Meta's in-app Display simulation once. A failure is
+    // deliberately not retried in a loop; the right drawer provides retry and
+    // mode selection. No camera, microphone, recording, or upload is started.
+    LaunchedEffect(enabled, preview.active) {
+        if (enabled && !preview.active && !autoStartAttempted) {
+            autoStartAttempted = true
+            val deviceId = controller.start(DeveloperPreviewMode.IN_APP) ?: return@LaunchedEffect
+            viewModel.connectDisplay(deviceId)
+        }
+    }
+
+    Box(modifier = modifier.fillMaxSize()) {
+        PreviewSurface(
+            state = preview,
+            controller = controller,
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(bottom = if (preview.active) 82.dp else 0.dp),
+        )
+        if (preview.active) {
+            Surface(
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .fillMaxWidth()
+                    .navigationBarsPadding()
+                    .padding(horizontal = 16.dp, vertical = 12.dp),
+                color = MaterialTheme.colorScheme.surface.copy(alpha = 0.96f),
+                shape = MaterialTheme.shapes.large,
+            ) {
+                Button(
                     onClick = {
                         scope.launch {
                             if (viewModel.disconnectDisplay()) controller.stop()
                         }
                     },
-                    modifier = Modifier.fillMaxWidth(),
-                ) { Text(stringResource(R.string.preview_stop_virtual)) }
-            }
-            PreviewSurface(preview, controller)
-            preview.error?.let { error ->
-                Text(error, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
-                TextButtonClear(controller)
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .testTag("preview-stop-button"),
+                ) {
+                    Text(stringResource(R.string.preview_stop_virtual))
+                }
             }
         }
     }
 }
 
-/** Debug-only secondary drawer page. It deliberately does not recreate Display UI. */
+/** Content rendered inside the shared right-side Preview controls drawer. */
 @Composable
-fun DeveloperLabControls(viewModel: RealityViewModel, modifier: Modifier = Modifier) {
+fun PreviewControlPanel(
+    state: RealityUiState,
+    viewModel: RealityViewModel,
+    onOpenGlasses: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
     val context = LocalContext.current
     val application = context.applicationContext as RealityOsApplication
     val controller = remember(application) { application.developerPreviewController }
     val preview by controller.state.collectAsStateWithLifecycle()
+    val scope = rememberCoroutineScope()
+    var selectedMode by rememberSaveable { mutableStateOf(DeveloperPreviewMode.IN_APP) }
     var query by rememberSaveable { mutableStateOf("Where is the yellow drill?") }
     var phoneCameraError by rememberSaveable { mutableStateOf<String?>(null) }
     var requestedPhoneCamera by remember { mutableStateOf<PreviewPhoneCamera?>(null) }
+    val cameraPermissionRequired = stringResource(R.string.debug_camera_permission_required)
+    val startBeforeCamera = stringResource(R.string.debug_start_before_camera)
 
     val photoPicker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         controller.setCapturedPhoto(uri)
@@ -161,13 +145,13 @@ fun DeveloperLabControls(viewModel: RealityViewModel, modifier: Modifier = Modif
             phoneCameraError = null
             controller.setPhoneCamera(facing)
         } else {
-            phoneCameraError = context.getString(R.string.debug_camera_permission_required)
+            phoneCameraError = cameraPermissionRequired
         }
     }
 
     fun requestPhoneCamera(facing: PreviewPhoneCamera) {
         if (!preview.active) {
-            phoneCameraError = context.getString(R.string.debug_start_before_camera)
+            phoneCameraError = startBeforeCamera
             return
         }
         if (ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
@@ -179,61 +163,102 @@ fun DeveloperLabControls(viewModel: RealityViewModel, modifier: Modifier = Modif
         }
     }
 
+    fun startPreview(mode: DeveloperPreviewMode) {
+        scope.launch {
+            val deviceId = controller.start(mode) ?: return@launch
+            viewModel.connectDisplay(deviceId)
+        }
+    }
+
     Column(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(horizontal = 20.dp, vertical = 18.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp),
+        modifier = modifier,
+        verticalArrangement = Arrangement.spacedBy(14.dp),
     ) {
-        SectionHeading(
-            title = stringResource(R.string.debug_lab_title),
-            body = stringResource(R.string.debug_lab_body),
+        PreviewStateStrip(preview)
+        Text(
+            preview.message,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            style = MaterialTheme.typography.bodySmall,
         )
+
         if (!preview.active) {
-            Card(shape = MaterialTheme.shapes.large) {
-                Text(
-                    stringResource(R.string.debug_start_prompt),
-                    modifier = Modifier.padding(20.dp),
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    style = MaterialTheme.typography.bodyMedium,
+            Text(stringResource(R.string.preview_select_target), style = MaterialTheme.typography.labelLarge)
+            FlowRow(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                PreviewModeButton(
+                    label = stringResource(R.string.preview_in_app),
+                    selected = selectedMode == DeveloperPreviewMode.IN_APP,
+                    onClick = { selectedMode = DeveloperPreviewMode.IN_APP },
+                )
+                PreviewModeButton(
+                    label = stringResource(R.string.preview_chrome),
+                    selected = selectedMode == DeveloperPreviewMode.CHROME,
+                    onClick = { selectedMode = DeveloperPreviewMode.CHROME },
                 )
             }
-            return@Column
-        }
-        Card(shape = MaterialTheme.shapes.large) {
-            Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
-                DeviceLifecycleControls(controller, preview)
-                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
-                PermissionControls(controller)
-                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
-                MediaControls(
-                    preview = preview,
-                    onSelectPhoto = { photoPicker.launch(arrayOf("image/jpeg", "image/png")) },
-                    onSelectVideo = { videoPicker.launch(arrayOf("video/*")) },
-                    onUsePhoneCamera = ::requestPhoneCamera,
-                )
-                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
-                SpeechControls(
-                    query = query,
-                    onQueryChange = { query = it },
-                    onPartial = { controller.simulateTranscription(query, isFinal = false) },
-                    onFinal = { controller.simulateTranscription(query, isFinal = true) },
-                )
-                val issue = preview.error ?: phoneCameraError
-                if (issue != null) {
-                    Text(issue, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
-                    OutlinedButton(
-                        onClick = {
-                            phoneCameraError = null
-                            controller.clearError()
-                        },
-                    ) { Text(stringResource(R.string.debug_dismiss)) }
-                }
+            Button(
+                onClick = { startPreview(selectedMode) },
+                enabled = !state.wearable.sessionActive,
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                Text(stringResource(R.string.preview_restart_virtual))
+            }
+            if (state.wearable.sessionActive) {
                 Text(
-                    preview.message,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    stringResource(R.string.preview_disconnect_first),
+                    color = MaterialTheme.colorScheme.secondary,
                     style = MaterialTheme.typography.bodySmall,
                 )
+            }
+        } else {
+            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+            DeviceLifecycleControls(controller, preview)
+            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+            PermissionControls(controller)
+            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+            MediaControls(
+                preview = preview,
+                onSelectPhoto = { photoPicker.launch(arrayOf("image/jpeg", "image/png")) },
+                onSelectVideo = { videoPicker.launch(arrayOf("video/*")) },
+                onUsePhoneCamera = ::requestPhoneCamera,
+            )
+            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+            SpeechControls(
+                query = query,
+                onQueryChange = { query = it },
+                onPartial = { controller.simulateTranscription(query, isFinal = false) },
+                onFinal = { controller.simulateTranscription(query, isFinal = true) },
+            )
+        }
+
+        preview.chrome?.takeIf { preview.mode == DeveloperPreviewMode.CHROME }?.let { chrome ->
+            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+            Text(stringResource(R.string.preview_chrome_title), style = MaterialTheme.typography.labelLarge)
+            Text(
+                stringResource(R.string.preview_chrome_body),
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                style = MaterialTheme.typography.bodySmall,
+            )
+            CodeLine(chrome.adbForwardCommand)
+            CodeLine(chrome.url)
+        }
+
+        val issue = preview.error ?: phoneCameraError
+        if (issue != null) {
+            Text(issue, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
+            OutlinedButton(
+                onClick = {
+                    phoneCameraError = null
+                    controller.clearError()
+                },
+            ) { Text(stringResource(R.string.debug_dismiss)) }
+        }
+
+        if (!preview.active && state.provisioning == null) {
+            OutlinedButton(onClick = onOpenGlasses, modifier = Modifier.fillMaxWidth()) {
+                Text(stringResource(R.string.preview_open_glasses))
             }
         }
     }
@@ -266,7 +291,7 @@ private fun PreviewBadge(label: String, active: Boolean) {
 @Composable
 private fun PreviewModeButton(label: String, selected: Boolean, onClick: () -> Unit) {
     if (selected) {
-        Button(onClick = onClick, colors = ButtonDefaults.buttonColors()) { Text(label) }
+        Button(onClick = onClick) { Text(label) }
     } else {
         OutlinedButton(onClick = onClick) { Text(label) }
     }
@@ -290,7 +315,7 @@ private fun DeviceLifecycleControls(controller: DeveloperPreviewController, stat
 
 @Composable
 private fun LifecycleButton(label: String, onClick: () -> Unit) {
-    ElevatedButton(onClick = onClick) { Text(label) }
+    Button(onClick = onClick) { Text(label) }
 }
 
 @Composable
@@ -306,7 +331,7 @@ private fun PermissionControls(controller: DeveloperPreviewController) {
 
 @Composable
 private fun PermissionButton(label: String, onClick: () -> Unit) {
-    OutlinedButton(onClick = onClick) { Text(label, style = MaterialTheme.typography.labelSmall) }
+    Button(onClick = onClick) { Text(label, style = MaterialTheme.typography.labelSmall) }
 }
 
 @Composable
@@ -337,7 +362,7 @@ private fun MediaControls(
 private fun SelectedMedia(label: String, value: String) {
     Text(
         "$label: $value",
-        color = MaterialTheme.colorScheme.primary,
+        color = MaterialTheme.colorScheme.tertiary,
         style = MaterialTheme.typography.labelSmall,
         fontFamily = FontFamily.Monospace,
     )
@@ -365,18 +390,25 @@ private fun SpeechControls(
 }
 
 @Composable
-private fun PreviewSurface(state: DeveloperPreviewState, controller: DeveloperPreviewController) {
-    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
-    when (state.mode) {
-        DeveloperPreviewMode.IN_APP -> {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(360.dp)
-                    .clip(RoundedCornerShape(22.dp))
-                    .background(Color.Black),
-                contentAlignment = Alignment.Center,
-            ) {
+private fun PreviewSurface(
+    state: DeveloperPreviewState,
+    controller: DeveloperPreviewController,
+    modifier: Modifier = Modifier,
+) {
+    BoxWithConstraints(
+        modifier = modifier
+            .background(Color(0xFF070B12))
+            .background(
+                Brush.radialGradient(
+                    colors = listOf(Color(0x1A43D99A), Color(0x0CC2F7D5), Color.Transparent),
+                ),
+            )
+            .testTag("meta-display-preview"),
+        contentAlignment = Alignment.Center,
+    ) {
+        val displaySize = minOf(maxWidth, maxHeight, 600.dp)
+        when (state.mode) {
+            DeveloperPreviewMode.IN_APP -> {
                 if (state.active) {
                     key(state.previewGeneration) {
                         AndroidView(
@@ -387,7 +419,7 @@ private fun PreviewSurface(state: DeveloperPreviewState, controller: DeveloperPr
                                     gravity = android.view.Gravity.CENTER
                                 }
                             },
-                            modifier = Modifier.size(320.dp),
+                            modifier = Modifier.size(displaySize),
                         )
                     }
                 } else {
@@ -397,20 +429,30 @@ private fun PreviewSurface(state: DeveloperPreviewState, controller: DeveloperPr
                     )
                 }
             }
-        }
-        DeveloperPreviewMode.CHROME -> {
-            Text(stringResource(R.string.preview_chrome_title), style = MaterialTheme.typography.titleMedium)
-            Text(
-                stringResource(R.string.preview_chrome_body),
+            DeveloperPreviewMode.CHROME -> Text(
+                stringResource(R.string.preview_desktop_only),
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-                style = MaterialTheme.typography.bodySmall,
+                style = MaterialTheme.typography.bodyMedium,
             )
-            state.chrome?.let { chrome ->
-                CodeLine(chrome.adbForwardCommand)
-                CodeLine(chrome.url)
-            }
+            null -> Text(
+                stringResource(R.string.preview_waiting_renderer),
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
         }
-        null -> Unit
+        Surface(
+            modifier = Modifier
+                .align(Alignment.TopStart)
+                .padding(14.dp),
+            color = Color.Black.copy(alpha = 0.48f),
+            contentColor = MaterialTheme.colorScheme.tertiary,
+            shape = MaterialTheme.shapes.small,
+        ) {
+            Text(
+                stringResource(R.string.preview_simulator_title),
+                modifier = Modifier.padding(horizontal = 10.dp, vertical = 7.dp),
+                style = MaterialTheme.typography.labelMedium,
+            )
+        }
     }
 }
 
@@ -418,17 +460,12 @@ private fun PreviewSurface(state: DeveloperPreviewState, controller: DeveloperPr
 private fun CodeLine(value: String) {
     Text(
         value,
-        color = MaterialTheme.colorScheme.primary,
+        color = MaterialTheme.colorScheme.tertiary,
         style = MaterialTheme.typography.bodySmall,
         fontFamily = FontFamily.Monospace,
         modifier = Modifier
             .fillMaxWidth()
-            .background(MaterialTheme.colorScheme.background, RoundedCornerShape(8.dp))
+            .background(MaterialTheme.colorScheme.surfaceVariant, MaterialTheme.shapes.small)
             .padding(10.dp),
     )
-}
-
-@Composable
-private fun TextButtonClear(controller: DeveloperPreviewController) {
-    OutlinedButton(onClick = controller::clearError) { Text(stringResource(R.string.debug_dismiss)) }
 }

@@ -2,22 +2,26 @@ package com.luxisoft.realityos
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -30,15 +34,15 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Menu
-import androidx.compose.material.icons.outlined.BugReport
 import androidx.compose.material.icons.outlined.Cable
+import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.Language
 import androidx.compose.material.icons.outlined.Memory
 import androidx.compose.material.icons.outlined.SettingsInputComponent
+import androidx.compose.material.icons.outlined.Tune
 import androidx.compose.material.icons.outlined.Visibility
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -76,15 +80,18 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -97,7 +104,6 @@ private enum class HostDestination {
     PREVIEW,
     CONNECTION,
     GLASSES,
-    DEVELOPER,
     LANGUAGE,
     ABOUT,
 }
@@ -167,9 +173,13 @@ private fun RealityHostShell(
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
     var selectedName by rememberSaveable { mutableStateOf(HostDestination.PREVIEW.name) }
+    var previewControlsOpen by rememberSaveable { mutableStateOf(false) }
     val selected = remember(selectedName) { HostDestination.valueOf(selectedName) }
 
-    BackHandler(enabled = drawerState.isOpen) {
+    BackHandler(enabled = previewControlsOpen) {
+        previewControlsOpen = false
+    }
+    BackHandler(enabled = drawerState.isOpen && !previewControlsOpen) {
         scope.launch { drawerState.close() }
     }
     LaunchedEffect(state.message, state.virtualProfileError) {
@@ -185,6 +195,7 @@ private fun RealityHostShell(
                 selected = selected,
                 onSelect = { destination ->
                     selectedName = destination.name
+                    previewControlsOpen = false
                     scope.launch { drawerState.close() }
                 },
             )
@@ -196,47 +207,60 @@ private fun RealityHostShell(
             topBar = {
                 RealityTopBar(
                     state = state,
-                    onOpenDrawer = { scope.launch { drawerState.open() } },
+                    showPreviewControls = selected == HostDestination.PREVIEW,
+                    onOpenDrawer = {
+                        previewControlsOpen = false
+                        scope.launch { drawerState.open() }
+                    },
+                    onOpenPreviewControls = {
+                        scope.launch { drawerState.close() }
+                        previewControlsOpen = true
+                    },
                 )
             },
             snackbarHost = { SnackbarHost(snackbarHostState) },
         ) { contentPadding ->
-            AnimatedContent(
-                targetState = selected,
-                transitionSpec = {
-                    fadeIn(animationSpec = tween(220)) togetherWith fadeOut(animationSpec = tween(120))
-                },
-                label = "host-destination",
+            Box(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(contentPadding),
-            ) { destination ->
-                when (destination) {
-                    HostDestination.PREVIEW -> PreviewDestination(
-                        state = state,
-                        viewModel = viewModel,
-                        onOpenGlasses = { selectedName = HostDestination.GLASSES.name },
-                    )
-                    HostDestination.CONNECTION -> ConnectionDestination(viewModel, state)
-                    HostDestination.GLASSES -> GlassesDestination(
-                        state = state,
-                        onRegisterWithMeta = onRegisterWithMeta,
-                        onConnectDisplay = onConnectDisplay,
-                        onDisconnectDisplay = onDisconnectDisplay,
-                    )
-                    HostDestination.DEVELOPER -> {
-                        if (BuildConfig.DEBUG) {
-                            DeveloperLabControls(viewModel = viewModel)
-                        } else {
-                            PreviewDestination(
-                                state = state,
-                                viewModel = viewModel,
-                                onOpenGlasses = { selectedName = HostDestination.GLASSES.name },
-                            )
-                        }
+            ) {
+                AnimatedContent(
+                    targetState = selected,
+                    transitionSpec = {
+                        fadeIn(animationSpec = tween(220)) togetherWith fadeOut(animationSpec = tween(120))
+                    },
+                    label = "host-destination",
+                    modifier = Modifier.fillMaxSize(),
+                ) { destination ->
+                    when (destination) {
+                        HostDestination.PREVIEW -> PreviewDestination(state = state, viewModel = viewModel)
+                        HostDestination.CONNECTION -> ConnectionDestination(viewModel, state)
+                        HostDestination.GLASSES -> GlassesDestination(
+                            state = state,
+                            onRegisterWithMeta = onRegisterWithMeta,
+                            onConnectDisplay = onConnectDisplay,
+                            onDisconnectDisplay = onDisconnectDisplay,
+                        )
+                        HostDestination.LANGUAGE -> LanguageDestination(experienceStore)
+                        HostDestination.ABOUT -> AboutDestination(onReplayWelcome)
                     }
-                    HostDestination.LANGUAGE -> LanguageDestination(experienceStore)
-                    HostDestination.ABOUT -> AboutDestination(onReplayWelcome)
+                }
+                if (selected == HostDestination.PREVIEW) {
+                    PreviewControlsDrawer(
+                        visible = previewControlsOpen,
+                        onDismiss = { previewControlsOpen = false },
+                    ) {
+                        PreviewControlPanel(
+                            state = state,
+                            viewModel = viewModel,
+                            onOpenGlasses = {
+                                selectedName = HostDestination.GLASSES.name
+                                previewControlsOpen = false
+                            },
+                            modifier = Modifier.fillMaxWidth(),
+                        )
+                    }
                 }
             }
         }
@@ -245,9 +269,18 @@ private fun RealityHostShell(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun RealityTopBar(state: RealityUiState, onOpenDrawer: () -> Unit) {
+private fun RealityTopBar(
+    state: RealityUiState,
+    showPreviewControls: Boolean,
+    onOpenDrawer: () -> Unit,
+    onOpenPreviewControls: () -> Unit,
+) {
     val connected = state.wearable.sessionActive
     val live = state.provisioning?.processingMode?.equals("live", ignoreCase = true) == true
+    val signal by animateColorAsState(
+        targetValue = if (connected) MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.outline,
+        label = "connection-color",
+    )
     TopAppBar(
         navigationIcon = {
             IconButton(onClick = onOpenDrawer) {
@@ -258,51 +291,52 @@ private fun RealityTopBar(state: RealityUiState, onOpenDrawer: () -> Unit) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 ImageMark(size = 34.dp)
                 Spacer(Modifier.width(10.dp))
-                Column(verticalArrangement = Arrangement.spacedBy(1.dp)) {
-                    Text("RealityOS", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                Column(
+                    modifier = Modifier.weight(1f),
+                    verticalArrangement = Arrangement.spacedBy(1.dp),
+                ) {
                     Text(
-                        if (live) "${stringResource(R.string.brand_spatial_memory)} · ${stringResource(R.string.status_live)}"
-                        else stringResource(R.string.brand_spatial_memory),
-                        style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.primary,
+                        "RealityOS",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
                         maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    ) {
+                        Box(Modifier.size(6.dp).clip(CircleShape).background(signal))
+                        Text(
+                            if (live) {
+                                "${stringResource(R.string.brand_spatial_memory)} · ${stringResource(R.string.status_live)}"
+                            } else {
+                                "${stringResource(R.string.brand_spatial_memory)} · ${stringResource(if (connected) R.string.status_connected else R.string.status_ready)}"
+                            },
+                            style = MaterialTheme.typography.labelMedium,
+                            color = if (connected) MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.onSurfaceVariant,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                    }
+                }
+            }
+        },
+        actions = {
+            if (showPreviewControls) {
+                IconButton(onClick = onOpenPreviewControls) {
+                    Icon(
+                        Icons.Outlined.Tune,
+                        contentDescription = stringResource(R.string.content_open_preview_controls),
                     )
                 }
             }
         },
-        actions = { ConnectionPill(connected = connected) },
         colors = TopAppBarDefaults.topAppBarColors(
             containerColor = MaterialTheme.colorScheme.background,
             titleContentColor = MaterialTheme.colorScheme.onBackground,
         ),
     )
-}
-
-@Composable
-private fun ConnectionPill(connected: Boolean) {
-    val signal by animateColorAsState(
-        targetValue = if (connected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline,
-        label = "connection-color",
-    )
-    Surface(
-        color = signal.copy(alpha = if (connected) 0.16f else 0.10f),
-        contentColor = if (connected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
-        shape = CircleShape,
-        modifier = Modifier.padding(end = 12.dp),
-    ) {
-        Row(
-            modifier = Modifier.padding(horizontal = 10.dp, vertical = 7.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(6.dp),
-        ) {
-            Box(Modifier.size(7.dp).clip(CircleShape).background(signal))
-            Text(
-                if (connected) stringResource(R.string.status_connected) else stringResource(R.string.status_ready),
-                style = MaterialTheme.typography.labelMedium,
-                maxLines = 1,
-            )
-        }
-    }
 }
 
 @Composable
@@ -341,9 +375,6 @@ private fun RealityDrawer(
             DrawerItem(HostDestination.PREVIEW, selected, R.string.nav_preview, Icons.Outlined.Visibility, onSelect)
             DrawerItem(HostDestination.CONNECTION, selected, R.string.nav_connection, Icons.Outlined.Cable, onSelect)
             DrawerItem(HostDestination.GLASSES, selected, R.string.nav_glasses, Icons.Outlined.SettingsInputComponent, onSelect)
-            if (BuildConfig.DEBUG) {
-                DrawerItem(HostDestination.DEVELOPER, selected, R.string.nav_developer_lab, Icons.Outlined.BugReport, onSelect)
-            }
             HorizontalDivider(
                 modifier = Modifier.padding(vertical = 12.dp),
                 color = MaterialTheme.colorScheme.outlineVariant,
@@ -378,7 +409,7 @@ private fun DrawerConnectionSummary(state: RealityUiState) {
                 Modifier
                     .size(10.dp)
                     .clip(CircleShape)
-                    .background(if (isLive) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.secondary),
+                    .background(if (isLive) MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.secondary),
             )
             Column(modifier = Modifier.weight(1f)) {
                 Text(
@@ -416,83 +447,125 @@ private fun DrawerItem(
 private fun PreviewDestination(
     state: RealityUiState,
     viewModel: RealityViewModel,
-    onOpenGlasses: () -> Unit,
 ) {
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(horizontal = 16.dp, vertical = 12.dp),
-        contentAlignment = Alignment.Center,
-    ) {
-        if (BuildConfig.DEBUG) {
-            DeveloperPreviewStage(
-                viewModel = viewModel,
-                enabled = !state.wearable.sessionActive,
-                modifier = Modifier.fillMaxWidth(),
-            )
-        } else {
-            LiveDisplayStage(
-                state = state,
-                onOpenGlasses = onOpenGlasses,
-                modifier = Modifier.fillMaxWidth(),
-            )
-        }
+    if (BuildConfig.DEBUG) {
+        DeveloperPreviewStage(
+            viewModel = viewModel,
+            enabled = !state.wearable.sessionActive,
+            modifier = Modifier.fillMaxSize(),
+        )
+    } else {
+        LiveDisplayStage(state = state, modifier = Modifier.fillMaxSize())
     }
 }
 
 @Composable
 private fun LiveDisplayStage(
     state: RealityUiState,
-    onOpenGlasses: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    Card(
-        modifier = modifier.widthIn(max = 520.dp),
-        shape = MaterialTheme.shapes.extraLarge,
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+    Box(
+        modifier = modifier
+            .background(Color(0xFF070B12))
+            .background(
+                Brush.radialGradient(
+                    colors = listOf(Color(0x1A43D99A), Color(0x0CC2F7D5), Color.Transparent),
+                ),
+            ),
+        contentAlignment = Alignment.Center,
     ) {
+        MemoryField(active = state.wearable.sessionActive)
         Column(
-            modifier = Modifier.padding(18.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = Modifier.padding(32.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp),
+        ) {
+            Text(
+                if (state.wearable.sessionActive) {
+                    stringResource(R.string.preview_live_title)
+                } else {
+                    stringResource(R.string.preview_waiting_title)
+                },
+                style = MaterialTheme.typography.headlineSmall,
+                textAlign = TextAlign.Center,
+            )
+            Text(
+                if (state.wearable.sessionActive) {
+                    stringResource(R.string.preview_live_body)
+                } else {
+                    stringResource(R.string.preview_waiting_body)
+                },
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = TextAlign.Center,
+            )
+        }
+    }
+}
+
+@Composable
+private fun PreviewControlsDrawer(
+    visible: Boolean,
+    onDismiss: () -> Unit,
+    content: @Composable ColumnScope.() -> Unit,
+) {
+    Box(modifier = Modifier.fillMaxSize()) {
+        AnimatedVisibility(
+            visible = visible,
+            enter = fadeIn(animationSpec = tween(160)),
+            exit = fadeOut(animationSpec = tween(120)),
         ) {
             Box(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .aspectRatio(1f)
-                    .clip(RoundedCornerShape(28.dp))
-                    .background(Color.Black),
-                contentAlignment = Alignment.Center,
+                    .fillMaxSize()
+                    .background(Color.Black.copy(alpha = 0.52f))
+                    .clickable(onClick = onDismiss),
+            )
+        }
+        AnimatedVisibility(
+            visible = visible,
+            modifier = Modifier.align(Alignment.CenterEnd),
+            enter = slideInHorizontally(initialOffsetX = { it }, animationSpec = tween(220)),
+            exit = slideOutHorizontally(targetOffsetX = { it }, animationSpec = tween(180)),
+        ) {
+            Surface(
+                modifier = Modifier
+                    .fillMaxHeight()
+                    .fillMaxWidth(0.9f)
+                    .widthIn(max = 368.dp)
+                    .testTag("preview-controls-drawer"),
+                color = MaterialTheme.colorScheme.surface,
+                contentColor = MaterialTheme.colorScheme.onSurface,
+                shape = MaterialTheme.shapes.large,
             ) {
-                MemoryField(active = state.wearable.sessionActive)
                 Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    modifier = Modifier.padding(28.dp),
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .verticalScroll(rememberScrollState())
+                        .padding(horizontal = 18.dp, vertical = 18.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp),
                 ) {
-                    Text(
-                        if (state.wearable.sessionActive) {
-                            stringResource(R.string.preview_live_title)
-                        } else {
-                            stringResource(R.string.preview_waiting_title)
-                        },
-                        style = MaterialTheme.typography.headlineSmall,
-                        textAlign = TextAlign.Center,
-                    )
-                    Spacer(Modifier.height(10.dp))
-                    Text(
-                        if (state.wearable.sessionActive) {
-                            stringResource(R.string.preview_live_body)
-                        } else {
-                            stringResource(R.string.preview_waiting_body)
-                        },
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        textAlign = TextAlign.Center,
-                    )
-                }
-            }
-            if (!state.wearable.sessionActive) {
-                Button(onClick = onOpenGlasses, modifier = Modifier.fillMaxWidth()) {
-                    Text(stringResource(R.string.preview_open_glasses))
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                stringResource(R.string.preview_controls_title),
+                                style = MaterialTheme.typography.titleLarge,
+                            )
+                            Text(
+                                stringResource(R.string.preview_controls_body),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
+                        IconButton(onClick = onDismiss) {
+                            Icon(
+                                Icons.Outlined.Close,
+                                contentDescription = stringResource(R.string.content_close_preview_controls),
+                            )
+                        }
+                    }
+                    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                    content()
                 }
             }
         }
@@ -501,7 +574,7 @@ private fun LiveDisplayStage(
 
 @Composable
 private fun MemoryField(active: Boolean) {
-    val trace = if (active) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline
+    val trace = if (active) MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.outline
     Canvas(modifier = Modifier.fillMaxSize()) {
         val width = size.width
         val height = size.height
@@ -658,7 +731,7 @@ private fun GlassesDestination(
         )
         Card(shape = MaterialTheme.shapes.large) {
             Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
-                Text("DAT", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.primary)
+                Text("DAT", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.tertiary)
                 StatusRow(
                     stringResource(R.string.glasses_registration),
                     state.wearable.registration.lowercase().replace('_', ' '),
@@ -792,8 +865,8 @@ private fun ImageMark(size: androidx.compose.ui.unit.Dp) {
         painter = painterResource(R.drawable.luxisoft_brand_mark),
         contentDescription = stringResource(R.string.content_luxisoft_mark),
         modifier = Modifier
-            .size(size)
-            .clip(RoundedCornerShape(size * 0.28f)),
+            .width(size)
+            .height(size * 0.56f),
     )
 }
 

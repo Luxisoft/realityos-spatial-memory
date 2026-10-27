@@ -12,41 +12,44 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
-// The palette is a spatial field rather than a generic dark dashboard:
-// deep blue-black for depth, LUXISOFT mint for active memory, and amber only
-// for evidence or attention that needs a human decision.
-private val OrbitInk = Color(0xFF08121F)
-private val OrbitSurface = Color(0xFF101F31)
-private val OrbitRaised = Color(0xFF172A40)
-private val OrbitTrace = Color(0xFF203A54)
-private val MemoryMint = Color(0xFF62E7BE)
-private val MemoryMintInk = Color(0xFF06231B)
+// LUXISOFT Platform dark tokens. The preview stays quiet so the Display
+// renderer is the focal point; the brighter mint is reserved for live state
+// and memory traces while the darker emerald carries white action labels.
+private val LuxCanvas = Color(0xFF181B20)
+private val LuxSurface = Color(0xFF22272E)
+private val LuxRaised = Color(0xFF2A3037)
+private val LuxInput = Color(0xFF1A1E23)
+private val LuxBorder = Color(0xFF363D45)
+private val LuxPaper = Color(0xFFF4F7F5)
+private val LuxMist = Color(0xFFAAB4AF)
+private val LuxMint = Color(0xFF63E6AE)
+private val LuxActionEmerald = Color(0xFF047857)
+private val LuxMintContainer = Color(0xFF173729)
+private val LuxMintContainerText = Color(0xFFC2F7D5)
 private val EvidenceAmber = Color(0xFFFFC56A)
-private val Paper = Color(0xFFF5F8FC)
-private val Mist = Color(0xFFBBC9D9)
 private val ErrorRose = Color(0xFFFFB4AB)
 
 private val RealityColorScheme = darkColorScheme(
-    primary = MemoryMint,
-    onPrimary = MemoryMintInk,
-    primaryContainer = Color(0xFF0E4E40),
-    onPrimaryContainer = Color(0xFFB9FFE8),
+    primary = LuxActionEmerald,
+    onPrimary = Color.White,
+    primaryContainer = LuxMintContainer,
+    onPrimaryContainer = LuxMintContainerText,
     secondary = EvidenceAmber,
     onSecondary = Color(0xFF2C1900),
     secondaryContainer = Color(0xFF5A4010),
     onSecondaryContainer = Color(0xFFFFDEA7),
-    tertiary = Color(0xFFB9C8FF),
-    onTertiary = Color(0xFF14214D),
-    background = OrbitInk,
-    onBackground = Paper,
-    surface = OrbitSurface,
-    onSurface = Paper,
-    surfaceVariant = OrbitRaised,
-    onSurfaceVariant = Mist,
-    surfaceContainerHigh = OrbitRaised,
-    surfaceContainerHighest = OrbitTrace,
-    outline = Color(0xFF8297AD),
-    outlineVariant = Color(0xFF30465D),
+    tertiary = LuxMint,
+    onTertiary = Color(0xFF07140E),
+    background = LuxCanvas,
+    onBackground = LuxPaper,
+    surface = LuxSurface,
+    onSurface = LuxPaper,
+    surfaceVariant = LuxRaised,
+    onSurfaceVariant = LuxMist,
+    surfaceContainerHigh = LuxRaised,
+    surfaceContainerHighest = LuxInput,
+    outline = LuxMist,
+    outlineVariant = LuxBorder,
     error = ErrorRose,
     onError = Color(0xFF690005),
     errorContainer = Color(0xFF93000A),
@@ -95,9 +98,9 @@ private val RealityTypography = Typography(
 private val RealityShapes = Shapes(
     extraSmall = androidx.compose.foundation.shape.RoundedCornerShape(8.dp),
     small = androidx.compose.foundation.shape.RoundedCornerShape(12.dp),
-    medium = androidx.compose.foundation.shape.RoundedCornerShape(18.dp),
-    large = androidx.compose.foundation.shape.RoundedCornerShape(24.dp),
-    extraLarge = androidx.compose.foundation.shape.RoundedCornerShape(32.dp),
+    medium = androidx.compose.foundation.shape.RoundedCornerShape(12.dp),
+    large = androidx.compose.foundation.shape.RoundedCornerShape(12.dp),
+    extraLarge = androidx.compose.foundation.shape.RoundedCornerShape(12.dp),
 )
 
 @Composable

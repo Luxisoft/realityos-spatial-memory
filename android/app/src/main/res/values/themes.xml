@@ -3,15 +3,15 @@
         <item name="android:fontFamily">sans</item>
         <item name="android:windowLightStatusBar">false</item>
         <item name="android:statusBarColor">@android:color/transparent</item>
-        <item name="android:navigationBarColor">#0B1220</item>
+        <item name="android:navigationBarColor">#181B20</item>
         <item name="android:windowLightNavigationBar">false</item>
         <item name="android:windowActionModeOverlay">true</item>
-        <item name="android:colorAccent">#63E6BE</item>
+        <item name="android:colorAccent">#63E6AE</item>
     </style>
 
     <style name="Theme.RealityOS.Starting" parent="Theme.SplashScreen">
         <item name="windowSplashScreenBackground">@color/reality_ink</item>
-        <item name="windowSplashScreenAnimatedIcon">@drawable/luxisoft_brand_mark</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/luxisoft_favicon_v9</item>
         <item name="postSplashScreenTheme">@style/Theme.RealityOS</item>
     </style>
 </resources>
