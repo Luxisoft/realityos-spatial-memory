@@ -4,7 +4,7 @@
 
 - Device credential, device-session capture, key rotation/revocation, device
   workspace isolation, marketing facts, analytics and detailed Mock video-track
-  coverage were added. The current local suite has 36 passing tests.
+  coverage were added. The current local suite has 37 passing tests.
 - The frontend production build passed after adding the administrator-only
   Device Registry and Inventory Intelligence views.
 

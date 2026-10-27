@@ -86,6 +86,17 @@ class FactProvenance(str, enum.Enum):
     LEGACY = "legacy"
 
 
+def _enum_values(enum_class: type[enum.Enum]) -> list[str]:
+    """Persist enum values when a PostgreSQL type was defined in lowercase.
+
+    SQLAlchemy otherwise persists member *names* (for example ``ACTIVE``),
+    whereas the device, fact-provenance and processing-operation PostgreSQL
+    types intentionally use their stable lowercase wire values.
+    """
+
+    return [str(member.value) for member in enum_class]
+
+
 class User(TimestampMixin, Base):
     __tablename__ = "users"
 
@@ -136,7 +147,9 @@ class Device(TimestampMixin, Base):
     label: Mapped[str] = mapped_column(String(160), nullable=False)
     credential_hash: Mapped[str] = mapped_column(String(128), nullable=False)
     status: Mapped[DeviceStatus] = mapped_column(
-        Enum(DeviceStatus, name="device_status"), default=DeviceStatus.ACTIVE, nullable=False
+        Enum(DeviceStatus, name="device_status", values_callable=_enum_values),
+        default=DeviceStatus.ACTIVE,
+        nullable=False,
     )
     created_by_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id"), nullable=False)
     last_seen_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
@@ -333,7 +346,7 @@ class ObjectFact(TimestampMixin, Base):
     unit: Mapped[str | None] = mapped_column(String(40))
     confidence: Mapped[float] = mapped_column(Float, nullable=False)
     provenance: Mapped[FactProvenance] = mapped_column(
-        Enum(FactProvenance, name="fact_provenance"), nullable=False
+        Enum(FactProvenance, name="fact_provenance", values_callable=_enum_values), nullable=False
     )
     evidence_geometry: Mapped[dict[str, float] | None] = mapped_column(JSON)
     model_name: Mapped[str] = mapped_column(String(120), nullable=False)
@@ -369,7 +382,7 @@ class ObjectActivityEvent(TimestampMixin, Base):
     end_pts_seconds: Mapped[float | None] = mapped_column(Float)
     confidence: Mapped[float] = mapped_column(Float, nullable=False)
     provenance: Mapped[FactProvenance] = mapped_column(
-        Enum(FactProvenance, name="fact_provenance"), nullable=False
+        Enum(FactProvenance, name="fact_provenance", values_callable=_enum_values), nullable=False
     )
     verification_status: Mapped[VerificationStatus] = mapped_column(
         Enum(VerificationStatus, name="verification_status"),
@@ -469,7 +482,7 @@ class ProcessingJob(TimestampMixin, Base):
         Enum(
             ProcessingOperation,
             name="processing_operation",
-            values_callable=lambda enum_class: [member.value for member in enum_class],
+            values_callable=_enum_values,
         ),
         default=ProcessingOperation.ANALYSIS,
         nullable=False,
