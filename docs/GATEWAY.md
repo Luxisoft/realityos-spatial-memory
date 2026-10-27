@@ -8,8 +8,8 @@ on FRONTEND; it is not a general-purpose HTTP proxy.
 
 RealityOS sends `X-RealityOS-Gateway-Token` to the gateway. The gateway accepts
 only `GET /v1/models`, `POST /v1/responses`, and `POST /v1/asr/transcribe`,
-then replaces that header with the server-side Meta bearer token. It streams the
-request to Meta without storing bodies, rejects every other route, and forwards
+then replaces that header with the server-side Meta bearer token. It forwards
+request bytes to Meta without storing bodies, rejects every other route, and forwards
 the upstream response status and safe headers.
 
 `MODEL_API_KEY` is configured only in FRONTEND's ignored gateway runtime file.
@@ -26,9 +26,13 @@ configuration, obtains an ACME certificate, and only then updates the
 RealityOS API and worker.
 
 The Nginx allowlist is derived from `GATEWAY_ALLOWED_CIDRS`. The initial value
-must include the RealityOS server's actual public egress address. Keep the
-gateway token as a second, independent control; never rely on an IP allowlist
-alone.
+must include the RealityOS server's actual public egress address. This domain
+can remain proxied by Cloudflare: each deployment fetches Cloudflare's current
+published IPv4/IPv6 ranges, configures Nginx to trust `CF-Connecting-IP` only
+from those ranges, then applies the allowlist to the recovered client address.
+Keep the gateway token as a second, independent control; never rely on an IP
+allowlist alone. Set Cloudflare SSL/TLS mode to **Full (strict)** after the
+workflow obtains the origin certificate.
 
 To roll back, run **Deploy production** manually and supply a previously
 published immutable `release_tag` (the commit SHA). The workflow skips builds

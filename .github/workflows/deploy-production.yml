@@ -111,6 +111,14 @@ jobs:
             printf 'allow %s;\n' "$cidr" >> .gateway-allowlist.conf
           done
           printf 'deny all;\n' >> .gateway-allowlist.conf
+          : > .gateway-cloudflare-realip.conf
+          {
+            curl --fail --silent --show-error --retry 3 https://www.cloudflare.com/ips-v4
+            curl --fail --silent --show-error --retry 3 https://www.cloudflare.com/ips-v6
+          } | awk '
+            /^[0-9A-Fa-f:.]+\/[0-9]+$/ { print "set_real_ip_from " $0 ";"; count++ }
+            END { if (count == 0) exit 1 }
+          ' > .gateway-cloudflare-realip.conf
           META_GATEWAY_HOSTNAME="$META_GATEWAY_HOSTNAME" META_GATEWAY_PORT="$META_GATEWAY_PORT" \
             bash scripts/deploy/render-meta-gateway-nginx.sh \
             infrastructure/gateway/nginx-meta.http.conf .gateway-http.conf
@@ -123,6 +131,7 @@ jobs:
           scp -i ~/.ssh/frontend infrastructure/gateway/docker-compose.yml "$FRONTEND_USER@$FRONTEND_HOST:/tmp/realityos-meta-compose.yml"
           scp -i ~/.ssh/frontend .gateway-runtime.env "$FRONTEND_USER@$FRONTEND_HOST:/tmp/realityos-meta-runtime.env"
           scp -i ~/.ssh/frontend .gateway-allowlist.conf "$FRONTEND_USER@$FRONTEND_HOST:/tmp/realityos-meta-allowlist.conf"
+          scp -i ~/.ssh/frontend .gateway-cloudflare-realip.conf "$FRONTEND_USER@$FRONTEND_HOST:/tmp/realityos-meta-cloudflare-realip.conf"
           scp -i ~/.ssh/frontend .gateway-http.conf "$FRONTEND_USER@$FRONTEND_HOST:/tmp/realityos-meta-http.conf"
           scp -i ~/.ssh/frontend .gateway-https.conf "$FRONTEND_USER@$FRONTEND_HOST:/tmp/realityos-meta-https.conf"
           printf '%s' "$GHCR_PULL_TOKEN" | ssh -i ~/.ssh/frontend "$FRONTEND_USER@$FRONTEND_HOST" "sudo docker login ghcr.io --username '${{ github.actor }}' --password-stdin"
@@ -131,6 +140,7 @@ jobs:
             sudo install -m 0600 /tmp/realityos-meta-runtime.env /opt/realityos-meta-gateway/runtime.env
             sudo install -m 0644 /tmp/realityos-meta-compose.yml /opt/realityos-meta-gateway/docker-compose.yml
             sudo install -m 0644 /tmp/realityos-meta-allowlist.conf /etc/nginx/snippets/realityos-meta-allowlist.conf
+            sudo install -m 0644 /tmp/realityos-meta-cloudflare-realip.conf /etc/nginx/snippets/realityos-meta-cloudflare-realip.conf
             sudo install -m 0644 /tmp/realityos-meta-http.conf /etc/nginx/conf.d/realityos-meta.conf
             acme_email=$(sudo sed -n "s/^ACME_EMAIL=//p" /opt/realityos-meta-gateway/runtime.env)
             gateway_token=$(sudo sed -n "s/^META_GATEWAY_TOKEN=//p" /opt/realityos-meta-gateway/runtime.env)
