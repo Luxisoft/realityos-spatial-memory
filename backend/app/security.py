@@ -96,3 +96,34 @@ def decode_token(token: str, settings: Settings, expected_type: str) -> dict[str
     if payload.get("typ") != expected_type or not payload.get("sub"):
         raise jwt.InvalidTokenError("Unexpected token type.")
     return payload
+
+
+def create_display_evidence_token(
+    observation_id: uuid.UUID, device_id: uuid.UUID, settings: Settings
+) -> str:
+    """Create a short-lived, observation-specific URL credential for Display.
+
+    The DAT Display image component loads an HTTPS URL itself and therefore
+    cannot include RealityOS device headers. This token never grants API access
+    beyond rendering the single highlighted observation it names.
+    """
+
+    now = datetime.now(UTC)
+    payload = {
+        "sub": str(observation_id),
+        "did": str(device_id),
+        "typ": "display_evidence",
+        "iat": now,
+        "exp": now + timedelta(minutes=settings.display_evidence_token_minutes),
+    }
+    return jwt.encode(payload, settings.jwt_secret, algorithm=settings.jwt_algorithm)
+
+
+def decode_display_evidence_token(token: str, settings: Settings) -> tuple[uuid.UUID, uuid.UUID]:
+    payload = jwt.decode(token, settings.jwt_secret, algorithms=[settings.jwt_algorithm])
+    if payload.get("typ") != "display_evidence":
+        raise jwt.InvalidTokenError("Unexpected token type.")
+    try:
+        return uuid.UUID(str(payload["sub"])), uuid.UUID(str(payload["did"]))
+    except (KeyError, TypeError, ValueError) as exc:
+        raise jwt.InvalidTokenError("Invalid display evidence token.") from exc

@@ -255,6 +255,9 @@ class QueryResponse(BaseModel):
     zone_path: list[str] = Field(default_factory=list)
     media_id: uuid.UUID | None = None
     highlighted_media_url: str | None = None
+    # A short-lived URL for DAT Display image rendering. It is populated only
+    # for device-authenticated queries and must never be reused as API auth.
+    display_media_url: str | None = None
     highlight_quality: Literal["sam_mask", "approximate_box", "none"] = "none"
     segmentation_status: Literal[
         "not_requested", "queued", "processing", "ready", "no_match", "failed"

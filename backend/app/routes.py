@@ -4,12 +4,14 @@ import io
 import uuid
 from datetime import UTC, datetime
 
+import jwt
 from fastapi import APIRouter, Depends, File, Form, HTTPException, Request, UploadFile, status
 from fastapi.responses import Response, StreamingResponse
 from PIL import Image, ImageDraw
 from sqlalchemy import desc, func, select
 from sqlalchemy.orm import Session
 
+from app.config import Settings
 from app.dependencies import get_current_device, get_current_user, get_db, workspace_member
 from app.meta import MetaProviderError, build_meta_client
 from app.models import (
@@ -74,7 +76,9 @@ from app.schemas import (
 from app.security import (
     create_access_token,
     create_device_credential,
+    create_display_evidence_token,
     create_refresh_token,
+    decode_display_evidence_token,
     decode_token,
     hash_device_credential,
     verify_password,
@@ -141,6 +145,21 @@ def _capture_response(item: MediaAsset) -> CaptureResponse:
         width=item.width,
         height=item.height,
         created_at=item.created_at,
+    )
+
+
+@router.get("/device/zones", response_model=list[ZoneResponse])
+async def list_device_zones(
+    device: Device = Depends(get_current_device), db: Session = Depends(get_db)
+) -> list[Zone]:
+    """Return the enrolled device's locations without exposing other workspaces."""
+
+    return list(
+        db.scalars(
+            select(Zone)
+            .where(Zone.workspace_id == device.workspace_id)
+            .order_by(Zone.sort_order, Zone.name)
+        )
     )
 
 
@@ -1304,6 +1323,8 @@ def _answer_query(
     *,
     authorized_workspace_id: uuid.UUID | None = None,
     device_view: bool = False,
+    display_device: Device | None = None,
+    settings: Settings | None = None,
 ) -> QueryResponse:
     if user is None:
         if authorized_workspace_id != payload.workspace_id:
@@ -1368,6 +1389,13 @@ def _answer_query(
     )
     segmentation_status, segmentation_job = _segmentation_details(db, observation)
     highlight_quality = _highlight_quality(observation)
+    has_highlight = highlight_quality != "none"
+    display_media_url = None
+    if has_highlight and display_device is not None and settings is not None:
+        token = create_display_evidence_token(
+            observation.id, display_device.id, settings
+        )
+        display_media_url = f"/v1/device/display/observations/{observation.id}/highlighted?token={token}"
     return QueryResponse(
         found=True,
         message=text,
@@ -1381,9 +1409,10 @@ def _answer_query(
                 if device_view
                 else f"/v1/observations/{observation.id}/highlighted"
             )
-            if highlight_quality != "none"
+            if has_highlight
             else None
         ),
+        display_media_url=display_media_url,
         highlight_quality=highlight_quality,
         segmentation_status=segmentation_status,
         segmentation_job_id=segmentation_job.id if segmentation_job else None,
@@ -1428,6 +1457,8 @@ async def device_query(
         client,
         authorized_workspace_id=device.workspace_id,
         device_view=True,
+        display_device=device,
+        settings=request.app.state.settings,
     )
 
 
@@ -1569,6 +1600,47 @@ async def device_highlighted_observation(
     if asset is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Media not found.")
     return _render_highlight(db, observation, asset)
+
+
+@router.get("/device/display/observations/{observation_id}/highlighted")
+async def display_highlighted_observation(
+    observation_id: uuid.UUID,
+    token: str,
+    request: Request,
+    db: Session = Depends(get_db),
+) -> Response:
+    """Serve one short-lived highlighted image to the DAT Display renderer.
+
+    DAT Display fetches image URLs itself, so it cannot send the encrypted
+    device credential held by the Android host. The signed token is deliberately
+    limited to this observation and the still-active enrolled device.
+    """
+
+    try:
+        token_observation_id, token_device_id = decode_display_evidence_token(
+            token, request.app.state.settings
+        )
+    except jwt.PyJWTError:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Evidence not found.")
+    if token_observation_id != observation_id:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Evidence not found.")
+    device = db.get(Device, token_device_id)
+    observation = db.get(ObjectObservation, observation_id)
+    if (
+        device is None
+        or device.status != DeviceStatus.ACTIVE
+        or observation is None
+        or observation.workspace_id != device.workspace_id
+        or observation.verification_status != VerificationStatus.VERIFIED
+    ):
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Evidence not found.")
+    asset = db.get(MediaAsset, observation.media_asset_id)
+    if asset is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Evidence not found.")
+    response = _render_highlight(db, observation, asset)
+    response.headers["Cache-Control"] = "private, no-store"
+    response.headers["Referrer-Policy"] = "no-referrer"
+    return response
 
 
 @router.get("/media/{media_id}/highlighted")

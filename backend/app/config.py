@@ -26,6 +26,10 @@ class Settings(BaseSettings):
     jwt_algorithm: str = "HS256"
     access_token_minutes: int = Field(default=30, ge=5, le=120)
     refresh_token_days: int = Field(default=14, ge=1, le=90)
+    # Display content is fetched by the glasses renderer, which cannot attach the
+    # device headers used by the native client. Keep those bearer URLs short-lived
+    # and scoped to exactly one observation and one enrolled device.
+    display_evidence_token_minutes: int = Field(default=5, ge=1, le=30)
     # A dedicated value is preferred. When omitted, the already-required JWT
     # signing secret is used as a server-side fallback so a deployment cannot
     # accidentally authenticate every device with a public development value.

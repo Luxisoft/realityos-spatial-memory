@@ -14,7 +14,8 @@ Device ingestion routes use `X-RealityOS-Device-ID` and
 | Objects | list/read/history; add a normalized alias; verify or reject observation. `GET /v1/objects` requires `workspace_id` and accepts `q` (name or alias), `category`, and `zone_id` filters. |
 | Query/media | text/audio query; original media; observation-specific highlighted evidence |
 | Devices (admin) | enroll/list/assign/rotate/revoke workspace devices; key material is returned only at enrollment or rotation |
-| Device ingestion | open/close a device session, upload/process a device capture, and make a read-only text query |
+| Device ingestion | list authorized zones; open/close a device session; upload/process a device capture; make a read-only text query; retrieve header-authenticated evidence |
+| DAT Display evidence | a device query also returns `display_media_url`: a five-minute, observation-scoped bearer URL issued only for an active enrolled device, so the Display renderer can fetch without exposing device credentials |
 | Inventory intelligence (admin) | evidence facts, fact verification, aggregate inventory/brand/condition/use/device metrics and video tracks |
 | System | health live and ready |
 
@@ -48,3 +49,10 @@ job for a verified observation. It is restricted to `admin` and `register`.
 `segmentation_job_id` and `can_refine`. Its highlighted URL identifies the
 observation, rather than only the photo, so the correct object is overlaid when
 one image contains several observations.
+
+`GET /v1/device/zones` is scoped only to the enrolled device workspace. For a
+DAT Display query, `display_media_url` is deliberately not a replacement for
+device authentication: it is a short-lived signed renderer URL for one verified
+highlighted observation. Treat it as a bearer URL while it is valid; it expires
+according to `DISPLAY_EVIDENCE_TOKEN_MINUTES`, cannot call any JSON API, and is
+invalidated when its issuing enrolled device is revoked.

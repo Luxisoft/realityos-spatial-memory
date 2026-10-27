@@ -88,14 +88,25 @@
   parser; this new mask path remains pending an end-to-end paid SAM stream
   verification.
 
+- A native Android DAT 1.0.1 host now compiles into a debug APK. It initializes
+  DAT, provides encrypted device provisioning, opens a Display session, renders
+  glasses-side Register/Query screens, requests DAT camera/microphone access
+  only from explicit actions, uploads glasses photos and bounded HEVC clips,
+  queries existing evidence through a device credential, and requests Android
+  TTS output. Backend device queries now provide a short-lived signed Display
+  evidence URL and devices can list only their own workspace zones. The Android
+  app has not been installed on hardware or executed against MockDeviceKit in
+  this workspace.
+
 ## Not implemented
 
 - A full end-to-end Live SAM Video run against a user-provided long clip has
   not been performed. Streaming ingestion and audio extraction/transcription
   from source video remain out of scope.
 - Vector retrieval abstraction and optional vector database integration.
-- Android Kotlin/Compose, DAT SDK and Mock Device Kit tests.
-- Official Ray-Ban Display toolkit and simulator validation.
+- Android MockDeviceKit instrumentation execution and physical Meta Ray-Ban
+  Display QA (camera, microphone, TTS route, Display rendering and recovery).
+- Official browser Display simulator validation for the supplementary Web App.
 - Restore test.
 
 No claim of physical-glasses, Android, an end-to-end paid visual inference or

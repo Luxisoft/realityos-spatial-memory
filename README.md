@@ -32,7 +32,9 @@ session; query endpoints are evidence-only and never start a recording.
   SAM is requested explicitly only to refine a selected, verified observation.
 - Optional restricted Meta egress gateway for deployments where only an
   approved server can reach Model API. See [Gateway](docs/GATEWAY.md).
-- React administrative panel and separate 600×600 Display query web app.
+- Native DAT 1.0.1 host for Meta Ray-Ban Display: glasses-side Register/Query
+  screens, camera photo/video capture, on-device speech query, highlighted
+  evidence and Android-routed TTS; plus a separate 600×600 Display Web App demo.
 - Admin object explorer with workspace-scoped name/alias, category and location
   filters, evidence history and a non-metric location hierarchy.
 - Compose, Nginx reverse proxy, migration, synthetic seed and automated tests.
@@ -76,6 +78,7 @@ retried automatically.
     make test
     npm --prefix frontend run build
     npm --prefix display-webapp run build
+    (cd android && ANDROID_HOME=/opt/android-sdk ./gradlew :app:assembleDebug)
 
 See docs/IMPLEMENTATION_STATUS.md for validations actually run in this workspace
 and remaining verification work.
@@ -121,6 +124,8 @@ Human logins are administrative only. A device identifies itself with
 `X-RealityOS-Device-ID` and authorizes uploads with its separate
 `X-RealityOS-Device-Key`; its public ID is provenance, not a human identity.
 Only workspace administrators can inspect device/operator labels or analytics.
+The native Display renderer receives only an observation-scoped, expiring image
+URL; it never receives the device key or Model API key.
 
 ## Documentation
 

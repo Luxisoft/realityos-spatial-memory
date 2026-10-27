@@ -124,6 +124,15 @@ def test_device_ingestion_has_no_human_login_and_admin_gets_inventory_facts(clie
         "X-RealityOS-Device-ID": "workbench-cam-01",
         "X-RealityOS-Device-Key": enrolled["device_key"],
     }
+    zone = client.post(
+        f"/v1/workspaces/{workspace_id}/zones",
+        headers=auth_headers,
+        json={"name": "Bench 7", "kind": "bench"},
+    )
+    assert zone.status_code == 201, zone.text
+    visible_zones = client.get("/v1/device/zones", headers=device_headers)
+    assert visible_zones.status_code == 200, visible_zones.text
+    assert visible_zones.json() == [zone.json()]
     session = client.post("/v1/device/sessions", headers=device_headers, json={})
     assert session.status_code == 201, session.text
     upload = client.post(
@@ -152,6 +161,14 @@ def test_device_ingestion_has_no_human_login_and_admin_gets_inventory_facts(clie
     assert answer.json()["can_refine"] is False
     evidence = client.get(answer.json()["highlighted_media_url"], headers=device_headers)
     assert evidence.status_code == 200
+    display_url = answer.json()["display_media_url"]
+    assert display_url.startswith("/v1/device/display/observations/")
+    # DAT Display renders this URL directly and cannot attach device headers.
+    display_evidence = client.get(display_url)
+    assert display_evidence.status_code == 200
+    assert display_evidence.headers["content-type"] == "image/png"
+    assert display_evidence.headers["cache-control"] == "private, no-store"
+    assert client.get(display_url.split("?", 1)[0]).status_code == 422
     with client.app.state.database.session_factory() as db:
         tracked = db.scalar(select(TrackedObject).where(TrackedObject.workspace_id == uuid.UUID(workspace_id)))
         assert tracked is not None

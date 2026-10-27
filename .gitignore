@@ -14,6 +14,7 @@ node_modules/
 dist/
 coverage/
 .gradle/
+android/app/build/
 android/.idea/
 *.iml
 *.tsbuildinfo
