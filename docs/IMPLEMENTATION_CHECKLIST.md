@@ -56,9 +56,9 @@ comando, prueba o simulador. Este documento no sustituye
 - [ ] Contratos Pydantic de análisis, segmentación, ASR e interpretación definidos.
 - [x] `META_MODE=mock` es determinista, documentado y nunca llama a Meta.
 - [x] Fixtures mock se etiquetan como simulados.
-- [~] `META_MODE=live` usa endpoints oficiales revisados; falta llamada real con credencial.
+- [~] `META_MODE=live` usa endpoints oficiales revisados; el catálogo Meta real se verificó por gateway, falta una inferencia visual/ASR de producción.
 - [x] Gateway de egreso restringe rutas Meta, inyecta la credencial y preserva multipart sin persistir medios.
-- [~] Producción moverá `MODEL_API_KEY` exclusivamente a FRONTEND; la configuración GitHub/DNS y el despliegue aún no se han ejecutado.
+- [x] Producción guarda `MODEL_API_KEY` exclusivamente en FRONTEND y API/worker usan el gateway sin recibirla.
 - [ ] Cliente aplica timeout, límite, backoff, validación, métricas y error explícito.
 - [ ] Muse Spark se conecta a análisis, relaciones e intención cuando Live está configurado.
 - [ ] SAM 3.1 persiste caja o máscara asociada a evidencia cuando Live está configurado.
@@ -108,14 +108,14 @@ comando, prueba o simulador. Este documento no sustituye
 - [ ] Demo verifica que Consultar no realiza grabación.
 - [x] GitHub Actions ejecuta checks realmente disponibles.
 - [x] Workflow versionado construye imágenes GHCR y prepara despliegue/rollback gateway y RealityOS tras merge a `main`.
-- [~] DNS, secretos GitHub y primer despliegue en FRONTEND están pendientes de configuración externa.
+- [x] DNS, secretos GitHub, certificado TLS y primer despliegue en FRONTEND se verificaron mediante el workflow de producción 40434117386.
 - [x] README inglés y documentación de arquitectura, DB, API, Meta, Wearables, despliegue, demo y seguridad existen.
 - [x] `IMPLEMENTATION_STATUS.md` enumera pendientes y bloqueos verificables.
-- [x] Commits de implementación creados; rama publicada y PR #1 abierto con CI verde.
+- [x] Commits de implementación creados; PR #1 fusionado a `main` con CI y despliegue verde.
 
 ## Criterios finales de aceptación
 
-- [ ] Docker Compose inicia correctamente los servicios disponibles.
+- [x] Docker Compose inicia los servicios disponibles; la producción reporta API, PostgreSQL y Redis saludables.
 - [ ] Migraciones reales crean el esquema y datos demo.
 - [ ] Fotos se registran, verifican y recuperan desde PostgreSQL `BYTEA`.
 - [ ] Objetos, ubicaciones, observaciones e historial funcionan con aislamiento.
