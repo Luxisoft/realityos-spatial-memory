@@ -4,7 +4,15 @@ import io
 import uuid
 
 from app.meta import MockMetaModelClient
-from app.models import ObjectObservation, ProcessingJob, Role, User, WorkspaceMember
+from app.models import (
+    ObjectAlias,
+    ObjectObservation,
+    ProcessingJob,
+    Role,
+    TrackedObject,
+    User,
+    WorkspaceMember,
+)
 from app.security import hash_password
 from app.services import process_job
 from PIL import Image
@@ -188,3 +196,36 @@ def test_processing_job_is_idempotent_and_records_mock_sam_geometry(client, auth
     assert len(observations) == 1
     assert observations[0].relationships == [{"relation": "sobre", "object": "caja negra"}]
     assert observations[0].model_name.endswith("+sam-3.1")
+
+
+def test_object_search_uses_aliases_and_returns_ambiguity(client, auth_headers):
+    workspace_id = create_workspace(client, auth_headers)
+    _, _ = register_and_process(client, auth_headers, workspace_id)
+    with client.app.state.database.session_factory() as db:
+        drill = db.scalar(
+            select(TrackedObject).where(TrackedObject.workspace_id == uuid.UUID(workspace_id))
+        )
+        assert drill is not None
+        db.add(ObjectAlias(object_id=drill.id, alias="perforadora"))
+        db.add(
+            TrackedObject(
+                workspace_id=uuid.UUID(workspace_id),
+                canonical_name="taladro azul",
+                category="herramienta eléctrica",
+            )
+        )
+        db.commit()
+    by_alias = client.get(
+        "/v1/objects",
+        headers=auth_headers,
+        params={"workspace_id": workspace_id, "q": "perforadora"},
+    )
+    assert by_alias.status_code == 200
+    assert [item["canonical_name"] for item in by_alias.json()] == ["taladro amarillo"]
+    ambiguous = client.post(
+        "/v1/queries",
+        headers=auth_headers,
+        json={"workspace_id": workspace_id, "question": "¿Dónde está el taladro?"},
+    )
+    assert ambiguous.status_code == 200
+    assert ambiguous.json()["ambiguous"] is True

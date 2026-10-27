@@ -1,6 +1,15 @@
 export type Tokens = { access_token: string; refresh_token: string };
 export type Workspace = { id: string; name: string; description?: string; role: string };
-export type Zone = { id: string; name: string; kind: string; parent_id?: string };
+export type Zone = { id: string; name: string; kind: string; parent_id?: string | null };
+export type TrackedObject = { id: string; canonical_name: string; category?: string | null; attributes: Record<string, unknown> };
+export type Observation = {
+  id: string;
+  media_asset_id: string;
+  seen_at: string;
+  visual_confidence: number;
+  spatial_description?: string | null;
+  verification_status: string;
+};
 export type QueryResult = {
   found: boolean;
   ambiguous: boolean;

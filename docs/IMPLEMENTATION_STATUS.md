@@ -4,9 +4,10 @@
 
 - Backend and gateway lint passed: ruff check backend tests meta-gateway
   gateway-tests.
-- Five SQLite integration tests passed: health/auth, BYTEA capture/retrieval/hash,
-  mock processing, highlighted evidence, missing object, role restriction and
-  workspace isolation.
+- Twelve SQLite integration tests passed: health/auth, BYTEA
+  capture/retrieval/hash, mock processing and SAM geometry, highlighted
+  evidence, missing-object and ambiguous-query handling, role restriction,
+  workspace isolation, and alias search.
 - Admin-panel and Display production builds passed.
 - Docker Engine and Compose were installed on the target server. PostgreSQL,
   Redis, API, Celery, panel, Display and Nginx are currently running.
@@ -19,6 +20,15 @@
   locally, and the gateway Docker image builds successfully.
 - GitHub Actions CI completed successfully for the published gateway branch:
   backend, web/Display and gateway jobs passed.
+- The second Alembic migration was applied to production PostgreSQL. It enables
+  PostgreSQL `pg_trgm` and creates workspace-scoped trigram and FTS indexes for
+  object names and aliases. Search uses those indexes on PostgreSQL and a
+  bounded SQLite fallback in tests.
+- The synthetic production seed was rerun and now contains six legally-created
+  workshop objects and the `Bodega A → Estantería 3 → Nivel 2` hierarchy.
+- The administrative panel now has an authorized object catalog (name/alias,
+  category and location filters), object observation history, and a location
+  hierarchy. The map explicitly is not metric or 3D.
 
 ## Production verification
 
@@ -34,6 +44,11 @@
 - RealityOS API and worker are healthy and run in `META_MODE=live` with the
   gateway URL configured. They do not contain `MODEL_API_KEY`; the Model API
   credential remains only in FRONTEND's protected runtime environment.
+- Subsequent production deployments for indexed retrieval and the expanded demo
+  seed completed successfully in workflow runs
+  [40435541580](https://github.com/Luxisoft/realityos-spatial-memory/actions/runs/40435541580)
+  and
+  [40436600135](https://github.com/Luxisoft/realityos-spatial-memory/actions/runs/40436600135).
 
 ## Implemented but not fully environment-verified
 
@@ -45,8 +60,7 @@
 ## Not implemented
 
 - FFmpeg video ingestion, frame extraction and video traceability.
-- PostgreSQL FTS/trigram retrieval beyond extension/schema; current MVP uses
-  bounded SQL name/alias matching.
+- Vector retrieval abstraction and optional vector database integration.
 - Android Kotlin/Compose, DAT SDK and Mock Device Kit tests.
 - Official Ray-Ban Display toolkit and simulator validation.
 - Restore test.

@@ -1,9 +1,18 @@
 import { ChangeEvent, FormEvent, useEffect, useState } from "react";
 import { createRoot } from "react-dom/client";
 import { apiUrl, request, type QueryResult, type Tokens, type Workspace, type Zone } from "./api";
+import { LocationMap, Objects } from "./explorer";
 import "./styles.css";
 
-type Page = "inicio" | "registrar" | "consultar";
+type Page = "inicio" | "registrar" | "consultar" | "objetos" | "mapa";
+
+const pages: { id: Page; label: string }[] = [
+  { id: "inicio", label: "Inicio" },
+  { id: "registrar", label: "Registrar" },
+  { id: "consultar", label: "Consultar" },
+  { id: "objetos", label: "Objetos" },
+  { id: "mapa", label: "Mapa" },
+];
 
 function App() {
   const [tokens, setTokens] = useState<Tokens | null>(() => {
@@ -45,9 +54,9 @@ function App() {
           <span>Reality</span>OS
         </a>
         <p className="rail-label">MEMORIA ESPACIAL</p>
-        {(["inicio", "registrar", "consultar"] as Page[]).map((item) => (
-          <button className={page === item ? "nav active" : "nav"} key={item} onClick={() => setPage(item)}>
-            {item}
+        {pages.map((item) => (
+          <button className={page === item.id ? "nav active" : "nav"} key={item.id} onClick={() => setPage(item.id)}>
+            {item.label}
           </button>
         ))}
         <button className="nav logout" onClick={logout}>Cerrar sesión</button>
@@ -67,6 +76,8 @@ function App() {
         {page === "inicio" && <Home workspace={workspace} onRegister={() => setPage("registrar")} onQuery={() => setPage("consultar")} />}
         {page === "registrar" && <Register workspaceId={workspaceId} token={token} />}
         {page === "consultar" && <Query workspaceId={workspaceId} token={token} />}
+        {page === "objetos" && <Objects workspaceId={workspaceId} token={token} />}
+        {page === "mapa" && <LocationMap workspaceId={workspaceId} token={token} />}
       </section>
     </main>
   );

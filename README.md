@@ -22,6 +22,8 @@ session; query endpoints are evidence-only and never start a recording.
 - Optional restricted Meta egress gateway for deployments where only an
   approved server can reach Model API. See [Gateway](docs/GATEWAY.md).
 - React administrative panel and separate 600×600 Display query web app.
+- Admin object explorer with workspace-scoped name/alias, category and location
+  filters, evidence history and a non-metric location hierarchy.
 - Compose, Nginx reverse proxy, migration, synthetic seed and automated tests.
 
 ## Quick start: Mock mode
@@ -61,6 +63,10 @@ Live fails.
 
 See docs/IMPLEMENTATION_STATUS.md for validations actually run in this workspace
 and remaining verification work.
+
+For a deliberate, consent-gated test with your own photos, use the private
+staging workflow in [Manual photo test](docs/MANUAL_PHOTO_TEST.md). Staging a
+file alone does not register it or call Meta.
 
 ## Architecture and privacy
 

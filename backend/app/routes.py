@@ -471,14 +471,28 @@ async def get_job(
 async def list_objects(
     workspace_id: uuid.UUID,
     q: str | None = None,
+    category: str | None = None,
+    zone_id: uuid.UUID | None = None,
     user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
     workspace_member(workspace_id, user, db)
     statement = select(TrackedObject).where(TrackedObject.workspace_id == workspace_id)
     if q:
-        statement = statement.where(TrackedObject.canonical_name.ilike(f"%{q.casefold()}%"))
-    return list(db.scalars(statement.order_by(TrackedObject.canonical_name)))
+        candidate_ids = [item.id for item in object_candidates(db, workspace_id, q)]
+        if not candidate_ids:
+            return []
+        statement = statement.where(TrackedObject.id.in_(candidate_ids))
+    if category:
+        statement = statement.where(TrackedObject.category == category.strip())
+    if zone_id:
+        zone = db.get(Zone, zone_id)
+        if zone is None or zone.workspace_id != workspace_id:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Zone not found.")
+        statement = statement.join(
+            ObjectObservation, ObjectObservation.object_id == TrackedObject.id
+        ).where(ObjectObservation.zone_id == zone_id)
+    return list(db.scalars(statement.order_by(TrackedObject.canonical_name)).unique())
 
 
 @router.get("/objects/{object_id}", response_model=ObjectResponse)

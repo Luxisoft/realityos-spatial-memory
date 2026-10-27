@@ -21,9 +21,9 @@ comando, prueba o simulador. Este documento no sustituye
 
 - [x] FastAPI inicia y expone `/health/live` y `/health/ready`.
 - [x] Configuración tipada distingue desarrollo y producción.
-- [ ] PostgreSQL, SQLAlchemy 2, Psycopg y Alembic configurados.
-- [ ] Migración inicial crea todas las entidades requeridas.
-- [ ] `pg_trgm`, FTS, claves foráneas, índices y constraints están migrados.
+- [x] PostgreSQL, SQLAlchemy 2, Psycopg y Alembic configurados.
+- [x] Migración inicial crea todas las entidades requeridas.
+- [x] `pg_trgm`, FTS, claves foráneas, índices y constraints están migrados.
 - [x] `media_assets.original_bytes` (o equivalente) es `BYTEA` fuente de verdad.
 - [x] Login, refresh con revocación y `me` están implementados.
 - [x] Contraseñas usan hash seguro y secretos no aparecen en logs.
@@ -33,7 +33,7 @@ comando, prueba o simulador. Este documento no sustituye
 - [x] Upload valida autorización, consentimiento, MIME, tamaño, hash y dimensiones.
 - [x] Originales se leen desde PostgreSQL con autorización.
 - [x] Auditoría registra acciones sin datos sensibles.
-- [~] Pruebas: SQLite cubre inicio, workspace, upload BYTEA, hash y lectura; falta PostgreSQL real.
+- [~] Pruebas: SQLite cubre inicio, workspace, upload BYTEA, hash y lectura; las migraciones e índices se verificaron contra PostgreSQL real, pero falta una suite de integración PostgreSQL automatizada.
 
 ## Fase 2 — Memoria y consultas
 
@@ -41,30 +41,30 @@ comando, prueba o simulador. Este documento no sustituye
 - [x] Se conserva historial completo de observaciones.
 - [x] Verificación y corrección humana de observaciones implementada.
 - [x] Última ubicación se calcula desde observaciones verificadas.
-- [ ] Búsqueda FTS/trigramas encuentra alias y nombres relevantes.
+- [x] Búsqueda FTS/trigramas encuentra alias y nombres relevantes.
 - [ ] Interfaz de búsqueda vectorial futura existe sin requerir pgvector.
 - [x] Consulta existente devuelve evidencia, fecha, geometría y confianza.
 - [x] Consulta inexistente informa falta de evidencia sin inventar ubicación.
-- [ ] Consulta ambigua solicita o explica desambiguación.
-- [ ] La respuesta usa «última vez visto» y separa confianza visual/recuperación.
+- [x] Consulta ambigua solicita o explica desambiguación.
+- [x] La respuesta usa «última vez visto» y separa confianza visual/recuperación.
 - [x] `GET /v1/media/{id}/highlighted` dibuja caja sin alterar original.
 - [x] Query-only no crea captura, sesión, media, observación ni job.
-- [ ] Pruebas: historial, última observación, ausencia, ambigüedad, permisos y aislamiento.
+- [~] Pruebas: última observación, ausencia, ambigüedad, permisos, aislamiento, alias y geometría están cubiertos; falta caso automatizado específico de historial multievidencia.
 
 ## Fase 3 — Meta, jobs y vídeo
 
-- [ ] Contratos Pydantic de análisis, segmentación, ASR e interpretación definidos.
+- [x] Contratos Pydantic de análisis, segmentación, ASR e interpretación definidos.
 - [x] `META_MODE=mock` es determinista, documentado y nunca llama a Meta.
 - [x] Fixtures mock se etiquetan como simulados.
 - [~] `META_MODE=live` usa endpoints oficiales revisados; el catálogo Meta real se verificó por gateway, falta una inferencia visual/ASR de producción.
 - [x] Gateway de egreso restringe rutas Meta, inyecta la credencial y preserva multipart sin persistir medios.
 - [x] Producción guarda `MODEL_API_KEY` exclusivamente en FRONTEND y API/worker usan el gateway sin recibirla.
-- [ ] Cliente aplica timeout, límite, backoff, validación, métricas y error explícito.
-- [ ] Muse Spark se conecta a análisis, relaciones e intención cuando Live está configurado.
-- [ ] SAM 3.1 persiste caja o máscara asociada a evidencia cuando Live está configurado.
-- [ ] Muse Voice Transcribe opera solo como STT cuando Live está configurado.
+- [~] Cliente aplica timeout, backoff, validación y error explícito; faltan métricas de uso y rate limiter distribuido.
+- [~] Muse Spark está conectado a análisis, relaciones e intención cuando Live está configurado; falta una inferencia visual pagada verificada.
+- [~] SAM 3.1 está conectado y persiste caja asociada a evidencia; faltan una inferencia real y persistir máscara de píxeles.
+- [~] Muse Voice Transcribe está conectado solo como STT; falta una transcripción real verificada.
 - [~] Redis/Celery y la tarea están implementados; falta prueba de entrega de broker.
-- [ ] Reintentos e idempotencia evitan observaciones duplicadas.
+- [x] Reintentos e idempotencia evitan observaciones duplicadas.
 - [ ] Vídeo limitado conserva original, frames, timestamps y trazabilidad.
 - [ ] Pruebas de contrato: mock, live simulado, timeout, error e idempotencia.
 
@@ -74,10 +74,10 @@ comando, prueba o simulador. Este documento no sustituye
 - [x] Login y sesión segura contra API implementados.
 - [ ] Inicio muestra resumen de espacios, objetos, medios y observaciones.
 - [x] Registrar permite elegir ubicación, controlar sesión y cargar fotos.
-- [ ] Objetos filtra por nombre, categoría, zona e identificadores.
-- [ ] Mapa representa jerarquía sin prometer coordenadas 3D.
+- [x] Objetos filtra por nombre/alias, categoría y zona autorizados.
+- [x] Mapa representa jerarquía sin prometer coordenadas 3D.
 - [x] Consultar muestra evidencia real, overlay, fecha, confianza y texto TTS.
-- [ ] Historial y administración muestran solo datos autorizados.
+- [~] Historial autorizado de objetos está implementado; administración de miembros y roles sigue pendiente en el panel.
 - [x] Estados de carga, vacío, error y recuperación implementados.
 - [ ] TTS de navegador solo se anuncia si el runtime lo soporta.
 - [x] Build de frontend y Display pasa; faltan pruebas de UI.
@@ -103,7 +103,7 @@ comando, prueba o simulador. Este documento no sustituye
 - [ ] Migración y seed son comandos reproducibles.
 - [ ] Localhost HTTP funciona y HTTPS/dominio real están documentados.
 - [ ] Existe estrategia y script de backup/restauración PostgreSQL.
-- [ ] Seed legal/sintético crea Taller RealityOS y seis objetos de demo.
+- [x] Seed legal/sintético crea Taller RealityOS y seis objetos de demo.
 - [ ] Demo prueba registro, BYTEA, proceso mock, consulta, resaltado, audio y Display.
 - [ ] Demo verifica que Consultar no realiza grabación.
 - [x] GitHub Actions ejecuta checks realmente disponibles.
