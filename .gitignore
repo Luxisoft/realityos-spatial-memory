@@ -1,6 +1,7 @@
 .env
 .env.*
 !.env.example
+infrastructure/gateway/runtime.env
 .venv/
 __pycache__/
 *.py[cod]
