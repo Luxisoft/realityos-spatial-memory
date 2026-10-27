@@ -55,6 +55,9 @@
   completed successfully; direct checks confirmed all seven Compose services
   running, `/health/live`, `/health/ready`, and the published panel bundle
   containing the explorer.
+- Private, consent-gated manual-photo staging is stored under the deployed
+  project's Git-ignored `.runtime/manual-captures/incoming/` directory; it is
+  not committed or made public.
 
 ## Implemented but not fully environment-verified
 

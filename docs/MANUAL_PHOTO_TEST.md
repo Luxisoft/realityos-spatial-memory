@@ -5,10 +5,11 @@ capture session, send it to Meta, or make it visible in RealityOS.
 
 ## Stage photos
 
-On the RealityOS server, use the private, Git-ignored directory:
+On the RealityOS server, use the private, Git-ignored directory inside the
+deployed project. Create it once with `make runtime-dirs`:
 
 ```text
-/var/lib/realityos/manual-captures/incoming/
+/var/www/realityos-spatial-memory/.runtime/manual-captures/incoming/
 ```
 
 Upload only original photos you are authorized to use. Do not stage photos that
@@ -17,7 +18,7 @@ accepts JPEG, PNG and WebP up to 10 MiB each.
 
 ```bash
 scp ./taladro-amarillo.jpg \
-  jmarin@backend.com:/var/lib/realityos/manual-captures/incoming/
+  jmarin@backend.com:/var/www/realityos-spatial-memory/.runtime/manual-captures/incoming/
 ```
 
 ## Register and process deliberately
@@ -31,7 +32,7 @@ cd /var/www/realityos-spatial-memory
 .venv/bin/python scripts/import_manual_photos.py \
   --confirm-consent --process --wait \
   --workspace "Taller RealityOS" --zone "Bodega A" \
-  /var/lib/realityos/manual-captures/incoming/taladro-amarillo.jpg
+  /var/www/realityos-spatial-memory/.runtime/manual-captures/incoming/taladro-amarillo.jpg
 ```
 
 Use a second photo in a distinct zone for an explicit “last seen” history test.

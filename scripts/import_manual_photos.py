@@ -17,7 +17,8 @@ from typing import Any
 
 import httpx
 
-DEFAULT_INPUT_ROOT = Path("/var/lib/realityos/manual-captures/incoming")
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+DEFAULT_INPUT_ROOT = PROJECT_ROOT / ".runtime" / "manual-captures" / "incoming"
 SUPPORTED_MIME_TYPES = {"image/jpeg", "image/png", "image/webp"}
 MAX_IMAGE_BYTES = 10 * 1024 * 1024
 

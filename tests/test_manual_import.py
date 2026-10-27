@@ -28,3 +28,9 @@ def test_manual_import_accepts_only_regular_staged_images(tmp_path: Path):
     outside.write_bytes(b"private")
     with pytest.raises(module.ImportError, match="staging directory"):
         module.staged_images([str(outside)], root)
+
+
+def test_manual_import_default_staging_stays_inside_project():
+    module = _manual_import_module()
+    project_root = Path(__file__).parents[1]
+    assert module.DEFAULT_INPUT_ROOT == project_root / ".runtime" / "manual-captures" / "incoming"

@@ -1,7 +1,7 @@
 .DEFAULT_GOAL := help
 
 help:
-	@printf '%s\n' 'make install | lint | test | api | migrate | seed | compose-up | gateway-api'
+	@printf '%s\n' 'make install | lint | test | api | migrate | seed | compose-up | gateway-api | runtime-dirs'
 
 install:
 	python3 -m venv .venv
@@ -29,3 +29,6 @@ compose-up:
 
 gateway-api:
 	.venv/bin/uvicorn realityos_meta_gateway.main:app_factory --app-dir meta-gateway --factory --host 127.0.0.1 --port 9088
+
+runtime-dirs:
+	sh scripts/setup_runtime_dirs.sh
