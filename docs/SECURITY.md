@@ -1,0 +1,16 @@
+# Security and privacy
+
+- Passwords use salted scrypt; access tokens expire and refresh tokens rotate
+  with server-side revocation records.
+- Every workspace route checks membership and role. Media bytes receive the same
+  check.
+- Original bytes are in PostgreSQL, avoiding accidental public object links.
+  Hashes provide integrity/deduplication, not encryption at rest.
+- Capture requires consent and open session. Query cannot write evidence.
+- Secrets are environment variables. .env, keystores and local media are ignored
+  by Git. Do not log MODEL_API_KEY, JWT secrets or user media.
+- Production needs TLS, a rotated JWT_SECRET, constrained CORS, tested backups
+  and hosting-provider encryption at rest.
+
+There is no deletion workflow yet; retention, export and erasure require product
+policy and implementation before customer data.

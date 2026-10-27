@@ -1,0 +1,34 @@
+[build-system]
+requires = ["setuptools>=69"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "realityos-meta-gateway"
+version = "0.1.0"
+description = "Restricted egress gateway for RealityOS Meta Model API traffic"
+requires-python = ">=3.12,<3.14"
+dependencies = [
+  "fastapi>=0.115,<0.116",
+  "httpx>=0.28,<1",
+  "pydantic-settings>=2.6,<3",
+  "uvicorn[standard]>=0.32,<1",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=8.3,<9",
+  "ruff>=0.8,<1",
+]
+
+[tool.setuptools.packages.find]
+include = ["realityos_meta_gateway*"]
+
+[tool.pytest.ini_options]
+testpaths = ["../gateway-tests"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E4", "E7", "E9", "F", "I"]
