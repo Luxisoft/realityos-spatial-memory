@@ -109,7 +109,7 @@ def upgrade() -> None:
           provenance fact_provenance NOT NULL,
           evidence_geometry JSON,
           model_name VARCHAR(120) NOT NULL,
-          verification_status verification_status NOT NULL DEFAULT 'pending',
+          verification_status verification_status NOT NULL DEFAULT 'PENDING',
           verified_by_id UUID REFERENCES users(id),
           verified_at TIMESTAMPTZ,
           created_at TIMESTAMPTZ NOT NULL DEFAULT now()
@@ -140,7 +140,7 @@ def upgrade() -> None:
           end_pts_seconds DOUBLE PRECISION,
           confidence DOUBLE PRECISION NOT NULL,
           provenance fact_provenance NOT NULL,
-          verification_status verification_status NOT NULL DEFAULT 'pending',
+          verification_status verification_status NOT NULL DEFAULT 'PENDING',
           created_at TIMESTAMPTZ NOT NULL DEFAULT now()
         )
         """
