@@ -1,12 +1,14 @@
 from __future__ import annotations
 
 import io
+import uuid
 
 from app.meta import MockMetaModelClient
-from app.models import Role, User, WorkspaceMember
+from app.models import ObjectObservation, ProcessingJob, Role, User, WorkspaceMember
 from app.security import hash_password
 from app.services import process_job
 from PIL import Image
+from sqlalchemy import select
 
 
 def png_bytes() -> bytes:
@@ -55,7 +57,7 @@ def register_and_process(client, headers, workspace_id: str) -> tuple[str, str]:
     assert job.status_code == 200, job.text
     with client.app.state.database.session_factory() as db:
         process_job(
-            db, __import__("uuid").UUID(job.json()["id"]), MockMetaModelClient()
+            db, uuid.UUID(job.json()["id"]), MockMetaModelClient()
         )
         db.commit()
     return capture_id, job.json()["id"]
@@ -161,3 +163,28 @@ def test_workspaces_are_isolated(client, auth_headers):
         headers={"Authorization": f"Bearer {login['access_token']}"},
     )
     assert response.status_code == 403
+
+
+def test_processing_job_is_idempotent_and_records_mock_sam_geometry(client, auth_headers):
+    workspace_id = create_workspace(client, auth_headers)
+    capture_id, job_id = register_and_process(client, auth_headers, workspace_id)
+    repeated = client.post(f"/v1/captures/{capture_id}/process", headers=auth_headers)
+    assert repeated.status_code == 200
+    assert repeated.json()["id"] == job_id
+    with client.app.state.database.session_factory() as db:
+        process_job(db, uuid.UUID(job_id), MockMetaModelClient())
+        db.commit()
+        job = db.get(ProcessingJob, uuid.UUID(job_id))
+        observations = list(
+            db.scalars(
+                select(ObjectObservation).where(
+                    ObjectObservation.media_asset_id == uuid.UUID(capture_id)
+                )
+            )
+        )
+    assert job is not None
+    assert job.attempts == 1
+    assert job.result_metadata["segmentation_count"] == 1
+    assert len(observations) == 1
+    assert observations[0].relationships == [{"relation": "sobre", "object": "caja negra"}]
+    assert observations[0].model_name.endswith("+sam-3.1")

@@ -37,6 +37,7 @@ class Settings(BaseSettings):
     meta_gateway_token: str | None = None
     meta_timeout_seconds: float = Field(default=30, gt=0, le=120)
     meta_max_retries: int = Field(default=2, ge=0, le=5)
+    sam_min_confidence: float = Field(default=0.65, ge=0, le=1)
     enqueue_processing: bool = True
 
     @property

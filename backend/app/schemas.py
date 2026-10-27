@@ -146,9 +146,11 @@ class QueryResponse(BaseModel):
 
 class MetaDetection(BaseModel):
     label: str
+    category: str | None = Field(default=None, max_length=120)
     confidence: float = Field(ge=0, le=1)
     bounding_box: dict[str, float] | None = None
     spatial_description: str | None = None
+    relationships: list[dict[str, str]] = Field(default_factory=list)
 
 
 class ImageAnalysis(BaseModel):

@@ -30,6 +30,11 @@ def process_media(job_id: str) -> dict[str, str]:
     """Worker entry point; business processing is safe to retry by job key."""
     database = Database(settings.database_url)
     with database.session_factory() as db:
-        job = process_job(db, uuid.UUID(job_id), build_meta_client(settings))
+        job = process_job(
+            db,
+            uuid.UUID(job_id),
+            build_meta_client(settings),
+            sam_min_confidence=settings.sam_min_confidence,
+        )
         db.commit()
         return {"job_id": str(job.id), "status": job.status.value}

@@ -58,9 +58,11 @@ class MockMetaModelClient(MetaModelClient):
             detections=[
                 MetaDetection(
                     label=label,
+                    category=category,
                     confidence=confidence,
                     bounding_box={"x": 0.18, "y": 0.22, "width": 0.57, "height": 0.49},
                     spatial_description=f"Simulado: {label}, sobre una caja negra.",
+                    relationships=[{"relation": "sobre", "object": "caja negra"}],
                 )
             ],
         )
@@ -69,6 +71,7 @@ class MockMetaModelClient(MetaModelClient):
         return [
             MetaDetection(
                 label=prompt,
+                category=None,
                 confidence=0.94,
                 bounding_box={"x": 0.18, "y": 0.22, "width": 0.57, "height": 0.49},
                 spatial_description="Geometría simulada; no fue inferida por SAM real.",
@@ -150,8 +153,9 @@ class LiveMetaModelClient(MetaModelClient):
     def analyze_image(self, image: bytes, mime_type: str, context: str = "") -> ImageAnalysis:
         instruction = (
             "Inspect this workspace image. Return only JSON with a detections array. "
-            "Each detection needs label, confidence from 0 to 1, bounding_box "
-            "{x,y,width,height} normalized 0..1, and spatial_description. "
+            "Each detection needs label, optional category, confidence from 0 to 1, "
+            "bounding_box {x,y,width,height} normalized 0..1, spatial_description, "
+            "and optional relationships as objects with relation and object keys. "
             "Do not claim locations that cannot be seen."
         )
         body = {
