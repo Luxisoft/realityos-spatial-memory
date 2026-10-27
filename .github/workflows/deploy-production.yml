@@ -77,7 +77,9 @@ jobs:
       FRONTEND_USER: ${{ secrets.FRONTEND_SSH_USER }}
       FRONTEND_KEY: ${{ secrets.FRONTEND_SSH_PRIVATE_KEY }}
       FRONTEND_KNOWN_HOSTS: ${{ secrets.FRONTEND_SSH_KNOWN_HOSTS }}
-      GHCR_PULL_TOKEN: ${{ secrets.GHCR_PULL_TOKEN }}
+      # The short-lived workflow token can pull the packages this workflow builds;
+      # no long-lived GitHub Packages PAT needs to be stored on either server.
+      GHCR_PULL_TOKEN: ${{ github.token }}
       MODEL_API_KEY: ${{ secrets.MODEL_API_KEY }}
       META_GATEWAY_TOKEN: ${{ secrets.META_GATEWAY_TOKEN }}
       ACME_EMAIL: ${{ secrets.ACME_EMAIL }}
@@ -158,7 +160,7 @@ jobs:
       REALITYOS_KEY: ${{ secrets.REALITYOS_SSH_PRIVATE_KEY }}
       REALITYOS_KNOWN_HOSTS: ${{ secrets.REALITYOS_SSH_KNOWN_HOSTS }}
       REALITYOS_DEPLOY_PATH: ${{ secrets.REALITYOS_DEPLOY_PATH }}
-      GHCR_PULL_TOKEN: ${{ secrets.GHCR_PULL_TOKEN }}
+      GHCR_PULL_TOKEN: ${{ github.token }}
       META_GATEWAY_TOKEN: ${{ secrets.META_GATEWAY_TOKEN }}
     steps:
       - uses: actions/checkout@v4
