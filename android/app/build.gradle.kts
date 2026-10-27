@@ -29,6 +29,13 @@ android {
       localProperties.getProperty("mwdat_application_id", "0")
     manifestPlaceholders["mwdat_client_token"] =
       localProperties.getProperty("mwdat_client_token", "0")
+    // Public URL only. The live virtual-device credential is issued at runtime
+    // over TLS and is never compiled into the APK.
+    buildConfigField(
+      "String",
+      "DEFAULT_REALITYOS_API_BASE_URL",
+      "\"https://realityos.luxisoft.com/v1\"",
+    )
   }
 
   buildFeatures { buildConfig = true }

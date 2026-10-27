@@ -34,7 +34,9 @@ session; query endpoints are evidence-only and never start a recording.
   approved server can reach Model API. See [Gateway](docs/GATEWAY.md).
 - Native DAT 1.0.1 host for Meta Ray-Ban Display: glasses-side Register/Query
   screens, camera photo/video capture, on-device speech query, highlighted
-  evidence and Android-routed TTS; plus a separate 600×600 Display Web App demo.
+  evidence and Android-routed TTS; a Live virtual-device bootstrap fills the
+  phone's editable Debug connection inputs without embedding a permanent key;
+  plus a separate 600×600 Display Web App demo.
 - Admin object explorer with workspace-scoped name/alias, category and location
   filters, evidence history and a non-metric location hierarchy.
 - Compose, Nginx reverse proxy, migration, synthetic seed and automated tests.

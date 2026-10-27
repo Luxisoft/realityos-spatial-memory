@@ -40,10 +40,14 @@ Meta's official Mock Device Kit. It uses the same RealityOS DAT session and
 Display callbacks as real glasses; only the device is simulated. It is absent
 from the release APK.
 
-1. Start RealityOS with an HTTPS API URL reachable from the phone. For a
-   no-cost test use the backend's `META_MODE=mock` configuration.
-2. Enroll a RealityOS device in the administrator panel, then provision the
-   Debug APK with its workspace ID, device ID and device key.
+1. Start the Live RealityOS deployment at `https://realityos.luxisoft.com/v1`.
+   The virtual-glasses route refuses to issue a profile unless the server is in
+   `META_MODE=live`; captured media is therefore processed by the real Meta
+   integration, not a synthetic provider.
+2. On a fresh Debug APK install, the phone requests a short-lived, real,
+   workspace-scoped virtual-device identity and fills the visible Server,
+   Workspace, Device ID and Device key inputs. Review and save them, or replace
+   any value with an administrator-issued connection of your own.
 3. Install the Debug APK on an Android phone:
 
    ```bash
@@ -58,7 +62,9 @@ from the release APK.
    speech.
 
 The phone camera is a mock stream source and requires Android camera
-permission. It does not represent physical-glasses optics or hardware.
+permission. It does not represent physical-glasses optics or hardware. Its
+photos and video are nevertheless uploaded to the real RealityOS API after
+you explicitly start Register.
 
 ### Chrome preview
 
@@ -88,8 +94,9 @@ Meta Model API keys.
 
 ## Device workflow
 
-1. Enroll a device in the RealityOS admin panel and copy the one-time device
-   ID/key into the administrator provisioning screen.
+1. For virtual glasses, save the short-lived live profile prefilled by the
+   host screen. For a physical device, use an administrator-enrolled device
+   ID/key instead.
 2. Pair Meta Ray-Ban Display with the phone, enable Meta AI Developer Mode,
    then use **Register with Meta AI** and grant required DAT permissions.
 3. Use **Connect Display** once. The home, location, capture, voice-query, and

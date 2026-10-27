@@ -67,6 +67,21 @@ async def get_current_device(
             detail="Device credentials are required.",
         )
     device = db.scalar(select(Device).where(Device.device_identifier == identifier))
+    metadata = device.metadata_json if device is not None else {}
+    virtual_expiry = metadata.get("virtual_device_expires_at") if metadata else None
+    if virtual_expiry:
+        try:
+            expires_at = datetime.fromisoformat(str(virtual_expiry).replace("Z", "+00:00"))
+            if expires_at.tzinfo is None or expires_at <= datetime.now(UTC):
+                raise HTTPException(
+                    status_code=status.HTTP_401_UNAUTHORIZED,
+                    detail="Virtual device credentials expired. Reload the live virtual-device profile.",
+                )
+        except ValueError as error:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Virtual device credentials are invalid. Reload the live virtual-device profile.",
+            ) from error
     if (
         device is None
         or device.status != DeviceStatus.ACTIVE

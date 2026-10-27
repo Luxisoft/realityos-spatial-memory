@@ -25,6 +25,62 @@ data class QueryEvidence(
     val displayMediaPath: String?,
 )
 
+data class VirtualDeviceProfile(
+    val apiBaseUrl: String,
+    val workspaceId: String,
+    val workspaceName: String,
+    val deviceId: String,
+    val deviceKey: String,
+    val expiresAt: Instant,
+    val processingMode: String,
+) {
+    fun toProvisioning() = DeviceProvisioning(
+        apiBaseUrl = apiBaseUrl,
+        workspaceId = workspaceId,
+        deviceId = deviceId,
+        deviceKey = deviceKey,
+        workspaceName = workspaceName,
+        expiresAt = expiresAt,
+        processingMode = processingMode,
+        source = ProvisioningSource.VIRTUAL_LIVE,
+    )
+}
+
+/**
+ * Acquires a real, short-lived device credential for Meta's virtual glasses.
+ * It carries no administrator or Meta-model key and is HTTPS-only by design.
+ */
+object VirtualDeviceBootstrapApi {
+    fun fetch(apiBaseUrl: String, installationId: String): VirtualDeviceProfile {
+        val normalizedBaseUrl = apiBaseUrl.trim().trimEnd('/')
+        val url = URL("$normalizedBaseUrl/virtual-devices/bootstrap")
+        require(url.protocol == "https") { "Virtual glasses require an HTTPS RealityOS URL." }
+        val connection = (url.openConnection() as HttpURLConnection).apply {
+            requestMethod = "POST"
+            connectTimeout = 20_000
+            readTimeout = 30_000
+            doInput = true
+            setRequestProperty("Accept", "application/json")
+            setRequestProperty("X-RealityOS-Installation-ID", installationId)
+        }
+        return try {
+            val payload = responseBody(connection)
+            val result = JSONObject(payload)
+            VirtualDeviceProfile(
+                apiBaseUrl = result.getString("api_base_url"),
+                workspaceId = result.getString("workspace_id"),
+                workspaceName = result.getString("workspace_name"),
+                deviceId = result.getString("device_id"),
+                deviceKey = result.getString("device_key"),
+                expiresAt = Instant.parse(result.getString("expires_at")),
+                processingMode = result.getString("processing_mode"),
+            )
+        } finally {
+            connection.disconnect()
+        }
+    }
+}
+
 /**
  * HTTPS-only client for an enrolled glasses host. It carries an independent
  * device credential and never receives a Meta model key or an administrator token.
@@ -54,13 +110,7 @@ class RealityApi(private val provisioning: DeviceProvisioning) {
         }
 
     private fun body(connection: HttpURLConnection): String {
-        val stream = if (connection.responseCode in 200..299) connection.inputStream else connection.errorStream
-        val payload = stream?.bufferedReader()?.use { it.readText() }.orEmpty()
-        if (connection.responseCode !in 200..299) {
-            val detail = runCatching { JSONObject(payload).optString("detail") }.getOrNull()
-            throw RealityApiException(detail?.takeIf { it.isNotBlank() } ?: "Server returned ${connection.responseCode}.")
-        }
-        return payload
+        return responseBody(connection)
     }
 
     private fun postJson(path: String, json: JSONObject): JSONObject {
@@ -187,6 +237,16 @@ class RealityApi(private val provisioning: DeviceProvisioning) {
             connection.disconnect()
         }
     }
+}
+
+private fun responseBody(connection: HttpURLConnection): String {
+    val stream = if (connection.responseCode in 200..299) connection.inputStream else connection.errorStream
+    val payload = stream?.bufferedReader()?.use { it.readText() }.orEmpty()
+    if (connection.responseCode !in 200..299) {
+        val detail = runCatching { JSONObject(payload).optString("detail") }.getOrNull()
+        throw RealityApiException(detail?.takeIf { it.isNotBlank() } ?: "Server returned ${connection.responseCode}.")
+    }
+    return payload
 }
 
 private fun BufferedOutputStream.writeFormField(boundary: String, name: String, value: String) {

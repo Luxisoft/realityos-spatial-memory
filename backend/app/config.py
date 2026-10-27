@@ -55,6 +55,13 @@ class Settings(BaseSettings):
     meta_video_timeout_seconds: float = Field(default=600, gt=0, le=900)
     meta_max_retries: int = Field(default=2, ge=0, le=5)
     enqueue_processing: bool = True
+    # Hackathon-only virtual glasses enrollment. This deliberately creates a
+    # revocable device identity instead of embedding a reusable credential in
+    # an Android APK. It must only be enabled on the public demo deployment.
+    virtual_device_bootstrap_enabled: bool = False
+    virtual_device_workspace_name: str = "Taller de electrónica"
+    virtual_device_base_url: AnyHttpUrl = "https://realityos.luxisoft.com/v1"
+    virtual_device_ttl_minutes: int = Field(default=1440, ge=30, le=10080)
 
     @property
     def cors_origin_list(self) -> list[str]:

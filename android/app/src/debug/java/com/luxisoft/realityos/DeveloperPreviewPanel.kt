@@ -48,12 +48,15 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.meta.wearable.dat.core.types.Permission
 import kotlinx.coroutines.launch
 
-private val LabInk = Color(0xFF102331)
-private val LabSlate = Color(0xFF183747)
-private val LabSignal = Color(0xFF67E8D1)
-private val LabWarning = Color(0xFFF8C46B)
-private val LabError = Color(0xFFFF8A8A)
-private val LabPaper = Color(0xFFEAF5F2)
+// Keep the Debug lab recognisable while using the same high-contrast field
+// palette as the production host. The simulated controls should not look like
+// a separate, unfinished application.
+private val LabInk = Color(0xFF142033)
+private val LabSlate = Color(0xFF1C2D45)
+private val LabSignal = Color(0xFF63E6BE)
+private val LabWarning = Color(0xFFF6BB5D)
+private val LabError = Color(0xFFFFB4AB)
+private val LabPaper = Color(0xFFF5F7FB)
 
 /**
  * Debug-only phone lab for Meta's virtual Display glasses. The preview itself

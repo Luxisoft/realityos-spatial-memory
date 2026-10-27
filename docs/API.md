@@ -14,6 +14,7 @@ Device ingestion routes use `X-RealityOS-Device-ID` and
 | Objects | list/read/history; add a normalized alias; verify or reject observation. `GET /v1/objects` requires `workspace_id` and accepts `q` (name or alias), `category`, and `zone_id` filters. |
 | Query/media | text/audio query; original media; observation-specific highlighted evidence |
 | Devices (admin) | enroll/list/assign/rotate/revoke workspace devices; key material is returned only at enrollment or rotation |
+| Virtual Display bootstrap | `POST /v1/virtual-devices/bootstrap` issues a rate-limited, short-lived real device identity for an Android virtual-glasses installation only when Live mode is explicitly enabled |
 | Device ingestion | list authorized zones; open/close a device session; upload/process a device capture; make a read-only text query; retrieve header-authenticated evidence |
 | DAT Display evidence | a device query also returns `display_media_url`: a five-minute, observation-scoped bearer URL issued only for an active enrolled device, so the Display renderer can fetch without exposing device credentials |
 | Inventory intelligence (admin) | evidence facts, fact verification, aggregate inventory/brand/condition/use/device metrics and video tracks |

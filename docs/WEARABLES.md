@@ -7,9 +7,10 @@ transport; field operation is rendered on the glasses, not in a phone UI.
 
 ## Supported RealityOS flow
 
-1. An administrator enrolls a RealityOS device and stores its device ID/key in
-   encrypted Android storage. This is not a human login and the client never
-   receives a Model API key.
+1. An administrator enrolls a physical RealityOS device, or the Live server
+   issues a short-lived virtual-device identity for the Debug phone preview.
+   The selected device ID/key is stored in encrypted Android storage. This is
+   not a human login and the client never receives a Model API key.
 2. The administrator completes the Meta AI registration/permission flow once.
 3. DAT opens a Display-capable session and sends the RealityOS home screen to
    the glasses.
@@ -50,8 +51,10 @@ replace the real DAT implementation: it pairs a virtual
 `META_RAYBAN_DISPLAY`, then calls the same `RealityViewModel.connectDisplay`
 and `DeviceSession.addDisplay` flow as a physical device.
 
-1. Provision the Debug APK with a RealityOS device credential and an API URL
-   reachable from the phone.
+1. A fresh Debug APK requests `POST /v1/virtual-devices/bootstrap` over HTTPS
+   and fills its editable connection inputs with a real, short-lived device
+   credential for the configured live workspace. The route refuses Mock mode;
+   it is an actual RealityOS/Meta processing path, not simulated evidence.
 2. Select **In app** to mount Meta's `createPreviewView()` renderer inside the
    Android host. Use its rendered buttons to enter Register or Query.
 3. Select mock camera permission, a JPEG/PNG image for photo capture, a
@@ -59,6 +62,11 @@ and `DeviceSession.addDisplay` flow as a physical device.
    Android's separate `CAMERA` permission.
 4. Use the mock speech controls to send partial/final transcriptions. Android
    TTS still uses the phone's active audio route.
+
+Only the glasses hardware is virtual in this workflow. Selecting a phone or
+fixture camera feed and starting Register uploads media to the live server;
+Live Muse/SAM processing remains server-side and no Model API key enters the
+APK.
 
 **Chrome** mode starts Meta's local preview server on a dynamic port and shows
 the corresponding `adb forward` command and localhost URL. It is a desktop

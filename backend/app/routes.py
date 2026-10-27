@@ -2,10 +2,20 @@ from __future__ import annotations
 
 import io
 import uuid
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 
 import jwt
-from fastapi import APIRouter, Depends, File, Form, HTTPException, Request, UploadFile, status
+from fastapi import (
+    APIRouter,
+    Depends,
+    File,
+    Form,
+    Header,
+    HTTPException,
+    Request,
+    UploadFile,
+    status,
+)
 from fastapi.responses import Response, StreamingResponse
 from PIL import Image, ImageDraw
 from sqlalchemy import desc, func, select
@@ -68,6 +78,7 @@ from app.schemas import (
     TrackFrameResponse,
     TrackResponse,
     UserResponse,
+    VirtualDeviceBootstrapResponse,
     WorkspaceCreate,
     WorkspaceResponse,
     ZoneCreate,
@@ -118,6 +129,100 @@ def _audit(
             entity_id=entity_id,
             device_id=device_id,
         )
+    )
+
+
+@router.post(
+    "/virtual-devices/bootstrap",
+    response_model=VirtualDeviceBootstrapResponse,
+    status_code=status.HTTP_201_CREATED,
+)
+async def bootstrap_virtual_device(
+    request: Request,
+    installation_id: str = Header(alias="X-RealityOS-Installation-ID"),
+    db: Session = Depends(get_db),
+) -> VirtualDeviceBootstrapResponse:
+    """Issue a short-lived, real device identity for Meta's virtual glasses.
+
+    The route exists so the APK can show usable live values without committing a
+    permanent device key. The reverse proxy rate-limits this public bootstrap
+    endpoint and all issued identities remain scoped to one configured workspace.
+    """
+
+    settings: Settings = request.app.state.settings
+    if not settings.virtual_device_bootstrap_enabled:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Virtual enrollment is disabled.")
+    if settings.meta_mode.lower() != "live":
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Virtual enrollment requires RealityOS Live processing.",
+        )
+    try:
+        install_uuid = uuid.UUID(installation_id)
+    except ValueError as error:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="A valid virtual-glasses installation identifier is required.",
+        ) from error
+
+    workspace = db.scalar(
+        select(Workspace).where(Workspace.name == settings.virtual_device_workspace_name)
+    )
+    if workspace is None:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="The configured live virtual-glasses workspace is unavailable.",
+        )
+
+    identifier = f"virtual-display-{install_uuid.hex}"
+    device = db.scalar(select(Device).where(Device.device_identifier == identifier))
+    expires_at = datetime.now(UTC) + timedelta(minutes=settings.virtual_device_ttl_minutes)
+    device_key = create_device_credential()
+    metadata = {
+        "virtual_device": True,
+        "installation_id": str(install_uuid),
+        "virtual_device_expires_at": expires_at.isoformat(),
+        "provisioning_source": "android_virtual_glasses",
+    }
+    if device is None:
+        device = Device(
+            workspace_id=workspace.id,
+            device_identifier=identifier,
+            label=f"Virtual Meta Ray-Ban Display {install_uuid.hex[:8]}",
+            credential_hash=hash_device_credential(device_key, settings),
+            created_by_id=workspace.created_by_id,
+            metadata_json=metadata,
+        )
+        db.add(device)
+        db.flush()
+    else:
+        if device.workspace_id != workspace.id:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="Virtual device is bound to a different workspace.",
+            )
+        device.credential_hash = hash_device_credential(device_key, settings)
+        device.status = DeviceStatus.ACTIVE
+        device.revoked_at = None
+        device.metadata_json = metadata
+
+    _audit(
+        db,
+        "device.virtual_bootstrapped",
+        "device",
+        workspace.created_by_id,
+        device.id,
+        workspace.id,
+        device.id,
+    )
+    return VirtualDeviceBootstrapResponse(
+        api_base_url=str(settings.virtual_device_base_url).rstrip("/"),
+        workspace_id=workspace.id,
+        workspace_name=workspace.name,
+        device_id=device.device_identifier,
+        device_key=device_key,
+        expires_at=expires_at,
+        processing_mode="live",
     )
 
 

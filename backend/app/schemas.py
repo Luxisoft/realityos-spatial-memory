@@ -95,6 +95,18 @@ class DeviceEnrollmentResponse(DeviceResponse):
     device_key: str
 
 
+class VirtualDeviceBootstrapResponse(BaseModel):
+    """One real, temporary device credential for Meta's virtual glasses."""
+
+    api_base_url: str
+    workspace_id: uuid.UUID
+    workspace_name: str
+    device_id: str
+    device_key: str
+    expires_at: datetime
+    processing_mode: Literal["live"]
+
+
 class DeviceAssignmentResponse(FromAttributes):
     id: uuid.UUID
     device_id: uuid.UUID

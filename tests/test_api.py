@@ -2,9 +2,11 @@ from __future__ import annotations
 
 import io
 import uuid
+from datetime import UTC, datetime, timedelta
 
 from app.meta import MockMetaModelClient
 from app.models import (
+    Device,
     MediaAsset,
     MediaKind,
     ObjectAlias,
@@ -531,3 +533,65 @@ def test_object_search_uses_aliases_and_returns_ambiguity(client, auth_headers):
     )
     assert ambiguous.status_code == 200
     assert ambiguous.json()["ambiguous"] is True
+
+
+def test_virtual_display_bootstrap_issues_a_live_revocable_device(client, auth_headers):
+    settings = client.app.state.settings
+    settings.virtual_device_bootstrap_enabled = True
+    settings.meta_mode = "live"
+    workspace = client.post(
+        "/v1/workspaces",
+        headers=auth_headers,
+        json={"name": "Taller de electrónica", "description": "Live virtual Display workspace"},
+    )
+    assert workspace.status_code == 201, workspace.text
+
+    installation_id = "b8944419-c19a-4d0e-ac43-d7ce9355f8f6"
+    headers = {"X-RealityOS-Installation-ID": installation_id}
+    bootstrap = client.post("/v1/virtual-devices/bootstrap", headers=headers)
+    assert bootstrap.status_code == 201, bootstrap.text
+    profile = bootstrap.json()
+    assert profile["processing_mode"] == "live"
+    assert profile["workspace_id"] == workspace.json()["id"]
+    assert profile["workspace_name"] == "Taller de electrónica"
+    assert profile["api_base_url"].startswith("https://")
+    assert profile["device_key"]
+
+    device_headers = {
+        "X-RealityOS-Device-ID": profile["device_id"],
+        "X-RealityOS-Device-Key": profile["device_key"],
+    }
+    assert client.get("/v1/device/zones", headers=device_headers).status_code == 200
+
+    rotated = client.post("/v1/virtual-devices/bootstrap", headers=headers)
+    assert rotated.status_code == 201, rotated.text
+    assert rotated.json()["device_id"] == profile["device_id"]
+    assert rotated.json()["device_key"] != profile["device_key"]
+    assert client.get("/v1/device/zones", headers=device_headers).status_code == 401
+
+    with client.app.state.database.session_factory() as db:
+        device = db.scalar(select(Device).where(Device.device_identifier == profile["device_id"]))
+        assert device is not None
+        device.metadata_json = {
+            **device.metadata_json,
+            "virtual_device_expires_at": (datetime.now(UTC) - timedelta(minutes=1)).isoformat(),
+        }
+        db.commit()
+    current_headers = {
+        "X-RealityOS-Device-ID": rotated.json()["device_id"],
+        "X-RealityOS-Device-Key": rotated.json()["device_key"],
+    }
+    expired = client.get("/v1/device/zones", headers=current_headers)
+    assert expired.status_code == 401
+    assert "expired" in expired.json()["detail"].lower()
+
+
+def test_virtual_display_bootstrap_refuses_mock_processing(client, auth_headers):
+    settings = client.app.state.settings
+    settings.virtual_device_bootstrap_enabled = True
+    response = client.post(
+        "/v1/virtual-devices/bootstrap",
+        headers={"X-RealityOS-Installation-ID": "b8944419-c19a-4d0e-ac43-d7ce9355f8f6"},
+    )
+    assert response.status_code == 409
+    assert "live" in response.json()["detail"].lower()

@@ -36,6 +36,7 @@ import com.meta.wearable.dat.speech.addSpeech
 import com.meta.wearable.dat.speech.removeSpeech
 import java.io.ByteArrayOutputStream
 import java.io.File
+import java.net.URL
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -60,6 +61,9 @@ data class WearableState(
 
 data class RealityUiState(
     val provisioning: DeviceProvisioning? = null,
+    val provisioningDraft: ProvisioningDraft = ProvisioningDraft(),
+    val virtualProfileLoading: Boolean = false,
+    val virtualProfileError: String? = null,
     val wearable: WearableState = WearableState(),
     val captureSessionId: String? = null,
     val recording: Boolean = false,
@@ -76,7 +80,13 @@ data class RealityUiState(
 class RealityViewModel(application: Application) : AndroidViewModel(application) {
     private val store = DeviceProvisioningStore(application)
     private val recorder = HevcMp4Recorder(application.cacheDir)
-    private val _state = MutableStateFlow(RealityUiState(provisioning = store.read()))
+    private val storedProvisioning = store.read()
+    private val _state = MutableStateFlow(
+        RealityUiState(
+            provisioning = storedProvisioning,
+            provisioningDraft = storedProvisioning?.toDraft() ?: ProvisioningDraft(),
+        ),
+    )
     val state: StateFlow<RealityUiState> = _state.asStateFlow()
 
     private val _permissionRequests = MutableSharedFlow<Permission>(extraBufferCapacity = 1)
@@ -113,15 +123,117 @@ class RealityViewModel(application: Application) : AndroidViewModel(application)
                 }
             }
         }
+        if (storedProvisioning == null) loadVirtualDeviceProfile()
     }
 
-    fun saveProvisioning(endpoint: String, workspaceId: String, deviceId: String, deviceKey: String) {
-        if (endpoint.isBlank() || workspaceId.isBlank() || deviceId.isBlank() || deviceKey.isBlank()) {
-            showStatus("Server URL, workspace ID, device ID and device key are required.")
-            return
+    fun updateProvisioningDraft(
+        apiBaseUrl: String? = null,
+        workspaceId: String? = null,
+        deviceId: String? = null,
+        deviceKey: String? = null,
+    ) {
+        _state.update { current ->
+            val previous = current.provisioningDraft
+            current.copy(
+                provisioningDraft = previous.copy(
+                    apiBaseUrl = apiBaseUrl ?: previous.apiBaseUrl,
+                    workspaceId = workspaceId ?: previous.workspaceId,
+                    deviceId = deviceId ?: previous.deviceId,
+                    deviceKey = deviceKey ?: previous.deviceKey,
+                    // Editing an issued live profile makes it an explicitly
+                    // administrator-managed connection, not a stale demo label.
+                    source = ProvisioningSource.CUSTOM,
+                    workspaceName = null,
+                    expiresAt = null,
+                    processingMode = null,
+                ),
+                virtualProfileError = null,
+            )
         }
-        store.save(DeviceProvisioning(endpoint, workspaceId, deviceId, deviceKey))
-        _state.update { it.copy(provisioning = store.read(), message = "Device provisioning saved.") }
+    }
+
+    fun loadVirtualDeviceProfile() {
+        if (_state.value.virtualProfileLoading) return
+        val bootstrapUrl = _state.value.provisioningDraft.apiBaseUrl.trim()
+            .ifBlank { BuildConfig.DEFAULT_REALITYOS_API_BASE_URL }
+        _state.update { it.copy(virtualProfileLoading = true, virtualProfileError = null) }
+        viewModelScope.launch {
+            val result = withContext(Dispatchers.IO) {
+                runCatching {
+                    VirtualDeviceBootstrapApi.fetch(
+                        bootstrapUrl,
+                        store.installationId(),
+                    )
+                }
+            }
+            result.onSuccess { profile ->
+                if (profile.processingMode.lowercase() != "live") {
+                    _state.update {
+                        it.copy(
+                            virtualProfileLoading = false,
+                            virtualProfileError = "The server did not confirm Live Meta processing.",
+                            message = "Live virtual-glasses enrollment was not completed.",
+                        )
+                    }
+                    return@onSuccess
+                }
+                val provisioning = profile.toProvisioning()
+                _state.update {
+                    it.copy(
+                        provisioningDraft = provisioning.toDraft(),
+                        virtualProfileLoading = false,
+                        virtualProfileError = null,
+                        message = "Live virtual-device values are ready. Review them and save the connection.",
+                    )
+                }
+            }.onFailure { error ->
+                _state.update {
+                    it.copy(
+                        virtualProfileLoading = false,
+                        virtualProfileError = error.message ?: "Could not load live virtual-device values.",
+                        message = "Enter your own HTTPS server values or try loading the live profile again.",
+                    )
+                }
+            }
+        }
+    }
+
+    fun saveProvisioning(): Boolean {
+        val draft = _state.value.provisioningDraft
+        if (
+            draft.apiBaseUrl.isBlank() ||
+            draft.workspaceId.isBlank() ||
+            draft.deviceId.isBlank() ||
+            draft.deviceKey.isBlank()
+        ) {
+            showStatus("Server URL, workspace ID, device ID and device key are required.")
+            return false
+        }
+        val apiUrl = runCatching { URL(draft.apiBaseUrl.trim()) }.getOrNull()
+        if (apiUrl?.protocol != "https") {
+            showStatus("RealityOS requires an HTTPS server URL.")
+            return false
+        }
+        store.save(
+            DeviceProvisioning(
+                apiBaseUrl = draft.apiBaseUrl,
+                workspaceId = draft.workspaceId,
+                deviceId = draft.deviceId,
+                deviceKey = draft.deviceKey,
+                workspaceName = draft.workspaceName,
+                expiresAt = draft.expiresAt,
+                processingMode = draft.processingMode,
+                source = draft.source,
+            ),
+        )
+        _state.update {
+            it.copy(
+                provisioning = store.read(),
+                message = "Live RealityOS connection saved.",
+                virtualProfileError = null,
+            )
+        }
+        return true
     }
 
     fun registerWithMeta(activity: Activity) {

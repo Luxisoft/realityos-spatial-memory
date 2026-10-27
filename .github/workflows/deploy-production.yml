@@ -182,6 +182,9 @@ jobs:
       REALITYOS_DEPLOY_PATH: ${{ secrets.REALITYOS_DEPLOY_PATH }}
       GHCR_PULL_TOKEN: ${{ github.token }}
       META_GATEWAY_TOKEN: ${{ secrets.META_GATEWAY_TOKEN }}
+      ACME_EMAIL: ${{ secrets.ACME_EMAIL }}
+      REALITYOS_HOSTNAME: realityos.luxisoft.com
+      REALITYOS_PROXY_PORT: "8090"
     steps:
       - uses: actions/checkout@v4
       - name: Configure trusted SSH connection
@@ -204,14 +207,37 @@ jobs:
           META_GATEWAY_BASE_URL=https://meta.luxisoft.com/v1
           META_GATEWAY_TOKEN=${META_GATEWAY_TOKEN}
           REALITYOS_DEPLOY_PATH=${REALITYOS_DEPLOY_PATH}
+          ACME_EMAIL=${ACME_EMAIL}
+          VIRTUAL_DEVICE_BOOTSTRAP_ENABLED=true
+          VIRTUAL_DEVICE_WORKSPACE_NAME=Taller de electrónica
+          VIRTUAL_DEVICE_BASE_URL=https://${REALITYOS_HOSTNAME}/v1
+          VIRTUAL_DEVICE_TTL_MINUTES=1440
           EOF
+          : > .realityos-cloudflare-realip.conf
+          {
+            curl --fail --silent --show-error --retry 3 https://www.cloudflare.com/ips-v4
+            curl --fail --silent --show-error --retry 3 https://www.cloudflare.com/ips-v6
+          } | awk '
+            /^[0-9A-Fa-f:.]+\/[0-9]+$/ { print "set_real_ip_from " $0 ";"; count++ }
+            END { if (count == 0) exit 1 }
+          ' > .realityos-cloudflare-realip.conf
+          REALITYOS_HOSTNAME="$REALITYOS_HOSTNAME" REALITYOS_PROXY_PORT="$REALITYOS_PROXY_PORT" \
+            bash scripts/deploy/render-realityos-nginx.sh \
+            infrastructure/nginx/realityos.http.conf .realityos-http.conf
+          REALITYOS_HOSTNAME="$REALITYOS_HOSTNAME" REALITYOS_PROXY_PORT="$REALITYOS_PROXY_PORT" \
+            bash scripts/deploy/render-realityos-nginx.sh \
+            infrastructure/nginx/realityos.https.conf .realityos-https.conf
           scp -i ~/.ssh/realityos .realityos-runtime.env "$REALITYOS_USER@$REALITYOS_HOST:/tmp/realityos-runtime.env"
+          scp -i ~/.ssh/realityos .realityos-cloudflare-realip.conf "$REALITYOS_USER@$REALITYOS_HOST:/tmp/realityos-cloudflare-realip.conf"
+          scp -i ~/.ssh/realityos .realityos-http.conf "$REALITYOS_USER@$REALITYOS_HOST:/tmp/realityos-http.conf"
+          scp -i ~/.ssh/realityos .realityos-https.conf "$REALITYOS_USER@$REALITYOS_HOST:/tmp/realityos-https.conf"
           printf '%s' "$GHCR_PULL_TOKEN" | ssh -i ~/.ssh/realityos "$REALITYOS_USER@$REALITYOS_HOST" "sudo docker login ghcr.io --username '${{ github.actor }}' --password-stdin"
           ssh -i ~/.ssh/realityos "$REALITYOS_USER@$REALITYOS_HOST" '
             set -eu
             sudo install -d -m 0755 /opt/realityos
             sudo install -m 0600 /tmp/realityos-runtime.env /opt/realityos/runtime.env
             realityos_deploy_path=$(sudo sed -n "s/^REALITYOS_DEPLOY_PATH=//p" /opt/realityos/runtime.env)
+            acme_email=$(sudo sed -n "s/^ACME_EMAIL=//p" /opt/realityos/runtime.env)
             cd "$realityos_deploy_path"
             sh scripts/setup_runtime_dirs.sh
             sudo docker compose --env-file .env --env-file /opt/realityos/runtime.env -f infrastructure/docker-compose.yml -f infrastructure/docker-compose.production.yml pull api worker
@@ -222,4 +248,17 @@ jobs:
             sudo docker compose --env-file .env --env-file /opt/realityos/runtime.env -f infrastructure/docker-compose.yml -f infrastructure/docker-compose.production.yml build frontend display
             sudo docker compose --env-file .env --env-file /opt/realityos/runtime.env -f infrastructure/docker-compose.yml -f infrastructure/docker-compose.production.yml up -d --no-build frontend display proxy
             sudo docker compose --env-file .env --env-file /opt/realityos/runtime.env -f infrastructure/docker-compose.yml -f infrastructure/docker-compose.production.yml exec -T api python -c "import urllib.request; urllib.request.urlopen(\"http://localhost:8000/health/ready\")"
+            sudo install -d -m 0755 /var/www/realityos-acme /etc/nginx/snippets
+            sudo install -m 0644 /tmp/realityos-cloudflare-realip.conf /etc/nginx/snippets/realityos-cloudflare-realip.conf
+            sudo install -m 0644 /tmp/realityos-http.conf /etc/nginx/conf.d/realityos.conf
+            sudo nginx -t
+            sudo systemctl reload nginx
+            command -v certbot >/dev/null 2>&1 || { sudo apt-get update; sudo apt-get install -y certbot; }
+            if ! sudo test -f /etc/letsencrypt/live/realityos.luxisoft.com/fullchain.pem; then
+              sudo certbot certonly --webroot --webroot-path /var/www/realityos-acme --non-interactive --agree-tos --email "$acme_email" --domains realityos.luxisoft.com
+            fi
+            sudo install -m 0644 /tmp/realityos-https.conf /etc/nginx/conf.d/realityos.conf
+            sudo nginx -t
+            sudo systemctl reload nginx
+            curl --fail --silent --show-error --resolve realityos.luxisoft.com:443:127.0.0.1 https://realityos.luxisoft.com/health/ready
           '
