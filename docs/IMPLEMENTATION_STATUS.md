@@ -17,6 +17,9 @@
   independent gateway authentication, Meta-key injection, multipart forwarding,
   Docker image and GitHub deployment workflow. Gateway and backend tests pass
   locally, and the gateway Docker image builds successfully.
+- GitHub Actions CI completed successfully for the published gateway branch:
+  backend, web/Display and gateway jobs passed. Pull request #1 is open for
+  `feat/realityos-initial-platform`.
 
 ## Implemented but not fully environment-verified
 
@@ -36,6 +39,6 @@
 - Gateway DNS/TLS installation and GitHub deployment have not run: the
   LuxiPanel FRONTEND remote-command channel still requires its own active-chat
   approval and GitHub `production` secrets/DNS record are not configured.
-- Restore test and a published PR.
+- Restore test.
 
 No claim of physical-glasses, Android, Live Meta or simulator success is made.

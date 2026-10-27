@@ -111,7 +111,7 @@ comando, prueba o simulador. Este documento no sustituye
 - [~] DNS, secretos GitHub y primer despliegue en FRONTEND están pendientes de configuración externa.
 - [x] README inglés y documentación de arquitectura, DB, API, Meta, Wearables, despliegue, demo y seguridad existen.
 - [x] `IMPLEMENTATION_STATUS.md` enumera pendientes y bloqueos verificables.
-- [ ] Commits por fase creados; rama/PR publicados solo con permisos reales.
+- [x] Commits de implementación creados; rama publicada y PR #1 abierto con CI verde.
 
 ## Criterios finales de aceptación
 
