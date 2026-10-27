@@ -4,12 +4,13 @@ import android.Manifest
 import android.media.AudioAttributes
 import android.os.Bundle
 import android.speech.tts.TextToSpeech
-import androidx.activity.ComponentActivity
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
+import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
@@ -19,7 +20,7 @@ import com.meta.wearable.dat.core.types.PermissionStatus
 import kotlinx.coroutines.launch
 import java.util.Locale
 
-class MainActivity : ComponentActivity() {
+class MainActivity : AppCompatActivity() {
     private val viewModel: RealityViewModel by viewModels()
     private var requestedDatPermission: Permission? = null
     private lateinit var speech: TextToSpeech
@@ -45,12 +46,17 @@ class MainActivity : ComponentActivity() {
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        installSplashScreen()
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         speech = TextToSpeech(this) { status ->
             ttsReady = status == TextToSpeech.SUCCESS
             if (ttsReady) {
-                speech.language = Locale.US
+                speech.language = if (resources.configuration.locales[0]?.language == "es") {
+                    Locale.Builder().setLanguage("es").setRegion("CO").build()
+                } else {
+                    Locale.US
+                }
                 speech.setAudioAttributes(
                     AudioAttributes.Builder()
                         .setUsage(AudioAttributes.USAGE_ASSISTANCE_NAVIGATION_GUIDANCE)

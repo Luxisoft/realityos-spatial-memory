@@ -36,6 +36,16 @@
   compiled. The complete CI run
   [40577511588](https://github.com/Luxisoft/realityos-spatial-memory/actions/runs/40577511588)
   passed backend, gateway, web and Android jobs.
+- The Android host experience now has an English-first, persistent welcome
+  prelude; a Spanish language option; LUXISOFT adaptive icon and system splash;
+  a safe-area-aware top bar and navigation drawer; and a Display-first main
+  stage. The secure default virtual-device profile is now saved automatically,
+  while custom HTTPS device credentials remain an explicit administrator action.
+  Debug-only Mock Device Kit lifecycle/media/speech controls moved into
+  Developer lab; Meta's In-app and Chrome Display simulator routes remain
+  available from the main Display preview. On 2026-10-27,
+  `:app:assembleDebug :app:assembleRelease :app:compileDebugAndroidTestKotlin`
+  completed locally; handset visual review remains pending.
 - Successful CI runs now retain the installable Debug APK for 14 days as the
   `realityos-android-debug-apk` artifact. This is not a signed production APK.
 - Commit `24702e5` fixes PostgreSQL enum persistence for device status and
@@ -144,6 +154,13 @@
   2026-10-27 (three Mock Device Kit tests total). Interactive phone and
   desktop-Chrome extension validation remain pending; no physical glasses test
   is claimed.
+
+- The revised first-run carousel, per-app language switch, adaptive launcher
+  icon, system splash and phone layout have not yet been reviewed on a physical
+  handset in this workspace. No emulator or Android device is currently
+  attached to this server, so the new `RealityExperienceStoreTest` has compiled
+  but has not run instrumented. Compilation verifies the native resources and
+  code paths; it does not substitute for visual or accessibility QA on a device.
 
 - The virtual-device bootstrap flow has unit coverage for live profile creation,
   key rotation and expiry, but it cannot be exercised from an Android phone

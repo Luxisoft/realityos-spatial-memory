@@ -7,8 +7,11 @@
     <application
         android:name=".RealityOsApplication"
         android:allowBackup="false"
+        android:icon="@mipmap/ic_launcher"
         android:label="RealityOS"
-        android:theme="@style/Theme.RealityOS">
+        android:localeConfig="@xml/locales_config"
+        android:roundIcon="@mipmap/ic_launcher"
+        android:theme="@style/Theme.RealityOS.Starting">
         <!-- Provision only with values from Meta Wearables Developer Center. -->
         <meta-data
             android:name="com.meta.wearable.mwdat.APPLICATION_ID"

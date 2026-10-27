@@ -4,6 +4,7 @@ import android.app.Activity
 import android.app.Application
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import androidx.annotation.StringRes
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.meta.wearable.dat.camera.Camera
@@ -37,6 +38,7 @@ import com.meta.wearable.dat.speech.removeSpeech
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.net.URL
+import java.time.Instant
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -68,7 +70,7 @@ data class RealityUiState(
     val captureSessionId: String? = null,
     val recording: Boolean = false,
     val busy: Boolean = false,
-    val message: String = "Complete administrator provisioning, then connect RealityOS to Display.",
+    val message: String = "",
     val queryResult: QueryEvidence? = null,
 )
 
@@ -78,6 +80,7 @@ data class RealityUiState(
  * once connected, all operational controls are rendered on Ray-Ban Display.
  */
 class RealityViewModel(application: Application) : AndroidViewModel(application) {
+    private val app = application
     private val store = DeviceProvisioningStore(application)
     private val recorder = HevcMp4Recorder(application.cacheDir)
     private val storedProvisioning = store.read()
@@ -85,6 +88,7 @@ class RealityViewModel(application: Application) : AndroidViewModel(application)
         RealityUiState(
             provisioning = storedProvisioning,
             provisioningDraft = storedProvisioning?.toDraft() ?: ProvisioningDraft(),
+            message = app.getString(R.string.status_initial),
         ),
     )
     val state: StateFlow<RealityUiState> = _state.asStateFlow()
@@ -123,7 +127,11 @@ class RealityViewModel(application: Application) : AndroidViewModel(application)
                 }
             }
         }
-        if (storedProvisioning == null) loadVirtualDeviceProfile()
+        val liveCredentialNearExpiry = storedProvisioning?.source == ProvisioningSource.VIRTUAL_LIVE &&
+            storedProvisioning.expiresAt?.isBefore(Instant.now().plusSeconds(5 * 60)) == true
+        if (storedProvisioning == null || liveCredentialNearExpiry) {
+            loadVirtualDeviceProfile(saveAutomatically = true)
+        }
     }
 
     fun updateProvisioningDraft(
@@ -152,10 +160,10 @@ class RealityViewModel(application: Application) : AndroidViewModel(application)
         }
     }
 
-    fun loadVirtualDeviceProfile() {
+    /** Restores the project-owned live profile; custom servers are saved manually. */
+    fun loadVirtualDeviceProfile(saveAutomatically: Boolean = true) {
         if (_state.value.virtualProfileLoading) return
-        val bootstrapUrl = _state.value.provisioningDraft.apiBaseUrl.trim()
-            .ifBlank { BuildConfig.DEFAULT_REALITYOS_API_BASE_URL }
+        val bootstrapUrl = BuildConfig.DEFAULT_REALITYOS_API_BASE_URL
         _state.update { it.copy(virtualProfileLoading = true, virtualProfileError = null) }
         viewModelScope.launch {
             val result = withContext(Dispatchers.IO) {
@@ -171,27 +179,29 @@ class RealityViewModel(application: Application) : AndroidViewModel(application)
                     _state.update {
                         it.copy(
                             virtualProfileLoading = false,
-                            virtualProfileError = "The server did not confirm Live Meta processing.",
-                            message = "Live virtual-glasses enrollment was not completed.",
+                            virtualProfileError = copy(R.string.status_live_not_confirmed),
+                            message = copy(R.string.status_enrollment_incomplete),
                         )
                     }
                     return@onSuccess
                 }
                 val provisioning = profile.toProvisioning()
+                if (saveAutomatically) store.save(provisioning)
                 _state.update {
                     it.copy(
+                        provisioning = if (saveAutomatically) provisioning else it.provisioning,
                         provisioningDraft = provisioning.toDraft(),
                         virtualProfileLoading = false,
                         virtualProfileError = null,
-                        message = "Live virtual-device values are ready. Review them and save the connection.",
+                        message = copy(R.string.status_live_connection_ready),
                     )
                 }
             }.onFailure { error ->
                 _state.update {
                     it.copy(
                         virtualProfileLoading = false,
-                        virtualProfileError = error.message ?: "Could not load live virtual-device values.",
-                        message = "Enter your own HTTPS server values or try loading the live profile again.",
+                        virtualProfileError = error.message ?: copy(R.string.status_load_live_failed),
+                        message = copy(R.string.status_enter_custom_or_retry),
                     )
                 }
             }
@@ -206,12 +216,12 @@ class RealityViewModel(application: Application) : AndroidViewModel(application)
             draft.deviceId.isBlank() ||
             draft.deviceKey.isBlank()
         ) {
-            showStatus("Server URL, workspace ID, device ID and device key are required.")
+            showStatus(copy(R.string.status_connection_values_required))
             return false
         }
         val apiUrl = runCatching { URL(draft.apiBaseUrl.trim()) }.getOrNull()
         if (apiUrl?.protocol != "https") {
-            showStatus("RealityOS requires an HTTPS server URL.")
+            showStatus(copy(R.string.status_https_required))
             return false
         }
         store.save(
@@ -229,7 +239,7 @@ class RealityViewModel(application: Application) : AndroidViewModel(application)
         _state.update {
             it.copy(
                 provisioning = store.read(),
-                message = "Live RealityOS connection saved.",
+                message = copy(R.string.status_connection_saved),
                 virtualProfileError = null,
             )
         }
@@ -238,7 +248,7 @@ class RealityViewModel(application: Application) : AndroidViewModel(application)
 
     fun registerWithMeta(activity: Activity) {
         Wearables.startRegistration(activity)
-        showStatus("Complete Meta AI registration and grant the requested device permissions.")
+        showStatus(copy(R.string.status_meta_registration))
     }
 
     /**
@@ -248,11 +258,11 @@ class RealityViewModel(application: Application) : AndroidViewModel(application)
      */
     fun connectDisplay(deviceIdentifier: DeviceIdentifier? = null) {
         if (_state.value.provisioning == null) {
-            showStatus("An administrator must provision this device before it can use RealityOS.")
+            showStatus(copy(R.string.status_admin_provisioning_required))
             return
         }
         if (Wearables.registrationState.value != RegistrationState.REGISTERED) {
-            showStatus("Register RealityOS in Meta AI before connecting Display.")
+            showStatus(copy(R.string.status_register_meta_first))
             return
         }
         if (session != null) return
@@ -274,7 +284,7 @@ class RealityViewModel(application: Application) : AndroidViewModel(application)
                     }
                 }
                 created.start()
-                showStatus("Connecting to Meta Ray-Ban Display…")
+                showStatus(copy(R.string.status_connecting_display))
             },
             onFailure = { error, _ -> showError(error.description) },
         )
@@ -286,7 +296,7 @@ class RealityViewModel(application: Application) : AndroidViewModel(application)
      */
     fun disconnectDisplay(): Boolean {
         if (_state.value.recording || _state.value.captureSessionId != null || _state.value.busy) {
-            showStatus("Finish or stop capture before disconnecting Display.")
+            showStatus(copy(R.string.status_finish_capture_first))
             return false
         }
         stopSpeech()
@@ -302,7 +312,7 @@ class RealityViewModel(application: Application) : AndroidViewModel(application)
         runCatching { activeSession?.removeDisplay() }
         runCatching { activeSession?.stop() }
         cleanupStoppedSession()
-        showStatus("Display disconnected.")
+        showStatus(copy(R.string.status_display_disconnected))
         return true
     }
 
@@ -310,7 +320,12 @@ class RealityViewModel(application: Application) : AndroidViewModel(application)
         if (!granted) {
             pendingCameraPermission = false
             pendingMicrophonePermission = false
-            showError("${permission.name.lowercase().replaceFirstChar(Char::uppercase)} permission was not granted.")
+            showError(
+                copy(
+                    R.string.status_permission_denied,
+                    permission.name.lowercase().replaceFirstChar(Char::uppercase),
+                ),
+            )
             return
         }
         when (permission) {
@@ -344,14 +359,14 @@ class RealityViewModel(application: Application) : AndroidViewModel(application)
     }
 
     private fun beginRegister() {
-        val provisioning = _state.value.provisioning ?: return showError("Device provisioning is missing.")
+        val provisioning = _state.value.provisioning ?: return showError(copy(R.string.status_device_provisioning_missing))
         viewModelScope.launch {
             setBusy(true)
             try {
                 val zones = withContext(Dispatchers.IO) { RealityApi(provisioning).listZones() }
-                if (zones.isEmpty()) showError("No locations are configured for this workspace.") else renderZonePicker(zones)
+                if (zones.isEmpty()) showError(copy(R.string.status_no_locations)) else renderZonePicker(zones)
             } catch (error: Exception) {
-                showError(error.message ?: "Could not load locations.")
+                showError(error.message ?: copy(R.string.status_locations_failed))
             } finally {
                 setBusy(false)
             }
@@ -362,12 +377,12 @@ class RealityViewModel(application: Application) : AndroidViewModel(application)
         selectedZone = zone
         pendingCameraPermission = true
         _permissionRequests.tryEmit(Permission.CAMERA)
-        renderNotice("Allow camera access in Meta AI to register evidence in ${zone.name}.")
+        renderNotice(copy(R.string.status_camera_permission, zone.name))
     }
 
     private fun openCaptureSessionAndCamera() {
-        val provisioning = _state.value.provisioning ?: return showError("Device provisioning is missing.")
-        val activeSession = session ?: return showError("Display is not connected.")
+        val provisioning = _state.value.provisioning ?: return showError(copy(R.string.status_device_provisioning_missing))
+        val activeSession = session ?: return showError(copy(R.string.status_display_not_connected))
         viewModelScope.launch {
             setBusy(true)
             try {
@@ -402,7 +417,7 @@ class RealityViewModel(application: Application) : AndroidViewModel(application)
                     },
                 )
             } catch (error: Exception) {
-                showError(error.message ?: "Could not open the capture session.")
+                showError(error.message ?: copy(R.string.status_capture_session_failed))
             } finally {
                 setBusy(false)
             }
@@ -410,8 +425,8 @@ class RealityViewModel(application: Application) : AndroidViewModel(application)
     }
 
     private fun takePhoto() {
-        val activeCamera = camera ?: return showError("Camera is not ready.")
-        val captureSessionId = _state.value.captureSessionId ?: return showError("Open capture mode first.")
+        val activeCamera = camera ?: return showError(copy(R.string.status_camera_not_ready))
+        val captureSessionId = _state.value.captureSessionId ?: return showError(copy(R.string.status_capture_mode_first))
         val provisioning = _state.value.provisioning ?: return
         viewModelScope.launch {
             setBusy(true)
@@ -420,7 +435,7 @@ class RealityViewModel(application: Application) : AndroidViewModel(application)
                     onSuccess = { photo ->
                         val jpeg = photo.asJpegBytes()
                         if (jpeg == null) {
-                            showError("The glasses returned an unreadable photo.")
+                            showError(copy(R.string.status_unreadable_photo))
                             return@fold
                         }
                         viewModelScope.launch {
@@ -435,10 +450,10 @@ class RealityViewModel(application: Application) : AndroidViewModel(application)
                                     )
                                     api.requestProcessing(capture.id, detailed = false)
                                 }
-                                showStatus("Photo stored. Basic visual analysis is queued.")
+                                showStatus(copy(R.string.status_photo_stored))
                                 renderCapture()
                             } catch (error: Exception) {
-                                showError(error.message ?: "Photo upload failed.")
+                                showError(error.message ?: copy(R.string.status_photo_upload_failed))
                             } finally {
                                 setBusy(false)
                             }
@@ -450,17 +465,17 @@ class RealityViewModel(application: Application) : AndroidViewModel(application)
                     },
                 )
             } catch (error: Exception) {
-                showError(error.message ?: "Photo capture failed.")
+                showError(error.message ?: copy(R.string.status_photo_capture_failed))
                 setBusy(false)
             }
         }
     }
 
     private fun startVideo() {
-        if (camera == null) return showError("Camera is not ready.")
+        if (camera == null) return showError(copy(R.string.status_camera_not_ready))
         if (_state.value.recording) return
         recorder.begin()
-        _state.update { it.copy(recording = true, message = "Recording video from glasses.") }
+        _state.update { it.copy(recording = true, message = copy(R.string.status_recording_video)) }
         recordingLimitJob?.cancel()
         recordingLimitJob = viewModelScope.launch {
             kotlinx.coroutines.delay(MAX_VIDEO_SECONDS * 1_000L)
@@ -479,7 +494,7 @@ class RealityViewModel(application: Application) : AndroidViewModel(application)
             setBusy(true)
             val clip = withContext(Dispatchers.Default) { recorder.finish() }
             if (clip == null) {
-                showError("No playable video was captured. Try recording for a few more seconds.")
+                showError(copy(R.string.status_no_playable_video))
                 setBusy(false)
                 renderCapture()
                 return@launch
@@ -490,9 +505,9 @@ class RealityViewModel(application: Application) : AndroidViewModel(application)
                     val capture = api.uploadCaptureFile(captureSessionId, clip, "video/mp4")
                     api.requestProcessing(capture.id, detailed = false)
                 }
-                showStatus("Video stored. Representative-frame analysis is queued.")
+                showStatus(copy(R.string.status_video_stored))
             } catch (error: Exception) {
-                showError(error.message ?: "Video upload failed.")
+                showError(error.message ?: copy(R.string.status_video_upload_failed))
             } finally {
                 clip.delete()
                 setBusy(false)
@@ -504,7 +519,7 @@ class RealityViewModel(application: Application) : AndroidViewModel(application)
     private fun finishRegister() {
         if (_state.value.recording) {
             stopVideo()
-            renderNotice("Video upload is finishing. Select Finish capture when it is complete.")
+            renderNotice(copy(R.string.status_video_finishing))
             return
         }
         val captureSessionId = _state.value.captureSessionId
@@ -517,9 +532,9 @@ class RealityViewModel(application: Application) : AndroidViewModel(application)
         viewModelScope.launch {
             try {
                 withContext(Dispatchers.IO) { RealityApi(provisioning).closeCaptureSession(captureSessionId) }
-                _state.update { it.copy(captureSessionId = null, message = "Capture stopped. Evidence remains in RealityOS.") }
+                _state.update { it.copy(captureSessionId = null, message = copy(R.string.status_capture_stopped)) }
             } catch (error: Exception) {
-                showError(error.message ?: "Could not close capture mode.")
+                showError(error.message ?: copy(R.string.status_close_capture_failed))
             }
             renderHome()
         }
@@ -539,16 +554,16 @@ class RealityViewModel(application: Application) : AndroidViewModel(application)
 
     private fun beginQuery() {
         if (_state.value.captureSessionId != null) {
-            renderNotice("Stop capture before querying stored memory.")
+            renderNotice(copy(R.string.status_stop_capture_before_query))
             return
         }
         pendingMicrophonePermission = true
         _permissionRequests.tryEmit(Permission.MICROPHONE)
-        renderNotice("Allow microphone access in Meta AI, then ask for an object.")
+        renderNotice(copy(R.string.status_microphone_permission))
     }
 
     private fun startSpeechQuery() {
-        val activeSession = session ?: return showError("Display is not connected.")
+        val activeSession = session ?: return showError(copy(R.string.status_display_not_connected))
         if (speech != null) return
         activeSession.addSpeech().fold(
             onSuccess = { attached ->
@@ -568,7 +583,7 @@ class RealityViewModel(application: Application) : AndroidViewModel(application)
                     }
                 }
                 attached.start().onFailure { error, _ -> showError(error.description) }
-                renderListening("Listening…")
+                renderListening(copy(R.string.display_listening))
             },
             onFailure = { error, _ -> showError(error.description) },
         )
@@ -586,7 +601,7 @@ class RealityViewModel(application: Application) : AndroidViewModel(application)
     }
 
     private fun executeQuery(question: String) {
-        val provisioning = _state.value.provisioning ?: return showError("Device provisioning is missing.")
+        val provisioning = _state.value.provisioning ?: return showError(copy(R.string.status_device_provisioning_missing))
         viewModelScope.launch {
             setBusy(true)
             try {
@@ -596,7 +611,7 @@ class RealityViewModel(application: Application) : AndroidViewModel(application)
                 renderQueryResult(answer, imageUrl)
                 if (answer.ttsText.isNotBlank()) _speechRequests.tryEmit(answer.ttsText)
             } catch (error: Exception) {
-                showError(error.message ?: "Could not query RealityOS.")
+                showError(error.message ?: copy(R.string.status_query_failed))
             } finally {
                 setBusy(false)
             }
@@ -606,44 +621,44 @@ class RealityViewModel(application: Application) : AndroidViewModel(application)
     private fun renderHome() = sendDisplay {
         flexBox(direction = Direction.COLUMN, gap = 12, padding = 24, background = FlexBoxBackground.CARD) {
             text("RealityOS", style = TextStyle.HEADING)
-            text("Spatial memory", style = TextStyle.META, color = TextColor.SECONDARY)
-            button("Register", style = ButtonStyle.PRIMARY, iconName = IconName.VIDEO_CAMERA, onClick = ::beginRegister)
-            button("Find an object", style = ButtonStyle.SECONDARY, iconName = IconName.SPEECH_BUBBLE, onClick = ::beginQuery)
+            text(copy(R.string.display_spatial_memory), style = TextStyle.META, color = TextColor.SECONDARY)
+            button(copy(R.string.display_register), style = ButtonStyle.PRIMARY, iconName = IconName.VIDEO_CAMERA, onClick = ::beginRegister)
+            button(copy(R.string.display_find_object), style = ButtonStyle.SECONDARY, iconName = IconName.SPEECH_BUBBLE, onClick = ::beginQuery)
         }
     }
 
     private fun renderZonePicker(zones: List<RemoteZone>) = sendDisplay {
         flexBox(direction = Direction.COLUMN, gap = 10, padding = 24, background = FlexBoxBackground.CARD) {
-            text("Choose location", style = TextStyle.HEADING)
-            text("Capture starts only after you select one.", style = TextStyle.META, color = TextColor.SECONDARY)
+            text(copy(R.string.display_choose_location), style = TextStyle.HEADING)
+            text(copy(R.string.display_capture_after_location), style = TextStyle.META, color = TextColor.SECONDARY)
             zones.take(MAX_DISPLAY_ZONES).forEach { zone ->
                 button(zone.name, style = ButtonStyle.SECONDARY, iconName = IconName.CONTAINER_WITH_LID, onClick = { chooseZone(zone) })
             }
-            button("Back", style = ButtonStyle.OUTLINE, iconName = IconName.ARROW_LEFT, onClick = ::renderHome)
+            button(copy(R.string.display_back), style = ButtonStyle.OUTLINE, iconName = IconName.ARROW_LEFT, onClick = ::renderHome)
         }
     }
 
     private fun renderCapture() = sendDisplay {
         flexBox(direction = Direction.COLUMN, gap = 12, padding = 24, background = FlexBoxBackground.CARD) {
-            text("Register evidence", style = TextStyle.HEADING)
-            text(selectedZone?.name ?: "Selected location", style = TextStyle.META, color = TextColor.SECONDARY)
-            button("Take photo", style = ButtonStyle.PRIMARY, iconName = IconName.VIDEO_CAMERA, onClick = ::takePhoto)
+            text(copy(R.string.display_register_evidence), style = TextStyle.HEADING)
+            text(selectedZone?.name ?: copy(R.string.display_selected_location), style = TextStyle.META, color = TextColor.SECONDARY)
+            button(copy(R.string.display_take_photo), style = ButtonStyle.PRIMARY, iconName = IconName.VIDEO_CAMERA, onClick = ::takePhoto)
             if (_state.value.recording) {
-                button("Stop video", style = ButtonStyle.PRIMARY, iconName = IconName.X, onClick = ::stopVideo)
-                text("Video recording (up to 2 minutes)", style = TextStyle.META, color = TextColor.SECONDARY)
+                button(copy(R.string.display_stop_video), style = ButtonStyle.PRIMARY, iconName = IconName.X, onClick = ::stopVideo)
+                text(copy(R.string.display_video_recording), style = TextStyle.META, color = TextColor.SECONDARY)
             } else {
-                button("Record video", style = ButtonStyle.SECONDARY, iconName = IconName.VIDEO_CAMERA, onClick = ::startVideo)
+                button(copy(R.string.display_record_video), style = ButtonStyle.SECONDARY, iconName = IconName.VIDEO_CAMERA, onClick = ::startVideo)
             }
-            button("Finish capture", style = ButtonStyle.OUTLINE, iconName = IconName.CHECKMARK, onClick = ::finishRegister)
+            button(copy(R.string.display_finish_capture), style = ButtonStyle.OUTLINE, iconName = IconName.CHECKMARK, onClick = ::finishRegister)
         }
     }
 
     private fun renderListening(partial: String) = sendDisplay {
         flexBox(direction = Direction.COLUMN, gap = 12, padding = 24, background = FlexBoxBackground.CARD) {
-            text("Ask RealityOS", style = TextStyle.HEADING)
+            text(copy(R.string.display_ask), style = TextStyle.HEADING)
             text(partial.take(MAX_DISPLAY_TEXT), style = TextStyle.BODY)
-            text("Listening on the glasses…", style = TextStyle.META, color = TextColor.SECONDARY)
-            button("Cancel", style = ButtonStyle.OUTLINE, iconName = IconName.X, onClick = {
+            text(copy(R.string.display_listening), style = TextStyle.META, color = TextColor.SECONDARY)
+            button(copy(R.string.display_cancel), style = ButtonStyle.OUTLINE, iconName = IconName.X, onClick = {
                 stopSpeech()
                 renderHome()
             })
@@ -652,12 +667,17 @@ class RealityViewModel(application: Application) : AndroidViewModel(application)
 
     private fun renderQueryResult(answer: QueryEvidence, imageUrl: String?) = sendDisplay {
         flexBox(direction = Direction.COLUMN, gap = 10, padding = 20, background = FlexBoxBackground.CARD) {
-            text(if (answer.found) "Last seen" else if (answer.ambiguous) "More detail needed" else "No evidence", style = TextStyle.HEADING)
+            text(
+                if (answer.found) copy(R.string.display_last_seen)
+                else if (answer.ambiguous) copy(R.string.display_more_detail)
+                else copy(R.string.display_no_evidence),
+                style = TextStyle.HEADING,
+            )
             imageUrl?.let { image(uri = it, sizePreset = ImageSize.FILL) }
             text(answer.message.take(MAX_DISPLAY_TEXT), style = TextStyle.BODY)
-            button("Hear again", style = ButtonStyle.SECONDARY, iconName = IconName.SPEAKER_WITH_TWO_ARCS, onClick = { _speechRequests.tryEmit(answer.ttsText) })
-            button("New query", style = ButtonStyle.PRIMARY, iconName = IconName.SPEECH_BUBBLE, onClick = ::beginQuery)
-            button("Home", style = ButtonStyle.OUTLINE, iconName = IconName.HOUSE, onClick = ::renderHome)
+            button(copy(R.string.display_hear_again), style = ButtonStyle.SECONDARY, iconName = IconName.SPEAKER_WITH_TWO_ARCS, onClick = { _speechRequests.tryEmit(answer.ttsText) })
+            button(copy(R.string.display_new_query), style = ButtonStyle.PRIMARY, iconName = IconName.SPEECH_BUBBLE, onClick = ::beginQuery)
+            button(copy(R.string.display_home), style = ButtonStyle.OUTLINE, iconName = IconName.HOUSE, onClick = ::renderHome)
         }
     }
 
@@ -665,7 +685,7 @@ class RealityViewModel(application: Application) : AndroidViewModel(application)
         flexBox(direction = Direction.COLUMN, gap = 12, padding = 24, background = FlexBoxBackground.CARD) {
             text("RealityOS", style = TextStyle.HEADING)
             text(message.take(MAX_DISPLAY_TEXT), style = TextStyle.BODY)
-            button("Home", style = ButtonStyle.PRIMARY, iconName = IconName.HOUSE, onClick = ::renderHome)
+            button(copy(R.string.display_home), style = ButtonStyle.PRIMARY, iconName = IconName.HOUSE, onClick = ::renderHome)
         }
     }
 
@@ -684,6 +704,8 @@ class RealityViewModel(application: Application) : AndroidViewModel(application)
     private fun showStatus(message: String) {
         _state.update { it.copy(message = message) }
     }
+
+    private fun copy(@StringRes id: Int, vararg arguments: Any): String = app.getString(id, *arguments)
 
     private fun showError(message: String) {
         _state.update { it.copy(message = message, busy = false) }

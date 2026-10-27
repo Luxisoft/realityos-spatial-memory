@@ -11,6 +11,9 @@ class RealityOsApplication : Application() {
 
     override fun onCreate() {
         super.onCreate()
+        // The demo always begins in English unless the user explicitly chose
+        // Spanish from the in-app menu. Apply it before composing any UI.
+        RealityExperienceStore(this).applySelectedLanguage()
         developerPreviewController = createDeveloperPreviewController(this)
         Wearables.initialize(this).onFailure { error, _ ->
             Log.e("RealityOS", "DAT initialization failed: ${error.description}")

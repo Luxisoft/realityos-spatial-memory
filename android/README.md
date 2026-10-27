@@ -1,9 +1,23 @@
 # RealityOS DAT host
 
-This Android app is the required host for the official Meta Wearables Device
-Access Toolkit. It is not the field-worker UI: after one-time administrator
-provisioning and Meta registration, Register and Query are controlled from
-Meta Ray-Ban Display.
+This Android app is the secure host for the official Meta Wearables Device
+Access Toolkit. It is not a separate field-worker product UI: after device
+enrollment and Meta registration, Register and Query are controlled from
+compatible Meta Ray-Ban Display glasses.
+
+The phone experience is English-first and has a short first-run RealityOS
+introduction. It can be replayed from **About RealityOS**. Its left menu keeps
+the main screen focused on the Meta Display preview:
+
+- **Display preview** is the only main-stage surface. Debug builds expose both
+  Meta's In-app renderer and the Chrome simulator route there.
+- **Connection** automatically obtains and encrypts the project Live device
+  profile. A server administrator can still enter a custom HTTPS device profile.
+- **Meta glasses** holds registration and physical Display session controls.
+- **Developer lab** exists only in Debug builds and contains Mock Device Kit
+  lifecycle, permission, media and speech controls.
+- **Language** switches between English and Spanish. No Model API key is ever
+  stored in the app.
 
 ## Build
 
@@ -49,22 +63,23 @@ from the release APK.
    The virtual-glasses route refuses to issue a profile unless the server is in
    `META_MODE=live`; captured media is therefore processed by the real Meta
    integration, not a synthetic provider.
-2. On a fresh Debug APK install, the phone requests a short-lived, real,
-   workspace-scoped virtual-device identity and fills the visible Server,
-   Workspace, Device ID and Device key inputs. Review and save them, or replace
-   any value with an administrator-issued connection of your own.
+2. On a fresh Debug APK install, complete or skip the short RealityOS
+   introduction. The host requests and securely saves a short-lived,
+   workspace-scoped virtual-device identity automatically. Use **Connection →
+   Use a custom server** only when an administrator issues different values.
 3. Install the Debug APK on an Android phone:
 
    ```bash
    adb install -r app/build/outputs/apk/debug/app-debug.apk
    ```
 
-4. Open **Developer Preview**, choose **In app**, and tap **Start virtual
-   glasses**. The square viewport is Meta's renderer for `META_RAYBAN_DISPLAY`.
-5. From the renderer, use Register or Find an object exactly as you would on
-   glasses. The Debug controls can select a mock JPEG/PNG photo, an AVC/HEVC
-   video feed, phone-camera feed, DAT permission outcome, and partial/final
-   speech.
+4. Keep **Display preview** open, choose **In app**, and tap **Start virtual
+   glasses**. The square viewport is Meta's renderer for
+   `META_RAYBAN_DISPLAY`.
+5. Open **Developer lab** from the menu to select a mock JPEG/PNG photo, an
+   AVC/HEVC video feed, phone-camera feed, DAT permission outcome, and
+   partial/final speech. From the renderer, use Register or Find an object
+   exactly as you would on glasses.
 
 The phone camera is a mock stream source and requires Android camera
 permission. It does not represent physical-glasses optics or hardware. Its
@@ -73,7 +88,7 @@ you explicitly start Register.
 
 ### Chrome preview
 
-Choose **Chrome** in Developer Preview, connect the phone by USB with Android
+Choose **Chrome** in **Display preview**, connect the phone by USB with Android
 debugging enabled, then run the displayed command on the computer:
 
 ```bash
@@ -99,9 +114,9 @@ Meta Model API keys.
 
 ## Device workflow
 
-1. For virtual glasses, save the short-lived live profile prefilled by the
-   host screen. For a physical device, use an administrator-enrolled device
-   ID/key instead.
+1. For virtual glasses, the host automatically saves its short-lived live
+   profile. For a physical device, use **Connection → Use a custom server** to
+   store an administrator-enrolled device ID/key instead.
 2. Pair Meta Ray-Ban Display with the phone, enable Meta AI Developer Mode,
    then use **Register with Meta AI** and grant required DAT permissions.
 3. Use **Connect Display** once. The home, location, capture, voice-query, and
