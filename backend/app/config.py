@@ -32,6 +32,10 @@ class Settings(BaseSettings):
     # physical BYTEA limit and operators remain responsible for disk capacity.
     max_video_bytes: int = Field(default=0, ge=0)
     max_video_seconds: int = Field(default=0, ge=0)
+    # Storage strategy, not an upload limit: large videos are split into
+    # PostgreSQL BYTEA chunks to avoid single-value allocation limits.
+    video_inline_bytes: int = Field(default=32 * 1024 * 1024, ge=1)
+    video_bytea_chunk_bytes: int = Field(default=8 * 1024 * 1024, ge=1024 * 1024)
     video_segment_seconds: int = Field(default=120, ge=5, le=3600)
     video_frames_per_segment: int = Field(default=8, ge=1, le=24)
     meta_mode: str = "mock"

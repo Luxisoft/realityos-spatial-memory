@@ -156,6 +156,19 @@ class MediaAsset(TimestampMixin, Base):
     extra_metadata: Mapped[dict[str, Any]] = mapped_column("metadata", JSON, default=dict)
 
 
+class MediaAssetChunk(Base):
+    """Ordered PostgreSQL BYTEA pieces for media larger than one practical value."""
+
+    __tablename__ = "media_asset_chunks"
+
+    asset_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("media_assets.id", ondelete="CASCADE"), primary_key=True
+    )
+    chunk_index: Mapped[int] = mapped_column(primary_key=True)
+    content: Mapped[bytes] = mapped_column(LargeBinary, nullable=False)
+    byte_size: Mapped[int] = mapped_column(Integer, nullable=False)
+
+
 class TrackedObject(TimestampMixin, Base):
     __tablename__ = "tracked_objects"
     __table_args__ = (

@@ -7,7 +7,13 @@ from pathlib import Path
 
 import pytest
 from app.meta import MetaProviderError, MockMetaModelClient
-from app.models import MediaAsset, MediaKind, ObjectObservation, ProcessingJob
+from app.models import (
+    MediaAsset,
+    MediaAssetChunk,
+    MediaKind,
+    ObjectObservation,
+    ProcessingJob,
+)
 from app.services import process_job
 from app.video import VideoInfo, video_segments
 from sqlalchemy import select
@@ -114,6 +120,52 @@ def test_long_video_is_partitioned_without_changing_source_evidence():
         (5, 600.0, 120.0),
         (6, 720.0, 98.333),
     ]
+
+
+def test_video_over_inline_threshold_is_stored_as_postgres_bytea_chunks(
+    client, auth_headers, tmp_path
+):
+    settings = client.app.state.settings
+    original_threshold = settings.video_inline_bytes
+    settings.video_inline_bytes = 1
+    try:
+        workspace = client.post(
+            "/v1/workspaces",
+            headers=auth_headers,
+            json={"name": "Chunked video workspace"},
+        ).json()
+        session = client.post(
+            "/v1/sessions",
+            headers=auth_headers,
+            json={"workspace_id": workspace["id"], "consent_confirmed": True},
+        ).json()
+        video = sample_mp4(tmp_path)
+        capture = client.post(
+            "/v1/captures",
+            headers=auth_headers,
+            data={"session_id": session["id"]},
+            files={"file": ("chunked.mp4", video, "video/mp4")},
+        )
+        assert capture.status_code == 201, capture.text
+        capture_id = uuid.UUID(capture.json()["id"])
+        with client.app.state.database.session_factory() as db:
+            asset = db.get(MediaAsset, capture_id)
+            chunks = list(
+                db.scalars(
+                    select(MediaAssetChunk)
+                    .where(MediaAssetChunk.asset_id == capture_id)
+                    .order_by(MediaAssetChunk.chunk_index)
+                )
+            )
+        assert asset is not None
+        assert asset.original_bytes == b""
+        assert asset.extra_metadata["storage"] == "chunked_postgres_bytea"
+        assert b"".join(chunk.content for chunk in chunks) == video
+        fetched = client.get(f"/v1/media/{capture_id}", headers=auth_headers)
+        assert fetched.status_code == 200
+        assert fetched.content == video
+    finally:
+        settings.video_inline_bytes = original_threshold
 
 
 def test_failed_video_pipeline_keeps_only_the_original_for_safe_retry(

@@ -72,10 +72,12 @@ staging workflow in [Manual photo test](docs/MANUAL_PHOTO_TEST.md). Staging a
 file alone does not register it or call Meta.
 
 Video intake has no fixed application or proxy size/duration cap by default
-(`MAX_VIDEO_BYTES=0`, `MAX_VIDEO_SECONDS=0`). Capacity remains constrained by
-PostgreSQL BYTEA's physical limits and the server's disk/RAM. Long clips are
-partitioned for bounded extraction (`VIDEO_SEGMENT_SECONDS=120`, eight sampled
-frames per segment), not streamed, audio-transcribed or treated as surveillance.
+(`MAX_VIDEO_BYTES=0`, `MAX_VIDEO_SECONDS=0`). Videos over the configurable
+inline threshold are retained as ordered PostgreSQL BYTEA chunks, never as file
+paths or buckets, avoiding a single-value allocation limit. Capacity remains
+constrained by server disk/RAM. Long clips are partitioned for bounded
+extraction (`VIDEO_SEGMENT_SECONDS=120`, eight sampled frames per segment), not
+streamed, audio-transcribed or treated as surveillance.
 
 English is the default evidence and answer language. Queries may be spoken or
 written in other languages: Muse Spark maps them only to existing

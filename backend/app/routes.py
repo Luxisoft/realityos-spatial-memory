@@ -5,7 +5,7 @@ import uuid
 from datetime import UTC, datetime
 
 from fastapi import APIRouter, Depends, File, Form, HTTPException, Request, UploadFile, status
-from fastapi.responses import Response
+from fastapi.responses import Response, StreamingResponse
 from PIL import Image, ImageDraw
 from sqlalchemy import desc, select
 from sqlalchemy.orm import Session
@@ -17,6 +17,7 @@ from app.models import (
     CaptureSession,
     CaptureStatus,
     MediaAsset,
+    MediaAssetChunk,
     MediaKind,
     ObjectAlias,
     ObjectObservation,
@@ -57,8 +58,10 @@ from app.security import (
     verify_password,
 )
 from app.services import (
+    add_postgres_bytea_chunks,
     create_processing_job,
     exact_term_candidates,
+    media_is_chunked,
     media_sha256,
     multilingual_object_candidates,
     normalize,
@@ -416,12 +419,13 @@ async def create_capture(
     )
     if existing:
         return _capture_response(existing)
+    chunked_video = is_video and len(raw) > settings.video_inline_bytes
     asset = MediaAsset(
         workspace_id=session.workspace_id,
         capture_session_id=session.id,
         kind=MediaKind.VIDEO if is_video else MediaKind.IMAGE,
         mime_type=file.content_type,
-        original_bytes=raw,
+        original_bytes=b"" if chunked_video else raw,
         sha256=digest,
         byte_size=len(raw),
         width=width,
@@ -434,6 +438,8 @@ async def create_capture(
     )
     db.add(asset)
     db.flush()
+    if chunked_video:
+        add_postgres_bytea_chunks(db, asset, raw, settings.video_bytea_chunk_bytes)
     _audit(db, "capture.created", "media_asset", user.id, asset.id, session.workspace_id)
     return _capture_response(asset)
 
@@ -763,11 +769,18 @@ async def get_media(
     if asset is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Media not found.")
     workspace_member(asset.workspace_id, user, db)
-    return Response(
-        content=asset.original_bytes,
-        media_type=asset.mime_type,
-        headers={"Content-Disposition": f'inline; filename="{asset.id}"'},
-    )
+    headers = {"Content-Disposition": f'inline; filename="{asset.id}"'}
+    if media_is_chunked(asset):
+        def chunk_stream():
+            for chunk in db.scalars(
+                select(MediaAssetChunk.content)
+                .where(MediaAssetChunk.asset_id == asset.id)
+                .order_by(MediaAssetChunk.chunk_index)
+            ):
+                yield chunk
+
+        return StreamingResponse(chunk_stream(), media_type=asset.mime_type, headers=headers)
+    return Response(content=asset.original_bytes, media_type=asset.mime_type, headers=headers)
 
 
 @router.get("/media/{media_id}/highlighted")

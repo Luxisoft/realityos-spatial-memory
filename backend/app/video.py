@@ -66,6 +66,39 @@ def probe_video(video: bytes) -> VideoInfo:
         raise VideoProcessingError("Video processing is unavailable: ffprobe is not installed.") from exc
     except subprocess.TimeoutExpired as exc:
         raise VideoProcessingError("Video inspection timed out.") from exc
+    return _video_info_from_probe(result)
+
+
+def probe_video_file(path: Path) -> VideoInfo:
+    """Probe a scoped worker file without reading a whole large video into RAM."""
+
+    try:
+        result = subprocess.run(
+            [
+                "ffprobe",
+                "-v",
+                "error",
+                "-select_streams",
+                "v:0",
+                "-show_entries",
+                "format=duration:stream=width,height",
+                "-of",
+                "json",
+                "-i",
+                str(path),
+            ],
+            capture_output=True,
+            check=False,
+            timeout=30,
+        )
+    except FileNotFoundError as exc:
+        raise VideoProcessingError("Video processing is unavailable: ffprobe is not installed.") from exc
+    except subprocess.TimeoutExpired as exc:
+        raise VideoProcessingError("Video inspection timed out.") from exc
+    return _video_info_from_probe(result)
+
+
+def _video_info_from_probe(result: subprocess.CompletedProcess[bytes]) -> VideoInfo:
     if result.returncode:
         raise VideoProcessingError("Invalid or unsupported video data.")
     try:
@@ -114,11 +147,31 @@ def extract_representative_frames(
 
     if frames_per_segment < 1:
         raise ValueError("frames_per_segment must be positive.")
-    segments = video_segments(info, segment_seconds)
-    extracted: list[ExtractedFrame] = []
     with tempfile.TemporaryDirectory(prefix="realityos-video-") as directory:
         source = Path(directory) / "source-video"
         source.write_bytes(video)
+        return extract_representative_frames_from_file(
+            source,
+            info,
+            segment_seconds=segment_seconds,
+            frames_per_segment=frames_per_segment,
+        )
+
+
+def extract_representative_frames_from_file(
+    source: Path,
+    info: VideoInfo,
+    *,
+    segment_seconds: int,
+    frames_per_segment: int,
+) -> list[ExtractedFrame]:
+    """Sample a worker-local source path while retaining only JPEG derivatives."""
+
+    if frames_per_segment < 1:
+        raise ValueError("frames_per_segment must be positive.")
+    segments = video_segments(info, segment_seconds)
+    extracted: list[ExtractedFrame] = []
+    with tempfile.TemporaryDirectory(prefix="realityos-video-frames-") as directory:
         for segment in segments:
             pattern = str(Path(directory) / f"segment-{segment.index:04d}-frame-%03d.jpg")
             frame_rate = frames_per_segment / segment.duration_seconds
