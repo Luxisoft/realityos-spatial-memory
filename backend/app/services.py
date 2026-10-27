@@ -199,6 +199,7 @@ def process_job(
             raise ValueError(f"Unsupported media kind for processing: {media.kind.value}")
         job.status = JobStatus.COMPLETED
         job.result_metadata = result_metadata
+        job.error_message = None
         job.completed_at = datetime.now(UTC)
     except Exception as exc:
         job.status = JobStatus.FAILED

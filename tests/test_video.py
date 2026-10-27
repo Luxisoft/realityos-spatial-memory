@@ -94,6 +94,7 @@ def test_video_capture_is_bytea_backed_and_extracts_bounded_frames(client, auth_
         )
     assert job is not None
     assert job.status.value == "completed"
+    assert job.error_message is None
     assert 1 <= len(frames) <= 2
     assert job.result_metadata["source_kind"] == "video"
     assert job.result_metadata["frames_extracted"] == len(frames)

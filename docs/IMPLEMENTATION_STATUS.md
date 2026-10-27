@@ -69,11 +69,11 @@
 
 ## Not implemented
 
-- A user-provided 60-second video was stored as original BYTEA in production,
-  but its first Live processing job received a transient Meta 503 and therefore
-  is not claimed as a completed video inference. The long-video segmentation
-  change has unit coverage but still requires deployment and Live verification.
-  Streaming and audio extraction/transcription remain out of scope.
+- A user-provided 60-second video was stored as original BYTEA in production
+  and completed a Live retry after an initial transient Meta 503. It produced
+  eight representative frames and unverified observations; no long source clip
+  has yet been processed end-to-end. Streaming and audio
+  extraction/transcription remain out of scope.
 - Vector retrieval abstraction and optional vector database integration.
 - Android Kotlin/Compose, DAT SDK and Mock Device Kit tests.
 - Official Ray-Ban Display toolkit and simulator validation.
