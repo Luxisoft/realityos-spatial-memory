@@ -63,8 +63,11 @@ dependencies {
   testImplementation("junit:junit:4.13.2")
   androidTestImplementation("androidx.test.ext:junit:1.2.1")
   androidTestImplementation("androidx.test:runner:1.6.2")
-  // MockDeviceKit belongs to the instrumentation APK only. It must be present
-  // in that process at runtime, but must never ship in a production APK.
+  // Debug builds expose Meta's Developer Preview on a phone. Release builds
+  // never package Mock Device Kit.
+  debugImplementation(libs.mwdat.mockdevice)
+  // Instrumentation uses the same official kit independently of the app's
+  // Debug source set.
   androidTestImplementation(libs.mwdat.mockdevice)
   debugImplementation("androidx.compose.ui:ui-tooling")
 }

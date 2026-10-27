@@ -100,6 +100,14 @@
   renderer/server, and speech controls ran successfully. It has not been
   installed on physical hardware.
 
+- The Debug Android variant now contains a Developer Preview based on Meta's
+  Mock Device Kit. It pairs a virtual Display model, drives the same production
+  RealityViewModel/session path, mounts Meta's in-app Display renderer, supports
+  a Chrome preview server, mock media feeds/permissions/speech and excludes the
+  Mock Device Kit from release. Debug and release compilation plus release-APK
+  inspection have run locally. The new controller instrumentation and manual
+  phone/Chrome preview have not yet been run in their respective environments.
+
 ## Not implemented
 
 - A full end-to-end Live SAM Video run against a user-provided long clip has

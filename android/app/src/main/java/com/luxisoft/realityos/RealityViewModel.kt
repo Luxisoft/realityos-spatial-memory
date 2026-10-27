@@ -14,8 +14,10 @@ import com.meta.wearable.dat.camera.types.StreamConfiguration
 import com.meta.wearable.dat.camera.types.VideoQuality
 import com.meta.wearable.dat.core.Wearables
 import com.meta.wearable.dat.core.selectors.AutoDeviceSelector
+import com.meta.wearable.dat.core.selectors.SpecificDeviceSelector
 import com.meta.wearable.dat.core.session.DeviceSession
 import com.meta.wearable.dat.core.session.DeviceSessionState
+import com.meta.wearable.dat.core.types.DeviceIdentifier
 import com.meta.wearable.dat.core.types.Permission
 import com.meta.wearable.dat.core.types.RegistrationState
 import com.meta.wearable.dat.display.Display
@@ -50,6 +52,7 @@ import kotlinx.coroutines.withContext
 data class WearableState(
     val registration: String = RegistrationState.UNAVAILABLE.name,
     val deviceAvailable: Boolean = false,
+    val sessionActive: Boolean = false,
     val displayReady: Boolean = false,
     val cameraActive: Boolean = false,
     val speechActive: Boolean = false,
@@ -126,7 +129,12 @@ class RealityViewModel(application: Application) : AndroidViewModel(application)
         showStatus("Complete Meta AI registration and grant the requested device permissions.")
     }
 
-    fun connectDisplay() {
+    /**
+     * Uses automatic selection for physical glasses. Developer Preview passes
+     * the identifier of Meta's display-capable mock so all other app behavior
+     * remains identical.
+     */
+    fun connectDisplay(deviceIdentifier: DeviceIdentifier? = null) {
         if (_state.value.provisioning == null) {
             showStatus("An administrator must provision this device before it can use RealityOS.")
             return
@@ -136,16 +144,21 @@ class RealityViewModel(application: Application) : AndroidViewModel(application)
             return
         }
         if (session != null) return
-        Wearables.createSession(AutoDeviceSelector(filter = { it.isDisplayCapable() })).fold(
+        val selector = deviceIdentifier?.let(::SpecificDeviceSelector)
+            ?: AutoDeviceSelector(filter = { it.isDisplayCapable() })
+        Wearables.createSession(selector).fold(
             onSuccess = { created ->
                 session = created
+                _state.update { current ->
+                    current.copy(wearable = current.wearable.copy(sessionActive = true))
+                }
                 sessionErrorsJob = viewModelScope.launch {
                     created.errors.collect { error -> showError(error.description) }
                 }
                 sessionStateJob = viewModelScope.launch {
                     created.state.collect { sessionState ->
                         if (sessionState == DeviceSessionState.STARTED && display == null) attachDisplay(created)
-                        if (sessionState == DeviceSessionState.STOPPED) cleanupStoppedSession()
+                        if (sessionState == DeviceSessionState.STOPPED) cleanupStoppedSession(created)
                     }
                 }
                 created.start()
@@ -153,6 +166,32 @@ class RealityViewModel(application: Application) : AndroidViewModel(application)
             },
             onFailure = { error, _ -> showError(error.description) },
         )
+    }
+
+    /**
+     * A session with an active capture is intentionally not torn down: callers
+     * must stop and finish capture so no evidence upload is silently lost.
+     */
+    fun disconnectDisplay(): Boolean {
+        if (_state.value.recording || _state.value.captureSessionId != null || _state.value.busy) {
+            showStatus("Finish or stop capture before disconnecting Display.")
+            return false
+        }
+        stopSpeech()
+        stopCamera()
+        val activeSession = session
+        session = null
+        sessionStateJob?.cancel()
+        sessionStateJob = null
+        sessionErrorsJob?.cancel()
+        sessionErrorsJob = null
+        displayStateJob?.cancel()
+        displayStateJob = null
+        runCatching { activeSession?.removeDisplay() }
+        runCatching { activeSession?.stop() }
+        cleanupStoppedSession()
+        showStatus("Display disconnected.")
+        return true
     }
 
     fun onPermissionResult(permission: Permission, granted: Boolean) {
@@ -543,7 +582,12 @@ class RealityViewModel(application: Application) : AndroidViewModel(application)
         _state.update { it.copy(busy = value) }
     }
 
-    private fun cleanupStoppedSession() {
+    private fun cleanupStoppedSession(stoppedSession: DeviceSession? = null) {
+        // A delayed state event from an old session must not reset a newly
+        // connected physical or virtual device.
+        if (stoppedSession != null && session != null && session !== stoppedSession) return
+        _state.value.captureSessionId?.let(::closeCaptureSessionOnServer)
+        session = null
         display = null
         camera = null
         speech = null
@@ -553,7 +597,12 @@ class RealityViewModel(application: Application) : AndroidViewModel(application)
             current.copy(
                 captureSessionId = null,
                 recording = false,
-                wearable = current.wearable.copy(displayReady = false, cameraActive = false, speechActive = false),
+                wearable = current.wearable.copy(
+                    sessionActive = false,
+                    displayReady = false,
+                    cameraActive = false,
+                    speechActive = false,
+                ),
             )
         }
     }

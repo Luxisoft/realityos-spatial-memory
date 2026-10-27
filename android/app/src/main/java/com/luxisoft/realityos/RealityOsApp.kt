@@ -5,6 +5,8 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
@@ -30,11 +32,15 @@ fun RealityOsApp(
     viewModel: RealityViewModel,
     onRegisterWithMeta: () -> Unit,
     onConnectDisplay: () -> Unit,
+    onDisconnectDisplay: () -> Unit,
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     MaterialTheme {
         Column(
-            modifier = Modifier.fillMaxSize().padding(24.dp),
+            modifier = Modifier
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())
+                .padding(24.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             Text("RealityOS Display Host", style = MaterialTheme.typography.headlineSmall)
@@ -45,7 +51,8 @@ fun RealityOsApp(
             if (state.provisioning == null) {
                 ProvisioningForm(onSave = viewModel::saveProvisioning)
             } else {
-                ConnectionCard(state, onRegisterWithMeta, onConnectDisplay)
+                ConnectionCard(state, onRegisterWithMeta, onConnectDisplay, onDisconnectDisplay)
+                DeveloperPreviewPanel(viewModel = viewModel, enabled = !state.wearable.sessionActive)
             }
             if (state.busy) CircularProgressIndicator()
             Card(modifier = Modifier.fillMaxWidth()) {
@@ -82,15 +89,18 @@ private fun ConnectionCard(
     state: RealityUiState,
     onRegisterWithMeta: () -> Unit,
     onConnectDisplay: () -> Unit,
+    onDisconnectDisplay: () -> Unit,
 ) {
     Card(modifier = Modifier.fillMaxWidth()) {
         Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
             Text("Meta Ray-Ban Display", style = MaterialTheme.typography.titleLarge)
             Text("Registration: ${state.wearable.registration}")
             Text("Paired device available: ${if (state.wearable.deviceAvailable) "yes" else "no"}")
+            Text("Session: ${if (state.wearable.sessionActive) "active" else "not connected"}")
             Text("Display: ${if (state.wearable.displayReady) "ready" else "not connected"}")
             Button(onClick = onRegisterWithMeta) { Text("Register with Meta AI") }
-            Button(onClick = onConnectDisplay, enabled = !state.wearable.displayReady) { Text("Connect Display") }
+            Button(onClick = onConnectDisplay, enabled = !state.wearable.sessionActive) { Text("Connect Display") }
+            Button(onClick = onDisconnectDisplay, enabled = state.wearable.sessionActive) { Text("Disconnect Display") }
         }
     }
 }

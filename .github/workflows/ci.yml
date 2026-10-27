@@ -1,6 +1,7 @@
 name: CI
 
 on:
+  workflow_dispatch:
   pull_request:
   push:
     branches: [main, feat/realityos-initial-platform]
@@ -70,8 +71,13 @@ jobs:
       # directly avoids setup-android's obsolete `tools` package request.
       - run: 'yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses'
       - run: '"$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "platform-tools" "platforms;android-36" "build-tools;36.0.0"'
-      - run: ./gradlew :app:assembleDebug :app:compileDebugAndroidTestKotlin
+      - name: Build Debug and Release Android variants
         working-directory: android
+        run: |
+          ./gradlew :app:assembleDebug :app:assembleRelease :app:compileDebugAndroidTestKotlin
+          ! unzip -p app/build/outputs/apk/release/app-release-unsigned.apk 'classes*.dex' |
+            strings |
+            grep -qi 'com/meta/wearable/dat/mockdevice'
       # GitHub runners expose KVM but the default runner user may not have
       # access. Without this, the emulator silently falls back to TCG and a
       # cold boot can take 15+ minutes.

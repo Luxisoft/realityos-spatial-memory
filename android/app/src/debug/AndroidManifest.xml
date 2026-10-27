@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Only the Debug simulator may use the phone camera as a mock feed. -->
+    <uses-permission android:name="android.permission.CAMERA" />
+    <!-- A physical camera is not required to install or use RealityOS. -->
+    <uses-feature
+        android:name="android.hardware.camera"
+        android:required="false" />
+</manifest>

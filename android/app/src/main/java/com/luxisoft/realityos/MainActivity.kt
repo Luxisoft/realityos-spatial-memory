@@ -77,6 +77,7 @@ class MainActivity : ComponentActivity() {
                 viewModel = viewModel,
                 onRegisterWithMeta = { viewModel.registerWithMeta(this) },
                 onConnectDisplay = viewModel::connectDisplay,
+                onDisconnectDisplay = viewModel::disconnectDisplay,
             )
         }
     }

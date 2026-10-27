@@ -42,6 +42,29 @@ quickly and is not an API token.
 - Build with `ANDROID_HOME=/opt/android-sdk ./gradlew :app:assembleDebug` from
   `android/`.
 
+### Hardware-free phone preview
+
+The Debug variant contains an explicit **Developer Preview** surface based on
+Meta's Mock Device Kit. It is not part of the release APK and it does not
+replace the real DAT implementation: it pairs a virtual
+`META_RAYBAN_DISPLAY`, then calls the same `RealityViewModel.connectDisplay`
+and `DeviceSession.addDisplay` flow as a physical device.
+
+1. Provision the Debug APK with a RealityOS device credential and an API URL
+   reachable from the phone.
+2. Select **In app** to mount Meta's `createPreviewView()` renderer inside the
+   Android host. Use its rendered buttons to enter Register or Query.
+3. Select mock camera permission, a JPEG/PNG image for photo capture, a
+   H.264/H.265 source for streaming, or the phone's own camera after granting
+   Android's separate `CAMERA` permission.
+4. Use the mock speech controls to send partial/final transcriptions. Android
+   TTS still uses the phone's active audio route.
+
+**Chrome** mode starts Meta's local preview server on a dynamic port and shows
+the corresponding `adb forward` command and localhost URL. It is a desktop
+developer preview only; it never exposes Model API credentials, device keys or
+media bearer URLs in the preview controls.
+
 ## Capability and testing status
 
 The checked-in Android source uses `mwdat-core`, `mwdat-camera`,
@@ -61,6 +84,12 @@ claimed.
   renderer and test server, and drives simulated speech partial/final results.
   It does not prove camera, microphone, Bluetooth-audio or Display behavior on
   physical glasses.
+- The Debug-only Developer Preview adds an In-App renderer and optional Chrome
+  renderer to the actual RealityOS Android host. Its source compiles locally;
+  automated controller execution and interactive phone/Chrome validation must
+  be reported separately after each environment has run it.
+- Release does not package Mock Device Kit. CI builds Debug and Release and
+  rejects a release APK containing `com/meta/wearable/dat/mockdevice`.
 - Hardware QA must explicitly validate registration, camera/microphone
   permission denial, Display state, photo, video, speech partial/final result,
   evidence image, TTS route, disconnect, and recovery.
