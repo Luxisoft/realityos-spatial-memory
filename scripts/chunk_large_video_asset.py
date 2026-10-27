@@ -75,8 +75,9 @@ def main() -> int:
             text(
                 "UPDATE media_assets SET original_bytes = '\\x'::bytea, "
                 "metadata = (coalesce(metadata::jsonb, '{}'::jsonb) || "
-                "jsonb_build_object('storage', :storage, 'chunk_size_bytes', :chunk_bytes, "
-                "'chunk_count', :chunk_count))::json "
+                "jsonb_build_object('storage', cast(:storage as text), "
+                "'chunk_size_bytes', cast(:chunk_bytes as integer), "
+                "'chunk_count', cast(:chunk_count as integer)))::json "
                 "WHERE id = :asset_id"
             ),
             {
