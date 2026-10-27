@@ -101,6 +101,10 @@
 - The initial certificate workflow run issued the certificate successfully but
   reported failure because it checked TLS during Nginx's graceful-reload
   handover. The deployment workflow now retries that local SNI readiness check.
+- The corrected production workflow
+  [40582206272](https://github.com/Luxisoft/realityos-spatial-memory/actions/runs/40582206272)
+  completed successfully: gateway, API, worker, frontend, Display proxy and
+  the HTTPS readiness check all passed.
 
 ## Implemented but not fully environment-verified
 
