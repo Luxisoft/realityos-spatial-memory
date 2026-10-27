@@ -10,7 +10,7 @@
 
 - Backend and gateway lint passed: ruff check backend tests meta-gateway
   gateway-tests.
-- Thirty-four automated tests passed locally: application tests cover
+- Thirty-seven automated tests passed locally: application tests cover
   health/auth, BYTEA capture/retrieval/hash, mock processing and SAM geometry,
   highlighted evidence, missing-object and ambiguous-query handling, role
   restriction, workspace/device isolation, aliases, evidence facts and detailed
@@ -43,7 +43,7 @@
   existing `JobStatus.UNCERTAIN` contract. `make lint` and `make test` passed
   with 37 tests locally. CI
   [40579548167](https://github.com/Luxisoft/realityos-spatial-memory/actions/runs/40579548167)
-  passed all four jobs and published the Debug APK artifact.
+  passed backend, gateway, web and Android jobs and published the Debug APK.
 - The second Alembic migration was applied to production PostgreSQL. It enables
   PostgreSQL `pg_trgm` and creates workspace-scoped trigram and FTS indexes for
   object names and aliases. Search uses those indexes on PostgreSQL and a
@@ -88,26 +88,19 @@
   project's Git-ignored `.runtime/manual-captures/incoming/` directory; it is
   not committed or made public.
 
-## Current deployment blocker
+## Public deployment verification
 
-- The API, worker, web bundles and loopback proxy from `24702e5` were deployed
-  and migration `20261027_0007` is the production head. The local proxy
-  returned `200` for `/health/live` and `/health/ready`; its live virtual-device
-  bootstrap issued a temporary device credential which successfully accessed
-  the workspace-scoped device-zones endpoint. Credential values were not
+- `realityos.luxisoft.com` now resolves directly to the RealityOS server and
+  has a valid Let's Encrypt certificate through 2027-01-25. Public HTTPS
+  checks for `/health/ready` pass.
+- The production API and worker run migration `20261027_0007`. A public
+  `POST /v1/virtual-devices/bootstrap` issued a live, time-limited device
+  profile for `Taller de electrónica`; its device credential successfully
+  accessed the workspace-scoped zones endpoint. Credential values were not
   logged or committed.
-  Public `https://realityos.luxisoft.com` is **not** deployed yet: Cloudflare
-  currently routes that hostname to the LUXIPANEL origin/rule rather than this
-  RealityOS server. During a paused Certbot HTTP-01 test on 2026-10-27, the
-  exact temporary ACME file returned `200` directly from this server but `404`
-  through Cloudflare. Therefore Let’s Encrypt cannot issue the certificate and
-  the Android app correctly cannot obtain its HTTPS live profile yet.
-- The external correction is to exclude `realityos.luxisoft.com/*` from the
-  LUXIPANEL Cloudflare Worker/origin route and point its DNS/origin to this
-  RealityOS server (or temporarily make the A record DNS-only for certificate
-  issuance). After that correction, rerun the production workflow; it will
-  issue the certificate, install the HTTPS virtual host and make the live
-  virtual-glasses bootstrap route available.
+- The initial certificate workflow run issued the certificate successfully but
+  reported failure because it checked TLS during Nginx's graceful-reload
+  handover. The deployment workflow now retries that local SNI readiness check.
 
 ## Implemented but not fully environment-verified
 
