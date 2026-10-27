@@ -68,3 +68,13 @@ jobs:
       - run: '"$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "platform-tools" "platforms;android-36" "build-tools;36.0.0"'
       - run: ./gradlew :app:assembleDebug :app:compileDebugAndroidTestKotlin
         working-directory: android
+      # Executes Meta's Mock Device Kit on a disposable Android emulator; this
+      # is a simulation, never a substitute for physical-glasses validation.
+      - uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 35
+          target: google_apis
+          arch: x86_64
+          profile: pixel_2
+          emulator-options: -no-window -noaudio -no-boot-anim -gpu swiftshader_indirect
+          script: cd android && ./gradlew :app:connectedDebugAndroidTest --stacktrace
