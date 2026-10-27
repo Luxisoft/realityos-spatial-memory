@@ -16,12 +16,14 @@ from app.models import (
     AuditEvent,
     CaptureSession,
     CaptureStatus,
+    JobStatus,
     MediaAsset,
     MediaAssetChunk,
     MediaKind,
     ObjectAlias,
     ObjectObservation,
     ProcessingJob,
+    ProcessingOperation,
     Role,
     TrackedObject,
     User,
@@ -60,6 +62,7 @@ from app.security import (
 from app.services import (
     add_postgres_bytea_chunks,
     create_processing_job,
+    create_segmentation_job,
     exact_term_candidates,
     media_is_chunked,
     media_sha256,
@@ -125,6 +128,7 @@ def _observation_response(item: ObjectObservation) -> ObservationResponse:
         object_id=item.object_id,
         zone_id=item.zone_id,
         media_asset_id=item.media_asset_id,
+        muse_bounding_box=item.muse_bounding_box,
         bounding_box=item.bounding_box,
         spatial_description=item.spatial_description,
         seen_at=item.seen_at,
@@ -132,6 +136,55 @@ def _observation_response(item: ObjectObservation) -> ObservationResponse:
         model_name=item.model_name,
         verification_status=item.verification_status.value,
     )
+
+
+def _job_response(item: ProcessingJob) -> JobResponse:
+    return JobResponse(
+        id=item.id,
+        media_asset_id=item.media_asset_id,
+        observation_id=item.observation_id,
+        operation=item.operation.value,
+        status=item.status.value,
+        provider=item.provider,
+        attempts=item.attempts,
+        error_message=item.error_message,
+        result_metadata=item.result_metadata,
+        created_at=item.created_at,
+    )
+
+
+def _segmentation_details(
+    db: Session, observation: ObjectObservation
+) -> tuple[str, ProcessingJob | None]:
+    if observation.mask_asset_id:
+        return "ready", None
+    job = db.scalar(
+        select(ProcessingJob)
+        .where(
+            ProcessingJob.observation_id == observation.id,
+            ProcessingJob.operation == ProcessingOperation.SEGMENTATION,
+        )
+        .order_by(desc(ProcessingJob.created_at))
+    )
+    if job is None:
+        return "not_requested", None
+    if job.status == JobStatus.QUEUED:
+        return "queued", job
+    if job.status == JobStatus.PROCESSING:
+        return "processing", job
+    if job.status == JobStatus.FAILED:
+        return "failed", job
+    if job.result_metadata.get("segmentation_status") == "no_match":
+        return "no_match", job
+    return "not_requested", job
+
+
+def _highlight_quality(observation: ObjectObservation) -> str:
+    if observation.mask_asset_id:
+        return "sam_mask"
+    if observation.muse_bounding_box or observation.bounding_box:
+        return "approximate_box"
+    return "none"
 
 
 def _object_response(item: TrackedObject) -> ObjectResponse:
@@ -479,15 +532,7 @@ async def process_capture(
         except Exception:
             # The durable job remains queued for a worker to pick up; do not claim it completed.
             pass
-    return JobResponse(
-        id=job.id,
-        media_asset_id=job.media_asset_id,
-        status=job.status.value,
-        provider=job.provider,
-        attempts=job.attempts,
-        error_message=job.error_message,
-        created_at=job.created_at,
-    )
+    return _job_response(job)
 
 
 @router.get("/jobs/{job_id}", response_model=JobResponse)
@@ -500,15 +545,7 @@ async def get_job(
             status_code=status.HTTP_404_NOT_FOUND, detail="Processing job not found."
         )
     workspace_member(job.workspace_id, user, db)
-    return JobResponse(
-        id=job.id,
-        media_asset_id=job.media_asset_id,
-        status=job.status.value,
-        provider=job.provider,
-        attempts=job.attempts,
-        error_message=job.error_message,
-        created_at=job.created_at,
-    )
+    return _job_response(job)
 
 
 @router.get("/objects", response_model=list[ObjectResponse])
@@ -630,6 +667,53 @@ async def verify_observation(
     return _observation_response(observation)
 
 
+@router.post("/observations/{observation_id}/segment", response_model=JobResponse, status_code=202)
+async def request_observation_segmentation(
+    observation_id: uuid.UUID,
+    request: Request,
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Explicitly refine one verified evidence item; Query users cannot invoke this."""
+
+    observation = db.get(ObjectObservation, observation_id)
+    if observation is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Observation not found.")
+    workspace_member(observation.workspace_id, user, db, {Role.ADMIN, Role.REGISTER})
+    if observation.verification_status != VerificationStatus.VERIFIED:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Only verified observations can be refined with SAM.",
+        )
+    if not (observation.muse_bounding_box or observation.bounding_box):
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="This observation has no approximate geometry to refine.",
+        )
+    try:
+        job = create_segmentation_job(db, observation, request.app.state.settings.meta_mode)
+    except ValueError as exc:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(exc)) from exc
+    _audit(
+        db,
+        "observation.segmentation_requested",
+        "processing_job",
+        user.id,
+        job.id,
+        observation.workspace_id,
+    )
+    db.commit()
+    if request.app.state.settings.enqueue_processing and job.status != JobStatus.COMPLETED:
+        try:
+            from app.tasks import process_media
+
+            process_media.delay(str(job.id))
+        except Exception:
+            # The durable job remains visible and can be picked up later.
+            pass
+    return _job_response(job)
+
+
 def _zone_path(db: Session, zone_id: uuid.UUID | None) -> list[str]:
     result: list[str] = []
     seen: set[uuid.UUID] = set()
@@ -649,7 +733,7 @@ def _answer_query(
     db: Session,
     client=None,
 ) -> QueryResponse:
-    workspace_member(payload.workspace_id, user, db, {Role.ADMIN, Role.QUERY})
+    member = workspace_member(payload.workspace_id, user, db, {Role.ADMIN, Role.QUERY})
     candidates, interpretation_simulated = multilingual_object_candidates(
         db, payload.workspace_id, payload.question, client
     )
@@ -704,6 +788,8 @@ def _answer_query(
         f"{tracked.canonical_name[:1].upper() + tracked.canonical_name[1:]} was last seen in "
         f"{location}, {detail}. Observed on {observation.seen_at.date().isoformat()}."
     )
+    segmentation_status, segmentation_job = _segmentation_details(db, observation)
+    highlight_quality = _highlight_quality(observation)
     return QueryResponse(
         found=True,
         message=text,
@@ -711,7 +797,17 @@ def _answer_query(
         observation=_observation_response(observation),
         zone_path=path,
         media_id=observation.media_asset_id,
-        highlighted_media_url=f"/v1/media/{observation.media_asset_id}/highlighted",
+        highlighted_media_url=(
+            f"/v1/observations/{observation.id}/highlighted"
+            if highlight_quality != "none"
+            else None
+        ),
+        highlight_quality=highlight_quality,
+        segmentation_status=segmentation_status,
+        segmentation_job_id=segmentation_job.id if segmentation_job else None,
+        can_refine=member.role in {Role.ADMIN, Role.REGISTER}
+        and segmentation_status in {"not_requested", "failed"}
+        and highlight_quality == "approximate_box",
         retrieval_confidence=observation.visual_confidence,
         tts_text=text,
         simulated=observation.model_name.startswith("mock-") or interpretation_simulated,
@@ -783,10 +879,82 @@ async def get_media(
     return Response(content=asset.original_bytes, media_type=asset.mime_type, headers=headers)
 
 
+def _render_highlight(
+    db: Session, observation: ObjectObservation, asset: MediaAsset
+) -> Response:
+    """Render an ephemeral overlay; original evidence and binary mask stay immutable."""
+
+    if observation.workspace_id != asset.workspace_id:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Media not found.")
+    try:
+        with Image.open(io.BytesIO(asset.original_bytes)).convert("RGBA") as image:
+            if observation.mask_asset_id:
+                mask_asset = db.get(MediaAsset, observation.mask_asset_id)
+                if mask_asset is None or mask_asset.workspace_id != observation.workspace_id:
+                    raise HTTPException(
+                        status_code=status.HTTP_404_NOT_FOUND,
+                        detail="SAM mask is no longer available.",
+                    )
+                with Image.open(io.BytesIO(mask_asset.original_bytes)).convert("L") as mask:
+                    resized_mask = mask.resize(image.size, Image.Resampling.NEAREST)
+                alpha = resized_mask.point(lambda value: 128 if value else 0)
+                overlay = Image.new("RGBA", image.size, (255, 199, 0, 0))
+                overlay.putalpha(alpha)
+                image.alpha_composite(overlay)
+                box = observation.bounding_box
+                if box:
+                    _draw_box(image, box, color=(255, 235, 90, 255))
+            else:
+                box = observation.muse_bounding_box or observation.bounding_box
+                if not box:
+                    raise HTTPException(
+                        status_code=status.HTTP_404_NOT_FOUND,
+                        detail="No highlight geometry is available.",
+                    )
+                _draw_box(image, box, color=(255, 199, 0, 255))
+            output = io.BytesIO()
+            image.save(output, format="PNG")
+    except HTTPException:
+        raise
+    except Exception:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="Media cannot be highlighted."
+        )
+    return Response(content=output.getvalue(), media_type="image/png")
+
+
+def _draw_box(image: Image.Image, box: dict, color: tuple[int, int, int, int]) -> None:
+    x = int(float(box["x"]) * image.width)
+    y = int(float(box["y"]) * image.height)
+    right = int((float(box["x"]) + float(box["width"])) * image.width)
+    bottom = int((float(box["y"]) + float(box["height"])) * image.height)
+    ImageDraw.Draw(image).rectangle(
+        (x, y, right, bottom), outline=color, width=max(3, image.width // 120)
+    )
+
+
+@router.get("/observations/{observation_id}/highlighted")
+async def highlighted_observation(
+    observation_id: uuid.UUID,
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+) -> Response:
+    observation = db.get(ObjectObservation, observation_id)
+    if observation is None or observation.verification_status != VerificationStatus.VERIFIED:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Observation not found.")
+    workspace_member(observation.workspace_id, user, db)
+    asset = db.get(MediaAsset, observation.media_asset_id)
+    if asset is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Media not found.")
+    return _render_highlight(db, observation, asset)
+
+
 @router.get("/media/{media_id}/highlighted")
 async def highlighted_media(
     media_id: uuid.UUID, user: User = Depends(get_current_user), db: Session = Depends(get_db)
 ) -> Response:
+    """Compatibility endpoint; queries now use an observation-specific overlay."""
+
     asset = db.get(MediaAsset, media_id)
     if asset is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Media not found.")
@@ -799,25 +967,8 @@ async def highlighted_media(
         )
         .order_by(desc(ObjectObservation.seen_at))
     )
-    if observation is None or not observation.bounding_box:
+    if observation is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="No verified highlight is available."
         )
-    try:
-        with Image.open(io.BytesIO(asset.original_bytes)).convert("RGBA") as image:
-            box = observation.bounding_box
-            x = int(float(box["x"]) * image.width)
-            y = int(float(box["y"]) * image.height)
-            right = int((float(box["x"]) + float(box["width"])) * image.width)
-            bottom = int((float(box["y"]) + float(box["height"])) * image.height)
-            drawing = ImageDraw.Draw(image)
-            drawing.rectangle(
-                (x, y, right, bottom), outline=(255, 199, 0, 255), width=max(3, image.width // 120)
-            )
-            output = io.BytesIO()
-            image.save(output, format="PNG")
-    except Exception:
-        raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="Media cannot be highlighted."
-        )
-    return Response(content=output.getvalue(), media_type="image/png")
+    return _render_highlight(db, observation, asset)

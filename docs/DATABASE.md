@@ -13,7 +13,12 @@ masks/crops use parent_asset_id.
 
 tracked_objects is logical identity. object_observations is evidence; the last
 location comes from verified observations ordered by seen_at, not a mutable
-column. The current MVP matcher is encapsulated in services.object_candidates.
+column. `muse_bounding_box` retains initial approximate geometry. A successful
+on-demand SAM refinement updates the best box and links `mask_asset_id` to a
+one-bit PNG in `media_assets`, while retaining the original bytes and the Muse
+box. `processing_jobs.operation` separates initial analysis from explicit
+segmentation and its workspace-scoped idempotency key prevents duplicate paid
+requests. The current MVP matcher is encapsulated in services.object_candidates.
 
 Run migrations with make migrate. The migration was not run against PostgreSQL
 in this workspace because Docker is unavailable here.

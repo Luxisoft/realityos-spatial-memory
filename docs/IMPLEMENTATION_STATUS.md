@@ -4,7 +4,7 @@
 
 - Backend and gateway lint passed: ruff check backend tests meta-gateway
   gateway-tests.
-- Seventeen automated tests passed locally: twelve application tests covering
+- Twenty-two automated tests passed locally: application tests covering
   health/auth, BYTEA capture/retrieval/hash, mock processing and SAM geometry,
   highlighted evidence, missing-object and ambiguous-query handling, role
   restriction, workspace isolation and alias search; plus five gateway tests.
@@ -65,7 +65,10 @@
   gateway is verified against the real Meta model catalog from FRONTEND. Paid
   image analysis and SAM segmentation ran on consented server-local test images:
   two jobs completed and one received a transient Meta 503. SAM box parsing
-  works; pixel-mask persistence remains incomplete.
+  boxes ran on consented server-local test images. The code now implements
+  binary one-bit SAM-mask decoding/persistence through the official Python
+  parser; this new mask path remains pending an end-to-end paid SAM stream
+  verification.
 
 ## Not implemented
 

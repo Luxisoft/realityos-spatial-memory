@@ -21,7 +21,8 @@ session; query endpoints are evidence-only and never start a recording.
   partitions long clips logically and extracts representative JPEG frames per
   configured segment, linked to their parent video and approximate timestamps.
 - Deterministic Mock Meta provider and a Live client for Muse Spark 1.3, SAM
-  3.1 and Muse Voice Transcribe.
+  3.1 and Muse Voice Transcribe. Muse identifies the catalog at registration;
+  SAM is requested explicitly only to refine a selected, verified observation.
 - Optional restricted Meta egress gateway for deployments where only an
   approved server can reach Model API. See [Gateway](docs/GATEWAY.md).
 - React administrative panel and separate 600×600 Display query web app.
@@ -82,6 +83,18 @@ streamed, audio-transcribed or treated as surveillance.
 English is the default evidence and answer language. Queries may be spoken or
 written in other languages: Muse Spark maps them only to existing
 workspace-local names and aliases, then PostgreSQL retrieves verified evidence.
+
+## On-demand SAM geometry
+
+Registration stores Muse Spark detections, relationships and approximate boxes,
+but does not spend SAM credits for every visible object. Query is still read
+only: it returns an exact cached SAM mask when one exists, otherwise an
+explicitly labelled approximate Muse box. An admin or register member may call
+`POST /v1/observations/{id}/segment` for a verified observation. The worker
+uses the known box as the official SAM box prompt, stores the decoded one-bit
+mask as a related PostgreSQL BYTEA PNG and reuses that cache on later queries.
+One SAM image refinement is billed by Meta at US$0.0025; repeated requests for
+the same observation reuse its idempotent job.
 
 ## Architecture and privacy
 

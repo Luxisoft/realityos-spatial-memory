@@ -11,6 +11,7 @@ from pathlib import Path
 
 from PIL import Image
 from sqlalchemy import and_, func, or_, select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.meta import MetaModelClient, MetaProviderError
@@ -23,6 +24,7 @@ from app.models import (
     ObjectAlias,
     ObjectObservation,
     ProcessingJob,
+    ProcessingOperation,
     TrackedObject,
     VerificationStatus,
 )
@@ -157,9 +159,63 @@ def create_processing_job(
         capture_session_id=media.capture_session_id,
         idempotency_key=key,
         provider=provider,
+        operation=ProcessingOperation.ANALYSIS,
     )
     db.add(job)
     db.flush()
+    return job
+
+
+def create_segmentation_job(
+    db: Session, observation: ObjectObservation, provider: str
+) -> ProcessingJob:
+    """Return the one durable SAM refinement job for an observation.
+
+    A completed mask is immutable evidence derived from a particular source
+    asset. The unique key makes repeated button presses and concurrent clients
+    reuse the same result instead of sending paid SAM requests again.
+    """
+
+    media = db.get(MediaAsset, observation.media_asset_id)
+    if media is None:
+        raise ValueError("Source media no longer exists.")
+    key = f"segmentation:{observation.id}:sam-3.1:{media.sha256}"
+    existing = db.scalar(
+        select(ProcessingJob).where(
+            ProcessingJob.workspace_id == observation.workspace_id,
+            ProcessingJob.idempotency_key == key,
+        )
+    )
+    if existing:
+        return existing
+    job = ProcessingJob(
+        workspace_id=observation.workspace_id,
+        media_asset_id=media.id,
+        capture_session_id=observation.capture_session_id,
+        observation_id=observation.id,
+        operation=ProcessingOperation.SEGMENTATION,
+        idempotency_key=key,
+        provider=provider,
+        status=JobStatus.COMPLETED if observation.mask_asset_id else JobStatus.QUEUED,
+        result_metadata={"segmentation_status": "ready"}
+        if observation.mask_asset_id
+        else {},
+        completed_at=datetime.now(UTC) if observation.mask_asset_id else None,
+    )
+    try:
+        with db.begin_nested():
+            db.add(job)
+            db.flush()
+    except IntegrityError:
+        existing = db.scalar(
+            select(ProcessingJob).where(
+                ProcessingJob.workspace_id == observation.workspace_id,
+                ProcessingJob.idempotency_key == key,
+            )
+        )
+        if existing is None:
+            raise
+        return existing
     return job
 
 
@@ -168,7 +224,6 @@ def process_job(
     job_id: uuid.UUID,
     client: MetaModelClient,
     *,
-    sam_min_confidence: float = 0.65,
     video_segment_seconds: int = 120,
     video_frames_per_segment: int = 8,
 ) -> ProcessingJob:
@@ -186,7 +241,9 @@ def process_job(
     job.attempts += 1
     job.started_at = datetime.now(UTC)
     try:
-        if media.kind == MediaKind.VIDEO:
+        if job.operation == ProcessingOperation.SEGMENTATION:
+            result_metadata = _process_segmentation_job(db, job, media, client)
+        elif media.kind == MediaKind.VIDEO:
             # All derived frames and their observations either persist together
             # or roll back together; the original video remains available for a
             # safe retry if any provider call fails.
@@ -195,12 +252,11 @@ def process_job(
                     db,
                     media,
                     client,
-                    sam_min_confidence,
                     video_segment_seconds,
                     video_frames_per_segment,
                 )
         elif media.kind == MediaKind.IMAGE:
-            result_metadata = _process_image_asset(db, media, client, sam_min_confidence)
+            result_metadata = _process_image_asset(db, media, client)
         else:
             raise ValueError(f"Unsupported media kind for processing: {media.kind.value}")
         job.status = JobStatus.COMPLETED
@@ -218,7 +274,6 @@ def _process_video_asset(
     db: Session,
     video: MediaAsset,
     client: MetaModelClient,
-    sam_min_confidence: float,
     video_segment_seconds: int,
     video_frames_per_segment: int,
 ) -> dict[str, object]:
@@ -273,7 +328,7 @@ def _process_video_asset(
             )
             db.add(frame)
             db.flush()
-        report = _process_image_asset(db, frame, client, sam_min_confidence)
+        report = _process_image_asset(db, frame, client)
         frame_results.append(
             {
                 "frame_asset_id": str(frame.id),
@@ -301,7 +356,6 @@ def _process_image_asset(
     db: Session,
     media: MediaAsset,
     client: MetaModelClient,
-    sam_min_confidence: float,
 ) -> dict[str, object]:
     existing = db.scalar(
         select(ObjectObservation.id).where(ObjectObservation.media_asset_id == media.id).limit(1)
@@ -345,12 +399,6 @@ def _process_image_asset(
                 db.add(ObjectAlias(object_id=tracked.id, alias=object_name))
             elif tracked.category is None and detection.category:
                 tracked.category = detection.category
-            segment = None
-            if detection.confidence >= sam_min_confidence:
-                segments = client.segment(media.original_bytes, media.mime_type, detection.label)
-                segment = next((item for item in segments if item.bounding_box), None)
-            if segment:
-                segmentation_count += 1
             observation = ObjectObservation(
                 workspace_id=media.workspace_id,
                 object_id=tracked.id,
@@ -358,14 +406,13 @@ def _process_image_asset(
                 capture_session_id=source_session_id,
                 zone_id=capture_session.zone_id if capture_session else None,
                 created_by_id=capture_session.created_by_id if capture_session else None,
-                bounding_box=segment.bounding_box if segment else detection.bounding_box,
-                spatial_description=detection.spatial_description or (
-                    segment.spatial_description if segment else None
-                ),
+                muse_bounding_box=detection.bounding_box,
+                bounding_box=detection.bounding_box,
+                spatial_description=detection.spatial_description,
                 relationships=detection.relationships,
                 seen_at=media.captured_at or media.created_at,
                 visual_confidence=detection.confidence,
-                model_name=f"{analysis.model}+sam-3.1" if segment else analysis.model,
+                model_name=analysis.model,
                 verification_status=(
                     VerificationStatus.VERIFIED
                     if analysis.simulated
@@ -381,6 +428,96 @@ def _process_image_asset(
             "objects_created": created,
             "segmentation_count": segmentation_count,
         }
+
+
+def _mask_png(mask: bytes, width: int, height: int) -> bytes:
+    """Persist SAM's decoded one-bit raster as a compact PostgreSQL PNG."""
+
+    if width < 1 or height < 1 or len(mask) != width * height:
+        raise ValueError("SAM returned an invalid mask raster.")
+    # The official parser returns one byte per pixel (0 or 1). PNG mode 1
+    # stores the final evidence compactly without losing its binary geometry.
+    pixels = bytes(255 if value else 0 for value in mask)
+    image = Image.frombytes("L", (width, height), pixels).convert("1")
+    output = io.BytesIO()
+    image.save(output, format="PNG", optimize=True)
+    return output.getvalue()
+
+
+def _process_segmentation_job(
+    db: Session,
+    job: ProcessingJob,
+    media: MediaAsset,
+    client: MetaModelClient,
+) -> dict[str, object]:
+    """Create a cached SAM mask without changing the observation's evidence."""
+
+    if job.observation_id is None:
+        raise ValueError("Segmentation job has no observation.")
+    observation = db.get(ObjectObservation, job.observation_id)
+    if observation is None or observation.workspace_id != job.workspace_id:
+        raise ValueError("Observation no longer exists.")
+    if observation.media_asset_id != media.id:
+        raise ValueError("Segmentation source does not match its observation.")
+    if observation.mask_asset_id:
+        return {"segmentation_status": "ready", "already_segmented": True}
+    if media.kind not in {MediaKind.IMAGE, MediaKind.FRAME}:
+        raise ValueError("SAM refinement requires an image observation.")
+    source_box = observation.muse_bounding_box or observation.bounding_box
+    if not source_box:
+        raise ValueError("The observation has no approximate box to refine.")
+    tracked = db.get(TrackedObject, observation.object_id)
+    if tracked is None:
+        raise ValueError("Tracked object no longer exists.")
+    with Image.open(io.BytesIO(media.original_bytes)) as image:
+        width, height = image.size
+    result = client.segment(
+        media.original_bytes,
+        media.mime_type,
+        prompt=tracked.canonical_name,
+        width=width,
+        height=height,
+        bounding_box=source_box,
+    )
+    if result is None:
+        return {"segmentation_status": "no_match", "model": "sam-3.1"}
+    png = _mask_png(result.mask, result.mask_width, result.mask_height)
+    mask_asset = MediaAsset(
+        workspace_id=media.workspace_id,
+        capture_session_id=None,
+        parent_asset_id=media.id,
+        kind=MediaKind.MASK,
+        mime_type="image/png",
+        original_bytes=png,
+        sha256=media_sha256(png),
+        byte_size=len(png),
+        width=result.mask_width,
+        height=result.mask_height,
+        captured_at=media.captured_at,
+        extra_metadata={
+            "source_observation_id": str(observation.id),
+            "source_media_id": str(media.id),
+            "model": result.model,
+            "prompt": tracked.canonical_name,
+            "prompt_type": "box",
+            "simulated": result.simulated,
+            "mask_encoding": "one_bit",
+            "source_width": width,
+            "source_height": height,
+            "sam_bounding_box": result.bounding_box,
+            "sam_confidence": result.confidence,
+        },
+    )
+    db.add(mask_asset)
+    db.flush()
+    observation.mask_asset_id = mask_asset.id
+    observation.bounding_box = result.bounding_box
+    return {
+        "segmentation_status": "ready",
+        "mask_asset_id": str(mask_asset.id),
+        "model": result.model,
+        "simulated": result.simulated,
+    }
 
 
 def object_candidates(

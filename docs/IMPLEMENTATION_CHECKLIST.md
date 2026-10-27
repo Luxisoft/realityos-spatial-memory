@@ -47,7 +47,7 @@ comando, prueba o simulador. Este documento no sustituye
 - [x] Consulta inexistente informa falta de evidencia sin inventar ubicación.
 - [x] Consulta ambigua solicita o explica desambiguación.
 - [x] La respuesta usa «última vez visto» y separa confianza visual/recuperación.
-- [x] `GET /v1/media/{id}/highlighted` dibuja caja sin alterar original.
+- [x] La consulta identifica la observación exacta y devuelve máscara SAM en caché o caja Muse aproximada sin alterar el original.
 - [x] Query-only no crea captura, sesión, media, observación ni job.
 - [~] Pruebas: última observación, ausencia, ambigüedad, permisos, aislamiento, alias y geometría están cubiertos; falta caso automatizado específico de historial multievidencia.
 
@@ -61,7 +61,7 @@ comando, prueba o simulador. Este documento no sustituye
 - [x] Producción guarda `MODEL_API_KEY` exclusivamente en FRONTEND y API/worker usan el gateway sin recibirla.
 - [~] Cliente aplica timeout, backoff, validación y error explícito; faltan métricas de uso y rate limiter distribuido.
 - [~] Muse Spark está conectado a análisis, relaciones e intención cuando Live está configurado; falta una inferencia visual pagada verificada.
-- [~] SAM 3.1 está conectado y persiste caja asociada a evidencia; faltan una inferencia real y persistir máscara de píxeles.
+- [x] SAM 3.1 se invoca bajo demanda por observación verificada, persiste máscara one-bit BYTEA y reutiliza el job idempotente.
 - [~] Muse Voice Transcribe está conectado solo como STT; falta una transcripción real verificada.
 - [~] Redis/Celery y la tarea están implementados; falta prueba de entrega de broker.
 - [x] Reintentos e idempotencia evitan observaciones duplicadas.

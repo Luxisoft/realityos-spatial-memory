@@ -30,7 +30,9 @@ scp ./taladro-amarillo.jpg \
 
 Run this on the RealityOS server after confirming capture consent. It prompts
 for the RealityOS account password and never writes it to disk. `--process`
-starts Muse Spark and SAM processing; omit it to store capture evidence only.
+starts Muse Spark analysis; SAM is intentionally deferred until an authorized
+user explicitly requests refinement for one verified observation. Omit it to
+store capture evidence only.
 The importer permits a 30-minute wait by default for an explicitly requested
 long-video job; use `--wait-seconds` to select another positive duration.
 

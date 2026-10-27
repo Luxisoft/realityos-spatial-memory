@@ -34,7 +34,6 @@ def process_media(job_id: str) -> dict[str, str]:
             db,
             uuid.UUID(job_id),
             build_meta_client(settings),
-            sam_min_confidence=settings.sam_min_confidence,
             video_segment_seconds=settings.video_segment_seconds,
             video_frames_per_segment=settings.video_frames_per_segment,
         )

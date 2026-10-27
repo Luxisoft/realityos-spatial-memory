@@ -64,6 +64,13 @@ class JobStatus(str, enum.Enum):
     FAILED = "failed"
 
 
+class ProcessingOperation(str, enum.Enum):
+    """The durable operation represented by a processing job."""
+
+    ANALYSIS = "analysis"
+    SEGMENTATION = "segmentation"
+
+
 class User(TimestampMixin, Base):
     __tablename__ = "users"
 
@@ -214,6 +221,9 @@ class ObjectObservation(TimestampMixin, Base):
     mask_asset_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("media_assets.id"))
     capture_session_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("capture_sessions.id"))
     created_by_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("users.id"))
+    # Muse Spark's detection box is retained even after SAM refines the visible
+    # geometry, so a failed/refused refinement never removes usable evidence.
+    muse_bounding_box: Mapped[dict[str, float] | None] = mapped_column(JSON)
     bounding_box: Mapped[dict[str, float] | None] = mapped_column(JSON)
     spatial_description: Mapped[str | None] = mapped_column(Text)
     relationships: Mapped[list[dict[str, Any]]] = mapped_column(JSON, default=list)
@@ -241,6 +251,18 @@ class ProcessingJob(TimestampMixin, Base):
     )
     media_asset_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("media_assets.id"), nullable=False)
     capture_session_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("capture_sessions.id"))
+    observation_id: Mapped[uuid.UUID | None] = mapped_column(
+        ForeignKey("object_observations.id", ondelete="CASCADE"), index=True
+    )
+    operation: Mapped[ProcessingOperation] = mapped_column(
+        Enum(
+            ProcessingOperation,
+            name="processing_operation",
+            values_callable=lambda enum_class: [member.value for member in enum_class],
+        ),
+        default=ProcessingOperation.ANALYSIS,
+        nullable=False,
+    )
     status: Mapped[JobStatus] = mapped_column(
         Enum(JobStatus, name="job_status"), default=JobStatus.QUEUED, nullable=False
     )

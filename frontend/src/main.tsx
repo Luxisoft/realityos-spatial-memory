@@ -150,6 +150,8 @@ function Query({ workspaceId, token }: { workspaceId: string; token: string }) {
   const [result, setResult] = useState<QueryResult | null>(null);
   const [busy, setBusy] = useState(false);
   const [imageUrl, setImageUrl] = useState("");
+  const [refining, setRefining] = useState(false);
+  const [refinementMessage, setRefinementMessage] = useState("");
   useEffect(() => {
     if (!result?.highlighted_media_url) { setImageUrl(""); return; }
     let objectUrl = "";
@@ -165,12 +167,39 @@ function Query({ workspaceId, token }: { workspaceId: string; token: string }) {
     try { setResult(await request<QueryResult>("/v1/queries", token, { method: "POST", body: JSON.stringify({ workspace_id: workspaceId, question }) })); }
     finally { setBusy(false); }
   }
+  async function refine() {
+    if (!result?.observation?.id) return;
+    setRefining(true); setRefinementMessage("");
+    try {
+      type Job = { id: string; status: string; error_message?: string; result_metadata?: { segmentation_status?: string } };
+      let job = await request<Job>(`/v1/observations/${result.observation.id}/segment`, token, { method: "POST" });
+      setResult((current) => current ? { ...current, segmentation_status: job.status === "completed" ? (job.result_metadata?.segmentation_status === "no_match" ? "no_match" : "ready") : "queued", segmentation_job_id: job.id, can_refine: false } : current);
+      for (let attempt = 0; job.status === "queued" || job.status === "processing"; attempt += 1) {
+        if (attempt >= 30) { setRefinementMessage(`SAM refinement ${job.id.slice(0, 8)} is still running. You can return to this evidence later.`); return; }
+        await new Promise((resolve) => window.setTimeout(resolve, 1000));
+        job = await request<Job>(`/v1/jobs/${job.id}`, token);
+      }
+      if (job.status === "completed") {
+        const noMatch = job.result_metadata?.segmentation_status === "no_match";
+        setResult((current) => current ? { ...current, segmentation_status: noMatch ? "no_match" : "ready", highlight_quality: noMatch ? "approximate_box" : "sam_mask", can_refine: false } : current);
+        setRefinementMessage(noMatch ? "SAM found no matching pixels; the approximate Muse Spark box remains available." : "SAM mask cached and applied to this evidence.");
+      } else {
+        setResult((current) => current ? { ...current, segmentation_status: "failed", can_refine: true } : current);
+        setRefinementMessage(job.error_message ?? "SAM refinement failed; no mask was stored.");
+      }
+    } catch (reason) { setRefinementMessage(reason instanceof Error ? reason.message : "Unable to queue SAM refinement."); }
+    finally { setRefining(false); }
+  }
   function speak() { if (result?.tts_text && "speechSynthesis" in window) window.speechSynthesis.speak(new SpeechSynthesisUtterance(result.tts_text)); }
   return <section className="panel query"><p className="eyebrow">QUERY / READ ONLY</p><h1>What are you looking for?</h1>
     <form className="search" onSubmit={ask}><input value={question} onChange={(event) => setQuestion(event.target.value)} aria-label="Object query" /><button className="primary" disabled={busy}>{busy ? "Searching…" : "Find evidence"}</button></form>
     {result && <article className="result"><div className="evidence-plate">{result.found && <img src={imageUrl} alt={`Evidence of ${result.object?.canonical_name ?? "object"}`} />}<span>BYTEA / {result.simulated ? "SIMULATED" : "VERIFIED"} EVIDENCE</span></div>
       <div><p className="eyebrow">{result.found ? "LAST OBSERVATION" : result.ambiguous ? "AMBIGUITY" : "NO EVIDENCE"}</p><h2>{result.object?.canonical_name ?? "Not confirmed"}</h2><p>{result.message}</p>
       {result.found && <dl><div><dt>Location</dt><dd>{result.zone_path.join(" · ")}</dd></div><div><dt>Visual confidence</dt><dd>{Math.round((result.retrieval_confidence ?? 0) * 100)}%</dd></div></dl>}
+      {result.found && <p className="geometry-status">{result.highlight_quality === "sam_mask" ? "SAM 3.1 mask cached" : result.highlight_quality === "approximate_box" ? "Approximate Muse Spark box" : "No visual geometry available"}</p>}
+      {result.found && result.can_refine && <button className="refine" onClick={refine} disabled={refining}>{refining ? "Queuing refinement…" : "Refine with SAM 3.1 · ≈ US$0.0025"}</button>}
+      {result.found && result.segmentation_status === "queued" && <p className="geometry-status">SAM refinement is queued. This query did not start capture.</p>}
+      {refinementMessage && <p className="status">{refinementMessage}</p>}
       <button className="voice" onClick={speak} disabled={!result.found || !("speechSynthesis" in window)}>Listen to answer</button></div>
     </article>}</section>;
 }

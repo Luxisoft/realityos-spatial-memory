@@ -93,10 +93,13 @@ class CaptureResponse(FromAttributes):
 class JobResponse(FromAttributes):
     id: uuid.UUID
     media_asset_id: uuid.UUID
+    observation_id: uuid.UUID | None = None
+    operation: str
     status: str
     provider: str
     attempts: int
     error_message: str | None
+    result_metadata: dict = Field(default_factory=dict)
     created_at: datetime
 
 
@@ -127,6 +130,7 @@ class ObservationResponse(FromAttributes):
     object_id: uuid.UUID
     zone_id: uuid.UUID | None
     media_asset_id: uuid.UUID
+    muse_bounding_box: dict | None = None
     bounding_box: dict | None
     spatial_description: str | None
     seen_at: datetime
@@ -149,6 +153,12 @@ class QueryResponse(BaseModel):
     zone_path: list[str] = Field(default_factory=list)
     media_id: uuid.UUID | None = None
     highlighted_media_url: str | None = None
+    highlight_quality: Literal["sam_mask", "approximate_box", "none"] = "none"
+    segmentation_status: Literal[
+        "not_requested", "queued", "processing", "ready", "no_match", "failed"
+    ] = "not_requested"
+    segmentation_job_id: uuid.UUID | None = None
+    can_refine: bool = False
     retrieval_confidence: float | None = None
     tts_text: str
     simulated: bool = False

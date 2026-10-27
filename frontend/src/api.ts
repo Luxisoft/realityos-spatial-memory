@@ -16,12 +16,16 @@ export type QueryResult = {
   message: string;
   media_id?: string;
   highlighted_media_url?: string;
+  highlight_quality: "sam_mask" | "approximate_box" | "none";
+  segmentation_status: "not_requested" | "queued" | "processing" | "ready" | "no_match" | "failed";
+  segmentation_job_id?: string;
+  can_refine: boolean;
   retrieval_confidence?: number;
   simulated: boolean;
   zone_path: string[];
   tts_text: string;
   object?: { canonical_name: string };
-  observation?: { seen_at: string; visual_confidence: number };
+  observation?: { id: string; seen_at: string; visual_confidence: number };
 };
 
 const origin = import.meta.env.VITE_API_URL ?? "http://localhost:8000";

@@ -1,14 +1,26 @@
 from __future__ import annotations
 
+import asyncio
 import base64
 import json
-import re
+import math
 import time
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import Any
 
 import httpx
+from meta_sam_parser import (
+    FramePrompt,
+    PromptBox,
+    PromptObject,
+    SegmentationBoxRecord,
+    SegmentationMaskRecord,
+    build_object_prompt,
+    decode_mask_to_raster,
+    image_segmentation_format,
+    parse_responses_stream,
+)
 
 from app.config import Settings
 from app.schemas import ImageAnalysis, MetaDetection, QueryInterpretation
@@ -24,12 +36,34 @@ class Transcription:
     simulated: bool
 
 
+@dataclass(frozen=True)
+class SegmentationResult:
+    """One exact SAM geometry and its decoded binary raster."""
+
+    model: str
+    simulated: bool
+    bounding_box: dict[str, float]
+    confidence: float | None
+    mask: bytes
+    mask_width: int
+    mask_height: int
+
+
 class MetaModelClient(ABC):
     @abstractmethod
     def analyze_image(self, image: bytes, mime_type: str, context: str = "") -> ImageAnalysis: ...
 
     @abstractmethod
-    def segment(self, image: bytes, mime_type: str, prompt: str) -> list[MetaDetection]: ...
+    def segment(
+        self,
+        image: bytes,
+        mime_type: str,
+        prompt: str,
+        *,
+        width: int,
+        height: int,
+        bounding_box: dict[str, float],
+    ) -> SegmentationResult | None: ...
 
     @abstractmethod
     def transcribe_wav(self, audio: bytes) -> Transcription: ...
@@ -70,16 +104,39 @@ class MockMetaModelClient(MetaModelClient):
             ],
         )
 
-    def segment(self, image: bytes, mime_type: str, prompt: str) -> list[MetaDetection]:
-        return [
-            MetaDetection(
-                label=prompt,
-                category=None,
-                confidence=0.94,
-                bounding_box={"x": 0.18, "y": 0.22, "width": 0.57, "height": 0.49},
-                spatial_description="Simulated geometry; it was not inferred by real SAM.",
-            )
-        ]
+    def segment(
+        self,
+        image: bytes,
+        mime_type: str,
+        prompt: str,
+        *,
+        width: int,
+        height: int,
+        bounding_box: dict[str, float],
+    ) -> SegmentationResult | None:
+        """Deterministic local mask; it is visibly marked simulated downstream."""
+
+        x = max(0, min(width - 1, int(float(bounding_box["x"]) * width)))
+        y = max(0, min(height - 1, int(float(bounding_box["y"]) * height)))
+        right = max(x + 1, min(width, math.ceil((float(bounding_box["x"]) + float(bounding_box["width"])) * width)))
+        bottom = max(y + 1, min(height, math.ceil((float(bounding_box["y"]) + float(bounding_box["height"])) * height)))
+        pixels = bytearray(width * height)
+        for row in range(y, bottom):
+            pixels[row * width + x : row * width + right] = b"\x01" * (right - x)
+        return SegmentationResult(
+            model="mock-sam-3.1",
+            simulated=True,
+            bounding_box={
+                "x": x / width,
+                "y": y / height,
+                "width": (right - x) / width,
+                "height": (bottom - y) / height,
+            },
+            confidence=0.94,
+            mask=bytes(pixels),
+            mask_width=width,
+            mask_height=height,
+        )
 
     def transcribe_wav(self, audio: bytes) -> Transcription:
         return Transcription(text="Where is the yellow drill?", simulated=True)
@@ -246,43 +303,132 @@ class LiveMetaModelClient(MetaModelClient):
             )
         )
 
-    def segment(self, image: bytes, mime_type: str, prompt: str) -> list[MetaDetection]:
+    def _stream_events(self, body: dict[str, Any]) -> list[dict[str, Any]]:
+        """Read a Responses SSE stream with the same retry policy as JSON calls."""
+
+        url = f"{self.base_url}/responses"
+        last_error: Exception | None = None
+        for attempt in range(self.settings.meta_max_retries + 1):
+            try:
+                with httpx.stream(
+                    "POST",
+                    url,
+                    headers=self.headers | {"Accept": "text/event-stream"},
+                    timeout=self.settings.meta_timeout_seconds,
+                    json=body,
+                ) as response:
+                    if response.status_code in {408, 429, 500, 502, 503, 504}:
+                        response.read()
+                        last_error = MetaProviderError(
+                            f"Meta Model API returned {response.status_code}: {self._safe_error(response)}"
+                        )
+                    else:
+                        response.raise_for_status()
+                        events: list[dict[str, Any]] = []
+                        for line in response.iter_lines():
+                            if not line or not line.startswith("data: "):
+                                continue
+                            data = line.removeprefix("data: ")
+                            if data == "[DONE]":
+                                continue
+                            try:
+                                event = json.loads(data)
+                            except json.JSONDecodeError as exc:
+                                raise MetaProviderError("Meta SAM stream contained invalid JSON.") from exc
+                            if isinstance(event, dict):
+                                events.append(event)
+                        return events
+            except (httpx.HTTPError, MetaProviderError) as exc:
+                last_error = exc
+            if attempt < self.settings.meta_max_retries:
+                time.sleep(0.35 * (2**attempt))
+        raise MetaProviderError(f"Meta Model API unavailable: {last_error}") from last_error
+
+    @staticmethod
+    def _sam_result_from_events(
+        events: list[dict[str, Any]], width: int, height: int
+    ) -> SegmentationResult | None:
+        async def source():
+            for event in events:
+                yield event
+
+        try:
+            parsed = parse_responses_stream(source(), image_segmentation_format())
+            result = asyncio.run(parsed.final_result())
+        except Exception as exc:
+            raise MetaProviderError("Meta SAM returned an invalid segmentation stream.") from exc
+        boxes = {
+            record.object_id: record
+            for record in result.records
+            if isinstance(record, SegmentationBoxRecord)
+        }
+        masks = [record for record in result.records if isinstance(record, SegmentationMaskRecord)]
+        for mask_record in masks:
+            box = boxes.get(mask_record.object_id)
+            if box is None:
+                continue
+            try:
+                raster = decode_mask_to_raster(mask_record.mask)
+            except Exception as exc:
+                raise MetaProviderError("Meta SAM returned an unreadable mask.") from exc
+            return SegmentationResult(
+                model="sam-3.1",
+                simulated=False,
+                bounding_box={
+                    "x": max(0.0, min(1.0, box.left / width)),
+                    "y": max(0.0, min(1.0, box.top / height)),
+                    "width": max(0.0, min(1.0, (box.right - box.left) / width)),
+                    "height": max(0.0, min(1.0, (box.bottom - box.top) / height)),
+                },
+                confidence=mask_record.confidence if mask_record.confidence is not None else box.confidence,
+                mask=raster,
+                mask_width=mask_record.mask.width,
+                mask_height=mask_record.mask.height,
+            )
+        return None
+
+    def segment(
+        self,
+        image: bytes,
+        mime_type: str,
+        prompt: str,
+        *,
+        width: int,
+        height: int,
+        bounding_box: dict[str, float],
+    ) -> SegmentationResult | None:
+        """Refine Muse's known instance box into a compact SAM one-bit mask."""
+
+        left = max(0, min(width - 1, int(float(bounding_box["x"]) * width)))
+        top = max(0, min(height - 1, int(float(bounding_box["y"]) * height)))
+        right = max(left + 1, min(width, math.ceil((float(bounding_box["x"]) + float(bounding_box["width"])) * width)))
+        bottom = max(top + 1, min(height, math.ceil((float(bounding_box["y"]) + float(bounding_box["height"])) * height)))
+        object_prompt = build_object_prompt(
+            size=(width, height),
+            objects=[
+                PromptObject(
+                    id=1,
+                    prompts=[FramePrompt(box=PromptBox(left=left, top=top, right=right, bottom=bottom))],
+                )
+            ],
+        )
         body = {
             "model": "sam-3.1",
             "store": False,
+            "stream": True,
+            "metadata": {"mask_encoding": "one_bit", "include_confidence": "true"},
             "input": [
                 {
                     "type": "message",
                     "role": "user",
                     "content": [
-                        {"type": "input_text", "text": prompt},
+                        {"type": "input_text", "text": object_prompt},
                         {"type": "input_image", "image_url": self._data_url(image, mime_type)},
                     ],
                 }
             ],
         }
-        text = self._output_text(self._request("POST", "responses", json=body).json())
-        boxes: list[MetaDetection] = []
-        pattern = re.compile(
-            r"<\|box;x1=(?P<x1>\d+);y1=(?P<y1>\d+);x2=(?P<x2>\d+);y2=(?P<y2>\d+);"
-            r"w=(?P<w>\d+);h=(?P<h>\d+)\|>"
-        )
-        for match in pattern.finditer(text):
-            values = {key: float(value) for key, value in match.groupdict().items()}
-            boxes.append(
-                MetaDetection(
-                    label=prompt,
-                    confidence=1.0,
-                    bounding_box={
-                        "x": values["x1"] / values["w"],
-                        "y": values["y1"] / values["h"],
-                        "width": (values["x2"] - values["x1"]) / values["w"],
-                        "height": (values["y2"] - values["y1"]) / values["h"],
-                    },
-                    spatial_description="Box returned by SAM 3.1; the worker retains the mask geometry.",
-                )
-            )
-        return boxes
+        return self._sam_result_from_events(self._stream_events(body), width, height)
 
     def transcribe_wav(self, audio: bytes) -> Transcription:
         files = {

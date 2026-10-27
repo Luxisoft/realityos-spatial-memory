@@ -6,8 +6,11 @@ Pydantic validation and client-safe failures. API keys never reach a browser or
 Android project.
 
 - Muse Spark 1.3 uses the Responses API with image data URLs for visual analysis.
-- SAM 3.1 uses Responses with a noun phrase and input image. Box parsing is
-  implemented; binary SAM-mask decoding/persistence remains a worker extension.
+- SAM 3.1 is used only by an explicit, authorized refinement job. RealityOS
+  sends the selected image plus Muse Spark's existing box as an official box
+  prompt, requests SSE with `mask_encoding=one_bit`, decodes it with Meta's
+  `meta-sam-parser` Python package and stores the mask as a related PNG BYTEA.
+  Query endpoints never enqueue this job or write the cache.
 - Muse Voice Transcribe uses the ASR transcription endpoint with multipart
   request JSON and WAV audio in PUSH_TO_TALK mode.
 

@@ -5,7 +5,7 @@ import "./styles.css";
 const api = import.meta.env.VITE_API_URL ?? "http://localhost:8000";
 type Tokens = { access_token: string };
 type Workspace = { id: string; name: string };
-type Result = { found: boolean; message: string; tts_text: string; highlighted_media_url?: string; object?: { canonical_name: string }; zone_path: string[]; simulated: boolean };
+type Result = { found: boolean; message: string; tts_text: string; highlighted_media_url?: string; highlight_quality?: "sam_mask" | "approximate_box" | "none"; object?: { canonical_name: string }; zone_path: string[]; simulated: boolean };
 
 async function call<T>(path: string, token?: string, init: RequestInit = {}): Promise<T> {
   const headers = new Headers(init.headers);
@@ -44,7 +44,7 @@ function Display() {
   function speak() { if (result && "speechSynthesis" in window) speechSynthesis.speak(new SpeechSynthesisUtterance(result.tts_text)); }
   if (!token) return <main className="screen login"><p>REALITYOS</p><h1>Spatial memory</h1><form onSubmit={login}><input aria-label="Email" value={email} onChange={(e) => setEmail(e.target.value)} /><input aria-label="Password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} /><button>Enter</button></form>{notice && <small>{notice}</small>}</main>;
   return <main className="screen"><header><b>R/OS</b><span>QUERY · NO RECORDING</span></header><form className="question" onSubmit={search}><select value={workspace} onChange={(e) => setWorkspace(e.target.value)}>{workspaces.map((item) => <option value={item.id} key={item.id}>{item.name}</option>)}</select><input value={question} onChange={(e) => setQuestion(e.target.value)} /><button>Search</button></form>
-    {result && <section className="answer"><div className="photo">{image && <img src={image} alt="Highlighted object" />}<em>{result.simulated ? "SIMULATED" : "EVIDENCE"}</em></div><h1>{result.object?.canonical_name ?? "No match"}</h1><p>{result.message}</p>{result.found && <><small>{result.zone_path.join(" · ")}</small><button className="listen" onClick={speak}>Listen</button></>}</section>}{notice && <small>{notice}</small>}</main>;
+    {result && <section className="answer"><div className="photo">{image && <img src={image} alt="Highlighted object" />}<em>{result.simulated ? "SIMULATED" : result.highlight_quality === "sam_mask" ? "SAM MASK" : "APPROXIMATE BOX"}</em></div><h1>{result.object?.canonical_name ?? "No match"}</h1><p>{result.message}</p>{result.found && <><small>{result.zone_path.join(" · ")}</small><button className="listen" onClick={speak}>Listen</button></>}</section>}{notice && <small>{notice}</small>}</main>;
 }
 
 createRoot(document.getElementById("root")!).render(<Display />);

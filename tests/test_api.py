@@ -5,9 +5,12 @@ import uuid
 
 from app.meta import MockMetaModelClient
 from app.models import (
+    MediaAsset,
+    MediaKind,
     ObjectAlias,
     ObjectObservation,
     ProcessingJob,
+    ProcessingOperation,
     Role,
     TrackedObject,
     User,
@@ -109,6 +112,19 @@ def test_query_returns_last_verified_evidence_and_highlight(client, auth_headers
     assert ".." not in answer["message"]
     assert answer["media_id"] == capture_id
     assert answer["simulated"] is True
+    assert answer["highlight_quality"] == "approximate_box"
+    assert answer["segmentation_status"] == "not_requested"
+    assert answer["can_refine"] is True
+    assert answer["highlighted_media_url"].startswith("/v1/observations/")
+    with client.app.state.database.session_factory() as db:
+        refinement_jobs = list(
+            db.scalars(
+                select(ProcessingJob).where(
+                    ProcessingJob.operation == ProcessingOperation.SEGMENTATION
+                )
+            )
+        )
+    assert refinement_jobs == []
     highlighted = client.get(answer["highlighted_media_url"], headers=auth_headers)
     assert highlighted.status_code == 200
     assert highlighted.headers["content-type"] == "image/png"
@@ -153,6 +169,40 @@ def test_missing_query_and_query_role_cannot_capture(client, auth_headers):
     assert denied.status_code == 403
 
 
+def test_query_role_cannot_request_sam_refinement(client, auth_headers):
+    workspace_id = create_workspace(client, auth_headers)
+    _, _ = register_and_process(client, auth_headers, workspace_id)
+    with client.app.state.database.session_factory() as db:
+        observation = db.scalar(
+            select(ObjectObservation).where(
+                ObjectObservation.workspace_id == uuid.UUID(workspace_id)
+            )
+        )
+        assert observation is not None
+        query_user = User(
+            email="readonly@example.test",
+            display_name="Read only",
+            password_hash=hash_password("ReadOnlySecurePass123!"),
+        )
+        db.add(query_user)
+        db.flush()
+        db.add(
+            WorkspaceMember(
+                workspace_id=uuid.UUID(workspace_id), user_id=query_user.id, role=Role.QUERY
+            )
+        )
+        db.commit()
+    token = client.post(
+        "/v1/auth/login",
+        json={"email": "readonly@example.test", "password": "ReadOnlySecurePass123!"},
+    ).json()["access_token"]
+    response = client.post(
+        f"/v1/observations/{observation.id}/segment",
+        headers={"Authorization": f"Bearer {token}"},
+    )
+    assert response.status_code == 403
+
+
 def test_workspaces_are_isolated(client, auth_headers):
     workspace_id = create_workspace(client, auth_headers)
     with client.app.state.database.session_factory() as db:
@@ -174,7 +224,7 @@ def test_workspaces_are_isolated(client, auth_headers):
     assert response.status_code == 403
 
 
-def test_processing_job_is_idempotent_and_records_mock_sam_geometry(client, auth_headers):
+def test_processing_job_is_idempotent_and_defers_sam_geometry(client, auth_headers):
     workspace_id = create_workspace(client, auth_headers)
     capture_id, job_id = register_and_process(client, auth_headers, workspace_id)
     repeated = client.post(f"/v1/captures/{capture_id}/process", headers=auth_headers)
@@ -193,10 +243,91 @@ def test_processing_job_is_idempotent_and_records_mock_sam_geometry(client, auth
         )
     assert job is not None
     assert job.attempts == 1
-    assert job.result_metadata["segmentation_count"] == 1
+    assert job.result_metadata["segmentation_count"] == 0
     assert len(observations) == 1
     assert observations[0].relationships == [{"relation": "on", "object": "black box"}]
-    assert observations[0].model_name.endswith("+sam-3.1")
+    assert observations[0].model_name == "mock-muse-spark-1.3"
+    assert observations[0].muse_bounding_box == observations[0].bounding_box
+    assert observations[0].mask_asset_id is None
+
+
+def test_explicit_sam_refinement_is_cached_as_a_bytea_mask(client, auth_headers):
+    workspace_id = create_workspace(client, auth_headers)
+    capture_id, _ = register_and_process(client, auth_headers, workspace_id)
+    answer = client.post(
+        "/v1/queries",
+        headers=auth_headers,
+        json={"workspace_id": workspace_id, "question": "Where is the yellow drill?"},
+    ).json()
+    observation_id = answer["observation"]["id"]
+    first = client.post(f"/v1/observations/{observation_id}/segment", headers=auth_headers)
+    assert first.status_code == 202, first.text
+    second = client.post(f"/v1/observations/{observation_id}/segment", headers=auth_headers)
+    assert second.status_code == 202, second.text
+    assert second.json()["id"] == first.json()["id"]
+    assert first.json()["operation"] == "segmentation"
+    with client.app.state.database.session_factory() as db:
+        process_job(db, uuid.UUID(first.json()["id"]), MockMetaModelClient())
+        db.commit()
+        observation = db.get(ObjectObservation, uuid.UUID(observation_id))
+        assert observation is not None
+        assert observation.mask_asset_id is not None
+        mask = db.get(MediaAsset, observation.mask_asset_id)
+        assert mask is not None
+        assert mask.kind == MediaKind.MASK
+        assert mask.parent_asset_id == uuid.UUID(capture_id)
+        assert mask.mime_type == "image/png"
+        assert mask.original_bytes
+        job = db.get(ProcessingJob, uuid.UUID(first.json()["id"]))
+        assert job is not None
+        assert job.operation == ProcessingOperation.SEGMENTATION
+        assert job.result_metadata["segmentation_status"] == "ready"
+    cached = client.post(f"/v1/observations/{observation_id}/segment", headers=auth_headers)
+    assert cached.status_code == 202
+    assert cached.json()["id"] == first.json()["id"]
+    refreshed = client.post(
+        "/v1/queries",
+        headers=auth_headers,
+        json={"workspace_id": workspace_id, "question": "Where is the yellow drill?"},
+    ).json()
+    assert refreshed["highlight_quality"] == "sam_mask"
+    assert refreshed["segmentation_status"] == "ready"
+    highlighted = client.get(refreshed["highlighted_media_url"], headers=auth_headers)
+    assert highlighted.status_code == 200
+    assert highlighted.content != png_bytes()
+
+
+def test_sam_no_match_keeps_approximate_evidence_without_repeating_work(client, auth_headers):
+    class NoMatchMeta(MockMetaModelClient):
+        def segment(self, *args, **kwargs):
+            return None
+
+    workspace_id = create_workspace(client, auth_headers)
+    _, _ = register_and_process(client, auth_headers, workspace_id)
+    answer = client.post(
+        "/v1/queries",
+        headers=auth_headers,
+        json={"workspace_id": workspace_id, "question": "Where is the yellow drill?"},
+    ).json()
+    job = client.post(
+        f"/v1/observations/{answer['observation']['id']}/segment", headers=auth_headers
+    ).json()
+    with client.app.state.database.session_factory() as db:
+        process_job(db, uuid.UUID(job["id"]), NoMatchMeta())
+        db.commit()
+    refreshed = client.post(
+        "/v1/queries",
+        headers=auth_headers,
+        json={"workspace_id": workspace_id, "question": "Where is the yellow drill?"},
+    ).json()
+    assert refreshed["highlight_quality"] == "approximate_box"
+    assert refreshed["segmentation_status"] == "no_match"
+    repeated = client.post(
+        f"/v1/observations/{answer['observation']['id']}/segment", headers=auth_headers
+    )
+    assert repeated.status_code == 202
+    assert repeated.json()["id"] == job["id"]
+    assert repeated.json()["status"] == "completed"
 
 
 def test_object_search_uses_aliases_and_returns_ambiguity(client, auth_headers):
