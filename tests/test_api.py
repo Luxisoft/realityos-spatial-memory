@@ -236,6 +236,13 @@ def test_object_search_uses_aliases_and_returns_ambiguity(client, auth_headers):
     assert answer_by_alias.status_code == 200
     assert answer_by_alias.json()["found"] is True
     assert answer_by_alias.json()["message"].startswith("Yellow drill was last seen")
+    exact_alias_beats_broad_match = client.post(
+        "/v1/queries",
+        headers=auth_headers,
+        json={"workspace_id": workspace_id, "question": "Where is the perforadora?"},
+    )
+    assert exact_alias_beats_broad_match.status_code == 200
+    assert exact_alias_beats_broad_match.json()["ambiguous"] is False
     french = client.post(
         "/v1/queries",
         headers=auth_headers,

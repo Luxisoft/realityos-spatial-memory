@@ -436,6 +436,36 @@ def workspace_terms(db: Session, workspace_id: uuid.UUID) -> list[str]:
     return list(dict.fromkeys([*canonical, *aliases]))[:1000]
 
 
+def exact_term_candidates(
+    db: Session, workspace_id: uuid.UUID, question: str
+) -> list[TrackedObject]:
+    """Prefer an authorized human name/alias over broad lexical similarity."""
+
+    requested = search_phrase(question)
+    if not requested:
+        return []
+    tracked = list(
+        db.scalars(
+            select(TrackedObject)
+            .where(TrackedObject.workspace_id == workspace_id)
+            .order_by(TrackedObject.canonical_name)
+        )
+    )
+    aliases_by_object: dict[uuid.UUID, list[str]] = {}
+    for object_id, alias in db.execute(
+        select(ObjectAlias.object_id, ObjectAlias.alias)
+        .join(TrackedObject, TrackedObject.id == ObjectAlias.object_id)
+        .where(TrackedObject.workspace_id == workspace_id)
+    ):
+        aliases_by_object.setdefault(object_id, []).append(alias)
+    return [
+        item
+        for item in tracked
+        if search_phrase(item.canonical_name) == requested
+        or any(search_phrase(alias) == requested for alias in aliases_by_object.get(item.id, []))
+    ]
+
+
 def multilingual_object_candidates(
     db: Session,
     workspace_id: uuid.UUID,
@@ -443,6 +473,10 @@ def multilingual_object_candidates(
     client: MetaModelClient | None,
 ) -> tuple[list[TrackedObject], bool]:
     """Use the provider only to select existing terms; evidence remains local."""
+
+    exact_candidates = exact_term_candidates(db, workspace_id, question)
+    if exact_candidates:
+        return exact_candidates, False
 
     interpreted_terms: list[str] = []
     simulated = False
@@ -455,10 +489,9 @@ def multilingual_object_candidates(
             # Local trigram/FTS search is a safe degraded mode: it never invents
             # a match or makes an unavailable provider look successful.
             pass
-    return (
-        object_candidates(db, workspace_id, question, additional_terms=interpreted_terms),
-        simulated,
-    )
+    if interpreted_terms:
+        return object_candidates(db, workspace_id, interpreted_terms[0], additional_terms=interpreted_terms[1:]), simulated
+    return object_candidates(db, workspace_id, question), simulated
 
 
 def media_sha256(data: bytes) -> str:
