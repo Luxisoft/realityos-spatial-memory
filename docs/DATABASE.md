@@ -33,5 +33,6 @@ summary. `object_tracks`, `object_track_segments` and `object_track_frames`
 retain detailed SAM Video PTS, visibility, geometry and compact RLE masks while
 the original video stays in PostgreSQL.
 
-Run migrations with make migrate. The migration was not run against PostgreSQL
-in this workspace because Docker is unavailable here.
+Run migrations with `make migrate`. The device, fact and detailed-track
+migrations (`20261027_0005` and `20261027_0006`) were applied to the production
+PostgreSQL 16 instance and verified at revision `20261027_0006` on 2026-10-27.

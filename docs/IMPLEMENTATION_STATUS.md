@@ -32,6 +32,11 @@
   PostgreSQL `pg_trgm` and creates workspace-scoped trigram and FTS indexes for
   object names and aliases. Search uses those indexes on PostgreSQL and a
   bounded SQLite fallback in tests.
+- Alembic revisions `20261027_0005` and `20261027_0006` are applied in
+  production. The `devices`, `device_assignments`, `object_facts`,
+  `object_tracks` and `object_track_frames` relations were checked directly;
+  API `/health/ready` and the Celery worker were healthy after deployment of
+  commit `c8ad030`.
 - The synthetic production seed was rerun and now contains six legally-created
   workshop objects and the `Bodega A → Estantería 3 → Nivel 2` hierarchy.
 - The administrative panel now has an authorized object catalog (name/alias,
