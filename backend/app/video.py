@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import subprocess
 import tempfile
+from contextlib import contextmanager
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -18,6 +19,8 @@ class VideoInfo:
     duration_seconds: float
     width: int | None
     height: int | None
+    frame_rate: float | None = None
+    frame_count: int | None = None
 
 
 @dataclass(frozen=True)
@@ -39,6 +42,17 @@ class ExtractedFrame:
     bytes: bytes
 
 
+@dataclass(frozen=True)
+class VideoClip:
+    """A temporary MP4 interval sent to SAM; source evidence remains untouched."""
+
+    segment: VideoSegment
+    path: Path
+    frame_count: int
+    source_frame_offset: int
+    frame_pts_seconds: tuple[float, ...]
+
+
 def probe_video(video: bytes) -> VideoInfo:
     """Read duration and dimensions without persisting an external copy."""
 
@@ -51,7 +65,7 @@ def probe_video(video: bytes) -> VideoInfo:
                 "-select_streams",
                 "v:0",
                 "-show_entries",
-                "format=duration:stream=width,height",
+                "format=duration:stream=width,height,avg_frame_rate,nb_frames",
                 "-of",
                 "json",
                 "-i",
@@ -81,7 +95,7 @@ def probe_video_file(path: Path) -> VideoInfo:
                 "-select_streams",
                 "v:0",
                 "-show_entries",
-                "format=duration:stream=width,height",
+                "format=duration:stream=width,height,avg_frame_rate,nb_frames",
                 "-of",
                 "json",
                 "-i",
@@ -107,11 +121,30 @@ def _video_info_from_probe(result: subprocess.CompletedProcess[bytes]) -> VideoI
         stream = payload.get("streams", [{}])[0]
         width = int(stream["width"]) if stream.get("width") else None
         height = int(stream["height"]) if stream.get("height") else None
+        frame_rate = _fraction_or_none(stream.get("avg_frame_rate"))
+        frame_count = int(stream["nb_frames"]) if stream.get("nb_frames", "").isdigit() else None
     except (KeyError, TypeError, ValueError, json.JSONDecodeError) as exc:
         raise VideoProcessingError("Video metadata could not be read.") from exc
     if duration <= 0:
         raise VideoProcessingError("Video must contain a positive duration.")
-    return VideoInfo(duration_seconds=duration, width=width, height=height)
+    return VideoInfo(
+        duration_seconds=duration,
+        width=width,
+        height=height,
+        frame_rate=frame_rate,
+        frame_count=frame_count or (round(duration * frame_rate) if frame_rate else None),
+    )
+
+
+def _fraction_or_none(value: object) -> float | None:
+    if not isinstance(value, str) or not value or value == "0/0":
+        return None
+    try:
+        numerator, denominator = value.split("/", 1)
+        result = float(numerator) / float(denominator)
+    except (ValueError, ZeroDivisionError):
+        return None
+    return result if result > 0 else None
 
 
 def video_segments(info: VideoInfo, segment_seconds: int) -> list[VideoSegment]:
@@ -130,6 +163,128 @@ def video_segments(info: VideoInfo, segment_seconds: int) -> list[VideoSegment]:
         start += duration
         index += 1
     return segments
+
+
+def _clip_frame_count(path: Path) -> int:
+    try:
+        result = subprocess.run(
+            [
+                "ffprobe",
+                "-v",
+                "error",
+                "-count_frames",
+                "-select_streams",
+                "v:0",
+                "-show_entries",
+                "stream=nb_read_frames",
+                "-of",
+                "default=nokey=1:noprint_wrappers=1",
+                str(path),
+            ],
+            capture_output=True,
+            check=False,
+            timeout=60,
+        )
+        return int(result.stdout.strip()) if result.returncode == 0 else 0
+    except (FileNotFoundError, ValueError, subprocess.TimeoutExpired):
+        return 0
+
+
+def _clip_frame_pts(path: Path) -> tuple[float, ...]:
+    try:
+        result = subprocess.run(
+            [
+                "ffprobe",
+                "-v",
+                "error",
+                "-select_streams",
+                "v:0",
+                "-show_frames",
+                "-show_entries",
+                "frame=best_effort_timestamp_time",
+                "-of",
+                "csv=p=0",
+                str(path),
+            ],
+            capture_output=True,
+            check=False,
+            timeout=120,
+        )
+        if result.returncode:
+            return ()
+        values: list[float] = []
+        for line in result.stdout.decode(errors="replace").splitlines():
+            try:
+                values.append(float(line.strip().split(",", 1)[0]))
+            except ValueError:
+                continue
+        return tuple(values)
+    except (FileNotFoundError, subprocess.TimeoutExpired):
+        return ()
+
+
+@contextmanager
+def materialized_video_clips(
+    source: Path, info: VideoInfo, *, segment_seconds: int
+):
+    """Generate bounded faststart MP4 clips and remove them after provider processing."""
+
+    with tempfile.TemporaryDirectory(prefix="realityos-video-clips-") as directory:
+        clips: list[VideoClip] = []
+        offset = 0
+        for segment in video_segments(info, segment_seconds):
+            path = Path(directory) / f"segment-{segment.index:04d}.mp4"
+            try:
+                result = subprocess.run(
+                    [
+                        "ffmpeg",
+                        "-hide_banner",
+                        "-loglevel",
+                        "error",
+                        "-ss",
+                        f"{segment.start_seconds:.6f}",
+                        "-i",
+                        str(source),
+                        "-t",
+                        f"{segment.duration_seconds:.6f}",
+                        "-map",
+                        "0:v:0",
+                        "-an",
+                        "-c:v",
+                        "libx264",
+                        "-preset",
+                        "veryfast",
+                        "-crf",
+                        "18",
+                        "-movflags",
+                        "+faststart",
+                        "-y",
+                        str(path),
+                    ],
+                    capture_output=True,
+                    check=False,
+                    timeout=max(60, int(segment.duration_seconds * 3) + 30),
+                )
+            except FileNotFoundError as exc:
+                raise VideoProcessingError("Video processing is unavailable: ffmpeg is not installed.") from exc
+            except subprocess.TimeoutExpired as exc:
+                raise VideoProcessingError("Video clip creation timed out.") from exc
+            if result.returncode or not path.exists():
+                raise VideoProcessingError("Video clip creation failed.")
+            count = _clip_frame_count(path)
+            if count < 1:
+                raise VideoProcessingError("Video clip has no decodable frames.")
+            clips.append(
+                VideoClip(
+                    segment=segment,
+                    path=path,
+                    frame_count=count,
+                    source_frame_offset=offset,
+                    frame_pts_seconds=_clip_frame_pts(path),
+                )
+            )
+            offset += count
+        yield clips
 
 
 def extract_representative_frames(

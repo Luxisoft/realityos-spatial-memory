@@ -12,5 +12,5 @@ class GatewaySettings(BaseSettings):
     model_api_key: str = Field(min_length=12)
     meta_gateway_token: str = Field(min_length=24)
     meta_api_base_url: AnyHttpUrl = "https://api.meta.ai/v1"
-    gateway_max_request_bytes: int = Field(default=32 * 1024 * 1024, ge=1024, le=128 * 1024 * 1024)
-    gateway_timeout_seconds: float = Field(default=120, gt=0, le=180)
+    gateway_max_request_bytes: int = Field(default=1024 * 1024 * 1024, ge=1024, le=1024 * 1024 * 1024)
+    gateway_timeout_seconds: float = Field(default=300, gt=0, le=900)

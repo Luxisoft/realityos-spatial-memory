@@ -48,6 +48,26 @@ def verify_password(password: str, encoded: str) -> bool:
         return False
 
 
+def create_device_credential() -> str:
+    """Generate a high-entropy credential displayed exactly once to an administrator."""
+
+    return secrets.token_urlsafe(32)
+
+
+def hash_device_credential(credential: str, settings: Settings) -> str:
+    """Store a peppered digest, not a reusable device credential."""
+
+    return hmac.new(
+        (settings.device_credential_pepper or settings.jwt_secret).encode(),
+        credential.encode(),
+        hashlib.sha256,
+    ).hexdigest()
+
+
+def verify_device_credential(credential: str, expected_hash: str, settings: Settings) -> bool:
+    return hmac.compare_digest(hash_device_credential(credential, settings), expected_hash)
+
+
 def create_access_token(user_id: uuid.UUID, settings: Settings) -> str:
     now = datetime.now(UTC)
     payload = {

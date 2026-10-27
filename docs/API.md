@@ -1,7 +1,9 @@
 # REST API
 
 OpenAPI is served at /v1/openapi.json and interactive documentation at /docs.
-All routes use Bearer access tokens and workspace membership.
+Administrative routes use Bearer access tokens and workspace membership.
+Device ingestion routes use `X-RealityOS-Device-ID` and
+`X-RealityOS-Device-Key`.
 
 | Area | Routes |
 | --- | --- |
@@ -11,6 +13,9 @@ All routes use Bearer access tokens and workspace membership.
 | Captures/jobs | upload/read capture; request processing; inspect analysis or explicit SAM-refinement jobs |
 | Objects | list/read/history; add a normalized alias; verify or reject observation. `GET /v1/objects` requires `workspace_id` and accepts `q` (name or alias), `category`, and `zone_id` filters. |
 | Query/media | text/audio query; original media; observation-specific highlighted evidence |
+| Devices (admin) | enroll/list/assign/rotate/revoke workspace devices; key material is returned only at enrollment or rotation |
+| Device ingestion | open/close a device session, upload/process a device capture, and make a read-only text query |
+| Inventory intelligence (admin) | evidence facts, fact verification, aggregate inventory/brand/condition/use/device metrics and video tracks |
 | System | health live and ready |
 
 Only admin and register members open sessions or upload. Only admin and query
@@ -25,6 +30,17 @@ Long videos are logically partitioned by `VIDEO_SEGMENT_SECONDS`, and derived fr
 clip remains the BYTEA source of truth. Text query accepts any input language;
 the Live provider can select only terms already known in the authorized
 workspace before local evidence retrieval.
+
+`POST /v1/captures/{id}/process` accepts optional `profile` (`basic` or
+`detailed`) and `priority_terms`. Basic processing samples video with Muse
+Spark. Detailed mode explicitly tracks the listed objects with SAM Video and
+persists per-frame PTS, visibility, boxes and RLE masks rather than a JPEG copy
+of every frame.
+
+`GET /v1/objects/{id}/facts`, `/v1/objects/{id}/tracks`,
+`/v1/tracks/{id}/frames` and `/v1/admin/analytics/inventory` are
+administrator-only. Facts are `pending`, `verified` or `rejected`; verified
+facts form the main aggregate while provisional results remain separate.
 
 `POST /v1/observations/{id}/segment` creates or reuses the one SAM refinement
 job for a verified observation. It is restricted to `admin` and `register`.

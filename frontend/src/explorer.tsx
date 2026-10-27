@@ -2,6 +2,7 @@ import { FormEvent, useEffect, useMemo, useState } from "react";
 
 import {
   request,
+  type ObjectFact,
   type Observation,
   type TrackedObject,
   type Zone,
@@ -16,6 +17,7 @@ export function Objects({ workspaceId, token }: { workspaceId: string; token: st
   const [zones, setZones] = useState<Zone[]>([]);
   const [selected, setSelected] = useState<TrackedObject | null>(null);
   const [history, setHistory] = useState<Observation[]>([]);
+  const [facts, setFacts] = useState<ObjectFact[]>([]);
   const [notice, setNotice] = useState("");
   const categories = useMemo(
     () => [...new Set(items.map((item) => item.category).filter(Boolean))] as string[],
@@ -50,11 +52,15 @@ export function Objects({ workspaceId, token }: { workspaceId: string; token: st
   useEffect(() => {
     if (!selected) {
       setHistory([]);
+      setFacts([]);
       return;
     }
     request<Observation[]>(`/v1/objects/${selected.id}/history`, token)
       .then(setHistory)
       .catch((error: Error) => setNotice(error.message));
+    request<ObjectFact[]>(`/v1/objects/${selected.id}/facts`, token)
+      .then(setFacts)
+      .catch(() => setFacts([]));
   }, [selected, token]);
 
   function submit(event: FormEvent) {
@@ -103,6 +109,7 @@ export function Objects({ workspaceId, token }: { workspaceId: string; token: st
           {selected ? <>
             <p className="eyebrow">HISTORY / {selected.canonical_name}</p>
             <h2>Observations</h2>
+            {facts.length > 0 && <dl className="fact-list">{facts.slice(0, 6).map((fact) => <div key={fact.id}><dt>{fact.fact_type.replaceAll("_", " ")}</dt><dd>{fact.value_text ?? fact.normalized_value ?? `${fact.numeric_value ?? "?"} ${fact.unit ?? ""}`} <small>{fact.verification_status} · {Math.round(fact.confidence * 100)}%</small></dd></div>)}</dl>}
             {history.length ? <ol>{history.map((item) => <li key={item.id}>
               <time>{new Date(item.seen_at).toLocaleString("en-US")}</time>
               <strong>{item.verification_status === "verified" ? "Verified" : item.verification_status}</strong>

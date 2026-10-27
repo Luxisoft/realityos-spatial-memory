@@ -33,6 +33,8 @@ comando, prueba o simulador. Este documento no sustituye
 - [x] Upload valida autorización, consentimiento, MIME, tamaño, hash y dimensiones.
 - [x] Originales se leen desde PostgreSQL con autorización.
 - [x] Auditoría registra acciones sin datos sensibles.
+- [x] Dispositivos pueden autenticarse con ID público y clave rotatoria hashada, sin cuenta humana.
+- [x] Enrolamiento, rotación, revocación y asignación histórica de dispositivo están restringidos a admin.
 - [~] Pruebas: SQLite cubre inicio, workspace, upload BYTEA, hash y lectura; las migraciones e índices se verificaron contra PostgreSQL real, pero falta una suite de integración PostgreSQL automatizada.
 
 ## Fase 2 — Memoria y consultas
@@ -49,6 +51,8 @@ comando, prueba o simulador. Este documento no sustituye
 - [x] La respuesta usa «última vez visto» y separa confianza visual/recuperación.
 - [x] La consulta identifica la observación exacta y devuelve máscara SAM en caché o caja Muse aproximada sin alterar el original.
 - [x] Query-only no crea captura, sesión, media, observación ni job.
+- [x] Hechos de marca, modelo, cantidad visible, estado y uso conservan evidencia, confianza y verificación.
+- [x] Analítica administrativa separa hechos verificados de hallazgos provisionales.
 - [~] Pruebas: última observación, ausencia, ambigüedad, permisos, aislamiento, alias y geometría están cubiertos; falta caso automatizado específico de historial multievidencia.
 
 ## Fase 3 — Meta, jobs y vídeo
@@ -66,6 +70,8 @@ comando, prueba o simulador. Este documento no sustituye
 - [~] Redis/Celery y la tarea están implementados; falta prueba de entrega de broker.
 - [x] Reintentos e idempotencia evitan observaciones duplicadas.
 - [~] Vídeo limitado conserva original BYTEA, frames representativos, timestamps aproximados y trazabilidad; falta una prueba Live de un clip subido por usuario y no hay streaming ni audio de video.
+- [x] Perfil detallado Mock persiste cajas, visibilidad y máscaras RLE por fotograma de clips de prioridad.
+- [~] SAM Video Live usa Files API temporal, streaming y estado incierto sin reintento; falta validación pagada end-to-end.
 - [ ] Pruebas de contrato: mock, live simulado, timeout, error e idempotencia.
 
 ## Fase 4 — Panel web
@@ -79,6 +85,7 @@ comando, prueba o simulador. Este documento no sustituye
 - [x] Consultar muestra evidencia real, overlay, fecha, confianza y texto TTS.
 - [~] Historial autorizado de objetos está implementado; administración de miembros y roles sigue pendiente en el panel.
 - [x] Estados de carga, vacío, error y recuperación implementados.
+- [x] Panel administrativo incluye Device Registry e Inventory Intelligence para hechos, origen y actividad de dispositivos.
 - [ ] TTS de navegador solo se anuncia si el runtime lo soporta.
 - [x] Build de frontend y Display pasa; faltan pruebas de UI.
 

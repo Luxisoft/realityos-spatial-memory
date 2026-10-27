@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import uuid
+from datetime import UTC, datetime
 
 import jwt
 from fastapi import Depends, HTTPException, Request, status
@@ -9,8 +10,8 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.db import Database
-from app.models import Role, User, WorkspaceMember
-from app.security import decode_token
+from app.models import Device, DeviceStatus, Role, User, WorkspaceMember
+from app.security import decode_token, verify_device_credential
 
 bearer_scheme = HTTPBearer(auto_error=False)
 
@@ -50,6 +51,33 @@ async def get_current_user(
             status_code=status.HTTP_401_UNAUTHORIZED, detail="Inactive or unknown user."
         )
     return user
+
+
+async def get_current_device(
+    request: Request,
+    db: Session = Depends(get_db),
+) -> Device:
+    """Authenticate a physical ingestion device, not a human user account."""
+
+    identifier = request.headers.get("X-RealityOS-Device-ID", "").strip()
+    credential = request.headers.get("X-RealityOS-Device-Key", "").strip()
+    if not identifier or not credential:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Device credentials are required.",
+        )
+    device = db.scalar(select(Device).where(Device.device_identifier == identifier))
+    if (
+        device is None
+        or device.status != DeviceStatus.ACTIVE
+        or not verify_device_credential(credential, device.credential_hash, request.app.state.settings)
+    ):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid or revoked device credentials.",
+        )
+    device.last_seen_at = datetime.now(UTC)
+    return device
 
 
 def workspace_member(

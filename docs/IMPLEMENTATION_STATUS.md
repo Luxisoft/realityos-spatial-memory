@@ -2,12 +2,20 @@
 
 ## Verified in this workspace
 
+- Device credential, device-session capture, key rotation/revocation, device
+  workspace isolation, marketing facts, analytics and detailed Mock video-track
+  coverage were added. The current local suite has 34 passing tests.
+- The frontend production build passed after adding the administrator-only
+  Device Registry and Inventory Intelligence views.
+
 - Backend and gateway lint passed: ruff check backend tests meta-gateway
   gateway-tests.
-- Twenty-two automated tests passed locally: application tests covering
+- Thirty-four automated tests passed locally: application tests cover
   health/auth, BYTEA capture/retrieval/hash, mock processing and SAM geometry,
   highlighted evidence, missing-object and ambiguous-query handling, role
-  restriction, workspace isolation and alias search; plus five gateway tests.
+  restriction, workspace/device isolation, aliases, evidence facts and detailed
+  Mock video tracks; gateway and mocked Live transport tests cover multipart
+  Files upload/delete, route restrictions and uncertain-provider handling.
 - Admin-panel and Display production builds passed.
 - Docker Engine and Compose were installed on the target server. PostgreSQL,
   Redis, API, Celery, panel, Display and Nginx are currently running.
@@ -61,6 +69,11 @@
 
 ## Implemented but not fully environment-verified
 
+- Live SAM Video Files API upload, streaming parser, RLE persistence and cleanup
+  are implemented against the reviewed official contract but have not sent a
+  paid production video request in this workspace. An ambiguous live provider
+  result is stored as `uncertain`, never claimed as success.
+
 - Live Muse Spark, SAM and ASR clients match reviewed contracts. The production
   gateway is verified against the real Meta model catalog from FRONTEND. Paid
   image analysis and SAM segmentation ran on consented server-local test images:
@@ -72,11 +85,9 @@
 
 ## Not implemented
 
-- A user-provided 60-second video was stored as original BYTEA in production
-  and completed a Live retry after an initial transient Meta 503. It produced
-  eight representative frames and unverified observations; no long source clip
-  has yet been processed end-to-end. Streaming and audio
-  extraction/transcription remain out of scope.
+- A full end-to-end Live SAM Video run against a user-provided long clip has
+  not been performed. Streaming ingestion and audio extraction/transcription
+  from source video remain out of scope.
 - Vector retrieval abstraction and optional vector database integration.
 - Android Kotlin/Compose, DAT SDK and Mock Device Kit tests.
 - Official Ray-Ban Display toolkit and simulator validation.

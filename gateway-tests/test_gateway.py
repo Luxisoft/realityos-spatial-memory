@@ -105,18 +105,49 @@ def test_gateway_forwards_multipart_without_persisting_media() -> None:
     assert captured["authorization"] == "Bearer meta-model-key-for-tests"
 
 
-def test_gateway_only_exposes_allowlisted_routes() -> None:
+def test_gateway_exposes_only_the_required_file_routes() -> None:
     async def request() -> httpx.Response:
         app = create_app(_settings(), httpx.MockTransport(lambda _: httpx.Response(200)))
         async with httpx.AsyncClient(
             transport=httpx.ASGITransport(app=app), base_url="http://gateway.test"
         ) as client:
-            return await client.post(
+            allowed = await client.post(
                 "/v1/files",
                 headers={"X-RealityOS-Gateway-Token": "gateway-secret-for-tests"},
             )
+            denied = await client.get(
+                "/v1/files",
+                headers={"X-RealityOS-Gateway-Token": "gateway-secret-for-tests"},
+            )
+            return allowed, denied
 
-    assert asyncio.run(request()).status_code == 404
+    allowed, denied = asyncio.run(request())
+    assert allowed.status_code == 200
+    assert denied.status_code == 405
+
+
+def test_gateway_forwards_file_deletion_without_gateway_token_leakage() -> None:
+    captured: dict[str, object] = {}
+
+    def upstream(request: httpx.Request) -> httpx.Response:
+        captured["url"] = str(request.url)
+        captured["headers"] = dict(request.headers)
+        return httpx.Response(200, json={"id": "file-123", "deleted": True})
+
+    async def request() -> httpx.Response:
+        app = create_app(_settings(), httpx.MockTransport(upstream))
+        async with httpx.AsyncClient(
+            transport=httpx.ASGITransport(app=app), base_url="http://gateway.test"
+        ) as client:
+            return await client.delete(
+                "/v1/files/file-123",
+                headers={"X-RealityOS-Gateway-Token": "gateway-secret-for-tests"},
+            )
+
+    response = asyncio.run(request())
+    assert response.status_code == 200
+    assert captured["url"] == "https://api.meta.ai/v1/files/file-123"
+    assert "x-realityos-gateway-token" not in captured["headers"]
 
 
 def test_gateway_propagates_meta_error_without_changing_it() -> None:

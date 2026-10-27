@@ -10,25 +10,39 @@ from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 from PIL import Image
-from sqlalchemy import and_, func, or_, select
+from sqlalchemy import and_, desc, func, or_, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
-from app.meta import MetaModelClient, MetaProviderError
+from app.meta import (
+    MetaModelClient,
+    MetaProviderError,
+    MetaProviderUncertainError,
+    VideoTrackPrompt,
+)
 from app.models import (
     CaptureSession,
+    FactProvenance,
     JobStatus,
     MediaAsset,
     MediaAssetChunk,
     MediaKind,
     ObjectAlias,
+    ObjectFact,
     ObjectObservation,
+    ObjectTrack,
+    ObjectTrackFrame,
+    ObjectTrackSegment,
     ProcessingJob,
     ProcessingOperation,
     TrackedObject,
     VerificationStatus,
 )
-from app.video import extract_representative_frames_from_file, probe_video_file
+from app.video import (
+    extract_representative_frames_from_file,
+    materialized_video_clips,
+    probe_video_file,
+)
 
 CHUNKED_POSTGRES_BYTEA = "chunked_postgres_bytea"
 
@@ -142,9 +156,19 @@ def _candidate_ids_statement(
 
 
 def create_processing_job(
-    db: Session, media: MediaAsset, provider: str, version: str = "v1"
+    db: Session,
+    media: MediaAsset,
+    provider: str,
+    version: str = "v1",
+    *,
+    profile: str = "basic",
+    priority_terms: list[str] | None = None,
 ) -> ProcessingJob:
-    key = f"{media.capture_session_id}:{media.sha256}:{version}"
+    """Create an idempotent analysis job with an explicit processing profile."""
+
+    normalized_priorities = sorted({normalize(item) for item in (priority_terms or []) if normalize(item)})
+    priority_digest = hashlib.sha256(",".join(normalized_priorities).encode()).hexdigest()[:16]
+    key = f"{media.capture_session_id}:{media.sha256}:{version}:{profile}:{priority_digest}"
     existing = db.scalar(
         select(ProcessingJob).where(
             ProcessingJob.workspace_id == media.workspace_id,
@@ -160,6 +184,7 @@ def create_processing_job(
         idempotency_key=key,
         provider=provider,
         operation=ProcessingOperation.ANALYSIS,
+        result_metadata={"profile": profile, "priority_terms": normalized_priorities},
     )
     db.add(job)
     db.flush()
@@ -254,14 +279,20 @@ def process_job(
                     client,
                     video_segment_seconds,
                     video_frames_per_segment,
+                    job=job,
                 )
         elif media.kind == MediaKind.IMAGE:
             result_metadata = _process_image_asset(db, media, client)
         else:
             raise ValueError(f"Unsupported media kind for processing: {media.kind.value}")
         job.status = JobStatus.COMPLETED
-        job.result_metadata = result_metadata
+        job.result_metadata = {**job.result_metadata, **result_metadata}
         job.error_message = None
+        job.completed_at = datetime.now(UTC)
+    except MetaProviderUncertainError as exc:
+        job.status = JobStatus.UNCERTAIN
+        job.error_message = str(exc)[:1000]
+        job.result_metadata = {**job.result_metadata, "external_request_state": "uncertain"}
         job.completed_at = datetime.now(UTC)
     except Exception as exc:
         job.status = JobStatus.FAILED
@@ -276,6 +307,8 @@ def _process_video_asset(
     client: MetaModelClient,
     video_segment_seconds: int,
     video_frames_per_segment: int,
+    *,
+    job: ProcessingJob,
 ) -> dict[str, object]:
     with materialized_media_file(db, video) as source:
         info = probe_video_file(source)
@@ -337,7 +370,7 @@ def _process_video_asset(
                 **report,
             }
         )
-    return {
+    result: dict[str, object] = {
         "simulated": all(bool(item["simulated"]) for item in frame_results),
         "source_kind": "video",
         "duration_seconds": round(info.duration_seconds, 3),
@@ -349,6 +382,226 @@ def _process_video_asset(
             object_id for item in frame_results for object_id in item["objects_created"]
         ],
         "segmentation_count": sum(int(item["segmentation_count"]) for item in frame_results),
+    }
+    if job.result_metadata.get("profile") == "detailed":
+        result["detailed_tracking"] = _process_detailed_video_tracking(
+            db,
+            video,
+            info,
+            client,
+            job,
+            segment_seconds=video_segment_seconds,
+        )
+    return result
+
+
+def _priority_matches(name: str, terms: list[str]) -> bool:
+    normalized_name = normalize(name)
+    return any(term == normalized_name or term in normalized_name or normalized_name in term for term in terms)
+
+
+def _process_detailed_video_tracking(
+    db: Session,
+    video: MediaAsset,
+    info,
+    client: MetaModelClient,
+    job: ProcessingJob,
+    *,
+    segment_seconds: int,
+) -> dict[str, object]:
+    """Track explicitly selected objects across every decoded frame of each clip.
+
+    The original video stays in PostgreSQL; temporary faststart MP4 clips are
+    deleted by the worker and Meta Files API is used only by the live provider.
+    """
+
+    priorities = [normalize(value) for value in job.result_metadata.get("priority_terms", [])]
+    priorities = [value for value in priorities if value]
+    if not priorities:
+        return {"status": "skipped", "reason": "detailed mode requires priority_terms"}
+    rows = list(
+        db.execute(
+            select(TrackedObject, ObjectObservation, MediaAsset)
+            .join(ObjectObservation, ObjectObservation.object_id == TrackedObject.id)
+            .join(MediaAsset, MediaAsset.id == ObjectObservation.media_asset_id)
+            .where(
+                ObjectObservation.workspace_id == video.workspace_id,
+                MediaAsset.parent_asset_id == video.id,
+            )
+            .order_by(ObjectObservation.seen_at)
+        )
+    )
+    candidates: dict[uuid.UUID, tuple[TrackedObject, list[tuple[ObjectObservation, MediaAsset]]]] = {}
+    for tracked, observation, frame in rows:
+        if not _priority_matches(tracked.canonical_name, priorities):
+            continue
+        current = candidates.setdefault(tracked.id, (tracked, []))
+        current[1].append((observation, frame))
+    if not candidates:
+        return {"status": "skipped", "reason": "no priority object observed in representative frames"}
+    if len(candidates) > 16:
+        return {"status": "skipped", "reason": "more than 16 priority objects require separate jobs"}
+
+    tracks: dict[uuid.UUID, ObjectTrack] = {}
+    for object_id, (tracked, _) in candidates.items():
+        track = db.scalar(
+            select(ObjectTrack).where(
+                ObjectTrack.source_media_asset_id == video.id, ObjectTrack.object_id == object_id
+            )
+        )
+        if track is None:
+            track = ObjectTrack(
+                workspace_id=video.workspace_id,
+                object_id=object_id,
+                source_media_asset_id=video.id,
+                processing_job_id=job.id,
+                model_name="sam-3.1" if job.provider == "live" else "mock-sam-3.1",
+                status="processing",
+                metadata_json={"priority_terms": priorities},
+            )
+            db.add(track)
+            db.flush()
+        tracks[object_id] = track
+
+    last_boxes: dict[uuid.UUID, dict[str, float]] = {}
+    for object_id, track in tracks.items():
+        latest = db.scalar(
+            select(ObjectTrackFrame)
+            .where(ObjectTrackFrame.track_id == track.id, ObjectTrackFrame.visible.is_(True))
+            .order_by(desc(ObjectTrackFrame.pts_seconds))
+        )
+        if latest and latest.bounding_box:
+            last_boxes[object_id] = latest.bounding_box
+
+    total_frames = 0
+    visible_frames = 0
+    clips_processed = 0
+    with materialized_media_file(db, video) as source:
+        with materialized_video_clips(source, info, segment_seconds=segment_seconds) as clips:
+            for clip in clips:
+                prompt_by_object: dict[uuid.UUID, VideoTrackPrompt] = {}
+                for object_id, (_, observations) in candidates.items():
+                    seed = next(
+                        (
+                            (observation, frame)
+                            for observation, frame in observations
+                            if int(frame.extra_metadata.get("video_segment_index", -1))
+                            == clip.segment.index
+                            and (observation.muse_bounding_box or observation.bounding_box)
+                        ),
+                        None,
+                    )
+                    if seed:
+                        observation, frame = seed
+                        timestamp = float(frame.extra_metadata.get("video_timestamp_seconds", clip.segment.start_seconds))
+                        relative = max(0.0, timestamp - clip.segment.start_seconds)
+                        frame_index = min(
+                            clip.frame_count - 1,
+                            int(relative / max(clip.segment.duration_seconds, 0.001) * clip.frame_count),
+                        )
+                        prompt_by_object[object_id] = VideoTrackPrompt(
+                            object_id=str(tracks[object_id].id),
+                            frame_index=frame_index,
+                            bounding_box=observation.muse_bounding_box or observation.bounding_box,
+                        )
+                    elif object_id in last_boxes:
+                        prompt_by_object[object_id] = VideoTrackPrompt(
+                            object_id=str(tracks[object_id].id),
+                            frame_index=0,
+                            bounding_box=last_boxes[object_id],
+                        )
+                if not prompt_by_object:
+                    continue
+                segments: dict[uuid.UUID, ObjectTrackSegment] = {}
+                for object_id in prompt_by_object:
+                    track = tracks[object_id]
+                    segment = db.scalar(
+                        select(ObjectTrackSegment).where(
+                            ObjectTrackSegment.track_id == track.id,
+                            ObjectTrackSegment.segment_index == clip.segment.index,
+                        )
+                    )
+                    if segment is None:
+                        segment = ObjectTrackSegment(
+                            track_id=track.id,
+                            segment_index=clip.segment.index,
+                            start_pts_seconds=clip.segment.start_seconds,
+                            end_pts_seconds=clip.segment.start_seconds + clip.segment.duration_seconds,
+                            request_state="submitted",
+                        )
+                        db.add(segment)
+                        db.flush()
+                    segments[object_id] = segment
+                # The live implementation uploads once, streams once and never retries this call.
+                tracking = client.track_video(
+                    clip.path,
+                    width=info.width or 1,
+                    height=info.height or 1,
+                    frame_count=clip.frame_count,
+                    prompts=list(prompt_by_object.values()),
+                )
+                result_by_track_frame = {
+                    (item.object_id, item.frame_index): item for item in tracking.frames
+                }
+                for object_id, segment in segments.items():
+                    track = tracks[object_id]
+                    segment.provider_file_id = tracking.provider_file_id
+                    segment.request_state = "completed"
+                    existing = set(
+                        db.scalars(
+                            select(ObjectTrackFrame.source_frame_index).where(
+                                ObjectTrackFrame.track_id == track.id,
+                                ObjectTrackFrame.source_frame_index >= clip.source_frame_offset,
+                                ObjectTrackFrame.source_frame_index
+                                < clip.source_frame_offset + clip.frame_count,
+                            )
+                        )
+                    )
+                    for frame_index in range(clip.frame_count):
+                        source_index = clip.source_frame_offset + frame_index
+                        if source_index in existing:
+                            continue
+                        item = result_by_track_frame.get((str(track.id), frame_index))
+                        rel_pts = (
+                            clip.frame_pts_seconds[frame_index]
+                            if frame_index < len(clip.frame_pts_seconds)
+                            else frame_index
+                            / max(info.frame_rate or (clip.frame_count / clip.segment.duration_seconds), 0.001)
+                        )
+                        pts = clip.segment.start_seconds + rel_pts
+                        db.add(
+                            ObjectTrackFrame(
+                                track_id=track.id,
+                                track_segment_id=segment.id,
+                                source_frame_index=source_index,
+                                pts_seconds=pts,
+                                visible=item is not None,
+                                bounding_box=item.bounding_box if item else None,
+                                mask_rle=item.mask_rle if item else None,
+                                mask_width=item.mask_width if item else None,
+                                mask_height=item.mask_height if item else None,
+                                confidence=item.confidence if item else None,
+                                simulated=tracking.simulated,
+                            )
+                        )
+                        total_frames += 1
+                        if item and item.bounding_box:
+                            visible_frames += 1
+                            last_boxes[object_id] = item.bounding_box
+                            track.last_seen_pts_seconds = pts
+                            base_time = video.captured_at or video.created_at
+                            track.last_seen_at = base_time + timedelta(seconds=pts)
+                clips_processed += 1
+    for track in tracks.values():
+        track.status = "completed"
+    return {
+        "status": "completed",
+        "tracks": len(tracks),
+        "clips_processed": clips_processed,
+        "frames_persisted": total_frames,
+        "visible_frames": visible_frames,
+        "simulated": job.provider == "mock",
+        "mask_encoding": "realityos-rle-v1",
     }
 
 
@@ -421,6 +674,35 @@ def _process_image_asset(
             )
             db.add(observation)
             db.flush()
+            fact_summary = dict(tracked.attributes or {})
+            for fact in detection.facts:
+                value = fact.value_text or fact.normalized_value
+                db.add(
+                    ObjectFact(
+                        workspace_id=media.workspace_id,
+                        object_id=tracked.id,
+                        observation_id=observation.id,
+                        fact_type=fact.fact_type,
+                        value_text=fact.value_text,
+                        normalized_value=normalize(fact.normalized_value or value or "") or None,
+                        numeric_value=fact.numeric_value,
+                        unit=fact.unit,
+                        confidence=fact.confidence,
+                        provenance=FactProvenance(fact.provenance),
+                        evidence_geometry=detection.bounding_box,
+                        model_name=analysis.model,
+                        verification_status=(
+                            VerificationStatus.VERIFIED
+                            if analysis.simulated
+                            else VerificationStatus.PENDING
+                        ),
+                    )
+                )
+                if fact.fact_type != "visible_count" and value:
+                    fact_summary[fact.fact_type] = value
+                elif fact.fact_type == "visible_count" and fact.numeric_value is not None:
+                    fact_summary["visible_count"] = fact.numeric_value
+            tracked.attributes = fact_summary
             created.append(str(observation.id))
         media.extra_metadata = {**media.extra_metadata, "simulated": analysis.simulated}
         return {

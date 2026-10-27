@@ -5,8 +5,10 @@ import base64
 import json
 import math
 import time
+import zlib
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Any
 
 import httpx
@@ -20,14 +22,19 @@ from meta_sam_parser import (
     decode_mask_to_raster,
     image_segmentation_format,
     parse_responses_stream,
+    video_segmentation_format,
 )
 
 from app.config import Settings
-from app.schemas import ImageAnalysis, MetaDetection, QueryInterpretation
+from app.schemas import ImageAnalysis, MetaDetection, MetaFact, QueryInterpretation
 
 
 class MetaProviderError(RuntimeError):
     """Safe error raised when Meta cannot provide an inference."""
+
+
+class MetaProviderUncertainError(MetaProviderError):
+    """A provider request may have run, but the final result cannot be trusted."""
 
 
 @dataclass(frozen=True)
@@ -49,6 +56,32 @@ class SegmentationResult:
     mask_height: int
 
 
+@dataclass(frozen=True)
+class VideoTrackPrompt:
+    object_id: str
+    frame_index: int
+    bounding_box: dict[str, float]
+
+
+@dataclass(frozen=True)
+class VideoTrackFrame:
+    object_id: str
+    frame_index: int
+    bounding_box: dict[str, float] | None
+    mask_rle: bytes | None
+    mask_width: int | None
+    mask_height: int | None
+    confidence: float | None
+
+
+@dataclass(frozen=True)
+class VideoTrackingResult:
+    model: str
+    simulated: bool
+    provider_file_id: str | None
+    frames: list[VideoTrackFrame]
+
+
 class MetaModelClient(ABC):
     @abstractmethod
     def analyze_image(self, image: bytes, mime_type: str, context: str = "") -> ImageAnalysis: ...
@@ -64,6 +97,17 @@ class MetaModelClient(ABC):
         height: int,
         bounding_box: dict[str, float],
     ) -> SegmentationResult | None: ...
+
+    @abstractmethod
+    def track_video(
+        self,
+        video_path: Path,
+        *,
+        width: int,
+        height: int,
+        frame_count: int,
+        prompts: list[VideoTrackPrompt],
+    ) -> VideoTrackingResult: ...
 
     @abstractmethod
     def transcribe_wav(self, audio: bytes) -> Transcription: ...
@@ -100,6 +144,33 @@ class MockMetaModelClient(MetaModelClient):
                     bounding_box={"x": 0.18, "y": 0.22, "width": 0.57, "height": 0.49},
                     spatial_description=f"Simulated: {label}, on a black box.",
                     relationships=[{"relation": "on", "object": "black box"}],
+                    facts=[
+                        MetaFact(
+                            fact_type="brand",
+                            value_text="RealityOS Workshop",
+                            normalized_value="realityos workshop",
+                            confidence=0.93,
+                            provenance="visible_text",
+                        ),
+                        MetaFact(
+                            fact_type="condition",
+                            value_text="used",
+                            normalized_value="used",
+                            confidence=0.78,
+                        ),
+                        MetaFact(
+                            fact_type="usage_state",
+                            value_text="stored",
+                            normalized_value="stored",
+                            confidence=0.82,
+                        ),
+                        MetaFact(
+                            fact_type="visible_count",
+                            numeric_value=1,
+                            unit="item",
+                            confidence=0.96,
+                        ),
+                    ],
                 )
             ],
         )
@@ -136,6 +207,38 @@ class MockMetaModelClient(MetaModelClient):
             mask=bytes(pixels),
             mask_width=width,
             mask_height=height,
+        )
+
+    def track_video(
+        self,
+        video_path: Path,
+        *,
+        width: int,
+        height: int,
+        frame_count: int,
+        prompts: list[VideoTrackPrompt],
+    ) -> VideoTrackingResult:
+        """Deterministic local propagation for detailed-mode tests; makes no network calls."""
+
+        frames: list[VideoTrackFrame] = []
+        for prompt in prompts:
+            for frame_index in range(max(0, frame_count)):
+                frames.append(
+                    VideoTrackFrame(
+                        object_id=prompt.object_id,
+                        frame_index=frame_index,
+                        bounding_box=prompt.bounding_box,
+                        mask_rle=_rectangle_rle(width, height, prompt.bounding_box),
+                        mask_width=width,
+                        mask_height=height,
+                        confidence=0.94,
+                    )
+                )
+        return VideoTrackingResult(
+            model="mock-sam-3.1",
+            simulated=True,
+            provider_file_id=None,
+            frames=frames,
         )
 
     def transcribe_wav(self, audio: bytes) -> Transcription:
@@ -240,10 +343,16 @@ class LiveMetaModelClient(MetaModelClient):
             "Inspect this workspace image. Return only JSON with a detections array. "
             "Every human-readable detection field (label, category, spatial_description, "
             "relationship and related object) must use English, except "
-            "for a visible brand, model, or technical acronym. Each detection needs label, "
+            "for a visible brand, model, technical acronym, or exact visible text. Each detection needs label, "
             "optional category, confidence from 0 to 1, bounding_box {x,y,width,height} "
             "normalized 0..1, spatial_description, and optional relationships as objects "
-            "with relation and object keys. Do not claim locations that cannot be seen."
+            "with relation and object keys. Include optional facts only when supported by the image: "
+            "brand, manufacturer, model, product_line, visible_text, color, condition, usage_state, "
+            "packaging, or visible_count. A fact has fact_type, value_text or numeric_value, optional "
+            "normalized_value and unit, confidence, and provenance (visible_text, visual, temporal). "
+            "Use visible_text for brands/models/text only when text is legible; never guess a brand or model. "
+            "Use usage_state only for directly observed state such as stored, charging, carried, or in_use; "
+            "omit unknown facts. Do not claim locations or intended use that cannot be seen."
         )
         body = {
             "model": "muse-spark-1.3",
@@ -430,6 +539,219 @@ class LiveMetaModelClient(MetaModelClient):
         }
         return self._sam_result_from_events(self._stream_events(body), width, height)
 
+    def _file_request_once(self, method: str, path: str, **kwargs: Any) -> httpx.Response:
+        """Never replay submitted video/file requests: a second call can be billable."""
+
+        try:
+            response = httpx.request(
+                method,
+                f"{self.base_url}/{path.lstrip('/')}",
+                headers=self.headers | kwargs.pop("headers", {}),
+                timeout=self.settings.meta_video_timeout_seconds,
+                **kwargs,
+            )
+        except httpx.HTTPError as exc:
+            raise MetaProviderUncertainError("Meta video request connection failed.") from exc
+        if response.status_code in {408, 429, 500, 502, 503, 504}:
+            raise MetaProviderUncertainError(
+                f"Meta video request returned {response.status_code}; result state is uncertain."
+            )
+        try:
+            response.raise_for_status()
+        except httpx.HTTPError as exc:
+            raise MetaProviderError(
+                f"Meta Model API returned {response.status_code}: {self._safe_error(response)}"
+            ) from exc
+        return response
+
+    def _stream_events_once(self, body: dict[str, Any]) -> list[dict[str, Any]]:
+        """Read one SAM Video stream without retrying it after any accepted request."""
+
+        try:
+            with httpx.stream(
+                "POST",
+                f"{self.base_url}/responses",
+                headers=self.headers | {"Accept": "text/event-stream"},
+                timeout=self.settings.meta_video_timeout_seconds,
+                json=body,
+            ) as response:
+                if response.status_code in {408, 429, 500, 502, 503, 504}:
+                    response.read()
+                    raise MetaProviderUncertainError(
+                        f"Meta SAM Video returned {response.status_code}; result state is uncertain."
+                    )
+                if response.status_code >= 400:
+                    response.read()
+                    raise MetaProviderError(
+                        f"Meta Model API returned {response.status_code}: {self._safe_error(response)}"
+                    )
+                events: list[dict[str, Any]] = []
+                for line in response.iter_lines():
+                    if not line or not line.startswith("data: "):
+                        continue
+                    data = line.removeprefix("data: ")
+                    if data != "[DONE]":
+                        event = json.loads(data)
+                        if isinstance(event, dict):
+                            events.append(event)
+                return events
+        except MetaProviderError:
+            raise
+        except (httpx.HTTPError, json.JSONDecodeError) as exc:
+            raise MetaProviderUncertainError("Meta SAM Video stream ended without a trusted result.") from exc
+
+    @staticmethod
+    def _video_result_from_events(
+        events: list[dict[str, Any]], width: int, height: int, provider_file_id: str
+    ) -> VideoTrackingResult:
+        async def source():
+            for event in events:
+                yield event
+
+        try:
+            parsed = parse_responses_stream(source(), video_segmentation_format())
+            result = asyncio.run(parsed.final_result())
+        except Exception as exc:
+            raise MetaProviderUncertainError("Meta SAM Video returned an invalid stream.") from exc
+        boxes: dict[tuple[str, int], SegmentationBoxRecord] = {
+            (record.object_id, record.frame.frame_index): record
+            for record in result.records
+            if isinstance(record, SegmentationBoxRecord) and record.frame is not None
+        }
+        frames: list[VideoTrackFrame] = []
+        for record in result.records:
+            if not isinstance(record, SegmentationMaskRecord):
+                continue
+            frame_index = record.frame.frame_index if record.frame else record.identity.frame_index
+            if frame_index is None:
+                continue
+            box = boxes.get((record.object_id, frame_index))
+            if box is None:
+                continue
+            try:
+                raster = decode_mask_to_raster(record.mask)
+            except Exception as exc:
+                raise MetaProviderUncertainError("Meta SAM Video returned an unreadable mask.") from exc
+            frames.append(
+                VideoTrackFrame(
+                    object_id=record.object_id,
+                    frame_index=frame_index,
+                    bounding_box={
+                        "x": max(0.0, min(1.0, box.left / width)),
+                        "y": max(0.0, min(1.0, box.top / height)),
+                        "width": max(0.0, min(1.0, (box.right - box.left) / width)),
+                        "height": max(0.0, min(1.0, (box.bottom - box.top) / height)),
+                    },
+                    mask_rle=_raster_rle(raster),
+                    mask_width=record.mask.width,
+                    mask_height=record.mask.height,
+                    confidence=record.confidence if record.confidence is not None else box.confidence,
+                )
+            )
+        return VideoTrackingResult("sam-3.1", False, provider_file_id, frames)
+
+    def track_video(
+        self,
+        video_path: Path,
+        *,
+        width: int,
+        height: int,
+        frame_count: int,
+        prompts: list[VideoTrackPrompt],
+    ) -> VideoTrackingResult:
+        if not prompts:
+            return VideoTrackingResult("sam-3.1", False, None, [])
+        file_id: str | None = None
+        try:
+            with video_path.open("rb") as handle:
+                uploaded = self._file_request_once(
+                    "POST",
+                    "files",
+                    data={
+                        "purpose": "user_data",
+                        "expires_after[anchor]": "created_at",
+                        "expires_after[seconds]": "3600",
+                    },
+                    files={"file": (video_path.name, handle, "video/mp4")},
+                ).json()
+            file_id = uploaded.get("id")
+            if not isinstance(file_id, str) or not file_id.startswith("file-"):
+                raise MetaProviderUncertainError("Meta Files API returned no valid file ID.")
+            # SAM's official prompt grammar accepts only a non-negative integer
+            # object ID. Keep RealityOS' UUID/string track ID local and map the
+            # small, per-request SAM ID back before the result leaves this client.
+            sam_to_track_id: dict[str, str] = {}
+            object_prompts: list[PromptObject] = []
+            for sam_object_id, prompt in enumerate(prompts[:16]):
+                sam_to_track_id[str(sam_object_id)] = prompt.object_id
+                box = prompt.bounding_box
+                left = max(0, min(width - 1, int(box["x"] * width)))
+                top = max(0, min(height - 1, int(box["y"] * height)))
+                right = max(left + 1, min(width, math.ceil((box["x"] + box["width"]) * width)))
+                bottom = max(top + 1, min(height, math.ceil((box["y"] + box["height"]) * height)))
+                object_prompts.append(
+                    PromptObject(
+                        id=sam_object_id,
+                        prompts=[
+                            FramePrompt(
+                                frame=max(0, min(frame_count - 1, prompt.frame_index)),
+                                box=PromptBox(left=left, top=top, right=right, bottom=bottom),
+                            )
+                        ],
+                    )
+                )
+            body = {
+                "model": "sam-3.1",
+                "store": False,
+                "stream": True,
+                "metadata": {
+                    "mask_encoding": "one_bit",
+                    "include_confidence": "true",
+                    "propagation_direction": "both",
+                },
+                "input": [
+                    {
+                        "type": "message",
+                        "role": "user",
+                        "content": [
+                            {
+                                "type": "input_text",
+                                "text": build_object_prompt(
+                                    size=(width, height), objects=object_prompts
+                                ),
+                            },
+                            {"type": "input_video", "file_id": file_id},
+                        ],
+                    }
+                ],
+            }
+            result = self._video_result_from_events(
+                self._stream_events_once(body), width, height, file_id
+            )
+            return VideoTrackingResult(
+                model=result.model,
+                simulated=result.simulated,
+                provider_file_id=result.provider_file_id,
+                frames=[
+                    VideoTrackFrame(
+                        object_id=sam_to_track_id.get(str(frame.object_id), frame.object_id),
+                        frame_index=frame.frame_index,
+                        bounding_box=frame.bounding_box,
+                        mask_rle=frame.mask_rle,
+                        mask_width=frame.mask_width,
+                        mask_height=frame.mask_height,
+                        confidence=frame.confidence,
+                    )
+                    for frame in result.frames
+                ],
+            )
+        finally:
+            if file_id:
+                try:
+                    self._file_request_once("DELETE", f"files/{file_id}")
+                except MetaProviderError:
+                    pass
+
     def transcribe_wav(self, audio: bytes) -> Transcription:
         files = {
             "request": (
@@ -463,3 +785,35 @@ def build_meta_client(settings: Settings) -> MetaModelClient:
     if settings.meta_mode == "live":
         return LiveMetaModelClient(settings)
     raise MetaProviderError("META_MODE must be either 'mock' or 'live'.")
+
+
+def _raster_rle(raster: bytes) -> bytes:
+    """Store a compact, self-identifying binary-mask run-length encoding."""
+
+    if not raster:
+        return b"RLE1\x00"
+    runs: list[int] = []
+    previous = raster[0]
+    length = 1
+    for value in raster[1:]:
+        if value == previous:
+            length += 1
+        else:
+            runs.append(length)
+            previous = value
+            length = 1
+    runs.append(length)
+    return b"RLE1" + zlib.compress(
+        json.dumps({"first": int(raster[0] != 0), "runs": runs}, separators=(",", ":")).encode()
+    )
+
+
+def _rectangle_rle(width: int, height: int, box: dict[str, float]) -> bytes:
+    pixels = bytearray(width * height)
+    left = max(0, min(width - 1, int(float(box["x"]) * width)))
+    top = max(0, min(height - 1, int(float(box["y"]) * height)))
+    right = max(left + 1, min(width, math.ceil((float(box["x"]) + float(box["width"])) * width)))
+    bottom = max(top + 1, min(height, math.ceil((float(box["y"]) + float(box["height"])) * height)))
+    for row in range(top, bottom):
+        pixels[row * width + left : row * width + right] = b"\x01" * (right - left)
+    return _raster_rle(bytes(pixels))

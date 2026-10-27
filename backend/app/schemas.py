@@ -67,6 +67,53 @@ class SessionCreate(BaseModel):
     consent_confirmed: bool
 
 
+class DeviceCreate(BaseModel):
+    workspace_id: uuid.UUID
+    device_identifier: str = Field(min_length=3, max_length=96, pattern=r"^[A-Za-z0-9._:-]+$")
+    label: str = Field(min_length=2, max_length=160)
+    metadata: dict = Field(default_factory=dict)
+
+
+class DeviceAssignmentCreate(BaseModel):
+    operator_label: str = Field(min_length=1, max_length=160)
+    external_reference: str | None = Field(default=None, max_length=160)
+    notice_version: str = Field(min_length=1, max_length=80)
+
+
+class DeviceResponse(FromAttributes):
+    id: uuid.UUID
+    workspace_id: uuid.UUID
+    device_identifier: str
+    label: str
+    status: str
+    last_seen_at: datetime | None
+    revoked_at: datetime | None
+    metadata: dict = Field(default_factory=dict)
+
+
+class DeviceEnrollmentResponse(DeviceResponse):
+    device_key: str
+
+
+class DeviceAssignmentResponse(FromAttributes):
+    id: uuid.UUID
+    device_id: uuid.UUID
+    operator_label: str
+    external_reference: str | None
+    effective_from: datetime
+    effective_to: datetime | None
+    notice_version: str
+
+
+class DeviceSessionCreate(BaseModel):
+    zone_id: uuid.UUID | None = None
+
+
+class ProcessingRequest(BaseModel):
+    profile: Literal["basic", "detailed"] = "basic"
+    priority_terms: list[str] = Field(default_factory=list, max_length=16)
+
+
 class SessionResponse(FromAttributes):
     id: uuid.UUID
     workspace_id: uuid.UUID
@@ -139,6 +186,61 @@ class ObservationResponse(FromAttributes):
     verification_status: str
 
 
+class ObjectFactResponse(FromAttributes):
+    id: uuid.UUID
+    object_id: uuid.UUID
+    observation_id: uuid.UUID | None
+    fact_type: str
+    value_text: str | None
+    normalized_value: str | None
+    numeric_value: float | None
+    unit: str | None
+    confidence: float
+    provenance: str
+    evidence_geometry: dict | None
+    model_name: str
+    verification_status: str
+
+
+class ObjectFactUpdate(BaseModel):
+    verification_status: Literal["verified", "rejected"]
+    value_text: str | None = Field(default=None, max_length=500)
+    normalized_value: str | None = Field(default=None, max_length=500)
+
+
+class InventoryAnalyticsResponse(BaseModel):
+    workspace_id: uuid.UUID
+    verified_object_count: int
+    provisional_fact_count: int
+    brands: list[dict]
+    categories: list[dict]
+    conditions: list[dict]
+    usage_states: list[dict]
+    devices: list[dict]
+
+
+class TrackResponse(FromAttributes):
+    id: uuid.UUID
+    object_id: uuid.UUID
+    source_media_asset_id: uuid.UUID
+    model_name: str
+    status: str
+    last_seen_at: datetime | None
+    last_seen_pts_seconds: float | None
+    metadata: dict = Field(default_factory=dict)
+
+
+class TrackFrameResponse(FromAttributes):
+    id: uuid.UUID
+    track_id: uuid.UUID
+    source_frame_index: int
+    pts_seconds: float
+    visible: bool
+    bounding_box: dict | None
+    confidence: float | None
+    simulated: bool
+
+
 class QueryRequest(BaseModel):
     workspace_id: uuid.UUID
     question: str = Field(min_length=2, max_length=500)
@@ -164,6 +266,29 @@ class QueryResponse(BaseModel):
     simulated: bool = False
 
 
+class MetaFact(BaseModel):
+    """A bounded, evidence-linked visual claim returned by the analysis provider."""
+
+    fact_type: Literal[
+        "brand",
+        "manufacturer",
+        "model",
+        "product_line",
+        "visible_text",
+        "color",
+        "condition",
+        "usage_state",
+        "packaging",
+        "visible_count",
+    ]
+    value_text: str | None = Field(default=None, max_length=500)
+    normalized_value: str | None = Field(default=None, max_length=500)
+    numeric_value: float | None = Field(default=None, ge=0)
+    unit: str | None = Field(default=None, max_length=40)
+    confidence: float = Field(ge=0, le=1)
+    provenance: Literal["visible_text", "visual", "temporal"] = "visual"
+
+
 class MetaDetection(BaseModel):
     label: str
     category: str | None = Field(default=None, max_length=120)
@@ -171,6 +296,7 @@ class MetaDetection(BaseModel):
     bounding_box: dict[str, float] | None = None
     spatial_description: str | None = None
     relationships: list[dict[str, str]] = Field(default_factory=list)
+    facts: list[MetaFact] = Field(default_factory=list, max_length=16)
 
 
 class ImageAnalysis(BaseModel):

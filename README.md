@@ -17,9 +17,16 @@ session; query endpoints are evidence-only and never start a recording.
   RBAC and authorized binary media retrieval.
 - Original-media hashing/deduplication, logical objects, observations, history,
   verified last-seen retrieval and PNG highlights.
+- Device-originated capture with a workspace-bound device ID, a rotatable
+  server-issued upload key and optional administrator-managed operator label.
+- Evidence-backed inventory intelligence for visible brand, model, count,
+  condition and observed use, with confidence, provenance and review status.
 - MP4/MOV/WebM ingestion: the original clip remains PostgreSQL BYTEA; FFmpeg
   partitions long clips logically and extracts representative JPEG frames per
   configured segment, linked to their parent video and approximate timestamps.
+- Explicit detailed video mode follows administrator-selected priority objects
+  with SAM 3.1 Video and stores per-frame geometry, visibility and RLE masks
+  without duplicating every video frame as an image asset.
 - Deterministic Mock Meta provider and a Live client for Muse Spark 1.3, SAM
   3.1 and Muse Voice Transcribe. Muse identifies the catalog at registration;
   SAM is requested explicitly only to refine a selected, verified observation.
@@ -35,7 +42,7 @@ session; query endpoints are evidence-only and never start a recording.
 Requirements: Python 3.12+, Node 22+, Docker Compose for the complete stack.
 
     cp .env.example .env
-    # Set POSTGRES_PASSWORD and JWT_SECRET to unique values.
+    # Set POSTGRES_PASSWORD, JWT_SECRET and DEVICE_CREDENTIAL_PEPPER to unique values.
     make install
     make lint
     make test
@@ -57,6 +64,11 @@ request and labels results simulated. For META_MODE=live, use either direct
 `META_GATEWAY_BASE_URL` plus `META_GATEWAY_TOKEN`; the latter keeps the Meta key
 on the gateway host. The application does not silently fall back to mock when
 Live fails.
+
+Detailed SAM Video uploads only temporary MP4 clips to Meta Files API with
+`purpose=user_data`, expiry and deletion. The original PostgreSQL BYTEA video
+remains RealityOS's source of truth. An uncertain provider submission is not
+retried automatically.
 
 ## Quality checks
 
@@ -104,6 +116,11 @@ the same observation reuse its idempotent job.
 Evidence is scoped to a workspace. A query says “last seen”; it does not assert
 that an item remains in place. No customer media, credentials or generated
 images are included in the repository.
+
+Human logins are administrative only. A device identifies itself with
+`X-RealityOS-Device-ID` and authorizes uploads with its separate
+`X-RealityOS-Device-Key`; its public ID is provenance, not a human identity.
+Only workspace administrators can inspect device/operator labels or analytics.
 
 ## Documentation
 

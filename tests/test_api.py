@@ -94,6 +94,121 @@ def test_capture_is_bytea_backed_and_hash_is_stable(client, auth_headers):
     assert capture["byte_size"] == len(original.content)
 
 
+def test_device_ingestion_has_no_human_login_and_admin_gets_inventory_facts(client, auth_headers):
+    workspace_id = create_workspace(client, auth_headers)
+    enrollment = client.post(
+        "/v1/admin/devices",
+        headers=auth_headers,
+        json={
+            "workspace_id": workspace_id,
+            "device_identifier": "workbench-cam-01",
+            "label": "Workbench camera",
+            "metadata": {"kind": "camera"},
+        },
+    )
+    assert enrollment.status_code == 201, enrollment.text
+    enrolled = enrollment.json()
+    assert enrolled["device_key"]
+    assert enrolled["metadata"] == {"kind": "camera"}
+    assignment = client.post(
+        f"/v1/admin/devices/{enrolled['id']}/assignments",
+        headers=auth_headers,
+        json={
+            "operator_label": "Electronics bench",
+            "external_reference": "station-7",
+            "notice_version": "operations-v1",
+        },
+    )
+    assert assignment.status_code == 201, assignment.text
+    device_headers = {
+        "X-RealityOS-Device-ID": "workbench-cam-01",
+        "X-RealityOS-Device-Key": enrolled["device_key"],
+    }
+    session = client.post("/v1/device/sessions", headers=device_headers, json={})
+    assert session.status_code == 201, session.text
+    upload = client.post(
+        "/v1/device/captures",
+        headers=device_headers,
+        data={"session_id": session.json()["id"]},
+        files={"file": ("yellow_drill.png", png_bytes(), "image/png")},
+    )
+    assert upload.status_code == 201, upload.text
+    job = client.post(
+        f"/v1/device/captures/{upload.json()['id']}/process",
+        headers=device_headers,
+        json={"profile": "basic"},
+    )
+    assert job.status_code == 200, job.text
+    with client.app.state.database.session_factory() as db:
+        process_job(db, uuid.UUID(job.json()["id"]), MockMetaModelClient())
+        db.commit()
+    answer = client.post(
+        "/v1/device/queries",
+        headers=device_headers,
+        json={"workspace_id": workspace_id, "question": "Where is the yellow drill?"},
+    )
+    assert answer.status_code == 200, answer.text
+    assert answer.json()["found"] is True
+    assert answer.json()["can_refine"] is False
+    evidence = client.get(answer.json()["highlighted_media_url"], headers=device_headers)
+    assert evidence.status_code == 200
+    with client.app.state.database.session_factory() as db:
+        tracked = db.scalar(select(TrackedObject).where(TrackedObject.workspace_id == uuid.UUID(workspace_id)))
+        assert tracked is not None
+        object_id = tracked.id
+    facts = client.get(f"/v1/objects/{object_id}/facts", headers=auth_headers)
+    assert facts.status_code == 200
+    assert {item["fact_type"] for item in facts.json()} >= {"brand", "condition", "visible_count"}
+    analytics = client.get(
+        "/v1/admin/analytics/inventory", headers=auth_headers, params={"workspace_id": workspace_id}
+    )
+    assert analytics.status_code == 200, analytics.text
+    report = analytics.json()
+    assert report["verified_object_count"] == 1
+    assert report["brands"] == [{"value": "realityos workshop", "count": 1}]
+    assert report["devices"][0]["capture_sessions"] == 1
+
+
+def test_device_key_rotation_revoke_and_workspace_boundary(client, auth_headers):
+    workspace_id = create_workspace(client, auth_headers)
+    enrolled = client.post(
+        "/v1/admin/devices",
+        headers=auth_headers,
+        json={
+            "workspace_id": workspace_id,
+            "device_identifier": "private-device-01",
+            "label": "Private device",
+        },
+    ).json()
+    old_headers = {
+        "X-RealityOS-Device-ID": enrolled["device_identifier"],
+        "X-RealityOS-Device-Key": enrolled["device_key"],
+    }
+    rotated = client.post(f"/v1/admin/devices/{enrolled['id']}/rotate", headers=auth_headers)
+    assert rotated.status_code == 200
+    assert client.post("/v1/device/sessions", headers=old_headers, json={}).status_code == 401
+    new_headers = {
+        "X-RealityOS-Device-ID": enrolled["device_identifier"],
+        "X-RealityOS-Device-Key": rotated.json()["device_key"],
+    }
+    other_response = client.post(
+        "/v1/workspaces",
+        headers=auth_headers,
+        json={"name": "Other RealityOS workshop", "description": "Isolated workspace"},
+    )
+    assert other_response.status_code == 201, other_response.text
+    other = other_response.json()["id"]
+    denied = client.post(
+        "/v1/device/queries",
+        headers=new_headers,
+        json={"workspace_id": other, "question": "Where is anything?"},
+    )
+    assert denied.status_code == 403
+    revoked = client.post(f"/v1/admin/devices/{enrolled['id']}/revoke", headers=auth_headers)
+    assert revoked.status_code == 200
+    assert client.post("/v1/device/sessions", headers=new_headers, json={}).status_code == 401
+
+
 def test_query_returns_last_verified_evidence_and_highlight(client, auth_headers):
     workspace_id = create_workspace(client, auth_headers)
     capture_id, _ = register_and_process(client, auth_headers, workspace_id)

@@ -2,9 +2,10 @@ import { ChangeEvent, FormEvent, useEffect, useState } from "react";
 import { createRoot } from "react-dom/client";
 import { apiUrl, request, type QueryResult, type Tokens, type Workspace, type Zone } from "./api";
 import { LocationMap, Objects } from "./explorer";
+import { DeviceRegistry, InventoryIntelligence } from "./operations";
 import "./styles.css";
 
-type Page = "inicio" | "registrar" | "consultar" | "objetos" | "mapa";
+type Page = "inicio" | "registrar" | "consultar" | "objetos" | "mapa" | "inteligencia" | "dispositivos";
 
 const pages: { id: Page; label: string }[] = [
   { id: "inicio", label: "Home" },
@@ -12,6 +13,8 @@ const pages: { id: Page; label: string }[] = [
   { id: "consultar", label: "Query" },
   { id: "objetos", label: "Objects" },
   { id: "mapa", label: "Map" },
+  { id: "inteligencia", label: "Intelligence" },
+  { id: "dispositivos", label: "Devices" },
 ];
 
 function App() {
@@ -78,6 +81,8 @@ function App() {
         {page === "consultar" && <Query workspaceId={workspaceId} token={token} />}
         {page === "objetos" && <Objects workspaceId={workspaceId} token={token} />}
         {page === "mapa" && <LocationMap workspaceId={workspaceId} token={token} />}
+        {page === "inteligencia" && <InventoryIntelligence workspaceId={workspaceId} token={token} />}
+        {page === "dispositivos" && <DeviceRegistry workspaceId={workspaceId} token={token} />}
       </section>
     </main>
   );
@@ -121,6 +126,8 @@ function Register({ workspaceId, token }: { workspaceId: string; token: string }
   const [zones, setZones] = useState<Zone[]>([]);
   const [zoneId, setZoneId] = useState("");
   const [file, setFile] = useState<File | null>(null);
+  const [profile, setProfile] = useState<"basic" | "detailed">("basic");
+  const [priorityTerms, setPriorityTerms] = useState("");
   const [status, setStatus] = useState("Choose a location and media file to start an explicit capture.");
   useEffect(() => {
     if (!workspaceId) return;
@@ -134,13 +141,15 @@ function Register({ workspaceId, token }: { workspaceId: string; token: string }
       const session = await request<{ id: string }>("/v1/sessions", token, { method: "POST", body: JSON.stringify({ workspace_id: workspaceId, zone_id: zoneId || null, consent_confirmed: true }) });
       const body = new FormData(); body.append("session_id", session.id); body.append("file", file);
       const capture = await request<{ id: string }>("/v1/captures", token, { method: "POST", body });
-      const job = await request<{ id: string }> (`/v1/captures/${capture.id}/process`, token, { method: "POST" });
+      const job = await request<{ id: string }> (`/v1/captures/${capture.id}/process`, token, { method: "POST", body: JSON.stringify({ profile, priority_terms: priorityTerms.split(",").map((term) => term.trim()).filter(Boolean) }) });
       await request(`/v1/sessions/${session.id}/close`, token, { method: "POST" });
       setStatus(`Capture stored in PostgreSQL. Job ${job.id.slice(0, 8)} is queued.`);
     } catch (reason) { setStatus(reason instanceof Error ? reason.message : "Registration failed."); }
   }
   return <section className="panel"><p className="eyebrow">REGISTER / CONSENT ACTIVE</p><h1>New visual evidence</h1>
     <form className="capture-form" onSubmit={capture}><label>Location<select value={zoneId} onChange={(event) => setZoneId(event.target.value)}><option value="">No location detail</option>{zones.map((zone) => <option key={zone.id} value={zone.id}>{zone.name}</option>)}</select></label>
+    <label>Processing profile<select value={profile} onChange={(event) => setProfile(event.target.value as "basic" | "detailed")}><option value="basic">Basic · Muse Spark catalog</option><option value="detailed">Detailed · priority tracking</option></select></label>
+    {profile === "detailed" && <label>Priority object terms<input value={priorityTerms} onChange={(event) => setPriorityTerms(event.target.value)} placeholder="yellow drill, battery charger" /><small>Detailed tracking is an explicit paid processing request. Separate terms with commas.</small></label>}
     <label className="dropzone">Original evidence<input type="file" accept="image/jpeg,image/png,image/webp,video/mp4,video/quicktime,video/webm" onChange={(event: ChangeEvent<HTMLInputElement>) => setFile(event.target.files?.[0] ?? null)} required /><strong>{file?.name ?? "Select a file"}</strong><small>JPEG, PNG, WebP or MP4/MOV/WebM video · BYTEA is the source of truth.</small></label>
     <button className="primary">Store and process</button></form><p className="status">{status}</p></section>;
 }

@@ -7,21 +7,27 @@ from datetime import UTC, datetime
 from fastapi import APIRouter, Depends, File, Form, HTTPException, Request, UploadFile, status
 from fastapi.responses import Response, StreamingResponse
 from PIL import Image, ImageDraw
-from sqlalchemy import desc, select
+from sqlalchemy import desc, func, select
 from sqlalchemy.orm import Session
 
-from app.dependencies import get_current_user, get_db, workspace_member
+from app.dependencies import get_current_device, get_current_user, get_db, workspace_member
 from app.meta import MetaProviderError, build_meta_client
 from app.models import (
     AuditEvent,
     CaptureSession,
     CaptureStatus,
+    Device,
+    DeviceAssignment,
+    DeviceStatus,
     JobStatus,
     MediaAsset,
     MediaAssetChunk,
     MediaKind,
     ObjectAlias,
+    ObjectFact,
     ObjectObservation,
+    ObjectTrack,
+    ObjectTrackFrame,
     ProcessingJob,
     ProcessingOperation,
     Role,
@@ -34,19 +40,31 @@ from app.models import (
 )
 from app.schemas import (
     CaptureResponse,
+    DeviceAssignmentCreate,
+    DeviceAssignmentResponse,
+    DeviceCreate,
+    DeviceEnrollmentResponse,
+    DeviceResponse,
+    DeviceSessionCreate,
+    InventoryAnalyticsResponse,
     JobResponse,
     LoginRequest,
     ObjectAliasCreate,
     ObjectAliasResponse,
+    ObjectFactResponse,
+    ObjectFactUpdate,
     ObjectResponse,
     ObservationResponse,
     ObservationUpdate,
+    ProcessingRequest,
     QueryRequest,
     QueryResponse,
     RefreshRequest,
     SessionCreate,
     SessionResponse,
     TokenResponse,
+    TrackFrameResponse,
+    TrackResponse,
     UserResponse,
     WorkspaceCreate,
     WorkspaceResponse,
@@ -55,8 +73,10 @@ from app.schemas import (
 )
 from app.security import (
     create_access_token,
+    create_device_credential,
     create_refresh_token,
     decode_token,
+    hash_device_credential,
     verify_password,
 )
 from app.services import (
@@ -83,6 +103,7 @@ def _audit(
     actor_id: uuid.UUID | None,
     entity_id: uuid.UUID | None = None,
     workspace_id: uuid.UUID | None = None,
+    device_id: uuid.UUID | None = None,
 ) -> None:
     db.add(
         AuditEvent(
@@ -91,6 +112,7 @@ def _audit(
             event_type=event_type,
             entity_type=entity_type,
             entity_id=entity_id,
+            device_id=device_id,
         )
     )
 
@@ -119,6 +141,88 @@ def _capture_response(item: MediaAsset) -> CaptureResponse:
         width=item.width,
         height=item.height,
         created_at=item.created_at,
+    )
+
+
+def _device_response(item: Device) -> DeviceResponse:
+    return DeviceResponse(
+        id=item.id,
+        workspace_id=item.workspace_id,
+        device_identifier=item.device_identifier,
+        label=item.label,
+        status=item.status.value,
+        last_seen_at=item.last_seen_at,
+        revoked_at=item.revoked_at,
+        metadata=item.metadata_json,
+    )
+
+
+def _assignment_response(item: DeviceAssignment) -> DeviceAssignmentResponse:
+    return DeviceAssignmentResponse(
+        id=item.id,
+        device_id=item.device_id,
+        operator_label=item.operator_label,
+        external_reference=item.external_reference,
+        effective_from=item.effective_from,
+        effective_to=item.effective_to,
+        notice_version=item.notice_version,
+    )
+
+
+def _fact_response(item: ObjectFact) -> ObjectFactResponse:
+    return ObjectFactResponse(
+        id=item.id,
+        object_id=item.object_id,
+        observation_id=item.observation_id,
+        fact_type=item.fact_type,
+        value_text=item.value_text,
+        normalized_value=item.normalized_value,
+        numeric_value=item.numeric_value,
+        unit=item.unit,
+        confidence=item.confidence,
+        provenance=item.provenance.value,
+        evidence_geometry=item.evidence_geometry,
+        model_name=item.model_name,
+        verification_status=item.verification_status.value,
+    )
+
+
+def _track_response(item: ObjectTrack) -> TrackResponse:
+    return TrackResponse(
+        id=item.id,
+        object_id=item.object_id,
+        source_media_asset_id=item.source_media_asset_id,
+        model_name=item.model_name,
+        status=item.status,
+        last_seen_at=item.last_seen_at,
+        last_seen_pts_seconds=item.last_seen_pts_seconds,
+        metadata=item.metadata_json,
+    )
+
+
+def _track_frame_response(item: ObjectTrackFrame) -> TrackFrameResponse:
+    return TrackFrameResponse(
+        id=item.id,
+        track_id=item.track_id,
+        source_frame_index=item.source_frame_index,
+        pts_seconds=item.pts_seconds,
+        visible=item.visible,
+        bounding_box=item.bounding_box,
+        confidence=item.confidence,
+        simulated=item.simulated,
+    )
+
+
+def _active_assignment(db: Session, device: Device) -> DeviceAssignment | None:
+    now = datetime.now(UTC)
+    return db.scalar(
+        select(DeviceAssignment)
+        .where(
+            DeviceAssignment.device_id == device.id,
+            DeviceAssignment.effective_from <= now,
+            (DeviceAssignment.effective_to.is_(None)) | (DeviceAssignment.effective_to > now),
+        )
+        .order_by(desc(DeviceAssignment.effective_from))
     )
 
 
@@ -304,6 +408,152 @@ async def create_workspace(
     )
 
 
+@router.get("/admin/devices", response_model=list[DeviceResponse])
+async def list_devices(
+    workspace_id: uuid.UUID,
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+) -> list[DeviceResponse]:
+    workspace_member(workspace_id, user, db, {Role.ADMIN})
+    return [
+        _device_response(item)
+        for item in db.scalars(
+            select(Device)
+            .where(Device.workspace_id == workspace_id)
+            .order_by(Device.label, Device.device_identifier)
+        )
+    ]
+
+
+@router.post(
+    "/admin/devices", response_model=DeviceEnrollmentResponse, status_code=status.HTTP_201_CREATED
+)
+async def enroll_device(
+    payload: DeviceCreate,
+    request: Request,
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+) -> DeviceEnrollmentResponse:
+    workspace_member(payload.workspace_id, user, db, {Role.ADMIN})
+    identifier = payload.device_identifier.strip()
+    if db.scalar(select(Device.id).where(Device.device_identifier == identifier)):
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Device ID already exists.")
+    device_key = create_device_credential()
+    device = Device(
+        workspace_id=payload.workspace_id,
+        device_identifier=identifier,
+        label=payload.label.strip(),
+        credential_hash=hash_device_credential(device_key, request.app.state.settings),
+        created_by_id=user.id,
+        metadata_json=payload.metadata,
+    )
+    db.add(device)
+    db.flush()
+    _audit(db, "device.enrolled", "device", user.id, device.id, device.workspace_id, device.id)
+    result = _device_response(device)
+    return DeviceEnrollmentResponse(**result.model_dump(), device_key=device_key)
+
+
+@router.post("/admin/devices/{device_id}/rotate", response_model=DeviceEnrollmentResponse)
+async def rotate_device_credential(
+    device_id: uuid.UUID,
+    request: Request,
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+) -> DeviceEnrollmentResponse:
+    device = db.get(Device, device_id)
+    if device is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Device not found.")
+    workspace_member(device.workspace_id, user, db, {Role.ADMIN})
+    if device.status != DeviceStatus.ACTIVE:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Device is revoked.")
+    device_key = create_device_credential()
+    device.credential_hash = hash_device_credential(device_key, request.app.state.settings)
+    _audit(db, "device.credential_rotated", "device", user.id, device.id, device.workspace_id, device.id)
+    result = _device_response(device)
+    return DeviceEnrollmentResponse(**result.model_dump(), device_key=device_key)
+
+
+@router.post("/admin/devices/{device_id}/revoke", response_model=DeviceResponse)
+async def revoke_device(
+    device_id: uuid.UUID,
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+) -> DeviceResponse:
+    device = db.get(Device, device_id)
+    if device is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Device not found.")
+    workspace_member(device.workspace_id, user, db, {Role.ADMIN})
+    device.status = DeviceStatus.REVOKED
+    device.revoked_at = datetime.now(UTC)
+    _audit(db, "device.revoked", "device", user.id, device.id, device.workspace_id, device.id)
+    return _device_response(device)
+
+
+@router.get("/admin/devices/{device_id}/assignments", response_model=list[DeviceAssignmentResponse])
+async def list_device_assignments(
+    device_id: uuid.UUID,
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+) -> list[DeviceAssignmentResponse]:
+    device = db.get(Device, device_id)
+    if device is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Device not found.")
+    workspace_member(device.workspace_id, user, db, {Role.ADMIN})
+    return [
+        _assignment_response(item)
+        for item in db.scalars(
+            select(DeviceAssignment)
+            .where(DeviceAssignment.device_id == device.id)
+            .order_by(desc(DeviceAssignment.effective_from))
+        )
+    ]
+
+
+@router.post(
+    "/admin/devices/{device_id}/assignments",
+    response_model=DeviceAssignmentResponse,
+    status_code=status.HTTP_201_CREATED,
+)
+async def assign_device(
+    device_id: uuid.UUID,
+    payload: DeviceAssignmentCreate,
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+) -> DeviceAssignmentResponse:
+    device = db.get(Device, device_id)
+    if device is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Device not found.")
+    workspace_member(device.workspace_id, user, db, {Role.ADMIN})
+    now = datetime.now(UTC)
+    for current in db.scalars(
+        select(DeviceAssignment).where(
+            DeviceAssignment.device_id == device.id, DeviceAssignment.effective_to.is_(None)
+        )
+    ):
+        current.effective_to = now
+    assignment = DeviceAssignment(
+        device_id=device.id,
+        operator_label=payload.operator_label.strip(),
+        external_reference=payload.external_reference.strip() if payload.external_reference else None,
+        attested_by_id=user.id,
+        notice_version=payload.notice_version.strip(),
+        effective_from=now,
+    )
+    db.add(assignment)
+    db.flush()
+    _audit(
+        db,
+        "device.assigned",
+        "device_assignment",
+        user.id,
+        assignment.id,
+        device.workspace_id,
+        device.id,
+    )
+    return _assignment_response(assignment)
+
+
 @router.get("/workspaces/{workspace_id}/zones", response_model=list[ZoneResponse])
 async def list_zones(
     workspace_id: uuid.UUID, user: User = Depends(get_current_user), db: Session = Depends(get_db)
@@ -403,21 +653,74 @@ async def close_session(
     return _session_response(session)
 
 
-@router.post("/captures", response_model=CaptureResponse, status_code=status.HTTP_201_CREATED)
-async def create_capture(
+@router.post("/device/sessions", response_model=SessionResponse, status_code=status.HTTP_201_CREATED)
+async def create_device_session(
+    payload: DeviceSessionCreate,
+    device: Device = Depends(get_current_device),
+    db: Session = Depends(get_db),
+) -> SessionResponse:
+    if payload.zone_id:
+        zone = db.get(Zone, payload.zone_id)
+        if zone is None or zone.workspace_id != device.workspace_id:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Zone not found.")
+    assignment = _active_assignment(db, device)
+    session = CaptureSession(
+        workspace_id=device.workspace_id,
+        zone_id=payload.zone_id,
+        created_by_id=None,
+        device_id=device.id,
+        device_assignment_id=assignment.id if assignment else None,
+        origin="device",
+        consent_confirmed=True,
+    )
+    db.add(session)
+    db.flush()
+    _audit(
+        db,
+        "device.capture_session.opened",
+        "capture_session",
+        None,
+        session.id,
+        session.workspace_id,
+        device.id,
+    )
+    return _session_response(session)
+
+
+@router.post("/device/sessions/{session_id}/close", response_model=SessionResponse)
+async def close_device_session(
+    session_id: uuid.UUID,
+    device: Device = Depends(get_current_device),
+    db: Session = Depends(get_db),
+) -> SessionResponse:
+    session = db.get(CaptureSession, session_id)
+    if session is None or session.device_id != device.id:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Capture session not found.")
+    if session.status == CaptureStatus.OPEN:
+        session.status = CaptureStatus.CLOSED
+        session.closed_at = datetime.now(UTC)
+        _audit(
+            db,
+            "device.capture_session.closed",
+            "capture_session",
+            None,
+            session.id,
+            session.workspace_id,
+            device.id,
+        )
+    return _session_response(session)
+
+
+async def _store_capture(
     request: Request,
-    session_id: uuid.UUID = Form(...),
+    session: CaptureSession,
     captured_at: datetime | None = Form(default=None),
     file: UploadFile = File(...),
-    user: User = Depends(get_current_user),
-    db: Session = Depends(get_db),
+    *,
+    db: Session,
+    actor_id: uuid.UUID | None,
+    device_id: uuid.UUID | None = None,
 ) -> CaptureResponse:
-    session = db.get(CaptureSession, session_id)
-    if session is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Capture session not found."
-        )
-    workspace_member(session.workspace_id, user, db, {Role.ADMIN, Role.REGISTER})
     if session.status != CaptureStatus.OPEN:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT, detail="Capture session is closed."
@@ -493,8 +796,64 @@ async def create_capture(
     db.flush()
     if chunked_video:
         add_postgres_bytea_chunks(db, asset, raw, settings.video_bytea_chunk_bytes)
-    _audit(db, "capture.created", "media_asset", user.id, asset.id, session.workspace_id)
+    _audit(
+        db,
+        "capture.created",
+        "media_asset",
+        actor_id,
+        asset.id,
+        session.workspace_id,
+        device_id,
+    )
     return _capture_response(asset)
+
+
+@router.post("/captures", response_model=CaptureResponse, status_code=status.HTTP_201_CREATED)
+async def create_capture(
+    request: Request,
+    session_id: uuid.UUID = Form(...),
+    captured_at: datetime | None = Form(default=None),
+    file: UploadFile = File(...),
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+) -> CaptureResponse:
+    session = db.get(CaptureSession, session_id)
+    if session is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Capture session not found."
+        )
+    workspace_member(session.workspace_id, user, db, {Role.ADMIN, Role.REGISTER})
+    return await _store_capture(
+        request,
+        session,
+        captured_at,
+        file,
+        db=db,
+        actor_id=user.id,
+    )
+
+
+@router.post("/device/captures", response_model=CaptureResponse, status_code=status.HTTP_201_CREATED)
+async def create_device_capture(
+    request: Request,
+    session_id: uuid.UUID = Form(...),
+    captured_at: datetime | None = Form(default=None),
+    file: UploadFile = File(...),
+    device: Device = Depends(get_current_device),
+    db: Session = Depends(get_db),
+) -> CaptureResponse:
+    session = db.get(CaptureSession, session_id)
+    if session is None or session.device_id != device.id:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Capture session not found.")
+    return await _store_capture(
+        request,
+        session,
+        captured_at,
+        file,
+        db=db,
+        actor_id=None,
+        device_id=device.id,
+    )
 
 
 @router.get("/captures/{capture_id}", response_model=CaptureResponse)
@@ -512,6 +871,7 @@ async def get_capture(
 async def process_capture(
     capture_id: uuid.UUID,
     request: Request,
+    payload: ProcessingRequest | None = None,
     user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
@@ -519,7 +879,14 @@ async def process_capture(
     if asset is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Capture not found.")
     workspace_member(asset.workspace_id, user, db, {Role.ADMIN, Role.REGISTER})
-    job = create_processing_job(db, asset, provider=request.app.state.settings.meta_mode)
+    profile = payload or ProcessingRequest()
+    job = create_processing_job(
+        db,
+        asset,
+        provider=request.app.state.settings.meta_mode,
+        profile=profile.profile,
+        priority_terms=profile.priority_terms,
+    )
     _audit(
         db, "capture.processing_requested", "processing_job", user.id, job.id, asset.workspace_id
     )
@@ -531,6 +898,48 @@ async def process_capture(
             process_media.delay(str(job.id))
         except Exception:
             # The durable job remains queued for a worker to pick up; do not claim it completed.
+            pass
+    return _job_response(job)
+
+
+@router.post("/device/captures/{capture_id}/process", response_model=JobResponse)
+async def process_device_capture(
+    capture_id: uuid.UUID,
+    request: Request,
+    payload: ProcessingRequest | None = None,
+    device: Device = Depends(get_current_device),
+    db: Session = Depends(get_db),
+) -> JobResponse:
+    asset = db.get(MediaAsset, capture_id)
+    if asset is None or asset.workspace_id != device.workspace_id:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Capture not found.")
+    session = db.get(CaptureSession, asset.capture_session_id) if asset.capture_session_id else None
+    if session is None or session.device_id != device.id:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Capture belongs to another device.")
+    profile = payload or ProcessingRequest()
+    job = create_processing_job(
+        db,
+        asset,
+        provider=request.app.state.settings.meta_mode,
+        profile=profile.profile,
+        priority_terms=profile.priority_terms,
+    )
+    _audit(
+        db,
+        "device.capture.processing_requested",
+        "processing_job",
+        None,
+        job.id,
+        asset.workspace_id,
+        device.id,
+    )
+    db.commit()
+    if request.app.state.settings.enqueue_processing:
+        try:
+            from app.tasks import process_media
+
+            process_media.delay(str(job.id))
+        except Exception:
             pass
     return _job_response(job)
 
@@ -640,6 +1049,166 @@ async def object_history(
     )
 
 
+@router.get("/objects/{object_id}/facts", response_model=list[ObjectFactResponse])
+async def object_facts(
+    object_id: uuid.UUID, user: User = Depends(get_current_user), db: Session = Depends(get_db)
+) -> list[ObjectFactResponse]:
+    tracked = db.get(TrackedObject, object_id)
+    if tracked is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Object not found.")
+    workspace_member(tracked.workspace_id, user, db, {Role.ADMIN})
+    return [
+        _fact_response(item)
+        for item in db.scalars(
+            select(ObjectFact)
+            .where(ObjectFact.object_id == object_id)
+            .order_by(desc(ObjectFact.created_at))
+        )
+    ]
+
+
+@router.patch("/facts/{fact_id}", response_model=ObjectFactResponse)
+async def verify_fact(
+    fact_id: uuid.UUID,
+    payload: ObjectFactUpdate,
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+) -> ObjectFactResponse:
+    fact = db.get(ObjectFact, fact_id)
+    if fact is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Fact not found.")
+    workspace_member(fact.workspace_id, user, db, {Role.ADMIN})
+    fact.verification_status = VerificationStatus(payload.verification_status)
+    fact.verified_by_id = user.id
+    fact.verified_at = datetime.now(UTC)
+    if payload.value_text is not None:
+        fact.value_text = payload.value_text.strip() or None
+    if payload.normalized_value is not None:
+        fact.normalized_value = normalize(payload.normalized_value) or None
+    tracked = db.get(TrackedObject, fact.object_id)
+    if tracked and fact.verification_status == VerificationStatus.VERIFIED:
+        values = dict(tracked.attributes or {})
+        if fact.fact_type == "visible_count" and fact.numeric_value is not None:
+            values["visible_count"] = fact.numeric_value
+        elif fact.value_text:
+            values[fact.fact_type] = fact.value_text
+        tracked.attributes = values
+    _audit(db, "object_fact.verified", "object_fact", user.id, fact.id, fact.workspace_id)
+    return _fact_response(fact)
+
+
+@router.get("/objects/{object_id}/tracks", response_model=list[TrackResponse])
+async def object_tracks(
+    object_id: uuid.UUID, user: User = Depends(get_current_user), db: Session = Depends(get_db)
+) -> list[TrackResponse]:
+    tracked = db.get(TrackedObject, object_id)
+    if tracked is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Object not found.")
+    workspace_member(tracked.workspace_id, user, db, {Role.ADMIN})
+    return [
+        _track_response(item)
+        for item in db.scalars(
+            select(ObjectTrack)
+            .where(ObjectTrack.object_id == tracked.id)
+            .order_by(desc(ObjectTrack.created_at))
+        )
+    ]
+
+
+@router.get("/tracks/{track_id}/frames", response_model=list[TrackFrameResponse])
+async def track_frames(
+    track_id: uuid.UUID,
+    offset: int = 0,
+    limit: int = 240,
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+) -> list[TrackFrameResponse]:
+    if offset < 0 or limit < 1 or limit > 1000:
+        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="Invalid page.")
+    track = db.get(ObjectTrack, track_id)
+    if track is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Track not found.")
+    workspace_member(track.workspace_id, user, db, {Role.ADMIN})
+    return [
+        _track_frame_response(item)
+        for item in db.scalars(
+            select(ObjectTrackFrame)
+            .where(ObjectTrackFrame.track_id == track.id)
+            .order_by(ObjectTrackFrame.source_frame_index)
+            .offset(offset)
+            .limit(limit)
+        )
+    ]
+
+
+def _fact_rollup(db: Session, workspace_id: uuid.UUID, fact_type: str) -> list[dict]:
+    rows = db.execute(
+        select(
+            ObjectFact.normalized_value,
+            ObjectFact.value_text,
+            func.count(func.distinct(ObjectFact.object_id)),
+        )
+        .where(
+            ObjectFact.workspace_id == workspace_id,
+            ObjectFact.fact_type == fact_type,
+            ObjectFact.verification_status == VerificationStatus.VERIFIED,
+        )
+        .group_by(ObjectFact.normalized_value, ObjectFact.value_text)
+        .order_by(desc(func.count(func.distinct(ObjectFact.object_id))))
+    ).all()
+    return [
+        {"value": normalized or display or "unknown", "count": int(count)}
+        for normalized, display, count in rows
+    ]
+
+
+@router.get("/admin/analytics/inventory", response_model=InventoryAnalyticsResponse)
+async def inventory_analytics(
+    workspace_id: uuid.UUID,
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+) -> InventoryAnalyticsResponse:
+    workspace_member(workspace_id, user, db, {Role.ADMIN})
+    verified_object_count = db.scalar(
+        select(func.count(func.distinct(ObjectFact.object_id))).where(
+            ObjectFact.workspace_id == workspace_id,
+            ObjectFact.verification_status == VerificationStatus.VERIFIED,
+        )
+    ) or 0
+    provisional_fact_count = db.scalar(
+        select(func.count(ObjectFact.id)).where(
+            ObjectFact.workspace_id == workspace_id,
+            ObjectFact.verification_status == VerificationStatus.PENDING,
+        )
+    ) or 0
+    category_rows = db.execute(
+        select(TrackedObject.category, func.count(TrackedObject.id))
+        .where(TrackedObject.workspace_id == workspace_id)
+        .group_by(TrackedObject.category)
+        .order_by(desc(func.count(TrackedObject.id)))
+    ).all()
+    device_rows = db.execute(
+        select(Device.label, Device.device_identifier, func.count(CaptureSession.id))
+        .outerjoin(CaptureSession, CaptureSession.device_id == Device.id)
+        .where(Device.workspace_id == workspace_id)
+        .group_by(Device.id, Device.label, Device.device_identifier)
+        .order_by(Device.label)
+    ).all()
+    return InventoryAnalyticsResponse(
+        workspace_id=workspace_id,
+        verified_object_count=int(verified_object_count),
+        provisional_fact_count=int(provisional_fact_count),
+        brands=_fact_rollup(db, workspace_id, "brand"),
+        categories=[{"value": value or "uncategorized", "count": int(count)} for value, count in category_rows],
+        conditions=_fact_rollup(db, workspace_id, "condition"),
+        usage_states=_fact_rollup(db, workspace_id, "usage_state"),
+        devices=[
+            {"label": label, "device_id": identifier, "capture_sessions": int(count)}
+            for label, identifier, count in device_rows
+        ],
+    )
+
+
 @router.patch("/observations/{observation_id}", response_model=ObservationResponse)
 async def verify_observation(
     observation_id: uuid.UUID,
@@ -729,11 +1298,20 @@ def _zone_path(db: Session, zone_id: uuid.UUID | None) -> list[str]:
 
 def _answer_query(
     payload: QueryRequest,
-    user: User,
+    user: User | None,
     db: Session,
     client=None,
+    *,
+    authorized_workspace_id: uuid.UUID | None = None,
+    device_view: bool = False,
 ) -> QueryResponse:
-    member = workspace_member(payload.workspace_id, user, db, {Role.ADMIN, Role.QUERY})
+    if user is None:
+        if authorized_workspace_id != payload.workspace_id:
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Workspace access denied.")
+        can_refine = False
+    else:
+        member = workspace_member(payload.workspace_id, user, db, {Role.ADMIN, Role.QUERY})
+        can_refine = member.role in {Role.ADMIN, Role.REGISTER}
     candidates, interpretation_simulated = multilingual_object_candidates(
         db, payload.workspace_id, payload.question, client
     )
@@ -798,14 +1376,18 @@ def _answer_query(
         zone_path=path,
         media_id=observation.media_asset_id,
         highlighted_media_url=(
-            f"/v1/observations/{observation.id}/highlighted"
+            (
+                f"/v1/device/observations/{observation.id}/highlighted"
+                if device_view
+                else f"/v1/observations/{observation.id}/highlighted"
+            )
             if highlight_quality != "none"
             else None
         ),
         highlight_quality=highlight_quality,
         segmentation_status=segmentation_status,
         segmentation_job_id=segmentation_job.id if segmentation_job else None,
-        can_refine=member.role in {Role.ADMIN, Role.REGISTER}
+        can_refine=can_refine
         and segmentation_status in {"not_requested", "failed"}
         and highlight_quality == "approximate_box",
         retrieval_confidence=observation.visual_confidence,
@@ -826,6 +1408,27 @@ async def query(
     except MetaProviderError:
         client = None
     return _answer_query(payload, user, db, client)
+
+
+@router.post("/device/queries", response_model=QueryResponse)
+async def device_query(
+    payload: QueryRequest,
+    request: Request,
+    device: Device = Depends(get_current_device),
+    db: Session = Depends(get_db),
+) -> QueryResponse:
+    try:
+        client = build_meta_client(request.app.state.settings)
+    except MetaProviderError:
+        client = None
+    return _answer_query(
+        payload,
+        None,
+        db,
+        client,
+        authorized_workspace_id=device.workspace_id,
+        device_view=True,
+    )
 
 
 @router.post("/queries/audio", response_model=QueryResponse)
@@ -943,6 +1546,25 @@ async def highlighted_observation(
     if observation is None or observation.verification_status != VerificationStatus.VERIFIED:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Observation not found.")
     workspace_member(observation.workspace_id, user, db)
+    asset = db.get(MediaAsset, observation.media_asset_id)
+    if asset is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Media not found.")
+    return _render_highlight(db, observation, asset)
+
+
+@router.get("/device/observations/{observation_id}/highlighted")
+async def device_highlighted_observation(
+    observation_id: uuid.UUID,
+    device: Device = Depends(get_current_device),
+    db: Session = Depends(get_db),
+) -> Response:
+    observation = db.get(ObjectObservation, observation_id)
+    if (
+        observation is None
+        or observation.workspace_id != device.workspace_id
+        or observation.verification_status != VerificationStatus.VERIFIED
+    ):
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Observation not found.")
     asset = db.get(MediaAsset, observation.media_asset_id)
     if asset is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Media not found.")

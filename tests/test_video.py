@@ -12,6 +12,8 @@ from app.models import (
     MediaAssetChunk,
     MediaKind,
     ObjectObservation,
+    ObjectTrack,
+    ObjectTrackFrame,
     ProcessingJob,
 )
 from app.services import process_job
@@ -216,3 +218,54 @@ def test_failed_video_pipeline_keeps_only_the_original_for_safe_retry(
     assert persisted.status.value == "failed"
     assert frames == []
     assert observations == []
+
+
+def test_detailed_video_profile_persists_simulated_masks_for_each_clip_frame(
+    client, auth_headers, tmp_path
+):
+    workspace = client.post(
+        "/v1/workspaces", headers=auth_headers, json={"name": "Detailed tracking workspace"}
+    ).json()
+    session = client.post(
+        "/v1/sessions",
+        headers=auth_headers,
+        json={"workspace_id": workspace["id"], "consent_confirmed": True},
+    ).json()
+    capture = client.post(
+        "/v1/captures",
+        headers=auth_headers,
+        data={"session_id": session["id"]},
+        files={"file": ("yellow-drill-video.mp4", sample_mp4(tmp_path), "video/mp4")},
+    ).json()
+    queued = client.post(
+        f"/v1/captures/{capture['id']}/process",
+        headers=auth_headers,
+        json={"profile": "detailed", "priority_terms": ["yellow drill"]},
+    )
+    assert queued.status_code == 200, queued.text
+    with client.app.state.database.session_factory() as db:
+        process_job(
+            db,
+            uuid.UUID(queued.json()["id"]),
+            MockMetaModelClient(),
+            video_segment_seconds=120,
+            video_frames_per_segment=2,
+        )
+        db.commit()
+        job = db.get(ProcessingJob, uuid.UUID(queued.json()["id"]))
+        tracks = list(db.scalars(select(ObjectTrack)))
+        track_frames = list(db.scalars(select(ObjectTrackFrame)))
+    assert job is not None
+    assert job.status.value == "completed"
+    assert job.result_metadata["profile"] == "detailed"
+    assert job.result_metadata["detailed_tracking"]["status"] == "completed"
+    assert len(tracks) == 1
+    assert track_frames
+    assert all(frame.mask_rle and frame.mask_rle.startswith(b"RLE1") for frame in track_frames)
+    listed = client.get(f"/v1/objects/{tracks[0].object_id}/tracks", headers=auth_headers)
+    assert listed.status_code == 200, listed.text
+    assert listed.json()[0]["status"] == "completed"
+    trajectory = client.get(f"/v1/tracks/{tracks[0].id}/frames?limit=100", headers=auth_headers)
+    assert trajectory.status_code == 200, trajectory.text
+    assert len(trajectory.json()) == len(track_frames)
+    assert all(item["visible"] for item in trajectory.json())

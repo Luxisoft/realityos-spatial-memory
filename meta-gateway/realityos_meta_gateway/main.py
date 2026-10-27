@@ -16,6 +16,7 @@ _UPSTREAM_PATHS: Final = {
     ("GET", "models"),
     ("POST", "responses"),
     ("POST", "asr/transcribe"),
+    ("POST", "files"),
 }
 _REQUEST_HEADERS: Final = ("content-type", "accept")
 _RESPONSE_HEADERS: Final = ("content-type", "x-request-id", "retry-after", "cache-control")
@@ -60,9 +61,15 @@ def create_app(
         if content_length and content_length.isdigit() and int(content_length) > settings.gateway_max_request_bytes:
             return _gateway_error(413, "Gateway request exceeds the configured size limit.")
 
-        body = await request.body()
-        if len(body) > settings.gateway_max_request_bytes:
-            return _gateway_error(413, "Gateway request exceeds the configured size limit.")
+        forwarded_bytes = 0
+
+        async def limited_body():
+            nonlocal forwarded_bytes
+            async for chunk in request.stream():
+                forwarded_bytes += len(chunk)
+                if forwarded_bytes > settings.gateway_max_request_bytes:
+                    raise ValueError("Gateway request exceeds the configured size limit.")
+                yield chunk
 
         upstream_url = f"{str(settings.meta_api_base_url).rstrip('/')}/{path}"
         try:
@@ -71,12 +78,16 @@ def create_app(
                 follow_redirects=False,
                 transport=app.state.transport,
             ) as client:
-                upstream = await client.request(
+                upstream_request = client.build_request(
                     request.method,
                     upstream_url,
                     headers=_forward_headers(request, settings),
-                    content=body,
+                    content=limited_body(),
                 )
+                upstream = await client.send(upstream_request, stream=True)
+                await upstream.aread()
+        except ValueError:
+            return _gateway_error(413, "Gateway request exceeds the configured size limit.")
         except httpx.HTTPError:
             logger.warning("Meta upstream unavailable path=%s method=%s", path, request.method)
             return _gateway_error(502, "Meta upstream is unavailable.")
@@ -86,7 +97,7 @@ def create_app(
             path,
             request.method,
             upstream.status_code,
-            len(body),
+            forwarded_bytes,
             upstream.headers.get("x-request-id", ""),
         )
         return Response(
@@ -110,6 +121,14 @@ def create_app(
     @app.post("/v1/asr/transcribe", include_in_schema=False)
     async def transcribe(request: Request) -> Response:
         return await forward(request, "asr/transcribe")
+
+    @app.post("/v1/files", include_in_schema=False)
+    async def files(request: Request) -> Response:
+        return await forward(request, "files")
+
+    @app.delete("/v1/files/{file_id}", include_in_schema=False)
+    async def delete_file(file_id: str, request: Request) -> Response:
+        return await forward(request, f"files/{file_id}")
 
     return app
 

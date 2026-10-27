@@ -16,6 +16,19 @@ depends_on = None
 
 
 def upgrade() -> None:
+    if op.get_bind().dialect.name == "postgresql":
+        op.execute(
+            """
+            CREATE TABLE IF NOT EXISTS media_asset_chunks (
+              asset_id UUID NOT NULL REFERENCES media_assets(id) ON DELETE CASCADE,
+              chunk_index INTEGER NOT NULL,
+              content BYTEA NOT NULL,
+              byte_size INTEGER NOT NULL,
+              PRIMARY KEY (asset_id, chunk_index)
+            )
+            """
+        )
+        return
     op.create_table(
         "media_asset_chunks",
         sa.Column("asset_id", sa.Uuid(), nullable=False),

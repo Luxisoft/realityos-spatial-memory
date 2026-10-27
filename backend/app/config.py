@@ -26,6 +26,10 @@ class Settings(BaseSettings):
     jwt_algorithm: str = "HS256"
     access_token_minutes: int = Field(default=30, ge=5, le=120)
     refresh_token_days: int = Field(default=14, ge=1, le=90)
+    # A dedicated value is preferred. When omitted, the already-required JWT
+    # signing secret is used as a server-side fallback so a deployment cannot
+    # accidentally authenticate every device with a public development value.
+    device_credential_pepper: str | None = Field(default=None, min_length=24)
     cors_origins: str = "http://localhost:5173,http://localhost:5174"
     max_image_bytes: int = Field(default=10 * 1024 * 1024, ge=1)
     # Zero disables the application-level intake cap. PostgreSQL still has its
@@ -44,6 +48,7 @@ class Settings(BaseSettings):
     meta_gateway_base_url: AnyHttpUrl | None = None
     meta_gateway_token: str | None = None
     meta_timeout_seconds: float = Field(default=30, gt=0, le=120)
+    meta_video_timeout_seconds: float = Field(default=600, gt=0, le=900)
     meta_max_retries: int = Field(default=2, ge=0, le=5)
     enqueue_processing: bool = True
 

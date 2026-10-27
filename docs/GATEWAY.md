@@ -7,10 +7,17 @@ on FRONTEND; it is not a general-purpose HTTP proxy.
 ## Boundary
 
 RealityOS sends `X-RealityOS-Gateway-Token` to the gateway. The gateway accepts
-only `GET /v1/models`, `POST /v1/responses`, and `POST /v1/asr/transcribe`,
+only `GET /v1/models`, `POST /v1/responses`, `POST /v1/asr/transcribe`,
+`POST /v1/files`, and `DELETE /v1/files/{id}`,
 then replaces that header with the server-side Meta bearer token. It forwards
 request bytes to Meta without storing bodies, rejects every other route, and forwards
 the upstream response status and safe headers.
+
+The gateway streams request bodies and permits up to 1 GiB so a bounded MP4
+segment can use Meta Files API. For large uploads, configure the worker's
+gateway hostname as a direct/private route or DNS-only record: a CDN proxy may
+impose a lower request-body ceiling than RealityOS or Meta. The gateway remains
+protected by its IP allowlist and independent token.
 
 `MODEL_API_KEY` is configured only in FRONTEND's ignored gateway runtime file.
 The RealityOS API and worker use `META_GATEWAY_BASE_URL` and
@@ -45,7 +52,12 @@ files: `MODEL_API_KEY`, `META_GATEWAY_TOKEN`, `FRONTEND_SSH_HOST`,
 `FRONTEND_SSH_USER`, `FRONTEND_SSH_PRIVATE_KEY`, `REALITYOS_SSH_HOST`,
 `REALITYOS_SSH_USER`, `REALITYOS_SSH_PRIVATE_KEY`, `ACME_EMAIL`,
 `GATEWAY_ALLOWED_CIDRS`, `FRONTEND_SSH_KNOWN_HOSTS`,
-`REALITYOS_SSH_KNOWN_HOSTS`, and `REALITYOS_DEPLOY_PATH`.
+`REALITYOS_SSH_KNOWN_HOSTS`, and `REALITYOS_DEPLOY_PATH`. Set
+`DEVICE_CREDENTIAL_PEPPER` in RealityOS's protected server `.env` before
+enrolling devices when a credential-specific pepper is required; it is not a
+GitHub secret because the deployment keeps the existing server `.env` intact.
+If omitted, the existing server-only `JWT_SECRET` is used as a secure fallback
+instead of a public development value.
 
 ## Local check
 

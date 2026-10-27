@@ -20,5 +20,18 @@ box. `processing_jobs.operation` separates initial analysis from explicit
 segmentation and its workspace-scoped idempotency key prevents duplicate paid
 requests. The current MVP matcher is encapsulated in services.object_candidates.
 
+`devices` stores a workspace-bound public identifier and a peppered hash of its
+generated upload credential. `device_assignments` preserves administrator
+labels and notification-attestation history; neither table represents a
+biometric identity. Device-created capture sessions retain their device and
+assignment snapshot.
+
+`object_facts` is the evidence source for observed brand, model, visible count,
+condition and usage state. Each claim records confidence, provenance, model,
+geometry and review status. `tracked_objects.attributes` is only a convenience
+summary. `object_tracks`, `object_track_segments` and `object_track_frames`
+retain detailed SAM Video PTS, visibility, geometry and compact RLE masks while
+the original video stays in PostgreSQL.
+
 Run migrations with make migrate. The migration was not run against PostgreSQL
 in this workspace because Docker is unavailable here.

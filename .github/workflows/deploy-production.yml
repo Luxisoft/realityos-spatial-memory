@@ -102,8 +102,8 @@ jobs:
           MODEL_API_KEY=${MODEL_API_KEY}
           META_GATEWAY_TOKEN=${META_GATEWAY_TOKEN}
           META_API_BASE_URL=https://api.meta.ai/v1
-          GATEWAY_MAX_REQUEST_BYTES=33554432
-          GATEWAY_TIMEOUT_SECONDS=120
+          GATEWAY_MAX_REQUEST_BYTES=1073741824
+          GATEWAY_TIMEOUT_SECONDS=300
           ACME_EMAIL=${ACME_EMAIL}
           EOF
           : > .gateway-allowlist.conf

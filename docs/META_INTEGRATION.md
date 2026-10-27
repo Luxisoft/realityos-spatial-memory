@@ -5,7 +5,9 @@ authentication, explicit timeout, exponential retry for transient errors,
 Pydantic validation and client-safe failures. API keys never reach a browser or
 Android project.
 
-- Muse Spark 1.3 uses the Responses API with image data URLs for visual analysis.
+- Muse Spark 1.3 uses the Responses API with image data URLs for visual analysis
+  and validated structured facts. A fact is omitted when brand/model/text/count
+  cannot be supported by visible evidence.
 - SAM 3.1 is used only by an explicit, authorized refinement job. RealityOS
   sends the selected image plus Muse Spark's existing box as an official box
   prompt, requests SSE with `mask_encoding=one_bit`, decodes it with Meta's
@@ -13,6 +15,12 @@ Android project.
   Query endpoints never enqueue this job or write the cache.
 - Muse Voice Transcribe uses the ASR transcription endpoint with multipart
   request JSON and WAV audio in PUSH_TO_TALK mode.
+- Detailed video mode creates temporary faststart MP4 clips, uploads them to
+  Files API with `purpose=user_data`, sends their `file_id` to SAM 3.1 through
+  Responses streaming, and deletes them after the attempt. SAM's decoded masks
+  are retained as RealityOS RLE geometry; source video pixels remain BYTEA.
+  File upload or stream failures after submission become `uncertain` and are
+  deliberately not retried automatically.
 
 The model IDs and endpoint contracts were checked against official Meta
 [overview](https://dev.meta.ai/docs/overview),
