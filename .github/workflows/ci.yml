@@ -91,4 +91,4 @@ jobs:
           script: >-
             cd android &&
             ./gradlew :app:connectedDebugAndroidTest --stacktrace --info ||
-            { adb logcat -d -v brief; exit 1; }
+            { adb logcat -d -v brief | tail -n 1000; exit 1; }

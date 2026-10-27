@@ -59,8 +59,14 @@ class MockDeviceKitSmokeTest {
         glasses.don()
         assertEquals(1, mock.pairedDevices.size)
 
-        // Meta supplies this renderer for a phone/browser Display preview.
-        assertNotNull(glasses.services.display.createPreviewView(targetContext))
+        // Meta supplies this WebView-backed renderer for a phone/browser Display
+        // preview. WebView construction is required to happen on Android's UI
+        // thread, including when this runs from an instrumentation test.
+        var preview: android.view.View? = null
+        InstrumentationRegistry.getInstrumentation().runOnMainSync {
+            preview = glasses.services.display.createPreviewView(targetContext)
+        }
+        assertNotNull(preview)
         val server = mock.startTestServer(0)
         assertTrue(server.isSuccess)
         assertTrue(server.getOrThrow() > 0)
