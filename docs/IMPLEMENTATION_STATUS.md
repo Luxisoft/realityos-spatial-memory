@@ -1318,6 +1318,8 @@ máximo; su propia operación libera el estado ocupado incluso si cambia la
 generación de respuestas. Cambiar idioma durante una búsqueda por foto conserva
 la generación de captura; cancelar rechaza callbacks anteriores. El host conserva
 la solicitud de permiso al recrear la actividad.
+Una superficie descartada se rechaza antes de cancelar tareas, para que no pueda
+interrumpir el enlace de una cámara recién abierta.
 
 CI añade pruebas con toques en el WebView oficial de Meta, permiso concedido y
 denegado, cancelación, reapertura, publicación retenida, fallo de inicio y cambio

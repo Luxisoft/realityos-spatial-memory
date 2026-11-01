@@ -235,6 +235,30 @@ class DisplaySearchCameraTest {
         assertEquals(0, source.starts)
     }
 
+    @Test fun aDisposedSurfaceCannotCancelTheNewCameraBinding() {
+        tapButton(vm.copy(R.string.meta_search_object))
+        grantCamera()
+        await { vm.state.value.wearable.cameraActive && !vm.state.value.busy }
+        compose.waitForIdle()
+        val gate = CompletableDeferred<Unit>()
+        val before = source.binds
+        val completed = source.completedBinds
+        val generation = vm.state.value.phonePreview.generation
+        var binding: kotlinx.coroutines.Job? = null
+        main {
+            source.bindGate = gate
+            vm.setPhonePreviewSurface(Preview.SurfaceProvider { it.willNotProvideSurface() }, generation = generation)
+            binding = vm.phonePreviewSurfaceJob
+        }
+        await { source.binds > before }
+        main {
+            vm.setPhonePreviewSurface(null, generation = generation - 1)
+            assertSame("An obsolete surface must not cancel the current binding", binding, vm.phonePreviewSurfaceJob)
+        }
+        gate.complete(Unit)
+        await { source.completedBinds > completed }
+    }
+
     private fun grantCamera() {
         val request = cameraRequest()
         main { vm.onPhonePermissionResult(request.id, request.permission, true) }
@@ -284,7 +308,9 @@ class DisplaySearchCameraTest {
                 done.countDown()
             }
         }
-        assertTrue("The SDK WebView must answer", done.await(5, TimeUnit.SECONDS))
+        // Initial WebView navigation can discard an evaluation callback.
+        // Let the bounded readiness poll retry against the loaded document.
+        if (!done.await(5, TimeUnit.SECONDS)) return "null"
         return result[0]
     }
 
@@ -298,6 +324,7 @@ class DisplaySearchCameraTest {
 
     private fun tapButton(label: String) {
         awaitButton(label)
+        compose.waitForIdle()
         val rectangle = JSONObject(
             javascript(
                 """
@@ -331,7 +358,16 @@ class DisplaySearchCameraTest {
         @Volatile var starts = 0
         var waitForStart: CompletableDeferred<Unit>? = null
         var failStart = false
-        override suspend fun setPreviewSurface(surfaceProvider: Preview.SurfaceProvider?, viewPort: ViewPort?) = Unit
+
+        @Volatile var binds = 0
+
+        @Volatile var completedBinds = 0
+        var bindGate: CompletableDeferred<Unit>? = null
+        override suspend fun setPreviewSurface(surfaceProvider: Preview.SurfaceProvider?, viewPort: ViewPort?) {
+            binds++
+            bindGate?.await()
+            completedBinds++
+        }
         override suspend fun startPreview() {
             starts++
             waitForStart?.await()

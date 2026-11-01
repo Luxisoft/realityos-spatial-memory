@@ -314,6 +314,8 @@ class RealityViewModel(application: Application) : AndroidViewModel(application)
         viewPort: ViewPort? = null,
         generation: Long = state.value.phonePreview.generation
     ) {
+        // An old disposed view must not cancel a newer surface attachment.
+        if (generation != state.value.phonePreview.generation) return
         val source = phoneCapture ?: return
         phonePreviewSurfaceJob?.cancel()
         phonePreviewSurfaceJob = viewModelScope.launch {

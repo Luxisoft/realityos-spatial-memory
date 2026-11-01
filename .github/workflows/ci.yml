@@ -103,7 +103,7 @@ jobs:
       ANDROID_HOME: /usr/local/lib/android/sdk
       ANDROID_SDK_ROOT: /usr/local/lib/android/sdk
       # The first fix proves both failures on its parent; later runs can opt in.
-      VERIFY_DISPLAY_BASELINE: ${{ inputs.verify_display_baseline || github.event.before == 'f7cd5cb6a4b77420e941b3f0eb234a6d08282483' }}
+      VERIFY_DISPLAY_BASELINE: ${{ inputs.verify_display_baseline || github.event.before == '09f3ccd619bb187d5bcb697ed11ce9d7c9afe7dc' }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-java@v4
