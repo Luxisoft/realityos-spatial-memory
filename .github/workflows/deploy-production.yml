@@ -38,6 +38,10 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.13"
+      - name: Install video test dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install --no-install-recommends -y ffmpeg
       - run: python -m pip install --upgrade pip
       - run: python -m pip install -e "backend[dev]" -e "meta-gateway[dev]"
       - run: ruff check backend tests meta-gateway gateway-tests
@@ -128,6 +132,7 @@ jobs:
       - name: Install and start gateway on FRONTEND
         run: |
           ssh -i ~/.ssh/frontend "$FRONTEND_USER@$FRONTEND_HOST" 'sudo install -d -m 0755 /opt/realityos-meta-gateway /var/www/realityos-meta-acme /etc/nginx/snippets'
+          scp -i ~/.ssh/frontend scripts/deploy/update_runtime_env.py "$FRONTEND_USER@$FRONTEND_HOST:/tmp/realityos-update-runtime.py"
           scp -i ~/.ssh/frontend infrastructure/gateway/docker-compose.yml "$FRONTEND_USER@$FRONTEND_HOST:/tmp/realityos-meta-compose.yml"
           scp -i ~/.ssh/frontend .gateway-runtime.env "$FRONTEND_USER@$FRONTEND_HOST:/tmp/realityos-meta-runtime.env"
           scp -i ~/.ssh/frontend .gateway-allowlist.conf "$FRONTEND_USER@$FRONTEND_HOST:/tmp/realityos-meta-allowlist.conf"
@@ -137,7 +142,7 @@ jobs:
           printf '%s' "$GHCR_PULL_TOKEN" | ssh -i ~/.ssh/frontend "$FRONTEND_USER@$FRONTEND_HOST" "sudo docker login ghcr.io --username '${{ github.actor }}' --password-stdin"
           ssh -i ~/.ssh/frontend "$FRONTEND_USER@$FRONTEND_HOST" '
             set -eu
-            sudo install -m 0600 /tmp/realityos-meta-runtime.env /opt/realityos-meta-gateway/runtime.env
+            sudo python3 /tmp/realityos-update-runtime.py /opt/realityos-meta-gateway/runtime.env /tmp/realityos-meta-runtime.env REALITYOS_GATEWAY_IMAGE
             sudo install -m 0644 /tmp/realityos-meta-compose.yml /opt/realityos-meta-gateway/docker-compose.yml
             sudo install -m 0644 /tmp/realityos-meta-allowlist.conf /etc/nginx/snippets/realityos-meta-allowlist.conf
             sudo install -m 0644 /tmp/realityos-meta-cloudflare-realip.conf /etc/nginx/snippets/realityos-meta-cloudflare-realip.conf
@@ -236,20 +241,26 @@ jobs:
           ssh -i ~/.ssh/realityos "$REALITYOS_USER@$REALITYOS_HOST" '
             set -eu
             sudo install -d -m 0755 /opt/realityos
-            sudo install -m 0600 /tmp/realityos-runtime.env /opt/realityos/runtime.env
+            incoming_deploy_path=$(sed -n "s/^REALITYOS_DEPLOY_PATH=//p" /tmp/realityos-runtime.env)
+            sudo python3 "$incoming_deploy_path/scripts/deploy/update_runtime_env.py" /opt/realityos/runtime.env /tmp/realityos-runtime.env REALITYOS_BACKEND_IMAGE
             realityos_deploy_path=$(sudo sed -n "s/^REALITYOS_DEPLOY_PATH=//p" /opt/realityos/runtime.env)
             acme_email=$(sudo sed -n "s/^ACME_EMAIL=//p" /opt/realityos/runtime.env)
             cd "$realityos_deploy_path"
             sh scripts/setup_runtime_dirs.sh
-            sudo docker compose --env-file .env --env-file /opt/realityos/runtime.env -f infrastructure/docker-compose.yml -f infrastructure/docker-compose.production.yml pull api worker
-            sudo docker compose --env-file .env --env-file /opt/realityos/runtime.env -f infrastructure/docker-compose.yml -f infrastructure/docker-compose.production.yml up -d --no-build api worker
-            sudo docker compose --env-file .env --env-file /opt/realityos/runtime.env -f infrastructure/docker-compose.yml -f infrastructure/docker-compose.production.yml exec -T api alembic upgrade head
+            runtime_overlay="$realityos_deploy_path/.runtime/ci-preserved-runtime.json"
+            rollback_overlay="$realityos_deploy_path/.runtime/ci-runtime-rollback.json"
+            sudo python3 scripts/deploy/preserve_backend_runtime.py --output "$runtime_overlay" --rollback "$rollback_overlay"
+            sudo docker compose --env-file .env --env-file /opt/realityos/runtime.env -f infrastructure/docker-compose.yml -f infrastructure/docker-compose.production.yml -f "$runtime_overlay" pull api worker
+            sudo docker compose --env-file .env --env-file /opt/realityos/runtime.env -f infrastructure/docker-compose.yml -f infrastructure/docker-compose.production.yml -f "$runtime_overlay" up -d --no-build api worker
+            sudo docker compose --env-file .env --env-file /opt/realityos/runtime.env -f infrastructure/docker-compose.yml -f infrastructure/docker-compose.production.yml -f "$runtime_overlay" exec -T api alembic upgrade head
             # Browser apps are deliberately built on the target from the same
             # synchronized commit. They do not receive the Meta API key.
-            sudo docker compose --env-file .env --env-file /opt/realityos/runtime.env -f infrastructure/docker-compose.yml -f infrastructure/docker-compose.production.yml build frontend display
-            sudo docker compose --env-file .env --env-file /opt/realityos/runtime.env -f infrastructure/docker-compose.yml -f infrastructure/docker-compose.production.yml up -d --no-build frontend display proxy
-            sudo docker compose --env-file .env --env-file /opt/realityos/runtime.env -f infrastructure/docker-compose.yml -f infrastructure/docker-compose.production.yml exec -T api python -c "import urllib.request; urllib.request.urlopen(\"http://localhost:8000/health/ready\")"
-            sudo docker compose --env-file .env --env-file /opt/realityos/runtime.env -f infrastructure/docker-compose.yml -f infrastructure/docker-compose.production.yml exec -T api python -c "import json, urllib.request; paths=json.load(urllib.request.urlopen(\"http://localhost:8000/v1/openapi.json\"))[\"paths\"]; assert all(p in paths for p in [\"/v1/device/jobs/{job_id}\", \"/v1/auth/facebook\", \"/v1/gallery\", \"/v1/assistant\"]), \"Android API contract missing from OpenAPI\""
+            sudo docker compose --env-file .env --env-file /opt/realityos/runtime.env -f infrastructure/docker-compose.yml -f infrastructure/docker-compose.production.yml -f "$runtime_overlay" build frontend display
+            sudo docker compose --env-file .env --env-file /opt/realityos/runtime.env -f infrastructure/docker-compose.yml -f infrastructure/docker-compose.production.yml -f "$runtime_overlay" up -d --no-build frontend display proxy
+            sudo docker compose --env-file .env --env-file /opt/realityos/runtime.env -f infrastructure/docker-compose.yml -f infrastructure/docker-compose.production.yml -f "$runtime_overlay" exec -T proxy nginx -s reload
+            sudo docker compose --env-file .env --env-file /opt/realityos/runtime.env -f infrastructure/docker-compose.yml -f infrastructure/docker-compose.production.yml -f "$runtime_overlay" exec -T api alembic current
+            sudo docker compose --env-file .env --env-file /opt/realityos/runtime.env -f infrastructure/docker-compose.yml -f infrastructure/docker-compose.production.yml -f "$runtime_overlay" exec -T api python -c "import urllib.request; urllib.request.urlopen(\"http://localhost:8000/health/ready\")"
+            sudo docker compose --env-file .env --env-file /opt/realityos/runtime.env -f infrastructure/docker-compose.yml -f infrastructure/docker-compose.production.yml -f "$runtime_overlay" exec -T api python -c "import json, urllib.request; paths=json.load(urllib.request.urlopen(\"http://localhost:8000/v1/openapi.json\"))[\"paths\"]; assert all(p in paths for p in [\"/v1/device/jobs/{job_id}\", \"/v1/auth/facebook\", \"/v1/gallery\", \"/v1/assistant\"]), \"Android API contract missing from OpenAPI\""
             sudo install -d -m 0755 /var/www/realityos-acme /etc/nginx/snippets
             sudo install -m 0644 /tmp/realityos-cloudflare-realip.conf /etc/nginx/snippets/realityos-cloudflare-realip.conf
             sudo install -m 0644 /tmp/realityos-http.conf /etc/nginx/conf.d/realityos.conf

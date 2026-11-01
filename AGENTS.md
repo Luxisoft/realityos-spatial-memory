@@ -52,6 +52,14 @@ configuration and non-code files, or when the graph is unavailable.
 - Mock outputs are deterministic and visibly labelled simulated.
 - Confirm current official Meta endpoint/SDK signatures before coding Live.
 
+## Git delivery
+
+Owner preference (2026-11-01): commit and push project changes directly to
+`main`. Do not create feature branches or draft PRs unless the owner explicitly
+requests them. Run the relevant checks before pushing; `main` triggers CI and
+the production deployment workflow. Keep credentials, runtime files, build
+outputs and private media out of Git.
+
 ## Deploy standing rule
 
 This checkout is the production RealityOS host. Always deploy server-side
