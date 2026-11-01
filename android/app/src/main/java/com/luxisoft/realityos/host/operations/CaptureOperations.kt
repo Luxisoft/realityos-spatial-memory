@@ -19,6 +19,8 @@ import com.meta.wearable.dat.display.Display
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
@@ -56,8 +58,9 @@ internal fun RealityViewModel.chooseZoneOperation(zone: RemoteZone) {
 }
 
 internal fun RealityViewModel.openCaptureSessionAndCameraOperation() {
-    val captureRevision = metaController.generation.revision
-    captureOperationJob = viewModelScope.launch {
+    if (captureOperationJob?.isActive == true) return
+    captureOperationJob = viewModelScope.launch(start = CoroutineStart.LAZY) {
+        val operation = currentCoroutineContext()[Job]
         setBusy(true)
         var openedCaptureSessionId: String? = null
         try {
@@ -74,9 +77,13 @@ internal fun RealityViewModel.openCaptureSessionAndCameraOperation() {
                         current.copy(phonePreview = current.phonePreview.open(), wearable = current.wearable.copy(cameraActive = true))
                     }
                     val previewController = (app as RealityOsApplication).developerPreviewController
-                    phoneCapture?.selectCamera(previewController.state.value.phoneCamera ?: PreviewPhoneCamera.BACK)
-                    checkNotNull(phoneCapture) { copy(R.string.status_phone_source_unavailable) }
-                        .startPreview()
+                    val source = checkNotNull(phoneCapture) { copy(R.string.status_phone_source_unavailable) }
+                    val started = withTimeoutOrNull(CAMERA_START_TIMEOUT_MS) {
+                        source.selectCamera(previewController.state.value.phoneCamera ?: PreviewPhoneCamera.BACK)
+                        source.startPreview()
+                        true
+                    }
+                    check(started == true) { copy(R.string.status_camera_start_timeout) }
                     renderCapture()
                 }
                 InputRoute.WEARABLE -> attachWearableCamera()
@@ -95,9 +102,15 @@ internal fun RealityViewModel.openCaptureSessionAndCameraOperation() {
                 retry = ::openCaptureSessionAndCamera
             )
         } finally {
-            if (metaController.generation.accepts(captureRevision)) setBusy(false)
+            // Language refreshes also change the response generation. Only
+            // the operation that owns the camera opening may release busy.
+            if (captureOperationJob === operation) {
+                captureOperationJob = null
+                setBusy(false)
+            }
         }
     }
+    captureOperationJob?.start()
 }
 
 internal suspend fun RealityViewModel.attachWearableCameraOperation() {

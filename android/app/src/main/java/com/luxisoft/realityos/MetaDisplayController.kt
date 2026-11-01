@@ -103,44 +103,69 @@ internal class MetaDisplayController(private val vm: RealityViewModel) {
     }
 
     fun beginCapture() {
-        if (vm.state.value.busy || vm.state.value.wearable.speechActive ||
-            vm.state.value.captureSessionId != null || vm.state.value.wearable.cameraActive ||
-            vm.mutablePermissionRequest.value != null || meta.captureForSearch
-        ) {
-            return
-        }
-        if (pending != null) {
-            vm.renderPublicationReview()
-            return
-        }
-        val profile = MetaDisplayPolicy.profileDestination(meta.destinations)
-        if (!authenticated() || profile == null) {
-            vm.renderNotice(vm.copy(R.string.meta_profile_required))
-            return
-        }
-        target = profile
-        update { it.copy(captureForPublication = true, pendingDestination = target?.name, error = null) }
-        vm.pendingAction = RealityViewModel.PendingAction.PrepareCapture
-        if (vm.inputRoute == InputRoute.PHONE) {
-            vm.requestPhonePermission(PhonePermission.CAMERA)
-        } else {
-            vm.requestDatPermission(com.meta.wearable.dat.core.types.Permission.CAMERA)
+        vm.viewModelScope.launch(Dispatchers.Main.immediate) {
+            if (!canOpenCamera()) return@launch
+            val profile = MetaDisplayPolicy.profileDestination(meta.destinations)
+            if (!authenticated() || profile == null) {
+                vm.renderNotice(vm.copy(R.string.meta_profile_required))
+                return@launch
+            }
+            target = profile
+            update { it.copy(captureForPublication = true, pendingDestination = target?.name, error = null) }
+            requestCamera()
         }
     }
 
     fun beginPhotoSearch(kind: MetaPhotoSearchKind = MetaPhotoSearchKind.OBJECT) {
-        if (vm.state.value.busy || vm.state.value.wearable.speechActive ||
-            vm.state.value.wearable.cameraActive || vm.state.value.captureSessionId != null ||
-            vm.mutablePermissionRequest.value != null || meta.captureForPublication || pending != null
-        ) {
-            return
+        vm.viewModelScope.launch(Dispatchers.Main.immediate) {
+            if (!canOpenCamera()) return@launch
+            if (!authenticated()) {
+                vm.renderNotice(vm.copy(R.string.meta_login_required))
+                return@launch
+            }
+            update { it.copy(captureForSearch = true, photoSearchKind = kind, error = null) }
+            requestCamera()
         }
-        if (!authenticated()) {
-            vm.renderNotice(vm.copy(R.string.meta_login_required))
-            return
+    }
+
+    /** Display callbacks can arrive off-main; every accepted tap gets visible feedback. */
+    private fun canOpenCamera(): Boolean {
+        val state = vm.state.value
+        val message = when {
+            state.busy -> R.string.meta_action_busy
+            vm.mutablePermissionRequest.value != null -> R.string.meta_camera_permission_pending
+            state.wearable.speechActive -> R.string.meta_voice_in_progress
+            else -> null
         }
-        update { it.copy(captureForSearch = true, photoSearchKind = kind, error = null) }
+        if (message != null) {
+            val text = vm.copy(message)
+            vm.showStatus(text)
+            vm.renderNotice(text, showHome = !state.busy)
+            return false
+        }
+        if (pending != null) {
+            vm.showStatus(vm.copy(R.string.meta_pending_capture))
+            vm.renderPublicationReview()
+            return false
+        }
+        if (state.wearable.cameraActive) {
+            vm.renderCapture()
+            return false
+        }
+        if (state.captureSessionId != null || meta.captureForPublication || meta.captureForSearch) {
+            val text = vm.copy(R.string.meta_capture_in_progress)
+            vm.showStatus(text)
+            vm.renderNotice(text)
+            return false
+        }
+        return true
+    }
+
+    private fun requestCamera() {
         vm.pendingAction = RealityViewModel.PendingAction.PrepareCapture
+        val text = vm.copy(R.string.meta_camera_permission_pending)
+        vm.showStatus(text)
+        vm.renderNotice(text)
         if (vm.inputRoute == InputRoute.PHONE) {
             vm.requestPhonePermission(PhonePermission.CAMERA)
         } else {
@@ -296,6 +321,7 @@ internal class MetaDisplayController(private val vm: RealityViewModel) {
 
     internal fun pause() {
         generation.invalidate()
+        val cancelledOperation = vm.captureOperationJob?.isActive == true || vm.queryJob?.isActive == true || job?.isActive == true
         vm.captureOperationJob?.cancel()
         vm.captureOperationJob = null
         vm.queryJob?.cancel()
@@ -305,6 +331,7 @@ internal class MetaDisplayController(private val vm: RealityViewModel) {
         // Network cancellation retains the request key and private original for a safe retry.
         job?.cancel()
         job = null
+        if (cancelledOperation) vm.setBusy(false)
         if (pending != null) update { it.copy(uploadStatus = if (uploadId == null) null else "paused") }
         update { it.copy(captureForPublication = false, captureForSearch = false, recordingSeconds = 0) }
     }

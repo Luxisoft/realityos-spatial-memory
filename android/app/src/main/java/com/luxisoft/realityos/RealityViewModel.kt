@@ -220,7 +220,7 @@ class RealityViewModel(application: Application) : AndroidViewModel(application)
         queryJob?.cancel()
         queryJob = null
         val current = state.value
-        if (!current.meta.captureForPublication && current.meta.pendingMime == null) metaController.generation.invalidate()
+        if (!current.meta.captureForPublication && !current.meta.captureForSearch && current.meta.pendingMime == null) metaController.generation.invalidate()
         mutableUiState.update { it.copy(queryResult = null, message = copy(R.string.status_ready), busy = if (queryActive) false else it.busy) }
         if (!current.wearable.displayReady) return
         when {

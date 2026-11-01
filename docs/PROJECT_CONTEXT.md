@@ -427,3 +427,10 @@ Rutas locales ausentes fuera de `ENVIRONMENT=local` + `LOCAL_LOGIN_ENABLED=true`
 Windows nativo y APK completo pasan por CI. QA física y prueba integral Docker
 Desktop Windows requieren ese entorno. No modificar perfiles de producción para
 arrancar la alternativa local.
+
+Revisión de Buscar en la vista previa Android (2026-11-01): apertura compartida
+de cámara en el hilo principal, avisos ante bloqueos y publicación pendiente,
+timeout de inicio y liberación del estado ocupado independiente de la generación
+de respuestas. CI pulsa Buscar objeto/persona en el WebView oficial y verifica
+CameraX en cámara emulada, con regresiones de permisos y cancelación. Backend y
+consentimientos sin cambios; QA física pendiente. Ver `IMPLEMENTATION_STATUS.md`.

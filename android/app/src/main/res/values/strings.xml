@@ -374,6 +374,10 @@
     <string name="meta_face_color_7">red</string>
     <string name="meta_face_color_8">blue</string>
     <string name="meta_camera_unavailable">The camera is unavailable. Close it with X and open it again.</string>
+    <string name="meta_action_busy">An operation is still running. Wait for it to finish.</string>
+    <string name="meta_camera_permission_pending">Allow camera access on your phone to continue.</string>
+    <string name="meta_capture_in_progress">Finish or close the current capture before starting another.</string>
+    <string name="meta_voice_in_progress">Finish the voice command before opening the camera.</string>
     <string name="meta_profile_required">Sign in on your phone and load your Profile to capture.</string>
     <string name="meta_sending_profile">Sending to your Profile…</string>
     <string name="meta_video">Video</string>

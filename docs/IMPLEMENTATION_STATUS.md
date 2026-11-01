@@ -1308,3 +1308,22 @@ Guía: [Windows local](LOCAL_WINDOWS.md). El APK final habitual debe quedar en
 `android/app/build/outputs/apk/debug/app-debug.apk`; el build local es una
 alternativa y no sustituye el APK del servidor. No se requiere migración nueva
 ni dump PostgreSQL.
+
+## Apertura de cámara desde Buscar en la vista previa — 2026-11-01
+
+Los botones Buscar objeto/persona y Capturar pasan al hilo principal y muestran
+el permiso pendiente, la operación activa o la revisión de una publicación
+retenida en lugar de finalizar silenciosamente. Abrir CameraX tiene un plazo
+máximo; su propia operación libera el estado ocupado incluso si cambia la
+generación de respuestas. Cambiar idioma durante una búsqueda por foto conserva
+la generación de captura; cancelar rechaza callbacks anteriores. El host conserva
+la solicitud de permiso al recrear la actividad.
+
+CI añade pruebas con toques en el WebView oficial de Meta, permiso concedido y
+denegado, cancelación, reapertura, publicación retenida, fallo de inicio y cambio
+de generación. Una prueba independiente utiliza CameraX y los frames de la
+cámara emulada; las restantes controlan el origen para verificar el estado sin
+subir fotografías. La ejecución manual `verify_display_baseline` permite
+comprobar los dos fallos sobre la implementación anterior antes de ejecutar
+la corregida. No implica validación de cámara, tacto ni gafas físicas. Sin cambios
+de backend, contratos API o consentimientos biométricos.

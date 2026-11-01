@@ -94,6 +94,12 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         installSplashScreen()
         super.onCreate(savedInstanceState)
+        val pendingPermission = viewModel.permissionRequest.value
+        if (pendingPermission != null && savedInstanceState?.getLong("active-permission-request", -1L) == pendingPermission.id) {
+            lastLaunchedPermissionRequestId = pendingPermission.id
+            requestedDatPermission = pendingPermission as? RealityPermissionRequest.Dat
+            requestedPhonePermission = pendingPermission as? RealityPermissionRequest.Android
+        }
         enableEdgeToEdge()
         window.isNavigationBarContrastEnforced = false
         viewModel.setPhoneInputSources(phoneCaptureSource, phoneSpeechSource)
@@ -122,13 +128,18 @@ class MainActivity : AppCompatActivity() {
                             }
                             is RealityPermissionRequest.Android -> {
                                 requestedPhonePermission = request
-                                phonePermissionLauncher.launch(
-                                    if (request.permission == PhonePermission.CAMERA) {
-                                        Manifest.permission.CAMERA
-                                    } else {
-                                        Manifest.permission.RECORD_AUDIO
-                                    },
-                                )
+                                try {
+                                    phonePermissionLauncher.launch(
+                                        if (request.permission == PhonePermission.CAMERA) {
+                                            Manifest.permission.CAMERA
+                                        } else {
+                                            Manifest.permission.RECORD_AUDIO
+                                        },
+                                    )
+                                } catch (error: IllegalStateException) {
+                                    requestedPhonePermission = null
+                                    viewModel.onPhonePermissionResult(request.id, request.permission, granted = false)
+                                }
                             }
                         }
                     }
@@ -237,6 +248,11 @@ class MainActivity : AppCompatActivity() {
             }
         })
         speech.speak(request.text, TextToSpeech.QUEUE_FLUSH, null, "realityos-guidance")
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        outState.putLong("active-permission-request", lastLaunchedPermissionRequestId)
+        super.onSaveInstanceState(outState)
     }
 
     override fun onDestroy() {

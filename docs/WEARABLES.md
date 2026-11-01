@@ -185,6 +185,14 @@ draw and touch order; hiding an Android view's pixels is insufficient to
 guarantee touch delivery. X remains enabled during capture so cancellation
 cannot leave the user trapped. A late CameraX completion deletes a photo that
 was cancelled while it was being saved.
+
+Search and Capture callbacks run on the Android main thread. A pending permission
+or active operation produces visible feedback, and a retained publication opens
+its review without discarding the original. Camera startup is bounded; its owner
+releases the busy state even when the response generation changes. Instrumented
+CI tests send pointer events through the official WebView bridge, exercise
+permission/cancellation recovery and check CameraX frames using an emulated
+camera. They do not establish physical phone or glasses validation.
 The official Display renderer remains mounted, hidden and non-interactive
 behind the camera; returning to results does not recreate it. Navigating away
 or recreating the phone host releases local sensors without deleting an

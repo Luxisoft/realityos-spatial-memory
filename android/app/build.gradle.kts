@@ -119,6 +119,8 @@ dependencies {
   testImplementation("androidx.compose.ui:ui-test-junit4")
   androidTestImplementation("androidx.test.ext:junit:1.2.1")
   androidTestImplementation("androidx.test:runner:1.6.2")
+  androidTestImplementation(platform(libs.androidx.compose.bom))
+  androidTestImplementation("androidx.compose.ui:ui-test-junit4")
   // Debug builds expose Meta's Developer Preview on a phone. Release builds
   // never package Mock Device Kit.
   debugImplementation(libs.mwdat.mockdevice)
@@ -137,6 +139,7 @@ dependencies {
 }
 
 val refactoredKotlin = files(
+    "src/androidTest/java/com/luxisoft/realityos/DisplaySearchCameraTest.kt",
     "src/main/java/com/luxisoft/realityos/LocalAccessPolicy.kt",
     "src/test/java/com/luxisoft/realityos/LocalAccessPolicyTest.kt",
     "src/debug/java/com/luxisoft/realityos/LocalAccountEntry.kt",

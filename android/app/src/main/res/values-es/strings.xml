@@ -371,6 +371,10 @@
     <string name="meta_face_color_7">rojo</string>
     <string name="meta_face_color_8">azul</string>
     <string name="meta_camera_unavailable">La cámara no está disponible. Ciérrala con X y ábrela de nuevo.</string>
+    <string name="meta_action_busy">Hay una operación en curso. Espera a que termine.</string>
+    <string name="meta_camera_permission_pending">Permite el acceso a la cámara en tu teléfono para continuar.</string>
+    <string name="meta_capture_in_progress">Termina o cierra la captura actual antes de iniciar otra.</string>
+    <string name="meta_voice_in_progress">Termina el comando de voz antes de abrir la cámara.</string>
     <string name="meta_profile_required">Inicia sesión en el teléfono y carga tu Perfil para capturar.</string>
     <string name="meta_sending_profile">Enviando a tu Perfil…</string>
     <string name="meta_video">Video</string>
