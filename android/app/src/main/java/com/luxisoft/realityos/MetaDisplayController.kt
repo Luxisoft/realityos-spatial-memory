@@ -104,9 +104,10 @@ internal class MetaDisplayController(private val vm: RealityViewModel) {
 
     fun beginCapture() {
         vm.viewModelScope.launch(Dispatchers.Main.immediate) {
+            if (!requireAccount()) return@launch
             if (!canOpenCamera()) return@launch
             val profile = MetaDisplayPolicy.profileDestination(meta.destinations)
-            if (!authenticated() || profile == null) {
+            if (profile == null) {
                 vm.renderNotice(vm.copy(R.string.meta_profile_required))
                 return@launch
             }
@@ -118,19 +119,28 @@ internal class MetaDisplayController(private val vm: RealityViewModel) {
 
     fun beginPhotoSearch(kind: MetaPhotoSearchKind = MetaPhotoSearchKind.OBJECT) {
         vm.viewModelScope.launch(Dispatchers.Main.immediate) {
+            if (!requireAccount()) return@launch
             if (!canOpenCamera()) return@launch
-            if (!authenticated()) {
-                vm.renderNotice(vm.copy(R.string.meta_login_required))
-                return@launch
-            }
             update { it.copy(captureForSearch = true, photoSearchKind = kind, error = null) }
             requestCamera()
         }
     }
 
+    private fun requireAccount(): Boolean {
+        if (authenticated()) return true
+        val text = vm.copy(R.string.meta_login_required)
+        vm.showStatus(text)
+        vm.renderNotice(text)
+        return false
+    }
+
     /** Display callbacks can arrive off-main; every accepted tap gets visible feedback. */
     private fun canOpenCamera(): Boolean {
         val state = vm.state.value
+        if (!state.wearable.displayReady || vm.display == null) {
+            vm.showStatus(vm.copy(R.string.status_display_not_connected))
+            return false
+        }
         val message = when {
             state.busy -> R.string.meta_action_busy
             vm.mutablePermissionRequest.value != null -> R.string.meta_camera_permission_pending

@@ -171,6 +171,22 @@ class DisplaySearchCameraTest {
         await { !vm.state.value.wearable.cameraActive }
     }
 
+    @Test fun aDifferentAccountCannotOpenThePreviousAccountsPendingPublication() {
+        val app = instrumentation.targetContext.applicationContext as Application
+        retainedFile = File.createTempFile("other-account-camera-test", ".jpg", app.cacheDir)
+        main {
+            MetaDisplayController::class.java.getDeclaredField("pending").apply { isAccessible = true }.set(vm.metaController, retainedFile)
+            vm.mutableUiState.update { it.copy(meta = it.meta.copy(pendingMime = "image/jpeg")) }
+            val payload = Base64.encodeToString("""{"sub":"another-account"}""".toByteArray(), Base64.URL_SAFE or Base64.NO_WRAP or Base64.NO_PADDING)
+            SocialSession.token = "e30.$payload.test-only"
+        }
+        tapButton(vm.copy(R.string.meta_search_person))
+        awaitButtonText(vm.copy(R.string.meta_login_required))
+        assertEquals("false", javascript("document.body.textContent.includes(${JSONObject.quote(vm.copy(R.string.meta_publish))})"))
+        assertNull(vm.permissionRequest.value)
+        assertEquals(0, source.starts)
+    }
+
     @Test fun cameraStartupFailureCanBeClosedAndRetried() {
         source.failStart = true
         tapButton(vm.copy(R.string.meta_search_object))
@@ -207,6 +223,16 @@ class DisplaySearchCameraTest {
         compose.onNodeWithTag("rayban-camera-cancel").performTouchInput { click() }
         await { !vm.state.value.wearable.cameraActive }
         assertEquals("This case must use CameraX rather than the controlled source", 0, source.starts)
+    }
+
+    @Test fun aCallbackFromADisconnectedDisplayCannotOpenCamera() {
+        main {
+            vm.disconnectDisplay()
+            vm.beginMetaObjectSearch()
+        }
+        await { vm.state.value.message == vm.copy(R.string.status_display_not_connected) }
+        assertNull(vm.permissionRequest.value)
+        assertEquals(0, source.starts)
     }
 
     private fun grantCamera() {
