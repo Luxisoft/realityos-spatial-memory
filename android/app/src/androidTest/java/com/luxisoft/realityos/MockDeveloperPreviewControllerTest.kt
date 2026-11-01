@@ -2,6 +2,8 @@ package com.luxisoft.realityos
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
+import com.meta.wearable.dat.core.Wearables
+import com.meta.wearable.dat.core.selectors.SpecificDeviceSelector
 import com.meta.wearable.dat.core.types.Permission
 import kotlinx.coroutines.runBlocking
 import org.junit.After
@@ -37,11 +39,22 @@ class MockDeveloperPreviewControllerTest {
         val identifier = controller.start(DeveloperPreviewMode.IN_APP)
 
         assertNotNull(identifier)
+        assertTrue(controller.isSimulatedDevice(identifier!!))
+        assertEquals(InputRoute.PHONE, InputRoutePolicy.forConnectedDevice(controller.isSimulatedDevice(identifier)))
         assertTrue(controller.state.value.active)
         assertEquals(DeveloperPreviewMode.IN_APP, controller.state.value.mode)
         assertTrue(controller.state.value.poweredOn)
         assertTrue(controller.state.value.unfolded)
         assertTrue(controller.state.value.worn)
+
+        // start() must not return while DAT still considers the freshly paired
+        // virtual glasses ineligible; this prevents NO_ELIGIBLE_DEVICE when
+        // RealityViewModel immediately creates the Display session.
+        val selector = SpecificDeviceSelector(identifier!!)
+        assertEquals(identifier, selector.activeDevice())
+        val session = Wearables.createSession(selector)
+        assertTrue(session.isSuccess)
+        session.getOrThrow().stop()
 
         var preview: android.view.View? = null
         InstrumentationRegistry.getInstrumentation().runOnMainSync {
@@ -57,6 +70,9 @@ class MockDeveloperPreviewControllerTest {
         controller.stop()
 
         assertFalse(controller.state.value.active)
+        // DAT can retain metadata after a renderer restart. Never mistake
+        // that old identifier for connected physical glasses.
+        assertTrue(controller.isSimulatedDevice(identifier))
     }
 
     @Test

@@ -63,3 +63,17 @@ instead of a public development value.
 
 Use `make gateway-api` with a local `meta-gateway/.env` copied from
 `infrastructure/gateway/runtime.env.example`. Do not expose its port publicly.
+
+## Private response speech route (2026-11-01)
+
+The gateway additionally implements `POST /v1/tts/synthesize`, protected by the
+same gateway token and existing IP allowlist. This one route targets a fixed
+`TTS_SERVICE_URL` with its separate `TTS_SERVICE_TOKEN`; the Meta API key and
+RealityOS gateway token are never forwarded to the speech service. Payloads
+are bounded/validated using the contract from `backend/app/tts_contracts.py`,
+which is copied into the gateway image. Other routes retain Meta forwarding.
+
+Build the gateway from the monorepo root. For standalone gateway development or
+its tests without the backend installed, set `PYTHONPATH=backend`; CI does this.
+Configuration left unset returns 503. FRONTEND activation and measurements are
+still pending remote-tool approval; see [TTS](TTS.md).

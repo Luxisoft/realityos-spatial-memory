@@ -5,16 +5,20 @@ import android.app.Application
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import androidx.annotation.StringRes
+import androidx.camera.core.Preview
+import androidx.camera.core.ViewPort
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.luxisoft.realityos.host.operations.*
 import com.meta.wearable.dat.camera.Camera
 import com.meta.wearable.dat.camera.addCamera
 import com.meta.wearable.dat.camera.removeCamera
+import com.meta.wearable.dat.camera.types.AudioCodec
+import com.meta.wearable.dat.camera.types.AudioSampleRate
 import com.meta.wearable.dat.camera.types.PhotoData
 import com.meta.wearable.dat.camera.types.StreamConfiguration
 import com.meta.wearable.dat.camera.types.VideoQuality
 import com.meta.wearable.dat.core.Wearables
-import com.meta.wearable.dat.core.selectors.AutoDeviceSelector
 import com.meta.wearable.dat.core.selectors.SpecificDeviceSelector
 import com.meta.wearable.dat.core.session.DeviceSession
 import com.meta.wearable.dat.core.session.DeviceSessionState
@@ -37,10 +41,13 @@ import com.meta.wearable.dat.speech.addSpeech
 import com.meta.wearable.dat.speech.removeSpeech
 import java.io.ByteArrayOutputStream
 import java.io.File
-import java.net.URL
 import java.time.Instant
+import java.util.concurrent.atomic.AtomicLong
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -48,82 +55,154 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeoutOrNull
 
 data class WearableState(
     val registration: String = RegistrationState.UNAVAILABLE.name,
+    val transportReady: Boolean = false,
     val deviceAvailable: Boolean = false,
     val sessionActive: Boolean = false,
     val displayReady: Boolean = false,
     val cameraActive: Boolean = false,
     val speechActive: Boolean = false,
+    val inputRoute: InputRoute = InputRoute.PHONE
 )
 
 data class RealityUiState(
     val provisioning: DeviceProvisioning? = null,
-    val provisioningDraft: ProvisioningDraft = ProvisioningDraft(),
     val virtualProfileLoading: Boolean = false,
     val virtualProfileError: String? = null,
     val wearable: WearableState = WearableState(),
     val captureSessionId: String? = null,
     val recording: Boolean = false,
     val busy: Boolean = false,
+    val processingJobs: Int = 0,
     val message: String = "",
-    val queryResult: QueryEvidence? = null,
+    val meta: MetaDisplayState = MetaDisplayState(),
+    val phonePreview: PhonePreviewState = PhonePreviewState(),
+    val queryResult: QueryEvidence? = null
 )
 
-/**
- * A DAT host with no field-worker phone workflow. The phone exists only because
- * Meta's SDK needs it for registration, Bluetooth transport, and audio routing;
- * once connected, all operational controls are rendered on Ray-Ban Display.
- */
+/** A Display host with explicit phone and wearable input routes. */
 class RealityViewModel(application: Application) : AndroidViewModel(application) {
-    private val app = application
-    private val store = DeviceProvisioningStore(application)
-    private val recorder = HevcMp4Recorder(application.cacheDir)
-    private val storedProvisioning = store.read()
-    private val _state = MutableStateFlow(
+    internal val app = application
+    internal val store = DeviceProvisioningStore(application)
+    internal val recorder = HevcMp4Recorder(application.cacheDir)
+    internal val storedProvisioning = store.read()
+    internal val mutableUiState = MutableStateFlow(
         RealityUiState(
             provisioning = storedProvisioning,
-            provisioningDraft = storedProvisioning?.toDraft() ?: ProvisioningDraft(),
-            message = app.getString(R.string.status_initial),
-        ),
+            message = app.getString(R.string.status_initial)
+        )
     )
-    val state: StateFlow<RealityUiState> = _state.asStateFlow()
+    val state: StateFlow<RealityUiState> = mutableUiState.asStateFlow()
 
-    private val _permissionRequests = MutableSharedFlow<Permission>(extraBufferCapacity = 1)
-    val permissionRequests: SharedFlow<Permission> = _permissionRequests.asSharedFlow()
-    private val _speechRequests = MutableSharedFlow<String>(extraBufferCapacity = 1)
-    val speechRequests: SharedFlow<String> = _speechRequests.asSharedFlow()
+    internal val permissionIds = AtomicLong(0)
+    internal val mutablePermissionRequest = MutableStateFlow<RealityPermissionRequest?>(null)
+    val permissionRequest: StateFlow<RealityPermissionRequest?> = mutablePermissionRequest.asStateFlow()
+    internal val mutableSpeechRequests = MutableSharedFlow<LocalizedSpeech>(extraBufferCapacity = 1)
+    val speechRequests: SharedFlow<LocalizedSpeech> = mutableSpeechRequests.asSharedFlow()
+    private val _speechStopRequests = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
+    val speechStopRequests: SharedFlow<Unit> = _speechStopRequests.asSharedFlow()
+    private val _speaking = MutableStateFlow(false)
+    val speaking: StateFlow<Boolean> = _speaking.asStateFlow()
 
-    private var session: DeviceSession? = null
-    private var display: Display? = null
-    private var camera: Camera? = null
-    private var speech: Speech? = null
-    private var selectedZone: RemoteZone? = null
-    private var pendingCameraPermission = false
-    private var pendingMicrophonePermission = false
-    private var sessionStateJob: Job? = null
-    private var sessionErrorsJob: Job? = null
-    private var displayStateJob: Job? = null
-    private var frameJob: Job? = null
-    private var speechJob: Job? = null
-    private var recordingLimitJob: Job? = null
+    /** Speak a short reply on the active audio route (phone or glasses). */
+    fun speak(text: String, language: String = RealityExperienceStore(app).selectedLanguage().languageTag) {
+        if (text.isNotBlank()) mutableSpeechRequests.tryEmit(LocalizedSpeech(text, language))
+    }
+
+    fun stopSpeak() {
+        _speechStopRequests.tryEmit(Unit)
+        _speaking.value = false
+    }
+
+    fun onSpeechStarted() {
+        _speaking.value = true
+    }
+
+    fun onSpeechDone() {
+        _speaking.value = false
+    }
+
+    internal var session: DeviceSession? = null
+    internal var display: Display? = null
+    internal var camera: Camera? = null
+    internal var speech: Speech? = null
+    internal var phoneCapture: PhoneCaptureSource? = null
+    internal var phoneSpeech: PhoneSpeechSource? = null
+    internal var selectedZone: RemoteZone? = null
+    internal var inputRoute = InputRoute.PHONE
+    internal var pendingAction: PendingAction? = null
+    internal var wearablesObservationStarted = false
+    internal var sessionStateJob: Job? = null
+    internal var sessionErrorsJob: Job? = null
+    internal var displayStateJob: Job? = null
+    internal var frameJob: Job? = null
+    internal var audioFrameJob: Job? = null
+    internal var streamStateJob: Job? = null
+    internal var cameraErrorJob: Job? = null
+    internal var speechJob: Job? = null
+    internal var speechErrorJob: Job? = null
+    internal var phoneSpeechJob: Job? = null
+    internal var phonePreviewSurfaceJob: Job? = null
+    internal var captureOperationJob: Job? = null
+    internal var queryJob: Job? = null
+    internal var galleryImageJob: Job? = null
+    internal var recordingLimitJob: Job? = null
+    internal val renderMutex = Mutex()
+    internal var renderRevision = 0L
+    internal val processingJobIds = linkedSetOf<String>()
+    internal var pendingUpload: PendingUpload? = null
+
+    internal sealed interface PendingAction {
+        data object PrepareCapture : PendingAction
+        data object PrepareWearableCaptureAudio : PendingAction
+        data object PrepareWearablePhoneAudio : PendingAction
+        data object StartPhoneVideo : PendingAction
+        data object StartQuery : PendingAction
+    }
+
+    internal data class PendingUpload(
+        val captureSessionId: String,
+        val file: File,
+        val mimeType: String,
+        @param:StringRes val successMessage: Int,
+        // Once the server has accepted the media, retries must reuse that
+        // capture and only retry job creation. This avoids duplicate evidence
+        // when the network fails between upload and process acknowledgement.
+        var remoteCaptureId: String? = null
+    )
+
+    internal val metaController = MetaDisplayController(this)
+
+    fun refreshMetaConfiguration() = metaController.refresh()
+    fun selectMetaDestination(destination: MetaDestination) = metaController.selectDestination(destination)
+    fun selectMetaSearch(scope: MetaSearchScope) = metaController.selectScope(scope)
+    fun beginMetaCapture() = metaController.beginCapture()
+    fun beginMetaPhotoSearch(kind: MetaPhotoSearchKind = MetaPhotoSearchKind.OBJECT) = metaController.beginPhotoSearch(kind)
+    fun beginMetaObjectSearch() = metaController.beginPhotoSearch(MetaPhotoSearchKind.OBJECT)
+    fun beginMetaPersonSearch() = metaController.beginPhotoSearch(MetaPhotoSearchKind.PERSON)
+    fun publishMetaCapture() = metaController.submit()
+    fun retryMetaPublication() = metaController.submit(if (state.value.meta.uploadStatus == "failed") "retry" else null)
+    fun replaceMetaPublication() = metaController.submit("confirm")
+    fun discardMetaCapture() = metaController.discard()
+    fun clearMetaAccount() = metaController.clear()
 
     init {
         viewModelScope.launch {
-            Wearables.registrationState.collectLatest { registration ->
-                _state.update { current ->
-                    current.copy(wearable = current.wearable.copy(registration = registration.name))
-                }
-            }
-        }
-        viewModelScope.launch {
-            Wearables.devices.collectLatest { devices ->
-                _state.update { current ->
-                    current.copy(wearable = current.wearable.copy(deviceAvailable = devices.isNotEmpty()))
+            val experience = RealityExperienceStore(app)
+            var previous = experience.selectedLanguage()
+            experience.language.collect { selected ->
+                if (selected != previous) {
+                    previous = selected
+                    refreshDisplayLanguage()
                 }
             }
         }
@@ -134,121 +213,242 @@ class RealityViewModel(application: Application) : AndroidViewModel(application)
         }
     }
 
-    fun updateProvisioningDraft(
-        apiBaseUrl: String? = null,
-        workspaceId: String? = null,
-        deviceId: String? = null,
-        deviceKey: String? = null,
-    ) {
-        _state.update { current ->
-            val previous = current.provisioningDraft
-            current.copy(
-                provisioningDraft = previous.copy(
-                    apiBaseUrl = apiBaseUrl ?: previous.apiBaseUrl,
-                    workspaceId = workspaceId ?: previous.workspaceId,
-                    deviceId = deviceId ?: previous.deviceId,
-                    deviceKey = deviceKey ?: previous.deviceKey,
-                    // Editing an issued live profile makes it an explicitly
-                    // administrator-managed connection, not a stale demo label.
-                    source = ProvisioningSource.CUSTOM,
-                    workspaceName = null,
-                    expiresAt = null,
-                    processingMode = null,
-                ),
-                virtualProfileError = null,
-            )
+    /** Refresh Display copy while retaining an active capture and pending upload. */
+    private fun refreshDisplayLanguage() {
+        stopSpeak()
+        val queryActive = queryJob?.isActive == true
+        queryJob?.cancel()
+        queryJob = null
+        val current = state.value
+        if (!current.meta.captureForPublication && current.meta.pendingMime == null) metaController.generation.invalidate()
+        mutableUiState.update { it.copy(queryResult = null, message = copy(R.string.status_ready), busy = if (queryActive) false else it.busy) }
+        if (!current.wearable.displayReady) return
+        when {
+            current.wearable.cameraActive -> renderCapture()
+            current.meta.pendingMime != null -> renderPublicationReview()
+            current.wearable.speechActive -> renderListening("")
+            else -> renderHome()
         }
     }
 
-    /** Restores the project-owned live profile; custom servers are saved manually. */
+    /** Restores the project-owned live profile from the configured server. */
     fun loadVirtualDeviceProfile(saveAutomatically: Boolean = true) {
-        if (_state.value.virtualProfileLoading) return
+        if (mutableUiState.value.virtualProfileLoading) return
         val bootstrapUrl = BuildConfig.DEFAULT_REALITYOS_API_BASE_URL
-        _state.update { it.copy(virtualProfileLoading = true, virtualProfileError = null) }
+        mutableUiState.update { it.copy(virtualProfileLoading = true, virtualProfileError = null) }
         viewModelScope.launch {
             val result = withContext(Dispatchers.IO) {
                 runCatching {
                     VirtualDeviceBootstrapApi.fetch(
                         bootstrapUrl,
-                        store.installationId(),
+                        store.installationId()
                     )
                 }
             }
             result.onSuccess { profile ->
+                if (SocialSession.active) return@onSuccess
                 if (profile.processingMode.lowercase() != "live") {
-                    _state.update {
+                    mutableUiState.update {
                         it.copy(
                             virtualProfileLoading = false,
                             virtualProfileError = copy(R.string.status_live_not_confirmed),
-                            message = copy(R.string.status_enrollment_incomplete),
+                            message = copy(R.string.status_enrollment_incomplete)
                         )
                     }
                     return@onSuccess
                 }
                 val provisioning = profile.toProvisioning()
                 if (saveAutomatically) store.save(provisioning)
-                _state.update {
+                mutableUiState.update {
                     it.copy(
                         provisioning = if (saveAutomatically) provisioning else it.provisioning,
-                        provisioningDraft = provisioning.toDraft(),
                         virtualProfileLoading = false,
                         virtualProfileError = null,
-                        message = copy(R.string.status_live_connection_ready),
+                        message = copy(R.string.status_live_connection_ready)
                     )
                 }
             }.onFailure { error ->
-                _state.update {
+                mutableUiState.update {
                     it.copy(
                         virtualProfileLoading = false,
                         virtualProfileError = error.message ?: copy(R.string.status_load_live_failed),
-                        message = copy(R.string.status_enter_custom_or_retry),
+                        message = copy(R.string.status_enter_custom_or_retry)
                     )
                 }
             }
         }
     }
 
-    fun saveProvisioning(): Boolean {
-        val draft = _state.value.provisioningDraft
-        if (
-            draft.apiBaseUrl.isBlank() ||
-            draft.workspaceId.isBlank() ||
-            draft.deviceId.isBlank() ||
-            draft.deviceKey.isBlank()
-        ) {
-            showStatus(copy(R.string.status_connection_values_required))
-            return false
-        }
-        val apiUrl = runCatching { URL(draft.apiBaseUrl.trim()) }.getOrNull()
-        if (apiUrl?.protocol != "https") {
-            showStatus(copy(R.string.status_https_required))
-            return false
-        }
-        store.save(
-            DeviceProvisioning(
-                apiBaseUrl = draft.apiBaseUrl,
-                workspaceId = draft.workspaceId,
-                deviceId = draft.deviceId,
-                deviceKey = draft.deviceKey,
-                workspaceName = draft.workspaceName,
-                expiresAt = draft.expiresAt,
-                processingMode = draft.processingMode,
-                source = draft.source,
-            ),
-        )
-        _state.update {
-            it.copy(
-                provisioning = store.read(),
-                message = copy(R.string.status_connection_saved),
-                virtualProfileError = null,
-            )
-        }
-        return true
+    fun useFacebookCaptureProfile(profile: DeviceProvisioning) {
+        stopCamera()
+        store.save(profile)
+        mutableUiState.update { it.copy(provisioning = profile, virtualProfileError = null) }
     }
 
     fun registerWithMeta(activity: Activity) {
+        if (!mutableUiState.value.wearable.transportReady) {
+            showStatus(copy(R.string.status_wearables_not_ready))
+            return
+        }
         Wearables.startRegistration(activity)
         showStatus(copy(R.string.status_meta_registration))
+    }
+
+    /** MainActivity supplies lifecycle-bound phone sensors after it is created. */
+    fun setPhoneInputSources(capture: PhoneCaptureSource, speech: PhoneSpeechSource) {
+        if (phoneCapture != null && phoneCapture !== capture) onPhonePreviewHidden()
+        if (phoneCapture !== capture) phoneCapture?.close()
+        if (phoneSpeech !== speech) phoneSpeech?.close()
+        phoneCapture = capture
+        phoneSpeech = speech
+    }
+
+    /**
+     * The Debug optical shell owns the Android view, while the phone source
+     * owns CameraX. Keeping that boundary here avoids retaining a View or an
+     * Activity in the ViewModel and lets the same source work without the
+     * Debug simulator in release builds.
+     */
+    fun setPhonePreviewSurface(
+        surfaceProvider: Preview.SurfaceProvider?,
+        viewPort: ViewPort? = null,
+        generation: Long = state.value.phonePreview.generation
+    ) {
+        val source = phoneCapture ?: return
+        phonePreviewSurfaceJob?.cancel()
+        phonePreviewSurfaceJob = viewModelScope.launch {
+            if (generation != state.value.phonePreview.generation) return@launch
+            try {
+                source.setPreviewSurface(surfaceProvider, viewPort)
+            } catch (error: CancellationException) {
+                throw error
+            } catch (error: Exception) {
+                if (
+                    surfaceProvider != null &&
+                    inputRoute == InputRoute.PHONE &&
+                    mutableUiState.value.wearable.cameraActive
+                ) {
+                    onPhonePreviewFailure(generation, error.message ?: copy(R.string.status_camera_not_ready))
+                }
+            }
+        }
+    }
+
+    fun onPhonePreviewStreaming(generation: Long, streaming: Boolean) {
+        if (inputRoute != InputRoute.PHONE || !state.value.wearable.cameraActive) return
+        mutableUiState.update { it.copy(phonePreview = it.phonePreview.streaming(generation, streaming)) }
+    }
+
+    fun onPhonePreviewFailure(generation: Long, message: String) {
+        if (inputRoute != InputRoute.PHONE || !state.value.wearable.cameraActive || generation != state.value.phonePreview.generation) return
+        mutableUiState.update { it.copy(phonePreview = it.phonePreview.fail(generation, message), message = message) }
+    }
+
+    /** Navigation closes local sensors; staged media and its upload are retained. */
+    fun onPhonePreviewHidden() {
+        if (inputRoute != InputRoute.PHONE) return
+        if (state.value.meta.pendingMime != null) {
+            stopCamera()
+            stopSpeech()
+        } else if (state.value.wearable.cameraActive || state.value.wearable.speechActive || pendingAction != null) {
+            cancelPendingActionAndRenderHome()
+        }
+    }
+
+    /**
+     * Native controls in the Debug optical shell use the same explicit
+     * capture path as the Display buttons. They are deliberately restricted
+     * to the phone route so a physical Display keeps its own controls.
+     */
+    fun capturePhotoFromPreview() {
+        if (inputRoute == InputRoute.PHONE && mutableUiState.value.wearable.cameraActive) takePhoto()
+    }
+
+    /**
+     * Captures a still photo from the wearable camera for publishing. Returns
+     * null when the phone camera intent should be used instead. Callers must
+     * invoke this off the main thread.
+     */
+    suspend fun captureStillForPublish(): ByteArray? {
+        if (!PublishCapturePolicy.useWearable(inputRoute, camera != null)) return null
+        val activeCamera = camera ?: return null
+        var photo: PhotoData? = null
+        var failure: String? = null
+        activeCamera.stream.capturePhoto().fold(
+            onSuccess = { photo = it },
+            onFailure = { error, _ -> failure = error.description }
+        )
+        return photo?.asJpegBytes() ?: throw IllegalStateException(failure ?: localizedText(R.string.ui_could_not_capture_the_photo))
+    }
+
+    /** Starts a phone video or finalizes the active one; no capture is implicit. */
+    fun togglePreviewVideo() {
+        if (inputRoute != InputRoute.PHONE || !mutableUiState.value.wearable.cameraActive || state.value.meta.captureForSearch) return
+        if (mutableUiState.value.recording) stopVideo() else startVideo()
+    }
+
+    fun cancelPhoneCapture() {
+        if (inputRoute != InputRoute.PHONE) return
+        if (state.value.meta.pendingMime != null) {
+            metaController.discard()
+            return
+        }
+        cancelPendingActionAndRenderHome()
+    }
+
+    fun retryPhonePreview() {
+        if (inputRoute != InputRoute.PHONE || !mutableUiState.value.wearable.cameraActive) return
+        viewModelScope.launch {
+            mutableUiState.update { it.copy(phonePreview = it.phonePreview.copy(phase = PhonePreviewPhase.OPENING, error = null)) }
+            runCatching { phoneCapture?.startPreview() }
+                .onFailure { onPhonePreviewFailure(state.value.phonePreview.generation, it.message ?: copy(R.string.status_camera_not_ready)) }
+        }
+    }
+
+    fun onWearablesInitializationFailure(message: String) {
+        mutableUiState.update { current ->
+            current.copy(wearable = current.wearable.copy(transportReady = false), message = message)
+        }
+    }
+
+    fun showWearablesNotReady() {
+        showStatus(copy(R.string.status_wearables_not_ready))
+    }
+
+    fun onWearablesInitialized() {
+        if (!wearablesObservationStarted) {
+            wearablesObservationStarted = true
+            viewModelScope.launch {
+                Wearables.registrationState.collectLatest { registration ->
+                    mutableUiState.update { current ->
+                        current.copy(wearable = current.wearable.copy(registration = registration.name))
+                    }
+                }
+            }
+            viewModelScope.launch {
+                Wearables.devices.collectLatest { devices ->
+                    mutableUiState.update { current ->
+                        current.copy(wearable = current.wearable.copy(deviceAvailable = devices.isNotEmpty()))
+                    }
+                }
+            }
+        }
+        mutableUiState.update { current -> current.copy(wearable = current.wearable.copy(transportReady = true)) }
+    }
+
+    internal fun eligibleDisplayDevices(): List<DeviceIdentifier> = if (!state.value.wearable.transportReady) {
+        emptyList()
+    } else {
+        runCatching {
+            Wearables.devicesMetadata.entries.filter { (identifier, metadata) ->
+                metadata.value.isDisplayCapable() && SpecificDeviceSelector(identifier).activeDevice() == identifier
+            }.map { it.key }
+        }.getOrDefault(emptyList())
+    }
+
+    /** Mock Display metadata must never count as connected physical glasses. */
+    fun hasAvailableWearableDisplay(): Boolean = eligibleDisplayDevices().any {
+        !(app as RealityOsApplication).developerPreviewController.isSimulatedDevice(it)
     }
 
     /**
@@ -256,378 +456,192 @@ class RealityViewModel(application: Application) : AndroidViewModel(application)
      * the identifier of Meta's display-capable mock so all other app behavior
      * remains identical.
      */
-    fun connectDisplay(deviceIdentifier: DeviceIdentifier? = null) {
-        if (_state.value.provisioning == null) {
-            showStatus(copy(R.string.status_admin_provisioning_required))
-            return
-        }
-        if (Wearables.registrationState.value != RegistrationState.REGISTERED) {
-            showStatus(copy(R.string.status_register_meta_first))
-            return
-        }
-        if (session != null) return
-        val selector = deviceIdentifier?.let(::SpecificDeviceSelector)
-            ?: AutoDeviceSelector(filter = { it.isDisplayCapable() })
-        Wearables.createSession(selector).fold(
-            onSuccess = { created ->
-                session = created
-                _state.update { current ->
-                    current.copy(wearable = current.wearable.copy(sessionActive = true))
-                }
-                sessionErrorsJob = viewModelScope.launch {
-                    created.errors.collect { error -> showError(error.description) }
-                }
-                sessionStateJob = viewModelScope.launch {
-                    created.state.collect { sessionState ->
-                        if (sessionState == DeviceSessionState.STARTED && display == null) attachDisplay(created)
-                        if (sessionState == DeviceSessionState.STOPPED) cleanupStoppedSession(created)
-                    }
-                }
-                created.start()
-                showStatus(copy(R.string.status_connecting_display))
-            },
-            onFailure = { error, _ -> showError(error.description) },
-        )
-    }
+    fun connectDisplay(deviceIdentifier: DeviceIdentifier? = null) = connectDisplayOperation(deviceIdentifier)
 
     /**
      * A session with an active capture is intentionally not torn down: callers
      * must stop and finish capture so no evidence upload is silently lost.
      */
-    fun disconnectDisplay(): Boolean {
-        if (_state.value.recording || _state.value.captureSessionId != null || _state.value.busy) {
-            showStatus(copy(R.string.status_finish_capture_first))
-            return false
-        }
-        stopSpeech()
-        stopCamera()
-        val activeSession = session
-        session = null
-        sessionStateJob?.cancel()
-        sessionStateJob = null
-        sessionErrorsJob?.cancel()
-        sessionErrorsJob = null
-        displayStateJob?.cancel()
-        displayStateJob = null
-        runCatching { activeSession?.removeDisplay() }
-        runCatching { activeSession?.stop() }
-        cleanupStoppedSession()
-        showStatus(copy(R.string.status_display_disconnected))
-        return true
+    fun disconnectDisplay(): Boolean = disconnectDisplayOperation()
+
+    fun onDatPermissionResult(
+        requestId: Long,
+        permission: Permission,
+        granted: Boolean,
+        failureMessage: String? = null
+    ) = onDatPermissionResultOperation(requestId, permission, granted, failureMessage)
+
+    fun onPhonePermissionResult(requestId: Long, permission: PhonePermission, granted: Boolean) = onPhonePermissionResultOperation(requestId, permission, granted)
+
+    internal fun requestDatPermission(permission: Permission) {
+        mutablePermissionRequest.value = RealityPermissionRequest.Dat(permissionIds.incrementAndGet(), permission)
     }
 
-    fun onPermissionResult(permission: Permission, granted: Boolean) {
-        if (!granted) {
-            pendingCameraPermission = false
-            pendingMicrophonePermission = false
-            showError(
-                copy(
-                    R.string.status_permission_denied,
-                    permission.name.lowercase().replaceFirstChar(Char::uppercase),
-                ),
-            )
-            return
-        }
-        when (permission) {
-            Permission.CAMERA -> if (pendingCameraPermission) {
-                pendingCameraPermission = false
+    internal fun requestPhonePermission(permission: PhonePermission) {
+        mutablePermissionRequest.value = RealityPermissionRequest.Android(permissionIds.incrementAndGet(), permission)
+    }
+
+    internal fun continueAfterPermission() {
+        when (val action = pendingAction) {
+            PendingAction.PrepareCapture -> {
+                if (inputRoute == InputRoute.WEARABLE) {
+                    pendingAction = PendingAction.PrepareWearableCaptureAudio
+                    requestDatPermission(Permission.MICROPHONE)
+                } else {
+                    pendingAction = null
+                    openCaptureSessionAndCamera()
+                }
+            }
+            PendingAction.PrepareWearableCaptureAudio -> {
+                // DAT grants access to the glasses microphone; Android still
+                // requires RECORD_AUDIO before this phone can receive and mux
+                // its PCM stream into a sound-bearing evidence clip.
+                pendingAction = PendingAction.PrepareWearablePhoneAudio
+                requestPhonePermission(PhonePermission.MICROPHONE)
+                renderNotice(copy(R.string.status_phone_microphone_permission))
+            }
+            PendingAction.PrepareWearablePhoneAudio -> {
+                pendingAction = null
                 openCaptureSessionAndCamera()
             }
-            Permission.MICROPHONE -> if (pendingMicrophonePermission) {
-                pendingMicrophonePermission = false
+            PendingAction.StartPhoneVideo -> {
+                pendingAction = null
+                beginPhoneVideo()
+            }
+            PendingAction.StartQuery -> {
+                pendingAction = null
                 startSpeechQuery()
             }
+            null -> Unit
         }
     }
 
-    private fun attachDisplay(activeSession: DeviceSession) {
+    internal fun attachDisplay(activeSession: DeviceSession) {
         activeSession.addDisplay().fold(
             onSuccess = { attached ->
                 display = attached
                 displayStateJob = viewModelScope.launch {
                     attached.state.collect { displayState ->
                         val ready = displayState == DisplayState.STARTED
-                        _state.update { current ->
+                        mutableUiState.update { current ->
                             current.copy(wearable = current.wearable.copy(displayReady = ready))
                         }
                         if (ready) renderHome()
                     }
                 }
             },
-            onFailure = { error, _ -> showError(error.description) },
+            onFailure = { error, _ -> showError(error.description) }
         )
     }
 
-    private fun beginRegister() {
-        val provisioning = _state.value.provisioning ?: return showError(copy(R.string.status_device_provisioning_missing))
-        viewModelScope.launch {
-            setBusy(true)
-            try {
-                val zones = withContext(Dispatchers.IO) { RealityApi(provisioning).listZones() }
-                if (zones.isEmpty()) showError(copy(R.string.status_no_locations)) else renderZonePicker(zones)
-            } catch (error: Exception) {
-                showError(error.message ?: copy(R.string.status_locations_failed))
-            } finally {
-                setBusy(false)
-            }
+    internal fun beginRegister() = beginRegisterOperation()
+
+    internal fun chooseZone(zone: RemoteZone) = chooseZoneOperation(zone)
+
+    internal fun openCaptureSessionAndCamera() = openCaptureSessionAndCameraOperation()
+
+    internal suspend fun attachWearableCamera() = attachWearableCameraOperation()
+
+    /** Reattach only the wearable camera; preserve the active server capture session. */
+    internal fun retryCurrentWearableCamera() = retryCurrentWearableCameraOperation()
+
+    internal fun takePhoto() = takePhotoOperation()
+
+    internal fun startVideo() = startVideoOperation()
+
+    internal fun beginPhoneVideo() = beginPhoneVideoOperation()
+
+    internal fun beginRecordingUi() = beginRecordingUiOperation()
+
+    internal fun stopVideo() = stopVideoOperation()
+
+    internal fun finishRegister() = finishRegisterOperation()
+
+    /**
+     * Phone Debug capture exits immediately after the explicit media action
+     * succeeds. This intentionally skips the Display's finishing card: the
+     * native shell has already removed its controls and goes straight home.
+     */
+    internal fun finishPhoneCaptureAfterStored() = finishPhoneCaptureAfterStoredOperation()
+
+    internal fun stopCamera() = stopCameraOperation()
+
+    internal fun beginQuery() = beginQueryOperation()
+
+    internal fun startSpeechQuery() = startSpeechQueryOperation()
+
+    internal fun startPhoneSpeechQuery() = startPhoneSpeechQueryOperation()
+
+    internal fun startWearableSpeechQuery() = startWearableSpeechQueryOperation()
+
+    internal fun stopSpeech() = stopSpeechOperation()
+
+    internal fun releaseWearableSpeech() = releaseWearableSpeechOperation()
+
+    internal fun executeQuery(question: String) = executeQueryOperation(question)
+
+    internal suspend fun uploadPendingCapture(pending: PendingUpload): RemoteJob = withContext(Dispatchers.IO) {
+        withRealityApi { api ->
+            val captureId = pending.remoteCaptureId ?: api
+                .uploadCaptureFile(pending.captureSessionId, pending.file, pending.mimeType)
+                .id
+                .also { pending.remoteCaptureId = it }
+            api.requestProcessing(captureId, detailed = false)
         }
     }
 
-    private fun chooseZone(zone: RemoteZone) {
-        selectedZone = zone
-        pendingCameraPermission = true
-        _permissionRequests.tryEmit(Permission.CAMERA)
-        renderNotice(copy(R.string.status_camera_permission, zone.name))
-    }
+    internal fun completePendingUpload(pending: PendingUpload) = completePendingUploadOperation(pending)
 
-    private fun openCaptureSessionAndCamera() {
-        val provisioning = _state.value.provisioning ?: return showError(copy(R.string.status_device_provisioning_missing))
-        val activeSession = session ?: return showError(copy(R.string.status_display_not_connected))
-        viewModelScope.launch {
-            setBusy(true)
-            try {
-                val captureSession = withContext(Dispatchers.IO) {
-                    RealityApi(provisioning).openCaptureSession(selectedZone?.id)
-                }
-                _state.update { it.copy(captureSessionId = captureSession.id) }
-                activeSession.addCamera(
-                    StreamConfiguration(
-                        videoQuality = VideoQuality.MEDIUM,
-                        frameRate = 15,
-                        compressVideo = true,
-                    ),
-                ).fold(
-                    onSuccess = { attached ->
-                        camera = attached
-                        frameJob = viewModelScope.launch(Dispatchers.Default) {
-                            attached.stream.videoStream.collect { frame ->
-                                recorder.observe(frame)
-                                if (_state.value.recording) recorder.append(frame)
-                            }
-                        }
-                        attached.stream.start().onFailure { error, _ -> showError(error.description) }
-                        _state.update { current ->
-                            current.copy(wearable = current.wearable.copy(cameraActive = true))
-                        }
-                        renderCapture()
-                    },
-                    onFailure = { error, _ ->
-                        closeCaptureSessionOnServer(captureSession.id)
-                        showError(error.description)
-                    },
-                )
-            } catch (error: Exception) {
-                showError(error.message ?: copy(R.string.status_capture_session_failed))
-            } finally {
-                setBusy(false)
-            }
+    internal fun retryPendingUpload() = retryPendingUploadOperation()
+
+    internal fun persistCaptureBytes(bytes: ByteArray, extension: String): File = persistCaptureBytesOperation(bytes, extension)
+
+    /** Polls only the device-owned job created by this capture. */
+    internal fun watchProcessing(initial: RemoteJob) = watchProcessingOperation(initial)
+
+    internal fun updateProcessingCount() = updateProcessingCountOperation()
+
+    internal val RemoteJob.isPending: Boolean
+        get() = status.equals("queued", ignoreCase = true) || status.equals("processing", ignoreCase = true)
+
+    internal val RemoteJob.isFailed: Boolean
+        get() = status.equals("failed", ignoreCase = true) || status.equals("uncertain", ignoreCase = true)
+
+    /** Retries only an explicit 401 after replacing an expiring virtual profile. */
+    internal suspend fun <T> withRealityApi(operation: (RealityApi) -> T): T {
+        val provisioning = mutableUiState.value.provisioning
+            ?: throw IllegalStateException(copy(R.string.status_device_provisioning_missing))
+        try {
+            return operation(RealityApi(provisioning))
+        } catch (error: RealityApiException) {
+            if (error.statusCode != 401 || provisioning.source != ProvisioningSource.VIRTUAL_LIVE) throw error
+            val refreshed = refreshVirtualProvisioning()
+            return operation(RealityApi(refreshed))
         }
     }
 
-    private fun takePhoto() {
-        val activeCamera = camera ?: return showError(copy(R.string.status_camera_not_ready))
-        val captureSessionId = _state.value.captureSessionId ?: return showError(copy(R.string.status_capture_mode_first))
-        val provisioning = _state.value.provisioning ?: return
-        viewModelScope.launch {
-            setBusy(true)
-            try {
-                activeCamera.stream.capturePhoto().fold(
-                    onSuccess = { photo ->
-                        val jpeg = photo.asJpegBytes()
-                        if (jpeg == null) {
-                            showError(copy(R.string.status_unreadable_photo))
-                            return@fold
-                        }
-                        viewModelScope.launch {
-                            try {
-                                withContext(Dispatchers.IO) {
-                                    val api = RealityApi(provisioning)
-                                    val capture = api.uploadCapture(
-                                        captureSessionId,
-                                        jpeg,
-                                        "realityos-${System.currentTimeMillis()}.jpg",
-                                        "image/jpeg",
-                                    )
-                                    api.requestProcessing(capture.id, detailed = false)
-                                }
-                                showStatus(copy(R.string.status_photo_stored))
-                                renderCapture()
-                            } catch (error: Exception) {
-                                showError(error.message ?: copy(R.string.status_photo_upload_failed))
-                            } finally {
-                                setBusy(false)
-                            }
-                        }
-                    },
-                    onFailure = { error, _ ->
-                        showError(error.description)
-                        setBusy(false)
-                    },
-                )
-            } catch (error: Exception) {
-                showError(error.message ?: copy(R.string.status_photo_capture_failed))
-                setBusy(false)
-            }
-        }
-    }
-
-    private fun startVideo() {
-        if (camera == null) return showError(copy(R.string.status_camera_not_ready))
-        if (_state.value.recording) return
-        recorder.begin()
-        _state.update { it.copy(recording = true, message = copy(R.string.status_recording_video)) }
-        recordingLimitJob?.cancel()
-        recordingLimitJob = viewModelScope.launch {
-            kotlinx.coroutines.delay(MAX_VIDEO_SECONDS * 1_000L)
-            if (_state.value.recording) stopVideo()
-        }
-        renderCapture()
-    }
-
-    private fun stopVideo() {
-        if (!_state.value.recording) return
-        _state.update { it.copy(recording = false) }
-        recordingLimitJob?.cancel()
-        val captureSessionId = _state.value.captureSessionId ?: return
-        val provisioning = _state.value.provisioning ?: return
-        viewModelScope.launch {
-            setBusy(true)
-            val clip = withContext(Dispatchers.Default) { recorder.finish() }
-            if (clip == null) {
-                showError(copy(R.string.status_no_playable_video))
-                setBusy(false)
-                renderCapture()
-                return@launch
-            }
-            try {
-                withContext(Dispatchers.IO) {
-                    val api = RealityApi(provisioning)
-                    val capture = api.uploadCaptureFile(captureSessionId, clip, "video/mp4")
-                    api.requestProcessing(capture.id, detailed = false)
-                }
-                showStatus(copy(R.string.status_video_stored))
-            } catch (error: Exception) {
-                showError(error.message ?: copy(R.string.status_video_upload_failed))
-            } finally {
-                clip.delete()
-                setBusy(false)
-                renderCapture()
-            }
-        }
-    }
-
-    private fun finishRegister() {
-        if (_state.value.recording) {
-            stopVideo()
-            renderNotice(copy(R.string.status_video_finishing))
-            return
-        }
-        val captureSessionId = _state.value.captureSessionId
-        stopCamera()
-        if (captureSessionId == null) {
-            renderHome()
-            return
-        }
-        val provisioning = _state.value.provisioning ?: return
-        viewModelScope.launch {
-            try {
-                withContext(Dispatchers.IO) { RealityApi(provisioning).closeCaptureSession(captureSessionId) }
-                _state.update { it.copy(captureSessionId = null, message = copy(R.string.status_capture_stopped)) }
-            } catch (error: Exception) {
-                showError(error.message ?: copy(R.string.status_close_capture_failed))
-            }
-            renderHome()
-        }
-    }
-
-    private fun stopCamera() {
-        frameJob?.cancel()
-        frameJob = null
-        runCatching { camera?.stop() }
-        session?.removeCamera()
-        camera = null
-        recorder.clearCodecConfiguration()
-        _state.update { current ->
-            current.copy(recording = false, wearable = current.wearable.copy(cameraActive = false))
-        }
-    }
-
-    private fun beginQuery() {
-        if (_state.value.captureSessionId != null) {
-            renderNotice(copy(R.string.status_stop_capture_before_query))
-            return
-        }
-        pendingMicrophonePermission = true
-        _permissionRequests.tryEmit(Permission.MICROPHONE)
-        renderNotice(copy(R.string.status_microphone_permission))
-    }
-
-    private fun startSpeechQuery() {
-        val activeSession = session ?: return showError(copy(R.string.status_display_not_connected))
-        if (speech != null) return
-        activeSession.addSpeech().fold(
-            onSuccess = { attached ->
-                speech = attached
-                _state.update { current ->
-                    current.copy(wearable = current.wearable.copy(speechActive = true))
-                }
-                speechJob = viewModelScope.launch {
-                    attached.transcriptions.collect { transcription ->
-                        val text = transcription?.text?.takeIf { it.isNotBlank() } ?: return@collect
-                        if (transcription.isFinal) {
-                            stopSpeech()
-                            executeQuery(text)
-                        } else {
-                            renderListening(text)
-                        }
-                    }
-                }
-                attached.start().onFailure { error, _ -> showError(error.description) }
-                renderListening(copy(R.string.display_listening))
-            },
-            onFailure = { error, _ -> showError(error.description) },
+    internal fun refreshVirtualProvisioning(): DeviceProvisioning {
+        val profile = VirtualDeviceBootstrapApi.fetch(
+            BuildConfig.DEFAULT_REALITYOS_API_BASE_URL,
+            store.installationId()
         )
-    }
-
-    private fun stopSpeech() {
-        speechJob?.cancel()
-        speechJob = null
-        runCatching { speech?.stop() }
-        session?.removeSpeech()
-        speech = null
-        _state.update { current ->
-            current.copy(wearable = current.wearable.copy(speechActive = false))
+        if (!profile.processingMode.equals("live", ignoreCase = true)) {
+            throw IllegalStateException(copy(R.string.status_live_not_confirmed))
         }
-    }
-
-    private fun executeQuery(question: String) {
-        val provisioning = _state.value.provisioning ?: return showError(copy(R.string.status_device_provisioning_missing))
-        viewModelScope.launch {
-            setBusy(true)
-            try {
-                val answer = withContext(Dispatchers.IO) { RealityApi(provisioning).query(question) }
-                _state.update { it.copy(queryResult = answer, message = answer.message) }
-                val imageUrl = answer.displayMediaPath?.let { RealityApi(provisioning).absoluteUrl(it) }
-                renderQueryResult(answer, imageUrl)
-                if (answer.ttsText.isNotBlank()) _speechRequests.tryEmit(answer.ttsText)
-            } catch (error: Exception) {
-                showError(error.message ?: copy(R.string.status_query_failed))
-            } finally {
-                setBusy(false)
-            }
+        val refreshed = profile.toProvisioning()
+        store.save(refreshed)
+        mutableUiState.update {
+            it.copy(
+                provisioning = refreshed,
+                virtualProfileError = null
+            )
         }
+        return refreshed
     }
 
-    private fun renderHome() = sendDisplay {
-        flexBox(direction = Direction.COLUMN, gap = 12, padding = 24, background = FlexBoxBackground.CARD) {
-            text("RealityOS", style = TextStyle.HEADING)
-            text(copy(R.string.display_spatial_memory), style = TextStyle.META, color = TextColor.SECONDARY)
-            button(copy(R.string.display_register), style = ButtonStyle.PRIMARY, iconName = IconName.VIDEO_CAMERA, onClick = ::beginRegister)
-            button(copy(R.string.display_find_object), style = ButtonStyle.SECONDARY, iconName = IconName.SPEECH_BUBBLE, onClick = ::beginQuery)
-        }
-    }
+    internal fun renderHome(): Unit = renderMetaHome()
 
-    private fun renderZonePicker(zones: List<RemoteZone>) = sendDisplay {
+    internal fun renderZonePicker(zones: List<RemoteZone>) = sendDisplay {
         flexBox(direction = Direction.COLUMN, gap = 10, padding = 24, background = FlexBoxBackground.CARD) {
             text(copy(R.string.display_choose_location), style = TextStyle.HEADING)
             text(copy(R.string.display_capture_after_location), style = TextStyle.META, color = TextColor.SECONDARY)
@@ -638,22 +652,41 @@ class RealityViewModel(application: Application) : AndroidViewModel(application)
         }
     }
 
-    private fun renderCapture() = sendDisplay {
-        flexBox(direction = Direction.COLUMN, gap = 12, padding = 24, background = FlexBoxBackground.CARD) {
-            text(copy(R.string.display_register_evidence), style = TextStyle.HEADING)
-            text(selectedZone?.name ?: copy(R.string.display_selected_location), style = TextStyle.META, color = TextColor.SECONDARY)
-            button(copy(R.string.display_take_photo), style = ButtonStyle.PRIMARY, iconName = IconName.VIDEO_CAMERA, onClick = ::takePhoto)
-            if (_state.value.recording) {
-                button(copy(R.string.display_stop_video), style = ButtonStyle.PRIMARY, iconName = IconName.X, onClick = ::stopVideo)
-                text(copy(R.string.display_video_recording), style = TextStyle.META, color = TextColor.SECONDARY)
-            } else {
-                button(copy(R.string.display_record_video), style = ButtonStyle.SECONDARY, iconName = IconName.VIDEO_CAMERA, onClick = ::startVideo)
+    internal fun renderCapture() = sendDisplay {
+        if (inputRoute == InputRoute.PHONE) {
+            // The Debug shell owns the compact icon controls. Leave the Meta
+            // renderer fully transparent so it cannot paint text or a dark
+            // card over the centered CameraX preview.
+            flexBox(direction = Direction.COLUMN, gap = 0, padding = 0, background = FlexBoxBackground.NONE) {}
+        } else {
+            flexBox(direction = Direction.COLUMN, gap = 12, padding = 24, background = FlexBoxBackground.NONE) {
+                val searching = state.value.meta.captureForSearch
+                text(
+                    copy(
+                        if (searching) {
+                            MetaDisplayPolicy.photoSearchCaptureTitle(state.value.meta.photoSearchKind)
+                        } else if (state.value.meta.captureForPublication) {
+                            R.string.meta_capture
+                        } else {
+                            R.string.display_register_evidence
+                        }
+                    ),
+                    style = TextStyle.HEADING
+                )
+                if (!searching) text(state.value.meta.pendingDestination ?: selectedZone?.name ?: copy(R.string.display_selected_location), style = TextStyle.META, color = TextColor.SECONDARY)
+                if (!state.value.recording) button(copy(R.string.display_take_photo), style = ButtonStyle.PRIMARY, iconName = IconName.VIDEO_CAMERA, onClick = ::takePhoto)
+                if (mutableUiState.value.recording) {
+                    button(copy(R.string.display_stop_video), style = ButtonStyle.PRIMARY, iconName = IconName.X, onClick = ::stopVideo)
+                    text(copy(R.string.meta_recording_duration, state.value.meta.recordingSeconds), style = TextStyle.META, color = TextColor.SECONDARY)
+                } else if (!searching) {
+                    button(copy(R.string.display_record_video), style = ButtonStyle.SECONDARY, iconName = IconName.VIDEO_CAMERA, onClick = ::startVideo)
+                }
+                if (!state.value.recording) button(copy(if (searching) R.string.display_cancel else R.string.display_finish_capture), style = ButtonStyle.OUTLINE, iconName = IconName.CHECKMARK, onClick = if (searching) ::cancelPendingActionAndRenderHome else ::finishRegister)
             }
-            button(copy(R.string.display_finish_capture), style = ButtonStyle.OUTLINE, iconName = IconName.CHECKMARK, onClick = ::finishRegister)
         }
     }
 
-    private fun renderListening(partial: String) = sendDisplay {
+    internal fun renderListening(partial: String) = sendDisplay {
         flexBox(direction = Direction.COLUMN, gap = 12, padding = 24, background = FlexBoxBackground.CARD) {
             text(copy(R.string.display_ask), style = TextStyle.HEADING)
             text(partial.take(MAX_DISPLAY_TEXT), style = TextStyle.BODY)
@@ -665,84 +698,175 @@ class RealityViewModel(application: Application) : AndroidViewModel(application)
         }
     }
 
-    private fun renderQueryResult(answer: QueryEvidence, imageUrl: String?) = sendDisplay {
+    internal fun renderQueryResult(answer: QueryEvidence, imageUrl: String?, language: String) = sendDisplay {
         flexBox(direction = Direction.COLUMN, gap = 10, padding = 20, background = FlexBoxBackground.CARD) {
             text(
-                if (answer.found) copy(R.string.display_last_seen)
-                else if (answer.ambiguous) copy(R.string.display_more_detail)
-                else copy(R.string.display_no_evidence),
-                style = TextStyle.HEADING,
+                if (answer.found) {
+                    copy(R.string.display_last_seen)
+                } else if (answer.ambiguous) {
+                    copy(R.string.display_more_detail)
+                } else {
+                    copy(R.string.display_no_evidence)
+                },
+                style = TextStyle.HEADING
             )
             imageUrl?.let { image(uri = it, sizePreset = ImageSize.FILL) }
-            text(answer.message.take(MAX_DISPLAY_TEXT), style = TextStyle.BODY)
-            button(copy(R.string.display_hear_again), style = ButtonStyle.SECONDARY, iconName = IconName.SPEAKER_WITH_TWO_ARCS, onClick = { _speechRequests.tryEmit(answer.ttsText) })
+            text(answer.message.take(180), style = TextStyle.BODY)
+            if (answer.found) {
+                text(copy(R.string.meta_evidence_details, answer.seenAt?.take(10).orEmpty(), evidencePercent(answer.visualConfidence, language).orEmpty()), style = TextStyle.META)
+            }
+            if (answer.simulated) text(copy(R.string.meta_simulated), style = TextStyle.META)
+            button(copy(R.string.display_hear_again), style = ButtonStyle.SECONDARY, iconName = IconName.SPEAKER_WITH_TWO_ARCS, onClick = { speak(answer.ttsText, language) })
             button(copy(R.string.display_new_query), style = ButtonStyle.PRIMARY, iconName = IconName.SPEECH_BUBBLE, onClick = ::beginQuery)
             button(copy(R.string.display_home), style = ButtonStyle.OUTLINE, iconName = IconName.HOUSE, onClick = ::renderHome)
         }
     }
 
-    private fun renderNotice(message: String) = sendDisplay {
+    internal fun renderNotice(
+        message: String,
+        actionLabel: String? = null,
+        action: (() -> Unit)? = null,
+        showHome: Boolean = true
+    ) = sendDisplay {
         flexBox(direction = Direction.COLUMN, gap = 12, padding = 24, background = FlexBoxBackground.CARD) {
             text("RealityOS", style = TextStyle.HEADING)
             text(message.take(MAX_DISPLAY_TEXT), style = TextStyle.BODY)
-            button(copy(R.string.display_home), style = ButtonStyle.PRIMARY, iconName = IconName.HOUSE, onClick = ::renderHome)
+            if (actionLabel != null && action != null) {
+                button(actionLabel, style = ButtonStyle.SECONDARY, iconName = IconName.TWO_ARROWS_CLOCKWISE, onClick = action)
+            }
+            if (showHome) {
+                button(
+                    copy(R.string.display_home),
+                    style = ButtonStyle.PRIMARY,
+                    iconName = IconName.HOUSE,
+                    onClick = ::cancelPendingActionAndRenderHome
+                )
+            }
         }
     }
 
-    private fun sendDisplay(content: com.meta.wearable.dat.display.views.ContentScope.() -> Unit) {
+    internal fun cancelPendingActionAndRenderHome() {
+        if (state.value.meta.pendingMime != null) {
+            renderPublicationReview()
+            return
+        }
+        metaController.pause()
+        setBusy(false)
+        stopSpeech()
+        pendingAction = null
+        mutablePermissionRequest.value = null
+        pendingUpload?.file?.delete()
+        pendingUpload = null
+        val captureSessionId = mutableUiState.value.captureSessionId
+        stopCamera()
+        selectedZone = null
+        if (captureSessionId != null) {
+            mutableUiState.update { it.copy(captureSessionId = null, recording = false) }
+            closeCaptureSessionOnServer(captureSessionId)
+        }
+        renderHome()
+    }
+
+    internal fun sendDisplay(content: com.meta.wearable.dat.display.views.ContentScope.() -> Unit) {
         val currentDisplay = display ?: return
+        val revision = ++renderRevision
         viewModelScope.launch {
-            currentDisplay.sendContent(content).onFailure { error, _ -> showError(error.description) }
+            renderMutex.withLock {
+                if (currentDisplay !== display || revision != renderRevision) return@withLock
+                currentDisplay.sendContent(content).onFailure { error, _ ->
+                    // A transport error cannot be rendered through the failed
+                    // display; retain it on the phone host instead of replacing
+                    // a newer screen with an obsolete callback map.
+                    if (revision == renderRevision) showStatus(error.description)
+                }
+            }
         }
     }
 
-    private fun closeCaptureSessionOnServer(sessionId: String) {
-        val provisioning = _state.value.provisioning ?: return
-        viewModelScope.launch(Dispatchers.IO) { runCatching { RealityApi(provisioning).closeCaptureSession(sessionId) } }
+    internal fun closeCaptureSessionOnServer(sessionId: String) {
+        viewModelScope.launch(Dispatchers.IO) { runCatching { withRealityApi { it.closeCaptureSession(sessionId) } } }
     }
 
-    private fun showStatus(message: String) {
-        _state.update { it.copy(message = message) }
+    internal fun showStatus(message: String) {
+        mutableUiState.update { it.copy(message = message) }
     }
 
-    private fun copy(@StringRes id: Int, vararg arguments: Any): String = app.getString(id, *arguments)
+    internal fun copy(@StringRes id: Int, vararg arguments: Any): String = localizedText(id, *arguments)
 
-    private fun showError(message: String) {
-        _state.update { it.copy(message = message, busy = false) }
-        renderNotice(message)
+    internal fun showError(message: String, retry: (() -> Unit)? = null) {
+        mutableUiState.update { it.copy(message = message, busy = false) }
+        renderNotice(message, retry?.let { copy(R.string.display_retry) }, retry)
     }
 
-    private fun setBusy(value: Boolean) {
-        _state.update { it.copy(busy = value) }
+    internal fun setBusy(value: Boolean) {
+        mutableUiState.update { it.copy(busy = value) }
     }
 
-    private fun cleanupStoppedSession(stoppedSession: DeviceSession? = null) {
+    internal fun cleanupStoppedSession(stoppedSession: DeviceSession? = null) {
         // A delayed state event from an old session must not reset a newly
         // connected physical or virtual device.
         if (stoppedSession != null && session != null && session !== stoppedSession) return
-        _state.value.captureSessionId?.let(::closeCaptureSessionOnServer)
+        mutableUiState.value.captureSessionId?.let(::closeCaptureSessionOnServer)
+        metaController.pause()
+        setBusy(false)
+        renderRevision += 1
+        pendingAction = null
+        mutablePermissionRequest.value = null
+        recordingLimitJob?.cancel()
+        recorder.close(deleteIncomplete = true)
+        pendingUpload?.file?.delete()
+        pendingUpload = null
+        sessionStateJob?.cancel()
+        sessionStateJob = null
+        sessionErrorsJob?.cancel()
+        sessionErrorsJob = null
+        displayStateJob?.cancel()
+        displayStateJob = null
         session = null
+        inputRoute = InputRoute.PHONE
         display = null
         camera = null
         speech = null
         frameJob?.cancel()
+        frameJob = null
+        audioFrameJob?.cancel()
+        audioFrameJob = null
+        streamStateJob?.cancel()
+        streamStateJob = null
+        cameraErrorJob?.cancel()
+        cameraErrorJob = null
         speechJob?.cancel()
-        _state.update { current ->
+        speechJob = null
+        speechErrorJob?.cancel()
+        speechErrorJob = null
+        phoneSpeechJob?.cancel()
+        phoneSpeechJob = null
+        phonePreviewSurfaceJob?.cancel()
+        phonePreviewSurfaceJob = null
+        phoneSpeech?.cancel()
+        phoneCapture?.cancelVideo()
+        viewModelScope.launch { runCatching { phoneCapture?.stopPreview() } }
+        mutableUiState.update { current ->
             current.copy(
                 captureSessionId = null,
                 recording = false,
+                phonePreview = current.phonePreview.close(),
                 wearable = current.wearable.copy(
                     sessionActive = false,
                     displayReady = false,
                     cameraActive = false,
                     speechActive = false,
-                ),
+                    inputRoute = InputRoute.PHONE
+                )
             )
         }
     }
 
     override fun onCleared() {
+        metaController.pause()
         recorder.close(deleteIncomplete = true)
+        pendingUpload?.file?.delete()
+        pendingUpload = null
         recordingLimitJob?.cancel()
         stopSpeech()
         stopCamera()
@@ -751,24 +875,31 @@ class RealityViewModel(application: Application) : AndroidViewModel(application)
         sessionStateJob?.cancel()
         sessionErrorsJob?.cancel()
         displayStateJob?.cancel()
+        phoneCapture?.close()
+        phoneSpeech?.close()
         super.onCleared()
     }
 
-    private fun PhotoData.asJpegBytes(): ByteArray? = when (this) {
+    internal fun PhotoData.asJpegBytes(): ByteArray? = when (this) {
         is PhotoData.Bitmap -> bitmap.toJpeg()
         is PhotoData.HEIC -> {
             val copy = data.duplicate().let { buffer -> ByteArray(buffer.remaining()).also(buffer::get) }
-            BitmapFactory.decodeByteArray(copy, 0, copy.size)?.toJpeg()
+            uprightImageBytes(copy, maxSide = Int.MAX_VALUE, quality = JPEG_QUALITY)
+                ?: BitmapFactory.decodeByteArray(copy, 0, copy.size)?.toJpeg()
         }
     }
 
-    private fun Bitmap.toJpeg(): ByteArray = ByteArrayOutputStream().use { output ->
+    internal fun Bitmap.toJpeg(): ByteArray = ByteArrayOutputStream().use { output ->
         compress(Bitmap.CompressFormat.JPEG, JPEG_QUALITY, output)
         output.toByteArray()
     }
 
-    private companion object {
+    internal companion object {
         const val MAX_VIDEO_SECONDS = 120L
+        const val CAMERA_START_TIMEOUT_MS = 10_000L
+        const val SPEECH_START_TIMEOUT_MS = 8_000L
+        const val PROCESSING_POLL_INTERVAL_MS = 1_500L
+        const val PROCESSING_STATUS_NOTICE_EVERY = 40
         const val MAX_DISPLAY_ZONES = 8
         const val MAX_DISPLAY_TEXT = 360
         const val JPEG_QUALITY = 92

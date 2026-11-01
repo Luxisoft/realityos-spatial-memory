@@ -26,28 +26,6 @@ data class DeviceProvisioning(
     val source: ProvisioningSource = ProvisioningSource.CUSTOM,
 )
 
-data class ProvisioningDraft(
-    val apiBaseUrl: String = BuildConfig.DEFAULT_REALITYOS_API_BASE_URL,
-    val workspaceId: String = "",
-    val deviceId: String = "",
-    val deviceKey: String = "",
-    val workspaceName: String? = null,
-    val expiresAt: Instant? = null,
-    val processingMode: String? = null,
-    val source: ProvisioningSource = ProvisioningSource.CUSTOM,
-)
-
-fun DeviceProvisioning.toDraft() = ProvisioningDraft(
-    apiBaseUrl = apiBaseUrl,
-    workspaceId = workspaceId,
-    deviceId = deviceId,
-    deviceKey = deviceKey,
-    workspaceName = workspaceName,
-    expiresAt = expiresAt,
-    processingMode = processingMode,
-    source = source,
-)
-
 class DeviceProvisioningStore(context: Context) {
     private val preferences = EncryptedSharedPreferences.create(
         context,

@@ -24,10 +24,14 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         CORSMiddleware,
         allow_origins=runtime_settings.cors_origin_list,
         allow_credentials=True,
-        allow_methods=["GET", "POST", "PATCH"],
+        allow_methods=["GET", "POST", "PATCH", "DELETE"],
         allow_headers=["Authorization", "Content-Type"],
     )
     app.include_router(router, prefix=runtime_settings.api_prefix)
+    from app.social import router as social_router
+    app.include_router(social_router, prefix=runtime_settings.api_prefix)
+    from app.faces import router as faces_router
+    app.include_router(faces_router, prefix=runtime_settings.api_prefix)
 
     @app.get("/health/live", tags=["system"])
     async def live() -> dict[str, str]:

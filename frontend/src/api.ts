@@ -1,7 +1,23 @@
+import { displayError } from "./language";
 export type Tokens = { access_token: string; refresh_token: string };
-export type Workspace = { id: string; name: string; description?: string; role: string };
-export type Zone = { id: string; name: string; kind: string; parent_id?: string | null };
-export type TrackedObject = { id: string; canonical_name: string; category?: string | null; attributes: Record<string, unknown> };
+export type Workspace = {
+  id: string;
+  name: string;
+  description?: string;
+  role: string;
+};
+export type Zone = {
+  id: string;
+  name: string;
+  kind: string;
+  parent_id?: string | null;
+};
+export type TrackedObject = {
+  id: string;
+  canonical_name: string;
+  category?: string | null;
+  attributes: Record<string, unknown>;
+};
 export type Observation = {
   id: string;
   media_asset_id: string;
@@ -52,13 +68,20 @@ export type InventoryAnalytics = {
   devices: { label: string; device_id: string; capture_sessions: number }[];
 };
 export type QueryResult = {
+  response_language: "en" | "es";
   found: boolean;
   ambiguous: boolean;
   message: string;
   media_id?: string;
   highlighted_media_url?: string;
   highlight_quality: "sam_mask" | "approximate_box" | "none";
-  segmentation_status: "not_requested" | "queued" | "processing" | "ready" | "no_match" | "failed";
+  segmentation_status:
+    | "not_requested"
+    | "queued"
+    | "processing"
+    | "ready"
+    | "no_match"
+    | "failed";
   segmentation_job_id?: string;
   can_refine: boolean;
   retrieval_confidence?: number;
@@ -71,14 +94,18 @@ export type QueryResult = {
 
 const origin = import.meta.env.VITE_API_URL ?? "http://localhost:8000";
 
-export async function request<T>(path: string, token?: string, init: RequestInit = {}): Promise<T> {
+export async function request<T>(
+  path: string,
+  token?: string,
+  init: RequestInit = {},
+): Promise<T> {
   const headers = new Headers(init.headers);
   if (token) headers.set("Authorization", `Bearer ${token}`);
-  if (init.body && !(init.body instanceof FormData)) headers.set("Content-Type", "application/json");
+  if (init.body && !(init.body instanceof FormData))
+    headers.set("Content-Type", "application/json");
   const response = await fetch(`${origin}${path}`, { ...init, headers });
   if (!response.ok) {
-    const body = await response.json().catch(() => ({}));
-    throw new Error(body.detail ?? `Error ${response.status}`);
+    throw new Error(displayError(response.status));
   }
   return response.json() as Promise<T>;
 }

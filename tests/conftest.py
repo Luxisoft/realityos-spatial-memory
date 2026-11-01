@@ -36,13 +36,17 @@ class APIClient:
 
 
 @pytest.fixture
-def client(tmp_path) -> Generator[APIClient, None, None]:
+def client(tmp_path, monkeypatch) -> Generator[APIClient, None, None]:
     settings = Settings(
         database_url=f"sqlite:///{tmp_path / 'realityos-test.db'}",
         jwt_secret="test-secret-that-is-long-enough-for-local-validation",
         meta_mode="mock",
         enqueue_processing=False,
         cors_origins="http://localhost:5173",
+    )
+    # Indexing is tested directly; API fixtures must not contact a live broker.
+    monkeypatch.setattr(
+        "app.tasks.index_gallery_media.delay", lambda *args, **kwargs: None
     )
     app = create_app(settings)
     Base.metadata.create_all(app.state.database.engine)

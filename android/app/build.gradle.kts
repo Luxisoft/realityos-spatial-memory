@@ -1,3 +1,5 @@
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 import java.util.Properties
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
@@ -17,11 +19,14 @@ android {
   compileSdk = 36
 
   defaultConfig {
+    manifestPlaceholders["facebook_app_id"] = localProperties.getProperty("facebook_app_id", "0")
+    manifestPlaceholders["facebook_client_token"] = localProperties.getProperty("facebook_client_token", "0")
+    buildConfigField("String", "FACEBOOK_APP_ID", "\"${localProperties.getProperty("facebook_app_id", "0")}\"")
     applicationId = "com.luxisoft.realityos"
     minSdk = 31
     targetSdk = 36
-    versionCode = 1
-    versionName = "0.1.0"
+    versionCode = 7
+    versionName = "0.1.6"
     // Without this, AGP falls back to the legacy InstrumentationTestRunner,
     // which does not discover AndroidJUnit4 MockDeviceKit tests.
     testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
@@ -31,15 +36,27 @@ android {
       localProperties.getProperty("mwdat_client_token", "0")
     // Public URL only. The live virtual-device credential is issued at runtime
     // over TLS and is never compiled into the APK.
+    val realityosApiBaseUrl = providers.environmentVariable("REALITYOS_API_BASE_URL")
+      .orElse(providers.gradleProperty("realityosApiBaseUrl"))
+      .getOrElse("https://realityos.luxisoft.com/v1")
     buildConfigField(
       "String",
       "DEFAULT_REALITYOS_API_BASE_URL",
-      "\"https://realityos.luxisoft.com/v1\"",
+      "\"$realityosApiBaseUrl\"",
     )
   }
 
   buildFeatures { buildConfig = true }
+  testOptions {
+    unitTests.isIncludeAndroidResources = true
+  }
   buildTypes {
+    debug {
+      // Timestamped debug builds: the exact APK under test is visible in
+      // Settings -> Apps, so stale installs are easy to spot.
+      versionNameSuffix = "-debug-" + LocalDateTime.now()
+        .format(DateTimeFormatter.ofPattern("yyyyMMdd-HHmm"))
+    }
     release {
       isMinifyEnabled = false
       proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
@@ -54,6 +71,9 @@ android {
 kotlin { compilerOptions { jvmTarget = JvmTarget.JVM_17 } }
 
 dependencies {
+  implementation("com.facebook.android:facebook-login:18.1.3")
+  implementation("com.adamglin:phosphor-icon:1.0.0")
+  implementation("io.coil-kt:coil-compose:2.7.0")
   implementation(libs.androidx.activity.compose)
   implementation(platform(libs.androidx.compose.bom))
   implementation(libs.androidx.ui)
@@ -66,11 +86,20 @@ dependencies {
   implementation(libs.androidx.appcompat)
   implementation(libs.androidx.core.splashscreen)
   implementation(libs.androidx.material.icons.extended)
+  implementation(libs.androidx.camera.core)
+  implementation(libs.androidx.camera.camera2)
+  implementation(libs.androidx.camera.lifecycle)
+  implementation(libs.androidx.camera.video)
+  implementation(libs.androidx.camera.view)
+  implementation(libs.androidx.media3.exoplayer)
+  implementation(libs.androidx.media3.ui)
   implementation(libs.mwdat.core)
   implementation(libs.mwdat.camera)
   implementation(libs.mwdat.display)
   implementation(libs.mwdat.speech)
   testImplementation("junit:junit:4.13.2")
+  testImplementation("org.robolectric:robolectric:4.16.1")
+  testImplementation("androidx.compose.ui:ui-test-junit4")
   androidTestImplementation("androidx.test.ext:junit:1.2.1")
   androidTestImplementation("androidx.test:runner:1.6.2")
   // Debug builds expose Meta's Developer Preview on a phone. Release builds
@@ -80,4 +109,77 @@ dependencies {
   // Debug source set.
   androidTestImplementation(libs.mwdat.mockdevice)
   debugImplementation("androidx.compose.ui:ui-tooling")
+  debugImplementation("androidx.compose.ui:ui-test-manifest")
+}
+
+// Format the refactored host/chat code without rewriting protected biometric UI.
+val ktlint by configurations.creating
+
+dependencies {
+    add(ktlint.name, "com.pinterest.ktlint:ktlint-cli:1.7.1")
+}
+
+val refactoredKotlin = files(
+    "src/main/java/com/luxisoft/realityos/AgentSpeechPlayer.kt",
+    "src/test/java/com/luxisoft/realityos/AgentSpeechPlayerTest.kt",
+    "src/main/java/com/luxisoft/realityos/InputRoute.kt",
+    "src/main/java/com/luxisoft/realityos/PhonePreviewState.kt",
+    "src/main/java/com/luxisoft/realityos/PhoneInputSources.kt",
+    "src/main/java/com/luxisoft/realityos/DeveloperPreview.kt",
+    "src/test/java/com/luxisoft/realityos/InputRoutePolicyTest.kt",
+    "src/test/java/com/luxisoft/realityos/PhonePreviewStateTest.kt",
+    "src/debug/java/com/luxisoft/realityos/DeveloperPreviewPanel.kt",
+    "src/debug/java/com/luxisoft/realityos/PhoneCaptureViewfinder.kt",
+    "src/testDebug/java/com/luxisoft/realityos/PhoneCaptureTouchTest.kt",
+    "src/debug/java/com/luxisoft/realityos/MockDeveloperPreviewController.kt",
+    "src/main/java/com/luxisoft/realityos/MetaDisplayState.kt",
+    "src/main/java/com/luxisoft/realityos/MetaDisplayController.kt",
+    "src/main/java/com/luxisoft/realityos/MetaDisplayScreens.kt",
+    "src/test/java/com/luxisoft/realityos/MetaDisplayPolicyTest.kt",
+    "src/main/java/com/luxisoft/realityos/ChatLocalization.kt",
+    "src/main/java/com/luxisoft/realityos/RealityExperienceStore.kt",
+    "src/test/java/com/luxisoft/realityos/ChatLocalizationTest.kt",
+    "src/main/java/com/luxisoft/realityos/EvidencePresentation.kt",
+    "src/main/java/com/luxisoft/realityos/EvidenceInformation.kt",
+    "src/test/java/com/luxisoft/realityos/EvidencePresentationTest.kt",
+    "src/main/java/com/luxisoft/realityos/ChatAutoScroll.kt",
+    "src/test/java/com/luxisoft/realityos/ChatScrollPolicyTest.kt",
+    "src/test/java/com/luxisoft/realityos/ChatEvidenceTest.kt",
+    "src/main/java/com/luxisoft/realityos/ChatEvidence.kt",
+    "src/main/java/com/luxisoft/realityos/SearchEvidenceCarousel.kt",
+    "src/main/java/com/luxisoft/realityos/PublicationUploader.kt",
+    "src/test/java/com/luxisoft/realityos/GalleryViewerUrlTest.kt",
+    "src/main/java/com/luxisoft/realityos/LoadingSkeleton.kt",
+    "src/main/java/com/luxisoft/realityos/GalleryTopBarState.kt",
+    "src/main/java/com/luxisoft/realityos/SocialAdministration.kt",
+    "src/main/java/com/luxisoft/realityos/MediaViewer.kt",
+    "src/main/java/com/luxisoft/realityos/MediaZoomPolicy.kt",
+    "src/main/java/com/luxisoft/realityos/UnifiedSearch.kt",
+    "src/test/java/com/luxisoft/realityos/MediaZoomPolicyTest.kt",
+    "src/test/java/com/luxisoft/realityos/ChatHistoryTest.kt",
+    "src/main/java/com/luxisoft/realityos/AiChat.kt",
+    "src/main/java/com/luxisoft/realityos/RealityViewModel.kt",
+    "src/main/java/com/luxisoft/realityos/RealityOsApp.kt",
+    "src/main/java/com/luxisoft/realityos/ChatModels.kt",
+    "src/main/java/com/luxisoft/realityos/ChatHistory.kt",
+    fileTree("src/main/java/com/luxisoft/realityos/host") { include("**/*.kt") },
+    fileTree("src/main/java/com/luxisoft/realityos/chat") { include("**/*.kt") },
+)
+
+tasks.register<JavaExec>("ktlintCheck") {
+    group = "verification"
+    description = "Check formatting of the refactored host and chat modules."
+    classpath = ktlint
+    mainClass.set("com.pinterest.ktlint.Main")
+    inputs.files(refactoredKotlin)
+    args(refactoredKotlin.files.map { it.absolutePath })
+}
+
+tasks.register<JavaExec>("ktlintFormat") {
+    group = "formatting"
+    description = "Format refactored host and chat modules; excludes biometric UI."
+    classpath = ktlint
+    mainClass.set("com.pinterest.ktlint.Main")
+    args("--format")
+    args(refactoredKotlin.files.map { it.absolutePath })
 }

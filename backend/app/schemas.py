@@ -43,6 +43,8 @@ class WorkspaceResponse(FromAttributes):
     description: str | None
     created_at: datetime
     role: str | None = None
+    created_by_me: bool = False
+    can_invite: bool = False
 
 
 class ZoneCreate(BaseModel):
@@ -160,6 +162,8 @@ class JobResponse(FromAttributes):
     error_message: str | None
     result_metadata: dict = Field(default_factory=dict)
     created_at: datetime
+    started_at: datetime | None = None
+    completed_at: datetime | None = None
 
 
 class ObjectResponse(FromAttributes):
@@ -256,12 +260,57 @@ class TrackFrameResponse(FromAttributes):
 class QueryRequest(BaseModel):
     workspace_id: uuid.UUID
     question: str = Field(min_length=2, max_length=500)
+    language: str = Field(default="en", max_length=16)
+    search_scope: Literal["auto", "gallery", "registry"] = "auto"
+
+
+class LocalizedGalleryInformation(BaseModel):
+    title: str = ""
+    note_text: str = ""
+    matched_labels: list[str] = Field(default_factory=list)
+    simulated: bool = False
+
+
+class GalleryMatch(BaseModel):
+    """A viewer-visible publication matching the question; never verified evidence."""
+
+    post_id: uuid.UUID
+    localized_information: dict[str, LocalizedGalleryInformation] = Field(default_factory=dict)
+    caption: str = ""
+    ai_caption: str = ""
+    audience: str = ""
+    thumbnail_url: str = ""
+    media_url: str = ""
+    boxed_url: str = ""
+    evidence_id: uuid.UUID | None = None
+    media_id: uuid.UUID | None = None
+    image_url: str = ""
+    mime_type: str = "image/jpeg"
+    frame_timestamp_ms: int | None = None
+    note_text: str = ""
+    note_source: str = ""
+    matched_labels: list[str] = Field(default_factory=list)
+    confidence: float | None = None
+    published_at: str = ""
+    simulated: bool = False
+    match_kind: Literal["exact", "family", "similar"] | None = None
+    localization_quality: Literal["sam", "approximate_box"] | None = None
 
 
 class QueryResponse(BaseModel):
+    response_language: str = "en"
     found: bool
     ambiguous: bool = False
     message: str
+    gallery_matches: list[GalleryMatch] = Field(default_factory=list)
+    gallery_search_status: Literal[
+        "not_searched", "ready", "partial", "indexing", "unavailable", "no_match"
+    ] = "not_searched"
+    gallery_pending_count: int = 0
+    gallery_failed_count: int = 0
+    gallery_search_reason: Literal[
+        "none", "incomplete_index", "semantic_unavailable", "storage_unavailable"
+    ] = "none"
     object: ObjectResponse | None = None
     observation: ObservationResponse | None = None
     zone_path: list[str] = Field(default_factory=list)
@@ -320,8 +369,27 @@ class ImageAnalysis(BaseModel):
     detections: list[MetaDetection]
 
 
+class GalleryInterpretation(BaseModel):
+    """Semantic relations over supplied gallery labels, separate from Query."""
+
+    exact: list[str] = Field(default_factory=list, max_length=32)
+    family: list[str] = Field(default_factory=list, max_length=32)
+    similar: list[str] = Field(default_factory=list, max_length=32)
+
+
 class QueryInterpretation(BaseModel):
     """Only workspace-known terms may leave the query-understanding layer."""
 
     terms: list[str] = Field(default_factory=list, max_length=8)
     simulated: bool = False
+
+
+class SearchIntent(BaseModel):
+    """Ephemeral person/object/chat/ask routing for a free-text search request."""
+
+    target: Literal["person", "object", "chat", "ask"] = "ask"
+    simulated: bool = False
+
+
+class SearchRouteRequest(BaseModel):
+    text: str = Field(min_length=2, max_length=2000)

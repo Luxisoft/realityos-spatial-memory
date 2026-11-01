@@ -1,10 +1,14 @@
 package com.luxisoft.realityos
 
 import android.content.Context
+import android.graphics.Color
 import android.media.MediaExtractor
 import android.net.Uri
 import android.view.View
+import android.webkit.WebChromeClient
+import android.webkit.WebView
 import com.meta.wearable.dat.core.Wearables
+import com.meta.wearable.dat.core.selectors.SpecificDeviceSelector
 import com.meta.wearable.dat.core.types.DeviceIdentifier
 import com.meta.wearable.dat.core.types.Permission
 import com.meta.wearable.dat.core.types.PermissionStatus
@@ -14,7 +18,6 @@ import com.meta.wearable.dat.mockdevice.api.GlassesModel
 import com.meta.wearable.dat.mockdevice.api.MockDeviceKitConfig
 import com.meta.wearable.dat.mockdevice.api.MockDeviceKitInterface
 import com.meta.wearable.dat.mockdevice.api.MockGlasses
-import com.meta.wearable.dat.mockdevice.api.camera.CameraFacing
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -28,13 +31,16 @@ import kotlinx.coroutines.withTimeoutOrNull
  * RealityOS capture and query workflow.
  */
 class MockDeveloperPreviewController(
-    private val applicationContext: Context,
+    private val applicationContext: Context
 ) : DeveloperPreviewController {
     private val mock: MockDeviceKitInterface = MockDeviceKit.getInstance(applicationContext)
     private val _state = MutableStateFlow(DeveloperPreviewState(available = true))
     override val state: StateFlow<DeveloperPreviewState> = _state.asStateFlow()
 
     private var glasses: MockGlasses? = null
+    private val simulatedIdentifiers = mutableSetOf<DeviceIdentifier>()
+
+    override fun isSimulatedDevice(identifier: DeviceIdentifier): Boolean = identifier in simulatedIdentifiers
 
     override suspend fun start(mode: DeveloperPreviewMode): DeviceIdentifier? {
         if (_state.value.active) stop()
@@ -44,8 +50,8 @@ class MockDeveloperPreviewController(
             mock.enable(
                 MockDeviceKitConfig(
                     initiallyRegistered = true,
-                    initialPermissionsGranted = true,
-                ),
+                    initialPermissionsGranted = true
+                )
             )
             val registered = withTimeoutOrNull(REGISTRATION_TIMEOUT_MS) {
                 Wearables.registrationState.first { it == RegistrationState.REGISTERED }
@@ -55,41 +61,48 @@ class MockDeveloperPreviewController(
                 releaseMockDevice()
                 return null
             }
-            mock.pairGlasses(GlassesModel.META_RAYBAN_DISPLAY).fold(
-                onSuccess = { paired ->
-                    glasses = paired
-                    paired.powerOn()
-                    paired.unfold()
-                    paired.don()
-                    paired.services.speech.setLocale(DEFAULT_LOCALE)
-                    val chrome = if (mode == DeveloperPreviewMode.CHROME) startChromeServer() else null
-                    if (mode == DeveloperPreviewMode.CHROME && chrome == null) {
-                        releaseMockDevice()
-                        null
-                    } else {
-                        _state.update {
-                            it.copy(
-                                active = true,
-                                mode = mode,
-                                deviceIdentifier = paired.deviceIdentifier,
-                                poweredOn = true,
-                                unfolded = true,
-                                worn = true,
-                                chrome = chrome,
-                                message = "Virtual Meta Ray-Ban Display is ready. Connect RealityOS Display.",
-                                error = null,
-                                previewGeneration = it.previewGeneration + 1,
-                            )
-                        }
-                        paired.deviceIdentifier
-                    }
-                },
-                onFailure = { error, _ ->
-                    fail(error.description)
-                    releaseMockDevice()
-                    null
-                },
-            )
+            val pairing = mock.pairGlasses(GlassesModel.META_RAYBAN_DISPLAY)
+            if (!pairing.isSuccess) {
+                pairing.fold(
+                    onSuccess = {},
+                    onFailure = { error, _ -> fail(error.description) }
+                )
+                releaseMockDevice()
+                return null
+            }
+            val paired = pairing.getOrThrow()
+            simulatedIdentifiers += paired.deviceIdentifier
+            glasses = paired
+            paired.powerOn()
+            paired.unfold()
+            paired.don()
+            paired.services.speech.setLocale(DEFAULT_LOCALE)
+            if (!awaitEligibleDevice(paired.deviceIdentifier)) {
+                fail(applicationContext.getString(R.string.debug_virtual_display_not_ready))
+                releaseMockDevice()
+                return null
+            }
+            val chrome = if (mode == DeveloperPreviewMode.CHROME) startChromeServer() else null
+            if (mode == DeveloperPreviewMode.CHROME && chrome == null) {
+                releaseMockDevice()
+                null
+            } else {
+                _state.update {
+                    it.copy(
+                        active = true,
+                        mode = mode,
+                        deviceIdentifier = paired.deviceIdentifier,
+                        poweredOn = true,
+                        unfolded = true,
+                        worn = true,
+                        chrome = chrome,
+                        message = "Virtual Meta Ray-Ban Display is ready. Connect RealityOS Display.",
+                        error = null,
+                        previewGeneration = it.previewGeneration + 1
+                    )
+                }
+                paired.deviceIdentifier
+            }
         } catch (error: Exception) {
             fail(error.message ?: "Could not start the virtual glasses.")
             releaseMockDevice()
@@ -103,7 +116,7 @@ class MockDeveloperPreviewController(
             DeveloperPreviewState(
                 available = true,
                 message = "Developer preview is stopped.",
-                previewGeneration = it.previewGeneration + 1,
+                previewGeneration = it.previewGeneration + 1
             )
         }
     }
@@ -146,7 +159,7 @@ class MockDeveloperPreviewController(
         _state.update {
             it.copy(
                 message = "${permission.name.lowercase().replaceFirstChar(Char::uppercase)} permission is ${if (granted) "granted" else "denied"} in Mock Device Kit.",
-                error = null,
+                error = null
             )
         }
     }
@@ -161,7 +174,7 @@ class MockDeveloperPreviewController(
                 it.copy(
                     capturedPhotoName = displayName(uri),
                     message = "Mock photo capture is configured.",
-                    error = null,
+                    error = null
                 )
             }
         }
@@ -179,30 +192,29 @@ class MockDeveloperPreviewController(
                     videoFeedName = displayName(uri),
                     phoneCamera = null,
                     message = "Mock video feed is configured.",
-                    error = null,
+                    error = null
                 )
             }
         }
     }
 
     override fun setPhoneCamera(camera: PreviewPhoneCamera) = withGlasses(
-        "Start the virtual glasses before using the phone camera.",
+        "Start the virtual glasses before using the phone camera."
     ) { device ->
-        device.services.camera.setCameraFeed(
-            if (camera == PreviewPhoneCamera.FRONT) CameraFacing.FRONT else CameraFacing.BACK,
-        )
+        // CameraX owns the phone sensors. Opening a second phone feed in the
+        // SDK would compete with the actual photo/video source.
         _state.update {
             it.copy(
                 phoneCamera = camera,
                 videoFeedName = null,
-                message = "${camera.name.lowercase().replaceFirstChar(Char::uppercase)} phone camera feeds the virtual glasses.",
-                error = null,
+                message = "${camera.name.lowercase().replaceFirstChar(Char::uppercase)} phone camera selected for capture.",
+                error = null
             )
         }
     }
 
     override fun simulateTranscription(text: String, isFinal: Boolean) = withGlasses(
-        "Start the virtual glasses before simulating speech.",
+        "Start the virtual glasses before simulating speech."
     ) { device ->
         val normalized = text.trim()
         if (normalized.isBlank()) return@withGlasses fail("Enter a query before simulating speech.")
@@ -210,7 +222,7 @@ class MockDeveloperPreviewController(
         _state.update {
             it.copy(
                 message = if (isFinal) "Sent final simulated speech." else "Sent partial simulated speech.",
-                error = null,
+                error = null
             )
         }
     }
@@ -223,6 +235,48 @@ class MockDeveloperPreviewController(
         val current = _state.value
         if (!current.active || current.mode != DeveloperPreviewMode.IN_APP) return null
         return glasses?.services?.display?.createPreviewView(context)
+            ?.let(::prepareTransparentDisplayPreview)
+    }
+
+    /**
+     * Meta's Debug renderer is a WebView whose document and host are already
+     * transparent, but its app root intentionally defaults to a black display
+     * window. The photographic lens preview has its own scene behind that
+     * renderer, so make only this Debug presentation surface transparent while
+     * retaining the SDK's controls, bridge, and WebViewClient unchanged.
+     */
+    private fun prepareTransparentDisplayPreview(view: View): View {
+        val webView = view as? WebView ?: return view
+        webView.setBackgroundColor(Color.TRANSPARENT)
+        webView.webChromeClient = object : WebChromeClient() {
+            override fun onProgressChanged(view: WebView, newProgress: Int) {
+                super.onProgressChanged(view, newProgress)
+                if (newProgress == 100) {
+                    view.post { makeDisplayRootTransparent(view) }
+                }
+            }
+        }
+        // Covers the case where the SDK page completed before the Chrome
+        // client was installed. The script retries until React creates its
+        // display root, without replacing the SDK's WebViewClient.
+        webView.post { makeDisplayRootTransparent(webView) }
+        return webView
+    }
+
+    private fun makeDisplayRootTransparent(webView: WebView) {
+        webView.evaluateJavascript(TRANSPARENT_DISPLAY_ROOT_SCRIPT, null)
+    }
+
+    /**
+     * Mock Device Kit publishes lifecycle changes asynchronously. Do not hand
+     * RealityViewModel an identifier until DAT sees its link as connected,
+     * otherwise createSession can reject it as ineligible.
+     */
+    private suspend fun awaitEligibleDevice(deviceIdentifier: DeviceIdentifier): Boolean {
+        val selector = SpecificDeviceSelector(deviceIdentifier)
+        return withTimeoutOrNull(DEVICE_READY_TIMEOUT_MS) {
+            selector.activeDeviceFlow().first { it == deviceIdentifier }
+        } == deviceIdentifier
     }
 
     private fun startChromeServer(): ChromePreviewInfo? = mock.startTestServer(0).fold(
@@ -230,13 +284,13 @@ class MockDeveloperPreviewController(
             ChromePreviewInfo(
                 port = port,
                 adbForwardCommand = "adb forward tcp:$port tcp:$port",
-                url = "http://127.0.0.1:$port/",
+                url = "http://127.0.0.1:$port/"
             )
         },
         onFailure = { error, _ ->
             fail(error.description)
             null
-        },
+        }
     )
 
     private fun releaseMockDevice() {
@@ -282,7 +336,31 @@ class MockDeveloperPreviewController(
         const val DEFAULT_LOCALE = "en-US"
         const val DEFAULT_CONFIDENCE = 0.92f
         const val REGISTRATION_TIMEOUT_MS = 3_000L
+        const val DEVICE_READY_TIMEOUT_MS = 3_000L
         val SUPPORTED_IMAGE_TYPES = setOf("image/jpeg", "image/png")
         val SUPPORTED_VIDEO_CODECS = setOf("video/avc", "video/hevc")
+        val TRANSPARENT_DISPLAY_ROOT_SCRIPT =
+            """
+            (() => {
+              let attempts = 0;
+              const apply = () => {
+                const root = document.querySelector('[data-app-root]');
+                if (!root) {
+                  if (++attempts < 180) requestAnimationFrame(apply);
+                  return;
+                }
+                [document.documentElement, document.body, document.getElementById('app'), root]
+                  .filter(Boolean)
+                  .forEach((node) => {
+                    node.style.setProperty('background', 'transparent', 'important');
+                    node.style.setProperty('background-color', 'transparent', 'important');
+                  });
+                document.documentElement.style.setProperty(
+                  '--wui-color-background-window', 'transparent', 'important'
+                );
+              };
+              apply();
+            })();
+            """.trimIndent()
     }
 }

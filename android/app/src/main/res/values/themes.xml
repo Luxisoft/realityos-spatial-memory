@@ -3,10 +3,10 @@
         <item name="android:fontFamily">sans</item>
         <item name="android:windowLightStatusBar">false</item>
         <item name="android:statusBarColor">@android:color/transparent</item>
-        <item name="android:navigationBarColor">#181B20</item>
+        <item name="android:navigationBarColor">@color/reality_surface</item>
         <item name="android:windowLightNavigationBar">false</item>
         <item name="android:windowActionModeOverlay">true</item>
-        <item name="android:colorAccent">#63E6AE</item>
+        <item name="android:colorAccent">#62A9F8</item>
     </style>
 
     <style name="Theme.RealityOS.Starting" parent="Theme.SplashScreen">

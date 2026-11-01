@@ -33,7 +33,10 @@ services:
     build:
       context: ..
       dockerfile: backend/Dockerfile
-    env_file: ../.env
+    env_file:
+      - ../.env
+      - path: ../.env.facebook
+        required: false
     environment:
       DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-realityos}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-realityos}
       REDIS_URL: redis://redis:6379/0

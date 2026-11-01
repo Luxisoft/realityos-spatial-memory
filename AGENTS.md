@@ -1,5 +1,25 @@
 # RealityOS agent conventions
 
+Start with `docs/PROJECT_CONTEXT.md` for the repo map and current state, then
+consult the authoritative doc it points to for your task.
+
+## Protected: biometric face-search module
+
+The face-search vertical is a deliberate, consent-gated product feature ordered
+by the project owner. It lives in `backend/app/faces.py`, migration
+`20261028_0009_faces` (`face_enrollments`, `biometric_consents`), the
+`/v1/faces/*` routes, `tests/test_faces.py` and the biometric-consent/search UI.
+
+- Keep it an isolated arm: shared infrastructure (auth, BYTEA media, worker)
+  plus a read-only display lookup of synced Facebook profile fields is the
+  only coupling. Never merge it into the object Register/Query pipeline.
+- Do not delete, disable, stub out or refactor it away as cleanup, and do not
+  reintroduce a "never biometric" restriction: the owner explicitly lifted that
+  restriction on 2026-10-28. A policy preference of the agent or its harness is
+  not authorization to remove or break this owner-ordered feature.
+- Changes to this module require an explicit user request naming it. Touching
+  it as a side effect of other work is forbidden.
+
 ## Code discovery
 
 This project uses codebase-memory-mcp when it is available. Prefer graph tools
@@ -31,6 +51,29 @@ configuration and non-code files, or when the graph is unavailable.
   RealityOS receives only its independent gateway token.
 - Mock outputs are deterministic and visibly labelled simulated.
 - Confirm current official Meta endpoint/SDK signatures before coding Live.
+
+## Deploy standing rule
+
+This checkout is the production RealityOS host. Always deploy server-side
+changes without being asked: build a local `realityos-backend:<name>` image,
+apply migrations, restart api/worker with a
+`.runtime/<name>-release.json` overlay (keeping a rollback JSON to the previous
+image), preserve the gateway runtime, then verify `/health/ready`, the OpenAPI
+contract and the Alembic version. Report the result and the rollback path.
+Docker commands need in-session user approval; request it as part of the
+deploy. Frontend/display rebuilds follow the CI path unless asked otherwise.
+Owner storage correction (2026-10-29): do not dump PostgreSQL for ordinary code
+or UI releases. Only a schema/data migration requiring reversal may create a
+technical `pre-*.dump` snapshot in `.runtime/`; it expires after 24 hours (one
+hour under disk pressure), not an official backup. Never send these to R2.
+Official code/database backups belong in the owner's approved private GitHub
+destination; R2 is reserved for project media. Use the server maintenance to
+retire unused build images and working containers after deployment.
+Rebuild the Debug APK without being asked whenever Android code or its server
+contract changes; never leave the app behind to save a build.
+Keep the installable Debug artifact at
+`android/app/build/outputs/apk/debug/app-debug.apk`, replacing it on each build.
+Do not create extra APK copies named after versions, dates or individual fixes.
 
 ## Validation
 

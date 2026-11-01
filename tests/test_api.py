@@ -19,7 +19,7 @@ from app.models import (
     WorkspaceMember,
 )
 from app.security import hash_password
-from app.services import process_job
+from app.services import _get_or_create_tracked_object, process_job
 from PIL import Image
 from sqlalchemy import select
 
@@ -69,9 +69,7 @@ def register_and_process(client, headers, workspace_id: str) -> tuple[str, str]:
     job = client.post(f"/v1/captures/{capture_id}/process", headers=headers)
     assert job.status_code == 200, job.text
     with client.app.state.database.session_factory() as db:
-        process_job(
-            db, uuid.UUID(job.json()["id"]), MockMetaModelClient()
-        )
+        process_job(db, uuid.UUID(job.json()["id"]), MockMetaModelClient())
         db.commit()
     return capture_id, job.json()["id"]
 
@@ -96,7 +94,9 @@ def test_capture_is_bytea_backed_and_hash_is_stable(client, auth_headers):
     assert capture["byte_size"] == len(original.content)
 
 
-def test_device_ingestion_has_no_human_login_and_admin_gets_inventory_facts(client, auth_headers):
+def test_device_ingestion_has_no_human_login_and_admin_gets_inventory_facts(
+    client, auth_headers
+):
     workspace_id = create_workspace(client, auth_headers)
     enrollment = client.post(
         "/v1/admin/devices",
@@ -150,9 +150,23 @@ def test_device_ingestion_has_no_human_login_and_admin_gets_inventory_facts(clie
         json={"profile": "basic"},
     )
     assert job.status_code == 200, job.text
+    queued_job = client.get(
+        f"/v1/device/jobs/{job.json()['id']}", headers=device_headers
+    )
+    assert queued_job.status_code == 200, queued_job.text
+    assert queued_job.json()["status"] == "queued"
+    assert queued_job.json()["started_at"] is None
+    assert queued_job.json()["completed_at"] is None
     with client.app.state.database.session_factory() as db:
         process_job(db, uuid.UUID(job.json()["id"]), MockMetaModelClient())
         db.commit()
+    completed_job = client.get(
+        f"/v1/device/jobs/{job.json()['id']}", headers=device_headers
+    )
+    assert completed_job.status_code == 200, completed_job.text
+    assert completed_job.json()["status"] == "completed"
+    assert completed_job.json()["started_at"] is not None
+    assert completed_job.json()["completed_at"] is not None
     answer = client.post(
         "/v1/device/queries",
         headers=device_headers,
@@ -161,7 +175,9 @@ def test_device_ingestion_has_no_human_login_and_admin_gets_inventory_facts(clie
     assert answer.status_code == 200, answer.text
     assert answer.json()["found"] is True
     assert answer.json()["can_refine"] is False
-    evidence = client.get(answer.json()["highlighted_media_url"], headers=device_headers)
+    evidence = client.get(
+        answer.json()["highlighted_media_url"], headers=device_headers
+    )
     assert evidence.status_code == 200
     display_url = answer.json()["display_media_url"]
     assert display_url.startswith("/v1/device/display/observations/")
@@ -172,20 +188,89 @@ def test_device_ingestion_has_no_human_login_and_admin_gets_inventory_facts(clie
     assert display_evidence.headers["cache-control"] == "private, no-store"
     assert client.get(display_url.split("?", 1)[0]).status_code == 422
     with client.app.state.database.session_factory() as db:
-        tracked = db.scalar(select(TrackedObject).where(TrackedObject.workspace_id == uuid.UUID(workspace_id)))
+        tracked = db.scalar(
+            select(TrackedObject).where(
+                TrackedObject.workspace_id == uuid.UUID(workspace_id)
+            )
+        )
         assert tracked is not None
         object_id = tracked.id
     facts = client.get(f"/v1/objects/{object_id}/facts", headers=auth_headers)
     assert facts.status_code == 200
-    assert {item["fact_type"] for item in facts.json()} >= {"brand", "condition", "visible_count"}
+    assert {item["fact_type"] for item in facts.json()} >= {
+        "brand",
+        "condition",
+        "visible_count",
+    }
     analytics = client.get(
-        "/v1/admin/analytics/inventory", headers=auth_headers, params={"workspace_id": workspace_id}
+        "/v1/admin/analytics/inventory",
+        headers=auth_headers,
+        params={"workspace_id": workspace_id},
     )
     assert analytics.status_code == 200, analytics.text
     report = analytics.json()
     assert report["verified_object_count"] == 1
     assert report["brands"] == [{"value": "realityos workshop", "count": 1}]
     assert report["devices"][0]["capture_sessions"] == 1
+
+
+def test_device_job_status_is_limited_to_its_capture_session(client, auth_headers):
+    workspace_id = create_workspace(client, auth_headers)
+    owner = client.post(
+        "/v1/admin/devices",
+        headers=auth_headers,
+        json={
+            "workspace_id": workspace_id,
+            "device_identifier": "job-owner-01",
+            "label": "Job owner",
+        },
+    )
+    assert owner.status_code == 201, owner.text
+    other = client.post(
+        "/v1/admin/devices",
+        headers=auth_headers,
+        json={
+            "workspace_id": workspace_id,
+            "device_identifier": "job-observer-02",
+            "label": "Job observer",
+        },
+    )
+    assert other.status_code == 201, other.text
+    owner_headers = {
+        "X-RealityOS-Device-ID": owner.json()["device_identifier"],
+        "X-RealityOS-Device-Key": owner.json()["device_key"],
+    }
+    other_headers = {
+        "X-RealityOS-Device-ID": other.json()["device_identifier"],
+        "X-RealityOS-Device-Key": other.json()["device_key"],
+    }
+    session = client.post("/v1/device/sessions", headers=owner_headers, json={})
+    assert session.status_code == 201, session.text
+    capture = client.post(
+        "/v1/device/captures",
+        headers=owner_headers,
+        data={"session_id": session.json()["id"]},
+        files={"file": ("owner.png", png_bytes(), "image/png")},
+    )
+    assert capture.status_code == 201, capture.text
+    job = client.post(
+        f"/v1/device/captures/{capture.json()['id']}/process", headers=owner_headers
+    )
+    assert job.status_code == 200, job.text
+
+    assert (
+        client.get(
+            f"/v1/device/jobs/{job.json()['id']}", headers=owner_headers
+        ).status_code
+        == 200
+    )
+    # The devices share a workspace, but may not inspect one another's jobs.
+    assert (
+        client.get(
+            f"/v1/device/jobs/{job.json()['id']}", headers=other_headers
+        ).status_code
+        == 404
+    )
 
 
 def test_device_key_rotation_revoke_and_workspace_boundary(client, auth_headers):
@@ -203,9 +288,14 @@ def test_device_key_rotation_revoke_and_workspace_boundary(client, auth_headers)
         "X-RealityOS-Device-ID": enrolled["device_identifier"],
         "X-RealityOS-Device-Key": enrolled["device_key"],
     }
-    rotated = client.post(f"/v1/admin/devices/{enrolled['id']}/rotate", headers=auth_headers)
+    rotated = client.post(
+        f"/v1/admin/devices/{enrolled['id']}/rotate", headers=auth_headers
+    )
     assert rotated.status_code == 200
-    assert client.post("/v1/device/sessions", headers=old_headers, json={}).status_code == 401
+    assert (
+        client.post("/v1/device/sessions", headers=old_headers, json={}).status_code
+        == 401
+    )
     new_headers = {
         "X-RealityOS-Device-ID": enrolled["device_identifier"],
         "X-RealityOS-Device-Key": rotated.json()["device_key"],
@@ -223,9 +313,14 @@ def test_device_key_rotation_revoke_and_workspace_boundary(client, auth_headers)
         json={"workspace_id": other, "question": "Where is anything?"},
     )
     assert denied.status_code == 403
-    revoked = client.post(f"/v1/admin/devices/{enrolled['id']}/revoke", headers=auth_headers)
+    revoked = client.post(
+        f"/v1/admin/devices/{enrolled['id']}/revoke", headers=auth_headers
+    )
     assert revoked.status_code == 200
-    assert client.post("/v1/device/sessions", headers=new_headers, json={}).status_code == 401
+    assert (
+        client.post("/v1/device/sessions", headers=new_headers, json={}).status_code
+        == 401
+    )
 
 
 def test_query_returns_last_verified_evidence_and_highlight(client, auth_headers):
@@ -263,6 +358,141 @@ def test_query_returns_last_verified_evidence_and_highlight(client, auth_headers
     assert highlighted.status_code == 200
     assert highlighted.headers["content-type"] == "image/png"
     assert highlighted.content != png_bytes()
+
+
+def test_query_answers_in_requested_language_with_english_fallback(
+    client, auth_headers
+):
+    workspace_id = create_workspace(client, auth_headers)
+    capture_id, _ = register_and_process(client, auth_headers, workspace_id)
+    spanish = client.post(
+        "/v1/queries",
+        headers=auth_headers,
+        json={
+            "workspace_id": workspace_id,
+            "question": "¿Dónde está el taladro amarillo?",
+            "language": "es-CO",
+        },
+    )
+    assert spanish.status_code == 200, spanish.text
+    assert "fue visto por última vez" in spanish.json()["message"]
+    assert spanish.json()["media_id"] == capture_id
+
+    missing = client.post(
+        "/v1/queries",
+        headers=auth_headers,
+        json={
+            "workspace_id": workspace_id,
+            "question": "¿Dónde está el yunque?",
+            "language": "es",
+        },
+    )
+    assert missing.json()["found"] is False
+    # Register also publishes media whose gallery index is queued. This is an
+    # incomplete search, rather than proof that the requested object is absent.
+    assert missing.json()["gallery_search_status"] == "indexing"
+    assert "indexando" in missing.json()["message"]
+
+    fallback = client.post(
+        "/v1/queries",
+        headers=auth_headers,
+        json={
+            "workspace_id": workspace_id,
+            "question": "¿Dónde está el yunque?",
+            "language": "xx",
+        },
+    )
+    assert fallback.json()["gallery_search_status"] == "indexing"
+    assert fallback.json()["message"].startswith(
+        "The photos and videos are still being indexed"
+    )
+
+
+def test_image_query_is_ephemeral_and_reuses_verified_evidence(client, auth_headers):
+    workspace_id = create_workspace(client, auth_headers)
+    register_and_process(client, auth_headers, workspace_id)
+    with client.app.state.database.session_factory() as db:
+        before = db.query(MediaAsset).count()
+    response = client.request(
+        "POST",
+        "/v1/queries/image",
+        headers=auth_headers,
+        data={"workspace_id": workspace_id, "question": "Encuentra esta herramienta"},
+        files={"image": ("probe.png", png_bytes(), "image/png")},
+    )
+    assert response.status_code == 200, response.text
+    assert response.json()["found"] is True
+    assert response.json()["simulated"] is True
+    with client.app.state.database.session_factory() as db:
+        assert db.query(MediaAsset).count() == before
+
+
+def test_search_classify_counts_faces_and_labels_without_storing(client, auth_headers):
+    workspace_id = create_workspace(client, auth_headers)
+    with client.app.state.database.session_factory() as db:
+        before = db.query(MediaAsset).count()
+    response = client.request(
+        "POST",
+        "/v1/search/classify",
+        headers=auth_headers,
+        data={"workspace_id": workspace_id},
+        files={"image": ("probe.png", png_bytes(), "image/png")},
+    )
+    assert response.status_code == 200, response.text
+    payload = response.json()
+    assert payload["faces"] >= 1
+    assert payload["object_labels"]
+    assert payload["simulated"] is True
+    with client.app.state.database.session_factory() as db:
+        assert db.query(MediaAsset).count() == before
+
+
+def test_search_route_person_object_and_ask(client, auth_headers):
+    person = client.post(
+        "/v1/search/route",
+        headers=auth_headers,
+        json={"text": "¿Quién tiene el taladro?"},
+    )
+    assert person.status_code == 200, person.text
+    assert person.json()["target"] == "person"
+
+    english = client.post(
+        "/v1/search/route", headers=auth_headers, json={"text": "Who saw my helmet?"}
+    )
+    assert english.json()["target"] == "person"
+
+    objects = client.post(
+        "/v1/search/route",
+        headers=auth_headers,
+        json={"text": "¿Dónde está el casco rojo?"},
+    )
+    assert objects.json()["target"] == "object"
+
+    ask = client.post(
+        "/v1/search/route", headers=auth_headers, json={"text": "búscalo"}
+    )
+    assert ask.json()["target"] == "ask"
+
+    short = client.post("/v1/search/route", headers=auth_headers, json={"text": "x"})
+    assert short.status_code == 422
+
+
+def test_search_route_chat_for_small_talk_only(client, auth_headers):
+    for text in ("hola", "hello", "gracias", "hola, ¿cómo estás?"):
+        response = client.post(
+            "/v1/search/route", headers=auth_headers, json={"text": text}
+        )
+        assert response.json()["target"] == "chat", text
+    mixed = client.post(
+        "/v1/search/route",
+        headers=auth_headers,
+        json={"text": "hola, ¿quién tiene el taladro?"},
+    )
+    assert mixed.json()["target"] == "person"
+    bare = client.post(
+        "/v1/search/route", headers=auth_headers, json={"text": "martillo"}
+    )
+    assert bare.json()["target"] == "object"
 
 
 def test_missing_query_and_query_role_cannot_capture(client, auth_headers):
@@ -322,7 +552,9 @@ def test_query_role_cannot_request_sam_refinement(client, auth_headers):
         db.flush()
         db.add(
             WorkspaceMember(
-                workspace_id=uuid.UUID(workspace_id), user_id=query_user.id, role=Role.QUERY
+                workspace_id=uuid.UUID(workspace_id),
+                user_id=query_user.id,
+                role=Role.QUERY,
             )
         )
         db.commit()
@@ -385,6 +617,48 @@ def test_processing_job_is_idempotent_and_defers_sam_geometry(client, auth_heade
     assert observations[0].mask_asset_id is None
 
 
+def test_tracked_object_creation_recovers_from_unique_race(
+    client, auth_headers, monkeypatch
+):
+    """The losing worker reuses the concurrent winner after its savepoint rolls back."""
+
+    workspace_uuid = uuid.UUID(create_workspace(client, auth_headers))
+    with client.app.state.database.session_factory() as db:
+        concurrent_winner = TrackedObject(
+            workspace_id=workspace_uuid,
+            canonical_name="yellow drill",
+            category="power tool",
+        )
+        db.add(concurrent_winner)
+        db.commit()
+        winner_id = concurrent_winner.id
+
+        original_scalar = db.scalar
+        reads = 0
+
+        def hide_winner_once(*args, **kwargs):
+            nonlocal reads
+            reads += 1
+            if reads == 1:
+                # Model the first worker's query occurring just before the
+                # competing transaction commits its object row.
+                return None
+            return original_scalar(*args, **kwargs)
+
+        monkeypatch.setattr(db, "scalar", hide_winner_once)
+        recovered = _get_or_create_tracked_object(
+            db,
+            workspace_id=workspace_uuid,
+            canonical_name="yellow drill",
+            category="power tool",
+            simulated=True,
+        )
+        db.commit()
+
+    assert reads == 2
+    assert recovered.id == winner_id
+
+
 def test_explicit_sam_refinement_is_cached_as_a_bytea_mask(client, auth_headers):
     workspace_id = create_workspace(client, auth_headers)
     capture_id, _ = register_and_process(client, auth_headers, workspace_id)
@@ -394,9 +668,13 @@ def test_explicit_sam_refinement_is_cached_as_a_bytea_mask(client, auth_headers)
         json={"workspace_id": workspace_id, "question": "Where is the yellow drill?"},
     ).json()
     observation_id = answer["observation"]["id"]
-    first = client.post(f"/v1/observations/{observation_id}/segment", headers=auth_headers)
+    first = client.post(
+        f"/v1/observations/{observation_id}/segment", headers=auth_headers
+    )
     assert first.status_code == 202, first.text
-    second = client.post(f"/v1/observations/{observation_id}/segment", headers=auth_headers)
+    second = client.post(
+        f"/v1/observations/{observation_id}/segment", headers=auth_headers
+    )
     assert second.status_code == 202, second.text
     assert second.json()["id"] == first.json()["id"]
     assert first.json()["operation"] == "segmentation"
@@ -416,7 +694,9 @@ def test_explicit_sam_refinement_is_cached_as_a_bytea_mask(client, auth_headers)
         assert job is not None
         assert job.operation == ProcessingOperation.SEGMENTATION
         assert job.result_metadata["segmentation_status"] == "ready"
-    cached = client.post(f"/v1/observations/{observation_id}/segment", headers=auth_headers)
+    cached = client.post(
+        f"/v1/observations/{observation_id}/segment", headers=auth_headers
+    )
     assert cached.status_code == 202
     assert cached.json()["id"] == first.json()["id"]
     refreshed = client.post(
@@ -431,7 +711,9 @@ def test_explicit_sam_refinement_is_cached_as_a_bytea_mask(client, auth_headers)
     assert highlighted.content != png_bytes()
 
 
-def test_sam_no_match_keeps_approximate_evidence_without_repeating_work(client, auth_headers):
+def test_sam_no_match_keeps_approximate_evidence_without_repeating_work(
+    client, auth_headers
+):
     class NoMatchMeta(MockMetaModelClient):
         def segment(self, *args, **kwargs):
             return None
@@ -469,7 +751,9 @@ def test_object_search_uses_aliases_and_returns_ambiguity(client, auth_headers):
     _, _ = register_and_process(client, auth_headers, workspace_id)
     with client.app.state.database.session_factory() as db:
         drill = db.scalar(
-            select(TrackedObject).where(TrackedObject.workspace_id == uuid.UUID(workspace_id))
+            select(TrackedObject).where(
+                TrackedObject.workspace_id == uuid.UUID(workspace_id)
+            )
         )
         assert drill is not None
         drill_id = str(drill.id)
@@ -502,7 +786,10 @@ def test_object_search_uses_aliases_and_returns_ambiguity(client, auth_headers):
         params={"workspace_id": workspace_id, "q": "perforadora"},
     )
     assert by_alias.status_code == 200
-    assert [item["canonical_name"] for item in by_alias.json()] == ["perforadora", "yellow drill"]
+    assert [item["canonical_name"] for item in by_alias.json()] == [
+        "perforadora",
+        "yellow drill",
+    ]
     answer_by_alias = client.post(
         "/v1/queries",
         headers=auth_headers,
@@ -542,7 +829,10 @@ def test_virtual_display_bootstrap_issues_a_live_revocable_device(client, auth_h
     workspace = client.post(
         "/v1/workspaces",
         headers=auth_headers,
-        json={"name": "Taller de electrónica", "description": "Live virtual Display workspace"},
+        json={
+            "name": "Taller de electrónica",
+            "description": "Live virtual Display workspace",
+        },
     )
     assert workspace.status_code == 201, workspace.text
 
@@ -570,11 +860,15 @@ def test_virtual_display_bootstrap_issues_a_live_revocable_device(client, auth_h
     assert client.get("/v1/device/zones", headers=device_headers).status_code == 401
 
     with client.app.state.database.session_factory() as db:
-        device = db.scalar(select(Device).where(Device.device_identifier == profile["device_id"]))
+        device = db.scalar(
+            select(Device).where(Device.device_identifier == profile["device_id"])
+        )
         assert device is not None
         device.metadata_json = {
             **device.metadata_json,
-            "virtual_device_expires_at": (datetime.now(UTC) - timedelta(minutes=1)).isoformat(),
+            "virtual_device_expires_at": (
+                datetime.now(UTC) - timedelta(minutes=1)
+            ).isoformat(),
         }
         db.commit()
     current_headers = {

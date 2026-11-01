@@ -1,4 +1,5 @@
 <resources>
-    <color name="reality_ink">#181B20</color>
-    <color name="launcher_background">#181B20</color>
+    <color name="reality_ink">#262729</color>
+    <color name="reality_surface">#262729</color>
+    <color name="launcher_background">#62A9F8</color>
 </resources>

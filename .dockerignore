@@ -1,0 +1,11 @@
+.git
+.env
+.env.*
+.runtime
+.venv
+android
+reports
+**/node_modules
+**/__pycache__
+**/.pytest_cache
+**/.ruff_cache

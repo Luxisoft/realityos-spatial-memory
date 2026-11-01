@@ -13,47 +13,55 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 // LUXISOFT Platform dark tokens. The preview stays quiet so the Display
-// renderer is the focal point; the brighter mint is reserved for live state
-// and memory traces while the darker emerald carries white action labels.
-private val LuxCanvas = Color(0xFF181B20)
-private val LuxSurface = Color(0xFF22272E)
-private val LuxRaised = Color(0xFF2A3037)
-private val LuxInput = Color(0xFF1A1E23)
+// renderer is the focal point; Meta blue carries actions and live state.
+private val LuxCanvas = Color(0xFF262729)
+private val LuxSurface = Color(0xFF262729)
+private val LuxRaised = Color(0xFF262729)
+private val LuxInput = Color(0xFF262729)
+private val LuxSecondaryContainer = Color(0xFF333333)
 private val LuxBorder = Color(0xFF363D45)
 private val LuxPaper = Color(0xFFF4F7F5)
 private val LuxMist = Color(0xFFAAB4AF)
-private val LuxMint = Color(0xFF63E6AE)
-private val LuxActionEmerald = Color(0xFF047857)
-private val LuxMintContainer = Color(0xFF173729)
-private val LuxMintContainerText = Color(0xFFC2F7D5)
+private val LuxMint = Color(0xFF62A9F8)
+private val LuxActionEmerald = Color(0xFF62A9F8)
 private val EvidenceAmber = Color(0xFFFFC56A)
 private val ErrorRose = Color(0xFFFFB4AB)
+internal val RealityIconDefault = Color(0xFF7C7D80)
+internal val RealityIconSelected = Color(0xFF747578)
 
 private val RealityColorScheme = darkColorScheme(
     primary = LuxActionEmerald,
     onPrimary = Color.White,
-    primaryContainer = LuxMintContainer,
-    onPrimaryContainer = LuxMintContainerText,
+    primaryContainer = LuxSurface,
+    onPrimaryContainer = LuxMint,
     secondary = EvidenceAmber,
     onSecondary = Color(0xFF2C1900),
-    secondaryContainer = Color(0xFF5A4010),
-    onSecondaryContainer = Color(0xFFFFDEA7),
+    secondaryContainer = LuxSecondaryContainer,
+    onSecondaryContainer = EvidenceAmber,
     tertiary = LuxMint,
     onTertiary = Color(0xFF07140E),
     background = LuxCanvas,
     onBackground = LuxPaper,
     surface = LuxSurface,
     onSurface = LuxPaper,
+    surfaceTint = LuxSurface,
     surfaceVariant = LuxRaised,
-    onSurfaceVariant = LuxMist,
+    onSurfaceVariant = RealityIconDefault,
+    surfaceDim = LuxSurface,
+    surfaceBright = LuxSurface,
+    surfaceContainerLowest = LuxSurface,
+    surfaceContainerLow = LuxSurface,
+    surfaceContainer = LuxSurface,
     surfaceContainerHigh = LuxRaised,
     surfaceContainerHighest = LuxInput,
+    inverseSurface = LuxSurface,
+    inverseOnSurface = LuxPaper,
     outline = LuxMist,
     outlineVariant = LuxBorder,
     error = ErrorRose,
     onError = Color(0xFF690005),
-    errorContainer = Color(0xFF93000A),
-    onErrorContainer = Color(0xFFFFDAD6),
+    errorContainer = LuxSecondaryContainer,
+    onErrorContainer = ErrorRose,
 )
 
 private val RealityTypography = Typography(

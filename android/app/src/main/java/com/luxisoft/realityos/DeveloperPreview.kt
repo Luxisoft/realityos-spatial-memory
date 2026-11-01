@@ -16,18 +16,18 @@ import kotlinx.coroutines.flow.StateFlow
  */
 enum class DeveloperPreviewMode {
     IN_APP,
-    CHROME,
+    CHROME
 }
 
 enum class PreviewPhoneCamera {
     FRONT,
-    BACK,
+    BACK
 }
 
 data class ChromePreviewInfo(
     val port: Int,
     val adbForwardCommand: String,
-    val url: String,
+    val url: String
 )
 
 data class DeveloperPreviewState(
@@ -45,11 +45,14 @@ data class DeveloperPreviewState(
     val message: String = "Developer preview is stopped.",
     val error: String? = null,
     /** Causes Compose to build a fresh WebView after a preview lifecycle change. */
-    val previewGeneration: Int = 0,
+    val previewGeneration: Int = 0
 )
 
 interface DeveloperPreviewController {
     val state: StateFlow<DeveloperPreviewState>
+
+    /** Includes previously paired mocks, which can outlive a renderer restart in DAT metadata. */
+    fun isSimulatedDevice(identifier: DeviceIdentifier): Boolean = false
 
     /** Enables Mock Device Kit and returns its display-capable virtual device. */
     suspend fun start(mode: DeveloperPreviewMode): DeviceIdentifier?

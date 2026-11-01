@@ -3,6 +3,17 @@
     <uses-permission android:name="android.permission.BLUETOOTH" />
     <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
     <uses-permission android:name="android.permission.INTERNET" />
+    <!-- Phone fallback for the optical-display preview and non-wearable mode. -->
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <uses-feature android:name="android.hardware.camera" android:required="false" />
+
+    <queries>
+        <package android:name="com.facebook.katana" />
+        <intent>
+            <action android:name="android.speech.RecognitionService" />
+        </intent>
+    </queries>
 
     <application
         android:name=".RealityOsApplication"
@@ -13,6 +24,10 @@
         android:roundIcon="@mipmap/ic_launcher"
         android:theme="@style/Theme.RealityOS.Starting">
         <!-- Provision only with values from Meta Wearables Developer Center. -->
+        <meta-data android:name="com.facebook.sdk.ApplicationId" android:value="fb${facebook_app_id}" />
+        <meta-data android:name="com.facebook.sdk.ClientToken" android:value="${facebook_client_token}" />
+        <meta-data android:name="com.facebook.sdk.AutoLogAppEventsEnabled" android:value="false" />
+        <meta-data android:name="com.facebook.sdk.AdvertiserIDCollectionEnabled" android:value="false" />
         <meta-data
             android:name="com.meta.wearable.mwdat.APPLICATION_ID"
             android:value="${mwdat_application_id}" />
@@ -27,9 +42,20 @@
             android:name="com.meta.wearable.mwdat.CRASH_REPORTING_OPT_OUT"
             android:value="true" />
 
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/filepaths" />
+        </provider>
+
         <activity
             android:name=".MainActivity"
-            android:exported="true">
+            android:exported="true"
+            android:windowSoftInputMode="adjustResize">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />

@@ -24,3 +24,21 @@ y hace visible la promesa del producto.
 
 **Accesibilidad.** Foco visible, contraste alto, controles de teclado, no se
 depende solo de color y se respeta `prefers-reduced-motion`.
+
+
+## Native Meta Display and Android host — 2026-10-31
+
+Keep the current LUXISOFT dark/blue Android tokens and system type scale.
+The native DAT Display uses its supported built-in styles and icons. Home
+contains only the product name, current destination and Search/Capture.
+Search distinguishes app gallery from location registry before listening.
+
+Evidence occupies a fixed landscape plate: contain the entire annotated image
+inside a 600×280 black canvas, leaving space for last-seen date, visual
+confidence, partial/simulated status and grouped navigation. Put title, notes,
+voice replay and another query on the separate result actions screen. This
+keeps portrait sources intact and avoids stacking full-width navigation rows.
+
+The phone owns destination selection, connection state and recovery controls;
+its existing Preview/Glasses/Controls navigation remains. The optical shell
+and Debug-only camera view remain intact, now with an elapsed recording label.

@@ -196,7 +196,8 @@ jobs:
       - name: Synchronize versioned deployment files
         run: |
           rsync -az \
-            --exclude .env --exclude .git --exclude .venv --exclude node_modules --exclude dist \
+            --exclude .env --exclude .env.facebook --exclude .runtime --exclude android/local.properties \
+            --exclude .git --exclude .venv --exclude node_modules --exclude dist \
             -e 'ssh -i ~/.ssh/realityos' \
             ./ "$REALITYOS_USER@$REALITYOS_HOST:$REALITYOS_DEPLOY_PATH/"
       - name: Activate gateway-backed API and worker
@@ -248,6 +249,7 @@ jobs:
             sudo docker compose --env-file .env --env-file /opt/realityos/runtime.env -f infrastructure/docker-compose.yml -f infrastructure/docker-compose.production.yml build frontend display
             sudo docker compose --env-file .env --env-file /opt/realityos/runtime.env -f infrastructure/docker-compose.yml -f infrastructure/docker-compose.production.yml up -d --no-build frontend display proxy
             sudo docker compose --env-file .env --env-file /opt/realityos/runtime.env -f infrastructure/docker-compose.yml -f infrastructure/docker-compose.production.yml exec -T api python -c "import urllib.request; urllib.request.urlopen(\"http://localhost:8000/health/ready\")"
+            sudo docker compose --env-file .env --env-file /opt/realityos/runtime.env -f infrastructure/docker-compose.yml -f infrastructure/docker-compose.production.yml exec -T api python -c "import json, urllib.request; paths=json.load(urllib.request.urlopen(\"http://localhost:8000/v1/openapi.json\"))[\"paths\"]; assert all(p in paths for p in [\"/v1/device/jobs/{job_id}\", \"/v1/auth/facebook\", \"/v1/gallery\", \"/v1/assistant\"]), \"Android API contract missing from OpenAPI\""
             sudo install -d -m 0755 /var/www/realityos-acme /etc/nginx/snippets
             sudo install -m 0644 /tmp/realityos-cloudflare-realip.conf /etc/nginx/snippets/realityos-cloudflare-realip.conf
             sudo install -m 0644 /tmp/realityos-http.conf /etc/nginx/conf.d/realityos.conf

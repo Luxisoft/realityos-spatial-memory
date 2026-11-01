@@ -49,3 +49,25 @@ certificado exista, reactivar el proxy de Cloudflare con SSL/TLS en **Full
 (strict)**. Una página 404 de LUXIPANEL en
 `/.well-known/acme-challenge/...` indica que Cloudflare sigue enviando el
 desafío al origen equivocado; no es un fallo de Nginx ni de Certbot.
+
+## Reanudación de análisis de búsqueda
+
+El runtime backend define `PYTHONPATH=/app` para que API, worker y scripts
+administrativos importen el mismo código de la imagen, también cuando Python
+se ejecuta con un archivo bajo `/scripts`.
+
+`python /scripts/rebuild_search_evidence.py --pending-only` inspecciona sin
+modificar datos los análisis incompletos y revisiones pendientes. Añadir
+`--apply` encola una cadena serial de tareas durables por publicación. No
+retira duplicados ni modifica originales. Cada tarea comprueba que el medio
+siga siendo el mismo, omite trabajo ya completado y reutiliza fotogramas y
+revisiones guardados. La confirmación de tarea se realiza al finalizar y el
+trabajo se rechaza para reentrega si se pierde el proceso del worker. Un lease
+activo impide repetir inferencia concurrente; uno vencido permite reanudar.
+El heartbeat se persiste en la columna `updated_at` ya existente en
+`gallery_index_runs`, sin migración nueva.
+
+La espera por otro propietario del lease no consume el presupuesto de dos
+reintentos del proveedor ni abandona una cadena por la duración de un video.
+En reanudaciones sin objetos nuevos por revisar, se guardan igualmente las
+resoluciones retenidas y se recalcula el contador de revisión pendiente.

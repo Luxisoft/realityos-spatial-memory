@@ -1,4 +1,5 @@
 .env
+android/local.properties
 .env.*
 !.env.example
 infrastructure/gateway/runtime.env
@@ -14,6 +15,10 @@ node_modules/
 dist/
 coverage/
 .gradle/
+.gradle-home/
+.kotlin/
+reports/
+tts.env
 android/build/
 android/app/build/
 android/.idea/
@@ -25,4 +30,7 @@ pgdata/
 redisdata/
 uploads/
 .runtime/
+simulator/social-directory/generated/
+simulator/social-directory/muse/
+simulator/social-directory/companions/
 *.log

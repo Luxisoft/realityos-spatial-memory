@@ -105,6 +105,9 @@ class User(TimestampMixin, Base):
     display_name: Mapped[str] = mapped_column(String(160), nullable=False)
     password_hash: Mapped[str] = mapped_column(String(512), nullable=False)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+    preferred_language: Mapped[str | None] = mapped_column(String(2))
+    is_guest: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    device_id: Mapped[str | None] = mapped_column(String(128), index=True)
 
 
 class Workspace(TimestampMixin, Base):
@@ -114,6 +117,7 @@ class Workspace(TimestampMixin, Base):
     name: Mapped[str] = mapped_column(String(160), unique=True, nullable=False)
     description: Mapped[str | None] = mapped_column(Text)
     created_by_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id"), nullable=False)
+    join_pin: Mapped[str | None] = mapped_column(String(9), unique=True)
 
 
 class WorkspaceMember(TimestampMixin, Base):
@@ -128,6 +132,7 @@ class WorkspaceMember(TimestampMixin, Base):
         ForeignKey("users.id", ondelete="CASCADE"), index=True, nullable=False
     )
     role: Mapped[Role] = mapped_column(Enum(Role, name="workspace_role"), nullable=False)
+    can_invite: Mapped[bool] = mapped_column(default=False, nullable=False)
 
 
 class Device(TimestampMixin, Base):
@@ -325,7 +330,12 @@ class ObjectFact(TimestampMixin, Base):
 
     __tablename__ = "object_facts"
     __table_args__ = (
-        Index("ix_object_fact_workspace_type_status", "workspace_id", "fact_type", "verification_status"),
+        Index(
+            "ix_object_fact_workspace_type_status",
+            "workspace_id",
+            "fact_type",
+            "verification_status",
+        ),
         Index("ix_object_fact_object_type", "object_id", "fact_type"),
     )
 
@@ -360,7 +370,7 @@ class ObjectFact(TimestampMixin, Base):
 
 
 class ObjectActivityEvent(TimestampMixin, Base):
-    """A bounded, evidence-backed temporal event, never biometric attribution."""
+    """A bounded, evidence-backed temporal event about a tracked object."""
 
     __tablename__ = "object_activity_events"
     __table_args__ = (Index("ix_activity_workspace_started", "workspace_id", "started_at"),)

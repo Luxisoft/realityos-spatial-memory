@@ -11,10 +11,18 @@ import java.util.UUID
 import org.json.JSONArray
 import org.json.JSONObject
 
-class RealityApiException(message: String) : IOException(message)
+class RealityApiException(
+    message: String,
+    val statusCode: Int? = null,
+) : IOException(message)
 
 data class RemoteSession(val id: String, val status: String)
 data class RemoteCapture(val id: String, val mimeType: String)
+data class RemoteJob(
+    val id: String,
+    val status: String,
+    val errorMessage: String?,
+)
 data class RemoteZone(val id: String, val name: String, val kind: String, val parentId: String?)
 data class QueryEvidence(
     val found: Boolean,
@@ -23,6 +31,9 @@ data class QueryEvidence(
     val ttsText: String,
     val highlightedPath: String?,
     val displayMediaPath: String?,
+    val seenAt: String? = null,
+    val visualConfidence: Double? = null,
+    val simulated: Boolean = false,
 )
 
 data class VirtualDeviceProfile(
@@ -202,21 +213,34 @@ class RealityApi(private val provisioning: DeviceProvisioning) {
         }
     }
 
-    fun requestProcessing(captureId: String, detailed: Boolean, priorityTerms: List<String> = emptyList()) {
+    fun requestProcessing(
+        captureId: String,
+        detailed: Boolean,
+        priorityTerms: List<String> = emptyList(),
+    ): RemoteJob {
         val terms = JSONArray()
         priorityTerms.filter { it.isNotBlank() }.take(16).forEach { terms.put(it.trim()) }
-        postJson(
+        return parseJob(postJson(
             "device/captures/$captureId/process",
             JSONObject()
                 .put("profile", if (detailed) "detailed" else "basic")
                 .put("priority_terms", terms),
-        )
+        ))
     }
 
-    fun query(question: String): QueryEvidence {
+    fun getProcessingJob(jobId: String): RemoteJob {
+        val connection = connection("device/jobs/$jobId", "GET")
+        return try {
+            parseJob(JSONObject(body(connection)))
+        } finally {
+            connection.disconnect()
+        }
+    }
+
+    fun query(question: String, language: String = "en"): QueryEvidence {
         val result = postJson(
             "device/queries",
-            JSONObject().put("workspace_id", provisioning.workspaceId).put("question", question.trim()),
+            JSONObject().put("workspace_id", provisioning.workspaceId).put("question", question.trim()).put("language", language).put("search_scope", "registry"),
         )
         return QueryEvidence(
             found = result.optBoolean("found"),
@@ -225,6 +249,9 @@ class RealityApi(private val provisioning: DeviceProvisioning) {
             ttsText = result.optString("tts_text", result.optString("message")),
             highlightedPath = result.optString("highlighted_media_url").takeIf { it.isNotBlank() },
             displayMediaPath = result.optString("display_media_url").takeIf { it.isNotBlank() },
+            seenAt = result.optJSONObject("observation")?.optText("seen_at"),
+            visualConfidence = result.optJSONObject("observation")?.let { if (it.isNull("visual_confidence")) null else it.optDouble("visual_confidence") },
+            simulated = result.optBoolean("simulated"),
         )
     }
 
@@ -237,14 +264,22 @@ class RealityApi(private val provisioning: DeviceProvisioning) {
             connection.disconnect()
         }
     }
+
+    private fun parseJob(result: JSONObject): RemoteJob = RemoteJob(
+        id = result.getString("id"),
+        status = result.getString("status"),
+        errorMessage = result.optString("error_message").takeIf { it.isNotBlank() },
+    )
 }
 
 private fun responseBody(connection: HttpURLConnection): String {
     val stream = if (connection.responseCode in 200..299) connection.inputStream else connection.errorStream
     val payload = stream?.bufferedReader()?.use { it.readText() }.orEmpty()
     if (connection.responseCode !in 200..299) {
-        val detail = runCatching { JSONObject(payload).optString("detail") }.getOrNull()
-        throw RealityApiException(detail?.takeIf { it.isNotBlank() } ?: "Server returned ${connection.responseCode}.")
+        throw RealityApiException(
+            localizedHttpError(connection.responseCode),
+            statusCode = connection.responseCode,
+        )
     }
     return payload
 }

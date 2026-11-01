@@ -16,12 +16,16 @@ jobs:
           python-version: "3.13"
       - run: python -m pip install --upgrade pip
       - run: python -m pip install -e "backend[dev]"
+      - run: python scripts/check_structure.py
       - run: ruff check backend tests
+      - run: ruff format --check backend/app/http backend/app/providers backend/app/processing backend/app/social_features backend/app/routes.py backend/app/meta.py backend/app/services.py backend/app/social.py tests/social tests/test_architecture_contract.py tests/conftest.py scripts/check_structure.py
       - run: pytest -q tests
       - run: python -m pip check
 
   meta-gateway:
     runs-on: ubuntu-latest
+    env:
+      PYTHONPATH: backend
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -32,6 +36,13 @@ jobs:
       - run: ruff check meta-gateway gateway-tests
       - run: pytest -q gateway-tests
       - run: docker build --file meta-gateway/Dockerfile --tag realityos-meta-gateway:ci .
+
+  seamless-tts:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      # Validates pinned inference dependencies and imports without model weights.
+      - run: docker build --file infrastructure/tts/Dockerfile --tag realityos-tts:ci .
 
   web:
     runs-on: ubuntu-latest
@@ -45,9 +56,12 @@ jobs:
             frontend/package-lock.json
             display-webapp/package-lock.json
       - run: npm --prefix frontend ci
+      - run: npm --prefix frontend run format:check
       - run: npm --prefix frontend run build
       - run: npm --prefix display-webapp ci
+      - run: npm --prefix display-webapp run format:check
       - run: npm --prefix display-webapp run build
+      - run: node tests/web/language.test.cjs
       - run: npm --prefix frontend audit --omit=dev
       - run: npm --prefix display-webapp audit --omit=dev
 
@@ -74,7 +88,7 @@ jobs:
       - name: Build Debug and Release Android variants
         working-directory: android
         run: |
-          ./gradlew :app:assembleDebug :app:assembleRelease :app:compileDebugAndroidTestKotlin
+          ./gradlew :app:ktlintCheck :app:testDebugUnitTest :app:assembleDebug :app:assembleRelease :app:compileDebugAndroidTestKotlin
           ! unzip -p app/build/outputs/apk/release/app-release-unsigned.apk 'classes*.dex' |
             strings |
             grep -qi 'com/meta/wearable/dat/mockdevice'

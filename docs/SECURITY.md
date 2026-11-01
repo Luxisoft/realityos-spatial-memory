@@ -16,7 +16,7 @@
   stores only a `DEVICE_CREDENTIAL_PEPPER`-derived hash. Rotation and revocation
   are audited. Never reuse `MODEL_API_KEY` as a device credential.
 - Device/operator labels and inventory analytics are restricted to workspace
-  administrators. They are provenance metadata, never biometric identity.
+  administrators. These records describe device assignment and evidence provenance.
 - Live SAM Video calls use temporary Files API uploads and become `uncertain`
   rather than being automatically replayed after an ambiguous provider failure.
 

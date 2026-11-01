@@ -197,7 +197,7 @@ private fun WelcomePageContent(page: WelcomePage, pageIndex: Int, finalPage: Boo
 
 /** The visual signature: a luminous trail joining separate human observations. */
 @Composable
-private fun MemoryTrace(pageIndex: Int) {
+internal fun MemoryTrace(pageIndex: Int) {
     val emphasis by animateFloatAsState(
         targetValue = (pageIndex + 1) / 6f,
         animationSpec = tween(450),
@@ -214,7 +214,7 @@ private fun MemoryTrace(pageIndex: Int) {
         Canvas(modifier = Modifier.fillMaxSize()) {
             val width = size.width
             val height = size.height
-            val mint = Color(0xFF62E7BE)
+            val mint = Color(0xFF62A9F8)
             val muted = Color(0xFF7E97AD)
             val track = Path().apply {
                 moveTo(width * 0.08f, height * 0.68f)
