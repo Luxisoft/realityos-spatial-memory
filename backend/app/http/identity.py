@@ -207,7 +207,12 @@ async def refresh(
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid refresh token."
         )
-    if token is None or token.revoked_at is not None or token.expires_at < datetime.now(UTC):
+    if (
+        token is None
+        or token.revoked_at is not None
+        or (token.expires_at if token.expires_at.tzinfo else token.expires_at.replace(tzinfo=UTC))
+        < datetime.now(UTC)
+    ):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED, detail="Expired or revoked refresh token."
         )

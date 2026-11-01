@@ -55,6 +55,17 @@ configuration and non-code files, or when the graph is unavailable.
 - Mock outputs are deterministic and visibly labelled simulated.
 - Confirm current official Meta endpoint/SDK signatures before coding Live.
 
+## Windows local alternative
+
+Owner request (2026-11-01): Windows + Docker is an additional installation,
+never a replacement for the current server. Use `.env.local` and the standalone
+`realityos-local` Docker project/images/volumes. Runtime providers must be real.
+The owner explicitly requested local test-account entry without facial
+recognition at login. That exception requires both the local backend realm and
+the isolated local Debug build; it must not affect production entry or the
+permission/consent requirements of face-search features. Never seed sample media
+or reuse production credentials automatically for this setup.
+
 ## Git delivery
 
 Owner preference (2026-11-01): commit and push project changes directly to

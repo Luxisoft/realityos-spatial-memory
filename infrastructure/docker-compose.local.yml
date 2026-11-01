@@ -1,0 +1,109 @@
+# Standalone alternative. Never combine this with production Compose files.
+name: realityos-local
+x-backend: &backend
+  image: realityos-local-backend:dev
+  build:
+    context: ..
+    dockerfile: backend/Dockerfile
+  env_file: ../.env.local
+  environment:
+    DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-realityos_local}:${POSTGRES_PASSWORD:?Configure .env.local}@postgres:5432/${POSTGRES_DB:-realityos_local}
+    REDIS_URL: redis://redis:6379/0
+  networks: [internal, egress]
+  restart: unless-stopped
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-realityos_local}
+      POSTGRES_USER: ${POSTGRES_USER:-realityos_local}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Configure .env.local}
+    volumes: [postgres_data:/var/lib/postgresql/data]
+    healthcheck:
+      test: [CMD-SHELL, "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    networks: [internal]
+    restart: unless-stopped
+  redis:
+    image: redis:7-alpine
+    command: [redis-server, --appendonly, "yes"]
+    volumes: [redis_data:/data]
+    healthcheck:
+      test: [CMD, redis-cli, ping]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    networks: [internal]
+    restart: unless-stopped
+  api:
+    <<: *backend
+    command: [sh, -c, "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000"]
+    depends_on:
+      postgres: {condition: service_healthy}
+      redis: {condition: service_healthy}
+    healthcheck:
+      test: [CMD, python, -c, "import urllib.request; urllib.request.urlopen('http://localhost:8000/health/ready')"]
+      interval: 5s
+      timeout: 5s
+      start_period: 60s
+      retries: 20
+  worker:
+    <<: *backend
+    command: [celery, -A, app.tasks.celery_app, worker, --loglevel=INFO, --concurrency=1]
+    depends_on:
+      api: {condition: service_healthy}
+  frontend:
+    image: realityos-local-frontend:dev
+    build: {context: ../frontend}
+    networks: [internal]
+    restart: unless-stopped
+  display:
+    image: realityos-local-display:dev
+    build: {context: ../display-webapp}
+    networks: [internal]
+    restart: unless-stopped
+  proxy:
+    image: nginx:1.27-alpine
+    ports: ["127.0.0.1:${LOCAL_HTTP_PORT:-8080}:80"]
+    volumes: ["./nginx/local.conf:/etc/nginx/conf.d/default.conf:ro"]
+    depends_on:
+      api: {condition: service_healthy}
+      frontend: {condition: service_started}
+      display: {condition: service_started}
+    networks: [internal, egress]
+    restart: unless-stopped
+  seamless-tts:
+    image: realityos-local-tts:dev
+    build:
+      context: ..
+      dockerfile: infrastructure/tts/Dockerfile
+    environment:
+      TTS_SERVICE_TOKEN: ${TTS_SERVICE_TOKEN:?Configure .env.local}
+      TTS_DTYPE: ${TTS_DTYPE:-auto}
+      HF_HOME: /models
+      TTS_CPU_THREADS: "2"
+    volumes: [seamless_models:/models]
+    mem_limit: ${LOCAL_TTS_MEMORY:-8g}
+    memswap_limit: ${LOCAL_TTS_MEMORY:-8g}
+    cpus: 2
+    pids_limit: 128
+    read_only: true
+    tmpfs: [/tmp]
+    security_opt: [no-new-privileges:true]
+    networks: [egress]
+    restart: "no"
+    healthcheck:
+      test: [CMD, python, -c, "import urllib.request; urllib.request.urlopen('http://localhost:8091/health/ready')"]
+      interval: 10s
+      timeout: 5s
+      start_period: 1800s
+      retries: 6
+networks:
+  internal: {internal: true}
+  egress: {}
+volumes:
+  postgres_data: {}
+  redis_data: {}
+  seamless_models: {}

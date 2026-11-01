@@ -23,9 +23,7 @@ from app.models import (
     CaptureSession,
     MediaAsset,
     MediaKind,
-    Role,
     User,
-    Workspace,
     WorkspaceMember,
 )
 from app.social_features.models import Comment, Publication, Reaction, Report
@@ -356,38 +354,15 @@ def publish(
 def capture_profile(
     request: Request, user: User = Depends(get_current_user), db: Session = Depends(get_db)
 ):
-    from app.models import Device, Zone
-    from app.security import create_device_credential, hash_device_credential
+    from app.device_profiles import issue_capture_profile
 
-    workspace = db.scalar(select(Workspace).where(Workspace.name == f"home:{user.id}"))
-    if workspace is None:
-        workspace = Workspace(name=f"home:{user.id}", created_by_id=user.id)
-        db.add(workspace)
-        db.flush()
-        db.add(WorkspaceMember(workspace_id=workspace.id, user_id=user.id, role=Role.ADMIN))
-        db.add(Zone(workspace_id=workspace.id, name="Casa", kind="zone"))
-    secret = create_device_credential()
-    device = Device(
-        workspace_id=workspace.id,
-        device_identifier=f"facebook-display-{uuid.uuid4().hex}",
-        label="Facebook owner capture",
-        created_by_id=user.id,
-        credential_hash=hash_device_credential(secret, request.app.state.settings),
-        metadata_json={"facebook_owner": str(user.id)},
-    )
-    db.add(device)
-    db.flush()
+    profile = issue_capture_profile(db, request.app.state.settings, user)
     # Fresh logins always retake the face capture: drop the previous selfie so
     # verification below can only run against a new photo. Resumed sessions
     # never call this endpoint, so they keep silent re-verification.
     delete_selfie_enrollments(db, user.id)
     db.flush()
-    return {
-        "workspace_id": str(workspace.id),
-        "workspace_name": "Casa",
-        "device_id": device.device_identifier,
-        "device_key": secret,
-    }
+    return profile
 
 
 def _parse_range(value: str, total: int) -> tuple[int, int] | None:

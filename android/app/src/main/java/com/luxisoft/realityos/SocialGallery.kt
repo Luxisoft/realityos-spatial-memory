@@ -42,6 +42,12 @@ internal object SocialSession {
     // True only between a fresh Facebook login and capture/verification: it must
     // survive the login-gate -> host-shell SocialGallery instance switch.
     var freshLogin by mutableStateOf(false)
+    var localAccount by mutableStateOf(false)
+    var localAccountConfirmed by mutableStateOf(false)
+    val localEntryAllowed: Boolean get() = LocalAccessPolicy.canSkipFaceEntry(
+        BuildConfig.DEBUG, BuildConfig.LOCAL_DEVELOPMENT,
+        BuildConfig.DEFAULT_REALITYOS_API_BASE_URL, localAccount && localAccountConfirmed,
+    )
     // One-shot notice for the login screen: denial/expiry messages are set in the
     // host-shell instance but shown in the login-gate instance after the switch.
     var loginNotice: String? = null
@@ -60,6 +66,13 @@ internal object SocialSession {
             clear()
             return
         }
+        val savedBase = preferences?.getString("session_api_base", null)
+        if (savedBase != null && savedBase != BuildConfig.DEFAULT_REALITYOS_API_BASE_URL) {
+            clear()
+            return
+        }
+        localAccount = BuildConfig.LOCAL_DEVELOPMENT && preferences?.getBoolean("local_account", false) == true
+        localAccountConfirmed = false
         token = preferences?.getString("access", null)
         refreshToken = preferences?.getString("refresh", null)
         workspaceId = preferences?.getString("workspace", null)
@@ -70,7 +83,16 @@ internal object SocialSession {
         token = response.getString("access_token")
         refreshToken = response.getString("refresh_token")
         isGuest = response.optBoolean("is_guest")
+        if (response.has("local_access")) {
+            localAccount = LocalAccessPolicy.canSkipFaceEntry(
+                BuildConfig.DEBUG, BuildConfig.LOCAL_DEVELOPMENT,
+                BuildConfig.DEFAULT_REALITYOS_API_BASE_URL, response.optBoolean("local_access"),
+            )
+            localAccountConfirmed = localAccount
+        }
         preferences?.edit()?.putString("access", token)?.putString("refresh", refreshToken)
+            ?.putBoolean("local_account", localAccount)
+            ?.putString("session_api_base", BuildConfig.DEFAULT_REALITYOS_API_BASE_URL)
             ?.putString("facebook_app_id", BuildConfig.FACEBOOK_APP_ID)
             ?.putString("workspace", workspaceId)?.putBoolean("guest", isGuest)?.apply()
     }
@@ -78,6 +100,8 @@ internal object SocialSession {
         active = false; token = null; refreshToken = null; workspaceId = null; isGuest = false
         profilePictureUrl = null
         freshLogin = false
+        localAccount = false
+        localAccountConfirmed = false
         loginNotice = null
         preferences?.edit()?.clear()?.apply()
     }
@@ -382,6 +406,7 @@ fun SocialGallery(
         bar.onAdmin = { showAdministration = true }
     }
     if (!authenticated) {
+        if (LocalAccountEntry(viewModel, onSuccess = { authenticated = true })) return
         LaunchedEffect(Unit) {
             SocialSession.loginNotice?.let { error = it; SocialSession.loginNotice = null }
         }
@@ -405,8 +430,26 @@ fun SocialGallery(
         }, onWelcome = onWelcome)
         return
     }
+    if (BuildConfig.LOCAL_DEVELOPMENT && SocialSession.localAccount && !SocialSession.localAccountConfirmed) {
+        LaunchedEffect(Unit) {
+            try {
+                val confirmed = withContext(Dispatchers.IO) {
+                    // Refresh an expired access token first, then verify the server realm.
+                    SocialSession.request("me/profile")
+                    JSONObject(SocialSession.request("auth/local-session")).optBoolean("local_access")
+                }
+                check(confirmed) { "Local account unavailable" }
+                SocialSession.localAccountConfirmed = true
+            } catch (_: Exception) {
+                SocialSession.clear()
+                authenticated = false
+            }
+        }
+        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { CircularProgressIndicator() }
+        return
+    }
     LaunchedEffect(authenticated) {
-        if (authenticated && !SocialSession.isGuest && (faceCaptureDone == null || identityVerified == null)) {
+        if (authenticated && !SocialSession.isGuest && !SocialSession.localEntryAllowed && (faceCaptureDone == null || identityVerified == null)) {
             try {
                 val status = withContext(Dispatchers.IO) { JSONObject(SocialSession.request("faces/consent")) }
                 if (resumedSession && !status.optBoolean("consented") && !faceConsentAsk) faceConsentAsk = true
@@ -416,7 +459,7 @@ fun SocialGallery(
             } catch (e: Exception) { /* Face search stays unavailable until consent succeeds. */ }
         }
     }
-    if (!SocialSession.isGuest && (faceCaptureDone != true || identityVerified != true || deniedLastTime)) {
+    if (!SocialSession.isGuest && !SocialSession.localEntryAllowed && (faceCaptureDone != true || identityVerified != true || deniedLastTime)) {
         if (faceCaptureDone == null || identityVerified == null) Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { CircularProgressIndicator() }
         else FaceCaptureScreen(hasCapture = faceCaptureDone == true && !deniedLastTime,
             onDone = { faceCaptureDone = true; identityVerified = true; deniedLastTime = false; SocialSession.freshLogin = false },

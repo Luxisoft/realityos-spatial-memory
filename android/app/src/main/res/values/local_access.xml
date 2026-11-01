@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="local_account_title">Local account</string>
+    <string name="local_account_body">Sign in with the account created on your computer.</string>
+    <string name="local_account_email">Email</string>
+    <string name="local_account_password">Password</string>
+    <string name="local_account_failed">Check your local account and that your local server is running.</string>
+    <string name="local_account_enter">Sign in</string>
+</resources>

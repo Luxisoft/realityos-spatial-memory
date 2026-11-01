@@ -202,3 +202,15 @@ ANDROID_HOME=/opt/android-sdk ANDROID_SDK_ROOT=/opt/android-sdk \
 
 These local UI tests use substitute Android views for the sensors and renderer;
 phone camera/audio and physical-glasses QA remain separate.
+
+
+## Windows localhost alternative
+
+See [local setup](../docs/LOCAL_WINDOWS.md). Build Debug with
+`-PlocalDevelopment=true -PrealityosApiBaseUrl=http://localhost:8080/v1`, forward
+port 8080 with `adb reverse`, and install the usual Debug artifact. The local
+application ID has `.local` appended; production installation/session stays
+separate. Entry uses the local account password without Facebook or facial
+verification. The server must explicitly confirm its local realm. Local entry
+and loopback HTTP never activate in Release. All processing still uses real
+providers; automatic virtual-device bootstrap/preview is disabled in this build.

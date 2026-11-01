@@ -2,6 +2,7 @@
 android/local.properties
 .env.*
 !.env.example
+!.env.local.example
 infrastructure/gateway/runtime.env
 .venv/
 __pycache__/

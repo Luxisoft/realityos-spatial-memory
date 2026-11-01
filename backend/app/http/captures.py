@@ -128,7 +128,9 @@ async def create_device_session(
     session = CaptureSession(
         workspace_id=device.workspace_id,
         zone_id=payload.zone_id,
-        created_by_id=device.created_by_id if device.metadata_json.get("facebook_owner") else None,
+        created_by_id=device.created_by_id
+        if device.metadata_json.get("facebook_owner") or device.metadata_json.get("local_owner")
+        else None,
         device_id=device.id,
         device_assignment_id=assignment.id if assignment else None,
         origin="device",

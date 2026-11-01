@@ -68,6 +68,24 @@ jobs:
       - run: npm --prefix frontend audit --omit=dev
       - run: npm --prefix display-webapp audit --omit=dev
 
+  windows-local-scripts:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate Windows local scripts
+        shell: pwsh
+        run: |
+          $files = Get-ChildItem scripts/local/*.ps1
+          foreach ($file in $files) {
+            $tokens = $null; $errors = $null
+            [System.Management.Automation.Language.Parser]::ParseFile($file.FullName, [ref]$tokens, [ref]$errors) | Out-Null
+            if ($errors.Count) { throw ($errors | Out-String) }
+          }
+          ./tests/local/powershell.tests.ps1
+      - name: Validate Windows PowerShell 5.1 compatibility
+        shell: powershell
+        run: ./tests/local/powershell.tests.ps1
+
   android:
     runs-on: ubuntu-latest
     # A hosted emulator can occasionally stall while its system image is
@@ -75,6 +93,8 @@ jobs:
     # cannot hold the entire CI workflow indefinitely.
     timeout-minutes: 20
     env:
+      ANDROID_FACEBOOK_APP_ID: ${{ secrets.ANDROID_FACEBOOK_APP_ID }}
+      ANDROID_FACEBOOK_CLIENT_TOKEN: ${{ secrets.ANDROID_FACEBOOK_CLIENT_TOKEN }}
       ANDROID_HOME: /usr/local/lib/android/sdk
       ANDROID_SDK_ROOT: /usr/local/lib/android/sdk
     steps:
@@ -88,6 +108,11 @@ jobs:
       # directly avoids setup-android's obsolete `tools` package request.
       - run: 'yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses'
       - run: '"$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "platform-tools" "platforms;android-36" "build-tools;36.0.0"'
+      - name: Build isolated localhost Android variant
+        working-directory: android
+        run: |
+          ./gradlew -PlocalDevelopment=true -PrealityosApiBaseUrl=http://localhost:8080/v1 :app:testDebugUnitTest --tests com.luxisoft.realityos.LocalAccessPolicyTest :app:assembleDebug
+          "$ANDROID_HOME/build-tools/36.0.0/aapt" dump badging app/build/outputs/apk/debug/app-debug.apk | grep -F "package: name='com.luxisoft.realityos.local'"
       - name: Build Debug and Release Android variants
         working-directory: android
         run: |

@@ -6,4 +6,7 @@
     <uses-feature
         android:name="android.hardware.camera"
         android:required="false" />
+    <application
+        android:usesCleartextTraffic="${local_cleartext_allowed}"
+        android:networkSecurityConfig="${debug_network_security_config}" />
 </manifest>

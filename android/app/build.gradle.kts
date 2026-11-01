@@ -1,3 +1,4 @@
+import java.net.URI
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.Properties
@@ -14,14 +15,30 @@ val localProperties = Properties().apply {
   if (file.exists()) file.inputStream().use(::load)
 }
 
+fun androidClientSetting(property: String, variable: String): String =
+  localProperties.getProperty(property) ?: providers.environmentVariable(variable).getOrElse("0")
+val facebookAppId = androidClientSetting("facebook_app_id", "ANDROID_FACEBOOK_APP_ID")
+val facebookClientToken = androidClientSetting("facebook_client_token", "ANDROID_FACEBOOK_CLIENT_TOKEN")
+
+val localDevelopment = providers.gradleProperty("localDevelopment").orElse("false").get().toBooleanStrict()
+val configuredApiUrl = providers.environmentVariable("REALITYOS_API_BASE_URL")
+  .orElse(providers.gradleProperty("realityosApiBaseUrl"))
+val productionApiUrl = "https://realityos.luxisoft.com/v1"
+val debugApiUrl = configuredApiUrl.getOrElse(if (localDevelopment) "http://localhost:8080/v1" else productionApiUrl)
+val debugUri = URI(debugApiUrl)
+require(debugUri.userInfo == null && debugUri.query == null && debugUri.fragment == null) { "Use a plain API base URL." }
+require(if (localDevelopment) debugUri.scheme == "http" && debugUri.host in setOf("localhost", "127.0.0.1", "10.0.2.2") else debugUri.scheme == "https") {
+  "Local development requires loopback HTTP; normal builds require HTTPS."
+}
+
 android {
   namespace = "com.luxisoft.realityos"
   compileSdk = 36
 
   defaultConfig {
-    manifestPlaceholders["facebook_app_id"] = localProperties.getProperty("facebook_app_id", "0")
-    manifestPlaceholders["facebook_client_token"] = localProperties.getProperty("facebook_client_token", "0")
-    buildConfigField("String", "FACEBOOK_APP_ID", "\"${localProperties.getProperty("facebook_app_id", "0")}\"")
+    manifestPlaceholders["facebook_app_id"] = facebookAppId
+    manifestPlaceholders["facebook_client_token"] = facebookClientToken
+    buildConfigField("String", "FACEBOOK_APP_ID", "\"${facebookAppId}\"")
     applicationId = "com.luxisoft.realityos"
     minSdk = 31
     targetSdk = 36
@@ -36,14 +53,9 @@ android {
       localProperties.getProperty("mwdat_client_token", "0")
     // Public URL only. The live virtual-device credential is issued at runtime
     // over TLS and is never compiled into the APK.
-    val realityosApiBaseUrl = providers.environmentVariable("REALITYOS_API_BASE_URL")
-      .orElse(providers.gradleProperty("realityosApiBaseUrl"))
-      .getOrElse("https://realityos.luxisoft.com/v1")
-    buildConfigField(
-      "String",
-      "DEFAULT_REALITYOS_API_BASE_URL",
-      "\"$realityosApiBaseUrl\"",
-    )
+    buildConfigField("boolean", "LOCAL_DEVELOPMENT", "false")
+    buildConfigField("String", "DEFAULT_REALITYOS_API_BASE_URL", "\"${if (localDevelopment) productionApiUrl else debugApiUrl}\"")
+
   }
 
   buildFeatures { buildConfig = true }
@@ -52,6 +64,11 @@ android {
   }
   buildTypes {
     debug {
+      buildConfigField("boolean", "LOCAL_DEVELOPMENT", localDevelopment.toString())
+      buildConfigField("String", "DEFAULT_REALITYOS_API_BASE_URL", "\"$debugApiUrl\"")
+      manifestPlaceholders["local_cleartext_allowed"] = localDevelopment.toString()
+      manifestPlaceholders["debug_network_security_config"] = if (localDevelopment) "@xml/network_security_local" else "@xml/network_security_secure"
+      if (localDevelopment) applicationIdSuffix = ".local"
       // Timestamped debug builds: the exact APK under test is visible in
       // Settings -> Apps, so stale installs are easy to spot.
       versionNameSuffix = "-debug-" + LocalDateTime.now()
@@ -120,6 +137,10 @@ dependencies {
 }
 
 val refactoredKotlin = files(
+    "src/main/java/com/luxisoft/realityos/LocalAccessPolicy.kt",
+    "src/test/java/com/luxisoft/realityos/LocalAccessPolicyTest.kt",
+    "src/debug/java/com/luxisoft/realityos/LocalAccountEntry.kt",
+    "src/release/java/com/luxisoft/realityos/LocalAccountEntry.kt",
     "src/main/java/com/luxisoft/realityos/AgentSpeechPlayer.kt",
     "src/test/java/com/luxisoft/realityos/AgentSpeechPlayerTest.kt",
     "src/main/java/com/luxisoft/realityos/InputRoute.kt",

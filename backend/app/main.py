@@ -11,6 +11,9 @@ from app.routes import router
 
 def create_app(settings: Settings | None = None) -> FastAPI:
     runtime_settings = settings or get_settings()
+    from app.local_runtime import validate_local_settings
+
+    validate_local_settings(runtime_settings)
     app = FastAPI(
         title="RealityOS API",
         version="0.1.0",
@@ -28,9 +31,15 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         allow_headers=["Authorization", "Content-Type"],
     )
     app.include_router(router, prefix=runtime_settings.api_prefix)
+    if runtime_settings.environment == "local" and runtime_settings.local_login_enabled:
+        from app.http.local_access import router as local_router
+
+        app.include_router(local_router, prefix=runtime_settings.api_prefix)
     from app.social import router as social_router
+
     app.include_router(social_router, prefix=runtime_settings.api_prefix)
     from app.faces import router as faces_router
+
     app.include_router(faces_router, prefix=runtime_settings.api_prefix)
 
     @app.get("/health/live", tags=["system"])

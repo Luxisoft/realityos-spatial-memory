@@ -21,6 +21,20 @@ MODEL_REVISION = "5f8cc790b19fc3f67a61c105133b20b34e3dcb76"
 LANGUAGES = {"en": "eng", "es": "spa"}
 
 
+def speech_precision(value: str | None = None, cpu_flags: str | None = None) -> str:
+    """Keep the production BF16 default; local auto can select real FP32."""
+    mode = value or os.environ.get("TTS_DTYPE", "bfloat16")
+    if mode not in {"bfloat16", "float32", "auto"}:
+        raise ValueError("TTS_DTYPE must be bfloat16, float32 or auto.")
+    if mode == "auto":
+        if cpu_flags is None:
+            from pathlib import Path
+
+            cpu_flags = Path("/proc/cpuinfo").read_text()
+        return "bfloat16" if {"avx512_bf16", "amx_bf16"} & set(cpu_flags.split()) else "float32"
+    return mode
+
+
 def speech_chunks(text: str) -> list[str]:
     """Keep phrase boundaries and bound each input without dropping any words."""
     chunks: list[str] = []
@@ -50,7 +64,7 @@ class SeamlessEngine:
             MODEL_ID,
             revision=MODEL_REVISION,
             use_safetensors=True,
-            torch_dtype=torch.bfloat16,
+            torch_dtype=getattr(torch, speech_precision()),
             low_cpu_mem_usage=True,
         ).eval()
         self.rate = self.model.config.sampling_rate

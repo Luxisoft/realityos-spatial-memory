@@ -413,3 +413,17 @@ directas; 404 controlados recuperaron Meta y voz mediante el gateway real.
 Seis muestras EN/ES: 2,22–3,01 s; salud, OpenAPI y Alembic `20261101_0030`
 verificados. Ver [TTS](TTS.md), [Gateway](GATEWAY.md) y estado de implementación.
 Rollback: `.runtime/direct-meta-20261101-rollback.json`.
+
+
+## Alternativa Windows local — 2026-11-01
+
+Ver [Windows local](LOCAL_WINDOWS.md). Proyecto Docker separado `realityos-local`
+y `.env.local`; Meta Live con clave propia, InsightFace y Seamless reales. No
+seeds. La cuenta de prueba local permite entrar sin Facebook ni reconocimiento
+facial exclusivamente en el Debug local confirmado por el backend local.
+Producción mantiene sus motores reales, configuración y acceso habitual.
+Rutas locales ausentes fuera de `ENVIRONMENT=local` + `LOCAL_LOGIN_ENABLED=true`.
+340 pruebas backend/gateway y checks PowerShell/Compose locales aprobados;
+Windows nativo y APK completo pasan por CI. QA física y prueba integral Docker
+Desktop Windows requieren ese entorno. No modificar perfiles de producción para
+arrancar la alternativa local.

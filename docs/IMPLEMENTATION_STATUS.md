@@ -1274,3 +1274,37 @@ mientras producción usa Debian 13/FFmpeg 7.1.5. Una prueba existente depende de
 los bytes de fotogramas sintéticos y fallaba con esa diferencia. Backend,
 verificación de despliegue y base Docker quedan alineados explícitamente en
 Debian 13 (trixie). No se modificó el módulo protegido ni su comportamiento.
+
+
+## Alternativa Windows / Docker con proveedores reales — 2026-11-01
+
+Perfil independiente `realityos-local`, configuración `.env.local`, imágenes y
+volúmenes propios. PowerShell prepara secretos, comprueba contexto Docker local,
+CPU/memoria/disco, catálogo real Meta y salud/audio real de Seamless. API/worker
+exigen Live e InsightFace; la voz selecciona BF16 nativo o FP32 localmente.
+No se ejecutan seeds ni se cargan publicaciones de demostración. La configuración
+real del servidor y sus volúmenes no se reutilizan ni sobrescriben.
+
+El propietario pidió expresamente entrar con cuenta de prueba sin reconocimiento
+facial en localhost. Las rutas de acceso local solo se registran con
+`ENVIRONMENT=local` y `LOCAL_LOGIN_ENABLED=true`. Emiten tokens y credenciales de
+captura propios sin consentir, reconocer, crear o retirar datos faciales. La app
+Debug local tiene ID `.local`, HTTP exclusivamente loopback y confirmación de
+entorno local al entrar/restaurar sesión. Normal/Release conservan su acceso
+habitual; la omisión de verificación de entrada no afecta permisos ni
+consentimientos de las funciones faciales. El módulo backend de caras y sus
+migraciones permanecen intactos.
+
+Validación en este host Linux: 340 pruebas backend/gateway; pruebas PowerShell de
+secretos, persistencia, configuración independiente y rechazo de contextos
+remotos; render de Compose y prueba real de escaping dotenv en contenedores
+mínimos aislados. Los builds completos local y habitual y las pruebas Android
+se ejecutan en CI para conservar recursos del servidor. Se añade verificación
+PowerShell nativa en Windows con PowerShell 7 y 5.1. Una prueba integral de Docker
+Desktop en Windows y QA de cámara/gafas físicas no se dan por ejecutadas desde
+este host Linux. El diagnóstico local verifica proveedores reales al instalar.
+
+Guía: [Windows local](LOCAL_WINDOWS.md). El APK final habitual debe quedar en
+`android/app/build/outputs/apk/debug/app-debug.apk`; el build local es una
+alternativa y no sustituye el APK del servidor. No se requiere migración nueva
+ni dump PostgreSQL.

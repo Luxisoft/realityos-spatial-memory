@@ -17,6 +17,7 @@ class Settings(BaseSettings):
     )
 
     environment: str = "development"
+    local_login_enabled: bool = False
     facebook_app_id: str | None = None
     facebook_app_secret: str | None = None
     social_moderator_facebook_ids: str = ""

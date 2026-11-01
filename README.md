@@ -41,33 +41,30 @@ session; query endpoints are evidence-only and never start a recording.
   filters, evidence history and a non-metric location hierarchy.
 - Compose, Nginx reverse proxy, migration, synthetic seed and automated tests.
 
-## Quick start: Mock mode
+## Windows localhost: real providers
 
-Requirements: Python 3.12+, Node 22+, Docker Compose for the complete stack.
+An independent Windows + Docker Desktop installation is available alongside the
+server deployment. It has its own configuration, account, database and volumes.
+Meta uses your own API key; InsightFace and Seamless run locally. No sample media
+or simulated model responses are loaded.
 
-    cp .env.example .env
-    # Set POSTGRES_PASSWORD, JWT_SECRET and DEVICE_CREDENTIAL_PEPPER to unique values.
-    make install
-    make lint
-    make test
-    make compose-up
+```powershell
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\local\Start-RealityOS.ps1
+```
 
-The proxy is available at localhost port 8090 by default. Run the synthetic seed
-inside the API container:
-
-    docker compose --env-file .env -f infrastructure/docker-compose.yml exec api python /scripts/seed_demo.py
-
-The demo credentials are SEED_ADMIN_EMAIL and SEED_ADMIN_PASSWORD in .env.
-Replace them outside a local demonstration.
+Open `http://localhost:8080` (Display: `/display/`) and use the local account you
+create during setup. The isolated local Android Debug build uses that account
+without Facebook or facial recognition at login. Production retains its existing
+entry flow. See [Windows local setup](docs/LOCAL_WINDOWS.md) for requirements,
+Android/USB instructions, diagnostics and stopping without deleting data.
 
 ## Meta integration
 
-META_MODE=mock is the default and is used by seed/tests. It makes no external
-request and labels results simulated. For META_MODE=live, use either direct
-`MODEL_API_KEY` in a development-only environment or configure
-`META_GATEWAY_BASE_URL` plus `META_GATEWAY_TOKEN`; the latter keeps the Meta key
-on the gateway host. The application does not silently fall back to mock when
-Live fails.
+The server and Windows local installation use `META_MODE=live`. Select
+`META_CONNECTION_MODE=direct|gateway` and optionally enable automatic gateway
+fallback. Windows defaults to direct and does not depend on FRONTEND. Server-only
+keys never enter Android or browser assets. Test doubles remain available for
+automated unit tests; a Live provider failure never silently becomes mock data.
 
 Detailed SAM Video uploads only temporary MP4 clips to Meta Files API with
 `purpose=user_data`, expiry and deletion. The original PostgreSQL BYTEA video

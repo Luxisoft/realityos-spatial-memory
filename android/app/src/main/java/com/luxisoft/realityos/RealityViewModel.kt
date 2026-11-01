@@ -208,7 +208,7 @@ class RealityViewModel(application: Application) : AndroidViewModel(application)
         }
         val liveCredentialNearExpiry = storedProvisioning?.source == ProvisioningSource.VIRTUAL_LIVE &&
             storedProvisioning.expiresAt?.isBefore(Instant.now().plusSeconds(5 * 60)) == true
-        if (storedProvisioning == null || liveCredentialNearExpiry) {
+        if (!BuildConfig.LOCAL_DEVELOPMENT && (storedProvisioning == null || liveCredentialNearExpiry)) {
             loadVirtualDeviceProfile(saveAutomatically = true)
         }
     }

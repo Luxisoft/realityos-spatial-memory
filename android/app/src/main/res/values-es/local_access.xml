@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="local_account_title">Cuenta local</string>
+    <string name="local_account_body">Entra con la cuenta creada en tu computadora.</string>
+    <string name="local_account_email">Correo</string>
+    <string name="local_account_password">Contraseña</string>
+    <string name="local_account_failed">Revisa tu cuenta local y que el servidor local esté funcionando.</string>
+    <string name="local_account_enter">Entrar</string>
+</resources>

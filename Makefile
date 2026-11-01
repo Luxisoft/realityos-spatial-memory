@@ -46,3 +46,9 @@ android-check:
 	cd android && ./gradlew :app:ktlintCheck :app:testDebugUnitTest :app:lintDebug :app:assembleDebug :app:assembleRelease
 
 .PHONY: architecture-check format-check android-check
+
+# Windows PowerShell launchers use an independent .env.local and Docker project.
+local-help:
+	@printf '%s\n' 'See docs/LOCAL_WINDOWS.md. Windows: powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\local\Start-RealityOS.ps1'
+
+.PHONY: local-help
