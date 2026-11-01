@@ -14,7 +14,9 @@ from app.meta import (
 )
 
 
-def test_live_client_uses_gateway_without_model_key(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_live_client_uses_gateway_without_model_key(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     captured: dict[str, object] = {}
 
     def fake_request(method: str, url: str, **kwargs: object) -> httpx.Response:
@@ -22,12 +24,15 @@ def test_live_client_uses_gateway_without_model_key(monkeypatch: pytest.MonkeyPa
         captured["url"] = url
         captured["headers"] = kwargs["headers"]
         request = httpx.Request(method, url)
-        return httpx.Response(200, json={"output_text": '{"detections": []}'}, request=request)
+        return httpx.Response(
+            200, json={"output_text": '{"detections": []}'}, request=request
+        )
 
     monkeypatch.setattr(httpx, "request", fake_request)
     client = LiveMetaModelClient(
         Settings(
             meta_mode="live",
+            meta_connection_mode="gateway",
             meta_gateway_base_url="https://meta.luxisoft.com/v1",
             meta_gateway_token="gateway-token-long-enough-for-tests",
         )
@@ -37,7 +42,9 @@ def test_live_client_uses_gateway_without_model_key(monkeypatch: pytest.MonkeyPa
 
     assert response.status_code == 200
     assert captured["url"] == "https://meta.luxisoft.com/v1/responses"
-    assert captured["headers"] == {"X-RealityOS-Gateway-Token": "gateway-token-long-enough-for-tests"}
+    assert captured["headers"] == {
+        "X-RealityOS-Gateway-Token": "gateway-token-long-enough-for-tests"
+    }
 
 
 def test_live_analysis_requests_english_human_readable_detections(
@@ -58,6 +65,7 @@ def test_live_analysis_requests_english_human_readable_detections(
     client = LiveMetaModelClient(
         Settings(
             meta_mode="live",
+            meta_connection_mode="gateway",
             meta_gateway_base_url="https://meta.luxisoft.com/v1",
             meta_gateway_token="gateway-token-long-enough-for-tests",
         )
@@ -88,6 +96,7 @@ def test_live_query_interpretation_only_accepts_known_terms(
     client = LiveMetaModelClient(
         Settings(
             meta_mode="live",
+            meta_connection_mode="gateway",
             meta_gateway_base_url="https://meta.luxisoft.com/v1",
             meta_gateway_token="gateway-token-long-enough-for-tests",
         )
@@ -105,7 +114,11 @@ def test_live_query_interpretation_only_accepts_known_terms(
 def test_live_gateway_requires_its_own_token() -> None:
     with pytest.raises(MetaProviderError, match="META_GATEWAY_TOKEN"):
         LiveMetaModelClient(
-            Settings(meta_mode="live", meta_gateway_base_url="https://meta.luxisoft.com/v1")
+            Settings(
+                meta_mode="live",
+                meta_connection_mode="gateway",
+                meta_gateway_base_url="https://meta.luxisoft.com/v1",
+            )
         )
 
 
@@ -116,6 +129,7 @@ def test_live_sam_uses_a_box_prompt_and_compact_mask_stream(
     client = LiveMetaModelClient(
         Settings(
             meta_mode="live",
+            meta_connection_mode="gateway",
             meta_gateway_base_url="https://meta.luxisoft.com/v1",
             meta_gateway_token="gateway-token-long-enough-for-tests",
         )
@@ -153,7 +167,10 @@ def test_live_sam_uses_a_box_prompt_and_compact_mask_stream(
     body = captured["body"]
     assert isinstance(body, dict)
     assert body["stream"] is True
-    assert body["metadata"] == {"mask_encoding": "one_bit", "include_confidence": "true"}
+    assert body["metadata"] == {
+        "mask_encoding": "one_bit",
+        "include_confidence": "true",
+    }
     assert "<0f>1<|box;x1=10;y1=16;x2=39;y2=48;w=100;h=80|>" in str(body)
 
 
@@ -163,6 +180,7 @@ def test_live_video_uses_temporary_file_once_and_sam_file_id(
     client = LiveMetaModelClient(
         Settings(
             meta_mode="live",
+            meta_connection_mode="gateway",
             meta_gateway_base_url="https://meta.luxisoft.com/v1",
             meta_gateway_token="gateway-token-long-enough-for-tests",
         )
@@ -177,7 +195,9 @@ def test_live_video_uses_temporary_file_once_and_sam_file_id(
         request = httpx.Request(method, f"https://gateway.test/{path}")
         if method == "POST":
             return httpx.Response(200, json={"id": "file-123"}, request=request)
-        return httpx.Response(200, json={"id": "file-123", "deleted": True}, request=request)
+        return httpx.Response(
+            200, json={"id": "file-123", "deleted": True}, request=request
+        )
 
     def stream(body: dict[str, object]) -> list[dict[str, object]]:
         captured["body"] = body
@@ -212,7 +232,10 @@ def test_live_video_uses_temporary_file_once_and_sam_file_id(
 
     assert result.provider_file_id == "file-123"
     assert result.frames[0].object_id == "track-1"
-    assert [call[:2] for call in calls] == [("POST", "files"), ("DELETE", "files/file-123")]
+    assert [call[:2] for call in calls] == [
+        ("POST", "files"),
+        ("DELETE", "files/file-123"),
+    ]
     assert calls[0][2]["data"] == {
         "purpose": "user_data",
         "expires_after[anchor]": "created_at",
@@ -231,6 +254,7 @@ def test_live_video_marks_stream_failure_uncertain_without_a_second_submission(
     client = LiveMetaModelClient(
         Settings(
             meta_mode="live",
+            meta_connection_mode="gateway",
             meta_gateway_base_url="https://meta.luxisoft.com/v1",
             meta_gateway_token="gateway-token-long-enough-for-tests",
         )
@@ -247,7 +271,9 @@ def test_live_video_marks_stream_failure_uncertain_without_a_second_submission(
     monkeypatch.setattr(
         client,
         "_stream_events_once",
-        lambda body: (_ for _ in ()).throw(MetaProviderUncertainError("gateway interrupted")),
+        lambda body: (_ for _ in ()).throw(
+            MetaProviderUncertainError("gateway interrupted")
+        ),
     )
     with pytest.raises(MetaProviderUncertainError, match="gateway interrupted"):
         client.track_video(

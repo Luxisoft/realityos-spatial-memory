@@ -19,10 +19,39 @@ gateway hostname as a direct/private route or DNS-only record: a CDN proxy may
 impose a lower request-body ceiling than RealityOS or Meta. The gateway remains
 protected by its IP allowlist and independent token.
 
-`MODEL_API_KEY` is configured only in FRONTEND's ignored gateway runtime file.
-The RealityOS API and worker use `META_GATEWAY_BASE_URL` and
-`META_GATEWAY_TOKEN`; their production environment explicitly blanks
-`MODEL_API_KEY`.
+## Connection selection (2026-11-01)
+
+RealityOS `.env` is authoritative for API and worker routing:
+
+```dotenv
+META_CONNECTION_MODE=direct
+META_GATEWAY_FALLBACK_ENABLED=true
+MODEL_API_KEY=<active server-only Meta key>
+META_API_BASE_URL=https://api.meta.ai/v1
+META_GATEWAY_BASE_URL=https://meta.luxisoft.com/v1
+META_GATEWAY_TOKEN=<independent gateway token>
+TTS_SERVICE_URL=https://realityos.luxisoft.com/tts/synthesize
+TTS_SERVICE_TOKEN=<independent speech token>
+```
+
+`direct` uses RealityOS egress even when gateway settings are present. `gateway`
+uses FRONTEND only. Restart API/worker after editing `.env`. Fallback is explicit:
+connection failures, 401/403/404, 408/429 and 5xx switch from direct to gateway;
+400/422 are returned unchanged. Each new request starts on the selected primary
+route. Only the final route uses the configured transient retry policy.
+
+Video/file operations switch only on definite rejection (401/403/404/429) or
+connection failure before submission. Ambiguous submissions and accepted streams
+are never replayed; they remain `uncertain`. Seekable upload handles rewind to
+their original offset before a permitted replay. The same active Meta key is
+installed privately on both servers, so uploaded file IDs stay in one account.
+Bearer authentication goes only to Meta; the gateway receives only its own token.
+Keys, tokens and captured content are never logged or committed.
+
+The gateway remains running as standby. API/worker deployment does not depend on
+FRONTEND availability. CI retains unrelated runtime settings but does not overlay
+old connection settings on `.env`. Private rollback overlays retain the previous
+image and environment; they must never enter Git.
 
 ## FRONTEND deployment
 
@@ -64,7 +93,7 @@ instead of a public development value.
 Use `make gateway-api` with a local `meta-gateway/.env` copied from
 `infrastructure/gateway/runtime.env.example`. Do not expose its port publicly.
 
-## Private response speech route (2026-11-01)
+## Response speech fallback (2026-11-01)
 
 The gateway additionally implements `POST /v1/tts/synthesize`, protected by the
 same gateway token and existing IP allowlist. This one route targets a fixed
@@ -75,5 +104,12 @@ which is copied into the gateway image. Other routes retain Meta forwarding.
 
 Build the gateway from the monorepo root. For standalone gateway development or
 its tests without the backend installed, set `PYTHONPATH=backend`; CI does this.
-Configuration left unset returns 503. FRONTEND activation and measurements are
-still pending remote-tool approval; see [TTS](TTS.md).
+Configuration left unset returns 503. Local synthesis and real gateway fallback
+were verified on 2026-11-01; see [TTS](TTS.md).
+
+
+Seamless runs on RealityOS, not FRONTEND. The gateway speech target is fixed to
+`https://realityos.luxisoft.com/tts/synthesize`, authenticated with the separate
+speech token. There is no forwarding loop: that URL maps directly to Seamless,
+not to `/v1/tts`. A model outage affects both speech paths and clients retain
+their existing native/browser voice. See [TTS](TTS.md).

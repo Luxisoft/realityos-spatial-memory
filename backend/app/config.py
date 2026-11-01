@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from functools import lru_cache
+from typing import Literal
 
 from pydantic import AnyHttpUrl, Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -50,6 +51,8 @@ class Settings(BaseSettings):
     video_segment_seconds: int = Field(default=120, ge=5, le=3600)
     video_frames_per_segment: int = Field(default=8, ge=1, le=24)
     meta_mode: str = "mock"
+    meta_connection_mode: Literal["direct", "gateway"] = "direct"
+    meta_gateway_fallback_enabled: bool = False
     model_api_key: str | None = None
     meta_api_base_url: AnyHttpUrl = "https://api.meta.ai/v1"
     meta_gateway_base_url: AnyHttpUrl | None = None
@@ -58,6 +61,8 @@ class Settings(BaseSettings):
     meta_video_timeout_seconds: float = Field(default=600, gt=0, le=900)
     meta_max_retries: int = Field(default=2, ge=0, le=5)
     tts_timeout_seconds: float = Field(default=30, gt=0, le=30)
+    tts_service_url: AnyHttpUrl | None = None
+    tts_service_token: str | None = None
     enqueue_processing: bool = True
     # Hackathon-only virtual glasses enrollment. This deliberately creates a
     # revocable device identity instead of embedding a reusable credential in

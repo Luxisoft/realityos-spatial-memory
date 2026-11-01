@@ -35,6 +35,20 @@ class APIClient:
         return self.request("POST", path, **kwargs)
 
 
+@pytest.fixture(autouse=True)
+def isolate_provider_credentials(monkeypatch):
+    # A production checkout must never lend its real credentials to unit tests.
+    for key, value in {
+        "META_CONNECTION_MODE": "direct",
+        "META_GATEWAY_FALLBACK_ENABLED": "false",
+        "MODEL_API_KEY": "unit-test-placeholder-key",
+        "META_GATEWAY_TOKEN": "",
+        "TTS_SERVICE_TOKEN": "",
+        "TTS_SERVICE_URL": "https://speech.test/synthesize",
+    }.items():
+        monkeypatch.setenv(key, value)
+
+
 @pytest.fixture
 def client(tmp_path, monkeypatch) -> Generator[APIClient, None, None]:
     settings = Settings(

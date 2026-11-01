@@ -1,70 +1,63 @@
-# Respuestas de voz con SeamlessM4T v2
+# Voz Seamless local y respaldo por FRONTEND
 
-Las respuestas escritas se muestran antes de solicitar el audio. Android/gafas,
-panel web y Display web llaman a `POST /v1/tts` con `{text, language}` (`en` o
-`es`). La respuesta es WAV PCM mono; no crea capturas, mensajes ni evidencias,
-no busca datos de otros usuarios y no persiste el texto/audio sintetizado.
-La autenticación admite una cuenta activa o un dispositivo vigente con una
-asignación activa. No hay caché compartida entre cuentas ni URLs públicas.
+RealityOS ejecuta `facebook/seamless-m4t-v2-large`, revisión
+`5f8cc790b19fc3f67a61c105133b20b34e3dcb76`, en este servidor. FRONTEND no
+aloja el modelo: conserva únicamente el gateway de respaldo.
 
-El backend llama a la ruta fija `/v1/tts/synthesize` del gateway, autenticada
-con su token existente. El gateway usa un token independiente para llamar al
-servicio privado `seamless-tts:8091/synthesize`. Nunca envía allí la clave Meta
-ni el token del gateway. El cuerpo no admite modelos, destinos o URLs arbitrarios.
+## Contratos y configuración
 
-Un fallo transitorio permite un único reintento desde el backend, con 500 ms de
-espera y 30 segundos de presupuesto total. Las interfaces no repiten la petición:
-si finalmente falta audio, reproducen la voz actual de Android/navegador y lo
-indican. Un 401/403 de RealityOS no se reintenta ni reproduce texto privado con
-otra sesión. Detener, cambiar de idioma, salir o iniciar otra respuesta invalida
-la descarga/reproducción anterior.
+Android, panel y Display conservan `POST /v1/tts` autenticado por usuario o
+dispositivo: `{text, language}` (`en`/`es`) devuelve WAV PCM mono. El texto se
+muestra antes de solicitar audio. La síntesis no crea capturas, evidencia,
+mensajes, cachés compartidas ni audio persistido. Detener, cambiar idioma o
+sesión invalida la reproducción anterior.
 
-## Servicio privado en FRONTEND
+La conexión se selecciona con `META_CONNECTION_MODE=direct|gateway` y
+`META_GATEWAY_FALLBACK_ENABLED=true|false` en `.env`, igual que las consultas
+Meta. En directo, el backend utiliza:
 
-El modelo oficial es `facebook/seamless-m4t-v2-large`, revisión
-`5f8cc790b19fc3f67a61c105133b20b34e3dcb76`. La clase dedicada
-`SeamlessM4Tv2ForTextToSpeech` evita cargar componentes de entrada de audio.
-Los idiomas de entrada y salida coinciden (`spa`/`eng`), con `speaker_id=0` y
-generación sin muestreo. Las frases largas se dividen sin perder palabras.
-Solo se ejecuta una inferencia simultánea; una segunda recibe 429. Una petición
-HTTP vencida no libera el lock mientras el cálculo continúe en el servicio.
-El deadline de generación se comprueba entre frases y tras generar; no es una
-interrupción dura de kernels de PyTorch. Docker acota CPU y memoria.
+```dotenv
+TTS_SERVICE_URL=https://realityos.luxisoft.com/tts/synthesize
+TTS_SERVICE_TOKEN=<separate server-only token, at least 24 characters>
+TTS_TIMEOUT_SECONDS=30
+TTS_LOCAL_ENABLED=true
+```
 
-Pesos bajo [CC-BY-NC-4.0](https://huggingface.co/facebook/seamless-m4t-v2-large),
-separados de la licencia del código del proyecto. Firmas verificadas con la
-[documentación oficial de Transformers](https://huggingface.co/docs/transformers/model_doc/seamless_m4t_v2).
+`/tts/synthesize` es un endpoint HTTPS público autenticado con Bearer token,
+limitado por IP a 30 peticiones/minuto y 32 KiB de entrada. Nginx conecta
+directamente al contenedor local, ligado exclusivamente a `127.0.0.1:8091`.
+Los clientes siguen usando `/v1/tts`; nunca reciben ese token.
 
-1. Inspeccionar RAM libre, CPU y disco en FRONTEND. Requerir al menos 10 GiB de
-   RAM disponible antes de probar el contenedor limitado a 8 GiB, dejando al
-   menos 2 GiB para los servicios existentes. Si no alcanza, conservar la voz
-   actual; no instalar el modelo en el host de RealityOS ni contratar recursos.
-2. Construir con contexto del repositorio e imagen inmutable:
-   `docker build -f infrastructure/tts/Dockerfile -t realityos-tts:seamless-v2-20261101 .`.
-   No instalar PyTorch/Transformers en API o worker.
-3. Crear `tts.env` privado (0600) con un nuevo `TTS_SERVICE_TOKEN` de al menos
-   24 caracteres. Se comparte únicamente entre gateway y Seamless; conservar
-   el archivo runtime actual del gateway. Fijar `REALITYOS_TTS_IMAGE` al tag construido.
-4. Combinar el Compose del gateway con `infrastructure/tts/compose.yml` e iniciar
-   solo `seamless-tts` antes de actualizar el gateway. El volumen `seamless_models`
-   descarga los pesos una vez; no hay puerto público. Esperar salud ready.
-5. Ejecutar `scripts/benchmark_tts.py` desde un entorno que alcance el servicio
-   privado, con `PYTHONPATH=backend`, `httpx` no requerido y el token en entorno.
-   Exigir seis muestras válidas EN/ES, todas por debajo de 15 segundos. Medir
-   también el pico de memoria del contenedor y verificar el margen de 2 GiB
-   del host bajo carga. Conservar resultados privados en `.runtime/`.
-6. Solo si pasan los controles, actualizar el gateway con rollback a la imagen
-   anterior y activar su overlay TTS. Verificar la ruta con token y rechazar
-   tokens/rutas inválidos. Mantener sin cambios el forwarding multipart de Meta.
-7. Desplegar API/worker con overlay de imagen y rollback, verificar salud,
-   OpenAPI y Alembic. No hay migración nueva ni se requiere dump PostgreSQL.
-   Publicar las webs mediante CI y reemplazar únicamente el APK Debug habitual.
+El gateway de FRONTEND conserva `/v1/tts/synthesize` y su token independiente.
+Su `TTS_SERVICE_URL` apunta al endpoint público de RealityOS y utiliza el token
+de voz. No hay bucle: `/tts/synthesize` termina directamente en Seamless.
+Esta ruta alternativa comparte el motor local; no ofrece una segunda réplica
+si el modelo cae. Si ambas rutas fallan, continúa la voz de Android/navegador.
 
-## Estado de esta implementación
+## Runtime y activación
 
-La integración incluye pruebas con audio/servicio sustituidos. El acceso remoto
-a FRONTEND fue rechazado por la herramienta con «This operation requires
-approval in an active chat»; recursos, carga del modelo, muestras reales y
-activación del servicio/gateway siguen pendientes. No declarar Seamless activo
-hasta completar los pasos anteriores. Un gateway anterior responde 404 para
-TTS y las nuevas interfaces conservan el respaldo de voz actual.
+Combinar el Compose de RealityOS con `infrastructure/tts/compose.realityos.yml`
+y activar el perfil `speech`. El contenedor tiene 4 GiB de RAM, sin swap, dos
+CPU, una sola inferencia simultánea, raíz de solo lectura y volumen persistente
+para pesos. Las dependencias pesadas no entran en API/worker. El modelo usa
+BF16; generación EN/ES sin muestreo y `speaker_id=0`.
+
+La salud ready exige el modelo cargado. Una segunda inferencia recibe 429 y
+el lock se mantiene mientras el cálculo siga en curso. El presupuesto HTTP
+total es 30 segundos, con como máximo dos intentos entre directo y respaldo.
+La generación comprueba su límite de 13 segundos entre frases y al terminar;
+no interrumpe kernels de PyTorch a mitad del cálculo.
+
+Antes de activar, descargar pesos en el volumen y ejecutar
+`scripts/benchmark_tts.py`: seis WAV válidos EN/ES, cada uno por debajo de
+15 segundos, sin OOM ni degradación del API. Si falla, detener el contenedor,
+poner `TTS_LOCAL_ENABLED=false` y conservar la voz del dispositivo. No ampliar
+recursos ni cambiar de modelo automáticamente.
+
+El preflight real del 2026-11-01 en RealityOS cargó el modelo y produjo seis
+muestras válidas entre 2,22 y 3,01 segundos, sin OOM. El informe privado queda
+en `.runtime/direct-tts-20261101-benchmark.json`.
+
+El modelo mantiene su licencia [CC-BY-NC-4.0](https://huggingface.co/facebook/seamless-m4t-v2-large),
+separada de la licencia del proyecto. Referencia de implementación:
+[Transformers SeamlessM4T v2](https://huggingface.co/docs/transformers/model_doc/seamless_m4t_v2).

@@ -18,7 +18,7 @@ Invariantes no negociables (ver `AGENTS.md` y `docs/REALITYOS_MISSION.md`):
   nunca inicia captura ni fabrica evidencia.
 - Todo recurso se filtra por pertenencia al workspace autenticado.
 - `MODEL_API_KEY`, JWT y credenciales DB solo en servidor; en producción la
-  clave Meta vive únicamente en el runtime del gateway de FRONTEND.
+  clave Meta vive en archivos privados de RealityOS y del gateway de FRONTEND.
 - Mock es determinista y etiquetado `simulated`; Live nunca cae a mock en
   silencio (`uncertain` ante proveedor ambiguo).
 
@@ -44,7 +44,8 @@ Flujo de datos:
 Register: cliente -> API -> PostgreSQL BYTEA -> Redis/Celery -> Mock o Meta API
 Query:    cliente -> API -> última observación verificada + URL de medio autorizada
 Social:   app Android (login Facebook) -> API -> publicaciones/grupos sobre BYTEA existente
-Live Meta: API/worker -> meta.luxisoft.com (token gateway) -> api.meta.ai (MODEL_API_KEY)
+Live Meta: API/worker -> api.meta.ai (MODEL_API_KEY); FRONTEND gateway = fallback
+Speech: API -> RealityOS /tts/synthesize -> local Seamless; FRONTEND = fallback
 ```
 
 ## Backend: rutas principales (`backend/app/routes.py` + `social.py` + `faces.py`)
@@ -93,7 +94,7 @@ Producción verificada:
 
 - `realityos.luxisoft.com` (HTTPS, Let's Encrypt hasta 2027-01-25) y gateway
   `meta.luxisoft.com` en FRONTEND con token independiente e IP allowlist.
-- API/worker en `META_MODE=live` vía gateway; sin `MODEL_API_KEY` en RealityOS.
+- API/worker en `META_MODE=live`; `.env` elige conexión directa o gateway y respaldo.
 - Migraciones aplicadas hasta `20261031_0029` (head); seed con 6 objetos y
   jerarquía `Bodega A → Estantería 3 → Nivel 2`.
 - API/worker usan `realityos-backend:processing-recovery-20261031`: evidencia
@@ -398,3 +399,17 @@ verificados. Sin cambios de servidor en esta pasada. API/worker observados en
 `realityos-backend:seamless-tts-20261101`, con `/v1/tts` en el contrato vigente.
 La prueba acústica y QA física continúan pendientes. Evidencia:
 `.runtime/language-third-pass-final.json` y `IMPLEMENTATION_STATUS.md`.
+
+
+## Directo y voz local — 2026-11-01
+
+Producción usa `META_CONNECTION_MODE=direct` y respaldo explícito por FRONTEND.
+API/worker: `realityos-backend:direct-meta-20261101`; voz local:
+`realityos-tts:direct-20261101` (BF16, 4 GiB, dos CPU). El endpoint público
+`/tts/synthesize` tiene token propio; el gateway sigue disponible como reserva.
+La clave Meta activa está en el `.env` privado del servidor y en el runtime de
+FRONTEND. CI respeta esta selección. Pasaron 326 pruebas y consultas reales
+directas; 404 controlados recuperaron Meta y voz mediante el gateway real.
+Seis muestras EN/ES: 2,22–3,01 s; salud, OpenAPI y Alembic `20261101_0030`
+verificados. Ver [TTS](TTS.md), [Gateway](GATEWAY.md) y estado de implementación.
+Rollback: `.runtime/direct-meta-20261101-rollback.json`.

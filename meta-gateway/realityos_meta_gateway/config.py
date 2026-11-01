@@ -5,7 +5,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class GatewaySettings(BaseSettings):
-    """Gateway-only runtime settings. Meta credentials never reach RealityOS."""
+    """Gateway-only runtime settings. Gateway credentials stay in server-side runtime files."""
 
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
 

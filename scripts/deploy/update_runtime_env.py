@@ -7,7 +7,11 @@ from pathlib import Path
 
 
 def update_runtime(existing: Path, incoming: Path, image_key: str):
-    if image_key not in {"REALITYOS_GATEWAY_IMAGE", "REALITYOS_BACKEND_IMAGE"}:
+    if image_key not in {
+        "REALITYOS_GATEWAY_IMAGE",
+        "REALITYOS_BACKEND_IMAGE",
+        "REALITYOS_TTS_IMAGE",
+    }:
         raise ValueError("Unsupported image setting")
     values = dict(
         row.split("=", 1) for row in incoming.read_text().splitlines() if "=" in row

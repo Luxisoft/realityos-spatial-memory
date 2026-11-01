@@ -292,6 +292,7 @@ def test_batched_sam_parses_inside_running_loop_and_matches_string_ids(monkeypat
     client = LiveMetaModelClient(
         Settings(
             meta_mode="live",
+            meta_connection_mode="gateway",
             meta_gateway_base_url="https://example.invalid/v1",
             meta_gateway_token="test-token",
         )
@@ -347,6 +348,7 @@ def test_live_empty_comparison_accepts_bare_null_only_without_candidates(monkeyp
     client = LiveMetaModelClient(
         Settings(
             meta_mode="live",
+            meta_connection_mode="gateway",
             meta_gateway_base_url="https://example.invalid/v1",
             meta_gateway_token="test-token",
         )

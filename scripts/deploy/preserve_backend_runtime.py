@@ -6,12 +6,22 @@ import os
 import subprocess
 from pathlib import Path
 
+CONNECTION_SETTINGS = {
+    "META_MODE",
+    "META_CONNECTION_MODE",
+    "META_GATEWAY_FALLBACK_ENABLED",
+    "MODEL_API_KEY",
+    "META_API_BASE_URL",
+    "META_GATEWAY_BASE_URL",
+    "META_GATEWAY_TOKEN",
+    "TTS_SERVICE_URL",
+    "TTS_SERVICE_TOKEN",
+}
+
 
 def application_environment(container, image):
     defaults = dict(row.split("=", 1) for row in image["Config"].get("Env", []) or [])
     active = dict(row.split("=", 1) for row in container["Config"].get("Env", []) or [])
-    if active.get("MODEL_API_KEY"):
-        raise ValueError("RealityOS must not contain the Meta API key")
     return {key: value for key, value in active.items() if defaults.get(key) != value}
 
 
@@ -24,7 +34,13 @@ def runtime_overlays(inspect):
             continue  # First installation has no active container to preserve.
         image = inspect(container["Image"])
         settings = application_environment(container, image)
-        preserved[service] = {"environment": settings}
+        preserved[service] = {
+            "environment": {
+                key: value
+                for key, value in settings.items()
+                if key not in CONNECTION_SETTINGS
+            }
+        }
         rollback[service] = {
             "image": container["Config"]["Image"],
             "pull_policy": "never",

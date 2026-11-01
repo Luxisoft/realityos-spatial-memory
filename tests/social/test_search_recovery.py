@@ -298,6 +298,7 @@ def test_live_relations_allowlist_and_invalid_provider_reply(monkeypatch):
     model = LiveMetaModelClient(
         Settings(
             meta_mode="live",
+            meta_connection_mode="gateway",
             meta_gateway_base_url="https://example.invalid/v1",
             meta_gateway_token="fixture",
         )

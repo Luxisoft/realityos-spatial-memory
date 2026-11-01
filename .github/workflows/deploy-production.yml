@@ -71,6 +71,13 @@ jobs:
           push: true
           tags: ${{ env.REGISTRY }}/realityos-meta-gateway:${{ env.RELEASE_TAG }}
 
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: infrastructure/tts/Dockerfile
+          push: true
+          tags: ${{ env.REGISTRY }}/realityos-tts:${{ env.RELEASE_TAG }}
+
   deploy-gateway:
     needs: [verify, build]
     if: ${{ always() && needs.verify.result == 'success' && (needs.build.result == 'success' || needs.build.result == 'skipped') }}
@@ -176,7 +183,8 @@ jobs:
           '
 
   deploy-realityos:
-    needs: deploy-gateway
+    needs: [verify, build]
+    if: ${{ always() && needs.verify.result == 'success' && (needs.build.result == 'success' || needs.build.result == 'skipped') }}
     runs-on: ubuntu-latest
     environment: production
     env:
@@ -205,11 +213,12 @@ jobs:
             --exclude .git --exclude .venv --exclude node_modules --exclude dist \
             -e 'ssh -i ~/.ssh/realityos' \
             ./ "$REALITYOS_USER@$REALITYOS_HOST:$REALITYOS_DEPLOY_PATH/"
-      - name: Activate gateway-backed API and worker
+      - name: Activate configured API and worker connections
         run: |
           umask 077
           cat > .realityos-runtime.env <<EOF
           REALITYOS_BACKEND_IMAGE=${REGISTRY}/realityos-backend:${RELEASE_TAG}
+          REALITYOS_TTS_IMAGE=${REGISTRY}/realityos-tts:${RELEASE_TAG}
           META_GATEWAY_BASE_URL=https://meta.luxisoft.com/v1
           META_GATEWAY_TOKEN=${META_GATEWAY_TOKEN}
           REALITYOS_DEPLOY_PATH=${REALITYOS_DEPLOY_PATH}
@@ -243,6 +252,9 @@ jobs:
             sudo install -d -m 0755 /opt/realityos
             incoming_deploy_path=$(sed -n "s/^REALITYOS_DEPLOY_PATH=//p" /tmp/realityos-runtime.env)
             sudo python3 "$incoming_deploy_path/scripts/deploy/update_runtime_env.py" /opt/realityos/runtime.env /tmp/realityos-runtime.env REALITYOS_BACKEND_IMAGE
+            if grep -qx "TTS_LOCAL_ENABLED=true" "$incoming_deploy_path/.env"; then
+              sudo python3 "$incoming_deploy_path/scripts/deploy/update_runtime_env.py" /opt/realityos/runtime.env /tmp/realityos-runtime.env REALITYOS_TTS_IMAGE
+            fi
             realityos_deploy_path=$(sudo sed -n "s/^REALITYOS_DEPLOY_PATH=//p" /opt/realityos/runtime.env)
             acme_email=$(sudo sed -n "s/^ACME_EMAIL=//p" /opt/realityos/runtime.env)
             cd "$realityos_deploy_path"
@@ -250,17 +262,21 @@ jobs:
             runtime_overlay="$realityos_deploy_path/.runtime/ci-preserved-runtime.json"
             rollback_overlay="$realityos_deploy_path/.runtime/ci-runtime-rollback.json"
             sudo python3 scripts/deploy/preserve_backend_runtime.py --output "$runtime_overlay" --rollback "$rollback_overlay"
-            sudo docker compose --env-file .env --env-file /opt/realityos/runtime.env -f infrastructure/docker-compose.yml -f infrastructure/docker-compose.production.yml -f "$runtime_overlay" pull api worker
-            sudo docker compose --env-file .env --env-file /opt/realityos/runtime.env -f infrastructure/docker-compose.yml -f infrastructure/docker-compose.production.yml -f "$runtime_overlay" up -d --no-build api worker
-            sudo docker compose --env-file .env --env-file /opt/realityos/runtime.env -f infrastructure/docker-compose.yml -f infrastructure/docker-compose.production.yml -f "$runtime_overlay" exec -T api alembic upgrade head
+            sudo docker compose --env-file .env --env-file /opt/realityos/runtime.env -f infrastructure/docker-compose.yml -f infrastructure/docker-compose.production.yml -f infrastructure/tts/compose.realityos.yml -f "$runtime_overlay" pull api worker
+            sudo docker compose --env-file .env --env-file /opt/realityos/runtime.env -f infrastructure/docker-compose.yml -f infrastructure/docker-compose.production.yml -f infrastructure/tts/compose.realityos.yml -f "$runtime_overlay" up -d --no-build api worker
+            sudo docker compose --env-file .env --env-file /opt/realityos/runtime.env -f infrastructure/docker-compose.yml -f infrastructure/docker-compose.production.yml -f infrastructure/tts/compose.realityos.yml -f "$runtime_overlay" exec -T api alembic upgrade head
+            if grep -qx "TTS_LOCAL_ENABLED=true" .env; then
+              sudo docker compose --env-file .env --env-file /opt/realityos/runtime.env -f infrastructure/docker-compose.yml -f infrastructure/docker-compose.production.yml -f infrastructure/tts/compose.realityos.yml --profile speech pull seamless-tts
+              sudo docker compose --env-file .env --env-file /opt/realityos/runtime.env -f infrastructure/docker-compose.yml -f infrastructure/docker-compose.production.yml -f infrastructure/tts/compose.realityos.yml --profile speech up -d --no-deps --wait --wait-timeout 180 seamless-tts
+            fi
             # Browser apps are deliberately built on the target from the same
             # synchronized commit. They do not receive the Meta API key.
-            sudo docker compose --env-file .env --env-file /opt/realityos/runtime.env -f infrastructure/docker-compose.yml -f infrastructure/docker-compose.production.yml -f "$runtime_overlay" build frontend display
-            sudo docker compose --env-file .env --env-file /opt/realityos/runtime.env -f infrastructure/docker-compose.yml -f infrastructure/docker-compose.production.yml -f "$runtime_overlay" up -d --no-build frontend display proxy
-            sudo docker compose --env-file .env --env-file /opt/realityos/runtime.env -f infrastructure/docker-compose.yml -f infrastructure/docker-compose.production.yml -f "$runtime_overlay" exec -T proxy nginx -s reload
-            sudo docker compose --env-file .env --env-file /opt/realityos/runtime.env -f infrastructure/docker-compose.yml -f infrastructure/docker-compose.production.yml -f "$runtime_overlay" exec -T api alembic current
-            sudo docker compose --env-file .env --env-file /opt/realityos/runtime.env -f infrastructure/docker-compose.yml -f infrastructure/docker-compose.production.yml -f "$runtime_overlay" exec -T api python -c "import urllib.request; urllib.request.urlopen(\"http://localhost:8000/health/ready\")"
-            sudo docker compose --env-file .env --env-file /opt/realityos/runtime.env -f infrastructure/docker-compose.yml -f infrastructure/docker-compose.production.yml -f "$runtime_overlay" exec -T api python -c "import json, urllib.request; paths=json.load(urllib.request.urlopen(\"http://localhost:8000/v1/openapi.json\"))[\"paths\"]; assert all(p in paths for p in [\"/v1/device/jobs/{job_id}\", \"/v1/auth/facebook\", \"/v1/gallery\", \"/v1/assistant\"]), \"Android API contract missing from OpenAPI\""
+            sudo docker compose --env-file .env --env-file /opt/realityos/runtime.env -f infrastructure/docker-compose.yml -f infrastructure/docker-compose.production.yml -f infrastructure/tts/compose.realityos.yml -f "$runtime_overlay" build frontend display
+            sudo docker compose --env-file .env --env-file /opt/realityos/runtime.env -f infrastructure/docker-compose.yml -f infrastructure/docker-compose.production.yml -f infrastructure/tts/compose.realityos.yml -f "$runtime_overlay" up -d --no-build frontend display proxy
+            sudo docker compose --env-file .env --env-file /opt/realityos/runtime.env -f infrastructure/docker-compose.yml -f infrastructure/docker-compose.production.yml -f infrastructure/tts/compose.realityos.yml -f "$runtime_overlay" exec -T proxy nginx -s reload
+            sudo docker compose --env-file .env --env-file /opt/realityos/runtime.env -f infrastructure/docker-compose.yml -f infrastructure/docker-compose.production.yml -f infrastructure/tts/compose.realityos.yml -f "$runtime_overlay" exec -T api alembic current
+            sudo docker compose --env-file .env --env-file /opt/realityos/runtime.env -f infrastructure/docker-compose.yml -f infrastructure/docker-compose.production.yml -f infrastructure/tts/compose.realityos.yml -f "$runtime_overlay" exec -T api python -c "import urllib.request; urllib.request.urlopen(\"http://localhost:8000/health/ready\")"
+            sudo docker compose --env-file .env --env-file /opt/realityos/runtime.env -f infrastructure/docker-compose.yml -f infrastructure/docker-compose.production.yml -f infrastructure/tts/compose.realityos.yml -f "$runtime_overlay" exec -T api python -c "import json, urllib.request; paths=json.load(urllib.request.urlopen(\"http://localhost:8000/v1/openapi.json\"))[\"paths\"]; assert all(p in paths for p in [\"/v1/device/jobs/{job_id}\", \"/v1/auth/facebook\", \"/v1/gallery\", \"/v1/assistant\"]), \"Android API contract missing from OpenAPI\""
             sudo install -d -m 0755 /var/www/realityos-acme /etc/nginx/snippets
             sudo install -m 0644 /tmp/realityos-cloudflare-realip.conf /etc/nginx/snippets/realityos-cloudflare-realip.conf
             sudo install -m 0644 /tmp/realityos-http.conf /etc/nginx/conf.d/realityos.conf

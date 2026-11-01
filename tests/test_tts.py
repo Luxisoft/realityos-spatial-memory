@@ -19,6 +19,7 @@ def wav():
 def configure(client, upstream):
     settings = client.app.state.settings
     settings.meta_mode = "live"
+    settings.meta_connection_mode = "gateway"
     settings.meta_gateway_base_url = "https://gateway.test/v1"
     settings.meta_gateway_token = "private-gateway-token-for-tests"
     client.app.state.tts_transport = httpx.MockTransport(upstream)

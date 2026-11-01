@@ -1,4 +1,4 @@
-"""Private Seamless runtime. Heavy model dependencies belong only in its image."""
+"""Isolated Seamless runtime. Heavy model dependencies belong only in its image."""
 
 import hmac
 import io
@@ -50,6 +50,7 @@ class SeamlessEngine:
             MODEL_ID,
             revision=MODEL_REVISION,
             use_safetensors=True,
+            torch_dtype=torch.bfloat16,
             low_cpu_mem_usage=True,
         ).eval()
         self.rate = self.model.config.sampling_rate

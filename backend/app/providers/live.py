@@ -49,20 +49,11 @@ class LiveMetaModelClient(MetaModelClient):
 
     def __init__(self, settings: Settings) -> None:
         self.settings = settings
-        if settings.meta_gateway_base_url:
-            if not settings.meta_gateway_token:
-                raise MetaProviderError(
-                    "META_GATEWAY_TOKEN is required when META_GATEWAY_BASE_URL is configured."
-                )
-            self.base_url = str(settings.meta_gateway_base_url).rstrip("/")
-            self.headers = {"X-RealityOS-Gateway-Token": settings.meta_gateway_token}
-        else:
-            if not settings.model_api_key:
-                raise MetaProviderError(
-                    "MODEL_API_KEY is required when META_MODE=live without a gateway."
-                )
-            self.base_url = str(settings.meta_api_base_url).rstrip("/")
-            self.headers = {"Authorization": f"Bearer {settings.model_api_key}"}
+        from app.providers.connections import provider_routes
+
+        self.routes = provider_routes(settings)
+        self.base_url = self.routes[0].base_url
+        self.headers = self.routes[0].headers
 
     def _request(self, method: str, path: str, **kwargs: Any) -> httpx.Response:
         from app.providers.transport import request_json
@@ -662,67 +653,14 @@ class LiveMetaModelClient(MetaModelClient):
         return self._sam_result_from_events(self._stream_events(body), width, height)
 
     def _file_request_once(self, method: str, path: str, **kwargs: Any) -> httpx.Response:
-        """Never replay submitted video/file requests: a second call can be billable."""
+        from app.providers.transport import request_file
 
-        try:
-            response = httpx.request(
-                method,
-                f"{self.base_url}/{path.lstrip('/')}",
-                headers=self.headers | kwargs.pop("headers", {}),
-                timeout=self.settings.meta_video_timeout_seconds,
-                **kwargs,
-            )
-        except httpx.HTTPError as exc:
-            raise MetaProviderUncertainError("Meta video request connection failed.") from exc
-        if response.status_code in {408, 429, 500, 502, 503, 504}:
-            raise MetaProviderUncertainError(
-                f"Meta video request returned {response.status_code}; result state is uncertain."
-            )
-        try:
-            response.raise_for_status()
-        except httpx.HTTPError as exc:
-            raise MetaProviderError(
-                f"Meta Model API returned {response.status_code}: {self._safe_error(response)}"
-            ) from exc
-        return response
+        return request_file(self, method, path, **kwargs)
 
     def _stream_events_once(self, body: dict[str, Any]) -> list[dict[str, Any]]:
-        """Read one SAM Video stream without retrying it after any accepted request."""
+        from app.providers.transport import request_events
 
-        try:
-            with httpx.stream(
-                "POST",
-                f"{self.base_url}/responses",
-                headers=self.headers | {"Accept": "text/event-stream"},
-                timeout=self.settings.meta_video_timeout_seconds,
-                json=body,
-            ) as response:
-                if response.status_code in {408, 429, 500, 502, 503, 504}:
-                    response.read()
-                    raise MetaProviderUncertainError(
-                        f"Meta SAM Video returned {response.status_code}; result state is uncertain."
-                    )
-                if response.status_code >= 400:
-                    response.read()
-                    raise MetaProviderError(
-                        f"Meta Model API returned {response.status_code}: {self._safe_error(response)}"
-                    )
-                events: list[dict[str, Any]] = []
-                for line in response.iter_lines():
-                    if not line or not line.startswith("data: "):
-                        continue
-                    data = line.removeprefix("data: ")
-                    if data != "[DONE]":
-                        event = json.loads(data)
-                        if isinstance(event, dict):
-                            events.append(event)
-                return events
-        except MetaProviderError:
-            raise
-        except (httpx.HTTPError, json.JSONDecodeError) as exc:
-            raise MetaProviderUncertainError(
-                "Meta SAM Video stream ended without a trusted result."
-            ) from exc
+        return request_events(self, body, once=True)
 
     @staticmethod
     def _video_result_from_events(

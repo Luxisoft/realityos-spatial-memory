@@ -81,8 +81,8 @@
 - The gateway's real `GET /v1/models` request returned the enabled Meta catalog,
   including `muse-spark-1.3`, `sam-3.1` and `muse-voice-transcribe-1.0`.
 - RealityOS API and worker are healthy and run in `META_MODE=live` with the
-  gateway URL configured. They do not contain `MODEL_API_KEY`; the Model API
-  credential remains only in FRONTEND's protected runtime environment.
+  gateway URL configured. At that initial deployment, the Meta key was kept only
+  in FRONTEND. Superseded by the direct connection deployment below (2026-11-01).
 - Subsequent production deployments for indexed retrieval and the expanded demo
   seed completed successfully in workflow runs
   [40435541580](https://github.com/Luxisoft/realityos-spatial-memory/actions/runs/40435541580)
@@ -1222,3 +1222,48 @@ ktlint, lint Debug y compilación final aprobados; el único APK se actualizó e
 de servidor: API/worker siguen en el release observado
 `realityos-backend:seamless-tts-20261101`; su rollback previo permanece en
 `.runtime/seamless-tts-20261101-rollback.json`.
+
+
+## Conexión directa y Seamless local — 2026-11-01
+
+Desplegado `realityos-backend:direct-meta-20261101` en API/worker y
+`realityos-tts:direct-20261101` en este servidor. `.env` selecciona
+`META_CONNECTION_MODE=direct|gateway`; producción está en `direct` con
+`META_GATEWAY_FALLBACK_ENABLED=true`. La clave activa se instaló privadamente
+y sustituyó las tres entradas locales rechazadas. Los tokens de Meta, gateway
+y síntesis permanecen separados y no se publican.
+
+Transporte común para JSON, ASR multipart, SAM imagen y Files/video. Directo
+usa `api.meta.ai`; errores de conexión, 401/403/404, 408/429 y 5xx activan el
+respaldo. 400/422 no lo activan. Cada petición nueva vuelve a directo. Archivos,
+videos y streams aceptados o ambiguos no se repiten automáticamente: conservan
+el estado `uncertain` y los handles se rebobinan solo para reenvíos permitidos.
+
+Seamless corre localmente en BF16, con 4 GiB sin swap y dos CPU. El endpoint
+HTTPS público `/tts/synthesize` exige su propio Bearer token; no altera
+`POST /v1/tts` ni los contratos Android/web. El gateway de FRONTEND se conserva
+con la imagen `realityos-meta-gateway:direct-backup-20261101`; su ruta de voz
+apunta al motor de RealityOS. No hay otro modelo en FRONTEND ni un bucle de
+forwarding. La voz del dispositivo continúa si no se consigue audio.
+
+Validación: 326 pruebas backend/gateway, ruff, formato, arquitectura, YAML y
+shell del workflow. Benchmark real: seis WAV EN/ES, 2,22–3,01 segundos, sin OOM.
+Tras desplegar, consultas Muse reales pasaron en directo y en modo gateway;
+un 404 inyectado únicamente en el cliente directo activó el gateway real y
+terminó con HTTP 200/`OK`. La síntesis EN/ES por HTTPS directo y la síntesis por
+respaldo real pasaron a ~2,7–2,8 segundos. La ruta pública de voz rechazó una
+petición sin token con 401. Worker verificó nueve modelos usando únicamente
+`api.meta.ai`. Salud pública lista, OpenAPI conservado, Alembic
+`20261101_0030 (head)` y módulo biométrico sin cambios verificados. No se
+realizó una nueva prueba física de gafas/teléfono ni una nueva inferencia SAM
+Live; sus rutas se cubrieron con pruebas de transporte.
+
+CI respeta `.env`, no conserva selecciones antiguas sobre ella y no depende
+del éxito del despliegue FRONTEND para actualizar RealityOS. No hay migración
+nueva, dump PostgreSQL ni cambio de contrato que requiera otro APK.
+Informes privados: `.runtime/direct-meta-20261101-deployed.json`,
+`.runtime/direct-meta-20261101-live-verification.json` y
+`.runtime/direct-tts-20261101-benchmark.json`. Rollback API/worker:
+`.runtime/direct-meta-20261101-rollback.json`, con el entorno anterior en
+`.runtime/direct-meta-20261101-previous.env`. Rollback FRONTEND:
+`/opt/realityos-meta-gateway/direct-backup-20261101-rollback.json`.

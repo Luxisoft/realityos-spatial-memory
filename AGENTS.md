@@ -47,8 +47,11 @@ configuration and non-code files, or when the graph is unavailable.
 - State observation dates as “last seen” and keep visual confidence separate
   from confidence that an item remains there now.
 - `MODEL_API_KEY`, JWT secrets and database credentials remain server-side.
-- In production, `MODEL_API_KEY` lives only on FRONTEND's gateway runtime file;
-  RealityOS receives only its independent gateway token.
+- Production supports direct RealityOS connections and FRONTEND gateway fallback.
+  Keep `MODEL_API_KEY` in private server runtime files on both hosts; the gateway
+  token and speech-service token are independent. `.env` selects the connection.
+- Seamless speech runs on RealityOS in its isolated, resource-limited container;
+  FRONTEND remains the gateway fallback and does not host the speech model.
 - Mock outputs are deterministic and visibly labelled simulated.
 - Confirm current official Meta endpoint/SDK signatures before coding Live.
 

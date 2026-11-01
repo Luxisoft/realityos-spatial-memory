@@ -19,16 +19,20 @@ puerto HTTP. Restrinja CORS a dominios reales antes de producción.
 ## Producción mediante GitHub Actions
 
 Los merges a `main` activan `.github/workflows/deploy-production.yml`. El
-workflow prueba el código, publica imágenes inmutables en GHCR, despliega el
-gateway en FRONTEND y solo después actualiza API y worker. Configure el
+workflow prueba el código y publica imágenes inmutables en GHCR. RealityOS y
+el gateway de FRONTEND se despliegan de forma independiente; un fallo de FRONTEND
+no bloquea la actualización de API/worker con conexión directa. Configure el
 Environment protegido `production` con los secretos indicados en
 [Gateway](GATEWAY.md). Los secretos no se almacenan en Git ni en archivos del
 repositorio.
 
 Antes del primer merge de despliegue, cree el registro DNS `A` de
 `meta.luxisoft.com` apuntando a `198.252.105.131`. El workflow valida Docker,
-Nginx, TLS, el catálogo de modelos de Meta y la salud de RealityOS. Si FRONTEND
-no devuelve `muse-spark-1.3`, el workflow falla sin activar Live en RealityOS.
+Nginx, TLS, el catálogo de modelos de Meta y la salud de RealityOS. La selección `META_CONNECTION_MODE=direct|gateway` y el respaldo
+`META_GATEWAY_FALLBACK_ENABLED=true|false` se configuran en `.env`; CI no los
+sobrescribe. Instale la clave Meta activa y el token de gateway en ese archivo
+privado antes de activar Live. Un fallo de catálogo en FRONTEND afecta únicamente
+al despliegue del gateway.
 
 Para el teléfono sin gafas físicas, cree también el DNS de
 `realityos.luxisoft.com` hacia este servidor. El mismo workflow emite el
@@ -71,3 +75,13 @@ La espera por otro propietario del lease no consume el presupuesto de dos
 reintentos del proveedor ni abandona una cadena por la duración de un video.
 En reanudaciones sin objetos nuevos por revisar, se guardan igualmente las
 resoluciones retenidas y se recalcula el contador de revisión pendiente.
+
+
+## Voz local
+
+Combinar también `infrastructure/tts/compose.realityos.yml`. Solo después de
+pasar el benchmark real, configurar `TTS_LOCAL_ENABLED=true`; CI actualizará el
+contenedor con la imagen inmutable `REALITYOS_TTS_IMAGE`. Su token se lee de
+`.env`, pero ninguna credencial Meta/DB/JWT entra en el contenedor de voz.
+El virtual host HTTPS publica `/tts/synthesize` directamente al puerto loopback
+8091. No requiere otro dominio ni cambios en el contrato Android/web.

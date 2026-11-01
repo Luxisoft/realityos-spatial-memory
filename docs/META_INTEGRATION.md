@@ -108,3 +108,14 @@ validated for both languages without loading model weights.
 Implementation, capacity checks, benchmark and current activation limits are in
 [TTS](TTS.md). Full model inference and acoustic validation remain pending on
 FRONTEND; do not report generated Seamless audio or a successful model benchmark.
+
+
+## Direct connection and automatic fallback — 2026-11-01
+
+An authenticated same-key comparison now succeeds from RealityOS egress:
+Models returns nine models and Muse Spark Responses completes with `OK`.
+The historical empty-catalog restriction above no longer applies. Explicit
+`META_CONNECTION_MODE=direct|gateway` selects the primary route;
+`META_GATEWAY_FALLBACK_ENABLED=true` keeps FRONTEND as standby. Shared transport
+covers JSON, image SSE, ASR multipart, Files and video without replaying accepted
+or ambiguous streams/uploads. See [connection settings](GATEWAY.md).

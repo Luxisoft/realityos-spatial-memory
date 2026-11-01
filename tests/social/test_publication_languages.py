@@ -127,6 +127,7 @@ def test_live_prepares_complete_pair_in_one_request(monkeypatch):
     model = LiveMetaModelClient(
         Settings(
             meta_mode="live",
+            meta_connection_mode="gateway",
             meta_gateway_base_url="https://example.invalid/v1",
             meta_gateway_token="fixture",
         )

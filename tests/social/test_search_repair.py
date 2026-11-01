@@ -23,6 +23,7 @@ def live():
     return LiveMetaModelClient(
         Settings(
             meta_mode="live",
+            meta_connection_mode="gateway",
             meta_gateway_base_url="https://fixture.invalid/v1",
             meta_gateway_token="fixture",
             meta_max_retries=2,

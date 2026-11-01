@@ -24,7 +24,9 @@ update = module("update_runtime_env")
 preserve = module("preserve_backend_runtime")
 
 
-@pytest.mark.parametrize("key", ["REALITYOS_GATEWAY_IMAGE", "REALITYOS_BACKEND_IMAGE"])
+@pytest.mark.parametrize(
+    "key", ["REALITYOS_GATEWAY_IMAGE", "REALITYOS_BACKEND_IMAGE", "REALITYOS_TTS_IMAGE"]
+)
 def test_image_update_preserves_existing_credentials_and_optional_settings(
     tmp_path, key
 ):
@@ -90,20 +92,24 @@ def test_backend_overlay_retains_live_engine_auth_and_gateway_settings():
         env = runtime["services"][service]["environment"]
         assert env["FACE_ENGINE"] == "insightface"
         assert env["FACEBOOK_APP_SECRET"] == "test-app-secret"
-        assert env["META_GATEWAY_TOKEN"] == "private-test-token"
+        assert "META_GATEWAY_TOKEN" not in env
+        assert "MODEL_API_KEY" not in env
         assert "PATH" not in env and "PYTHONPATH" not in env
         assert "image" not in runtime["services"][service]
         assert rollback["services"][service]["image"] == "realityos-backend:previous"
         assert rollback["services"][service]["pull_policy"] == "never"
-        assert rollback["services"][service]["environment"] == env
-
-
-def test_meta_key_is_rejected_instead_of_copied_into_realityos():
-    with pytest.raises(ValueError):
-        preserve.application_environment(
-            {"Config": {"Env": ["MODEL_API_KEY=test-forbidden-key"]}},
-            {"Config": {"Env": []}},
+        assert (
+            rollback["services"][service]["environment"]["META_GATEWAY_TOKEN"]
+            == "private-test-token"
         )
+
+
+def test_meta_key_can_be_preserved_for_private_rollback():
+    env = preserve.application_environment(
+        {"Config": {"Env": ["MODEL_API_KEY=private-test-key"]}},
+        {"Config": {"Env": []}},
+    )
+    assert env["MODEL_API_KEY"] == "private-test-key"
 
 
 def test_first_install_has_no_previous_containers():

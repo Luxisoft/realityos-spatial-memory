@@ -226,6 +226,7 @@ def test_live_translation_uses_responses_and_rejects_unstructured_output(monkeyp
     model = LiveMetaModelClient(
         Settings(
             meta_mode="live",
+            meta_connection_mode="gateway",
             meta_gateway_base_url="https://example.invalid/v1",
             meta_gateway_token="fixture",
         )

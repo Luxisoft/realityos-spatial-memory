@@ -1,0 +1,33 @@
+# Merge with the RealityOS base/production Compose files.
+services:
+  seamless-tts:
+    profiles: [speech]
+    image: ${REALITYOS_TTS_IMAGE:-realityos-tts:local}
+    build:
+      context: ..
+      dockerfile: infrastructure/tts/Dockerfile
+    environment:
+      TTS_SERVICE_TOKEN: ${TTS_SERVICE_TOKEN:-}
+      HF_HOME: /models
+      TTS_CPU_THREADS: "2"
+    ports:
+      - "127.0.0.1:8091:8091"
+    volumes:
+      - seamless_models:/models
+    mem_limit: 4g
+    memswap_limit: 4g
+    cpus: 2
+    pids_limit: 128
+    read_only: true
+    tmpfs: [/tmp]
+    security_opt: [no-new-privileges:true]
+    restart: unless-stopped
+    networks: [egress]
+    healthcheck:
+      test: [CMD, python, -c, "import urllib.request; urllib.request.urlopen('http://localhost:8091/health/ready')"]
+      interval: 15s
+      timeout: 5s
+      start_period: 600s
+      retries: 6
+volumes:
+  seamless_models:
