@@ -9,15 +9,14 @@ on:
 jobs:
   backend:
     runs-on: ubuntu-latest
+    # Match production media encoding; Ubuntu ships a different FFmpeg major.
+    container: python:3.13-slim-trixie
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.13"
       - name: Install video test dependencies
         run: |
-          sudo apt-get update
-          sudo apt-get install --no-install-recommends -y ffmpeg
+          apt-get update
+          apt-get install --no-install-recommends -y ffmpeg
       - run: python -m pip install --upgrade pip
       - run: python -m pip install -e "backend[dev]"
       - run: python scripts/check_structure.py

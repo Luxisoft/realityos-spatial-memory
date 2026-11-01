@@ -1267,3 +1267,10 @@ Informes privados: `.runtime/direct-meta-20261101-deployed.json`,
 `.runtime/direct-meta-20261101-rollback.json`, con el entorno anterior en
 `.runtime/direct-meta-20261101-previous.env`. Rollback FRONTEND:
 `/opt/realityos-meta-gateway/direct-backup-20261101-rollback.json`.
+
+
+Ajuste de CI de esta entrega: el runner anterior usaba Ubuntu/FFmpeg 6.1.1,
+mientras producción usa Debian 13/FFmpeg 7.1.5. Una prueba existente depende de
+los bytes de fotogramas sintéticos y fallaba con esa diferencia. Backend,
+verificación de despliegue y base Docker quedan alineados explícitamente en
+Debian 13 (trixie). No se modificó el módulo protegido ni su comportamiento.
