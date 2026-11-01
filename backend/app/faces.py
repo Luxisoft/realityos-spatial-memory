@@ -1452,8 +1452,19 @@ def enrollment_thumbnail(
         bottom = top + float(box.get("height", 1.0)) * height
     except (TypeError, ValueError):
         left, top, right, bottom = 0.0, 0.0, float(width), float(height)
+    # A photo-wide stroke can fill a small face. Keep the outline outside
+    # the detected region and size it relative to that face instead.
+    face_size = max(1.0, min(right - left, bottom - top))
+    outline = max(1, min(max(2, width // 200), int(face_size / 24)))
     ImageDraw.Draw(frame).rectangle(
-        [left, top, right, bottom], outline=(240, 191, 36), width=max(2, width // 200)
+        [
+            max(0, left - outline),
+            max(0, top - outline),
+            min(width - 1, right + outline),
+            min(height - 1, bottom + outline),
+        ],
+        outline=(240, 191, 36),
+        width=outline,
     )
     if not full_size:
         frame.thumbnail((360, 480))

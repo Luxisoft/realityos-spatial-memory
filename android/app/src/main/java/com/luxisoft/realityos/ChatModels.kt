@@ -102,7 +102,9 @@ internal data class GalleryThumb(
     /** Face enrollment behind a 1:N match; Display-only, never persisted to chat history. */
     val faceEnrollmentId: String = "",
     /** Probe box behind a 1:N match; Display-only, never persisted to chat history. */
-    val probeBox: FaceProbeBox? = null
+    val probeBox: FaceProbeBox? = null,
+    /** Internal profile from a fresh face match; never a browser URL or history field. */
+    val profileUserId: String = ""
 ) {
     /** The chat keeps a small preview; the viewer requests the original dimensions. */
     val viewerUrl: String

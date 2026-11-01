@@ -102,6 +102,7 @@ class RealityViewModel(application: Application) : AndroidViewModel(application)
         )
     )
     val state: StateFlow<RealityUiState> = mutableUiState.asStateFlow()
+    internal val displayProfileRequest = MutableStateFlow<DisplayProfileRequest?>(null)
 
     internal val permissionIds = AtomicLong(0)
     internal val mutablePermissionRequest = MutableStateFlow<RealityPermissionRequest?>(null)

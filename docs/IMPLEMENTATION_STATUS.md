@@ -1329,3 +1329,28 @@ subir fotografías. La ejecución manual `verify_display_baseline` permite
 comprobar los dos fallos sobre la implementación anterior antes de ejecutar
 la corregida. No implica validación de cámara, tacto ni gafas físicas. Sin cambios
 de backend, contratos API o consentimientos biométricos.
+
+## Señalización facial legible y perfil nativo — 2026-11-01
+
+La tarjeta del probe usa contornos finos y etiquetas fuera de cualquier rostro.
+Si no existe espacio junto a una cara, su número ocupa una banda inferior de
+reserva; la tarjeta conserva 600 × 280 y el probe continúa siendo efímero.
+La miniatura enrolada también dibuja el borde fuera del rostro y calcula el
+grosor según la caja facial, para no llenar caras pequeñas en fotos grandes.
+El cambio de `faces.py` se limita a ese dibujo solicitado por el propietario;
+no cambia permisos, consentimiento, detección ni comparación biométrica.
+
+Buscar persona conserva el `user_id` interno del match durante la sesión y
+muestra Abrir perfil en la app. Un resultado abre su perfil nativo; varios
+ofrecen un selector. Atrás conserva la búsqueda. No se usa `profile_link` para
+abrir Facebook ni un navegador, y no se persiste este estado en el historial.
+Solo se aceptan perfiles de los resultados vigentes de la cuenta; cambiar de
+cuenta elimina la solicitud. Los permisos del perfil se comprueban en las rutas
+existentes del servidor.
+
+Pruebas de imagen cubren caras pequeñas, grupos densos y regiones que ocupan
+toda la imagen. Las pruebas Android cubren IDs válidos, navegación desde el
+WebView oficial, selección entre matches, regreso, cuenta y callbacks anteriores.
+El contenido remoto del perfil sigue las pruebas del backend; las pruebas de
+navegación sustituyen únicamente ese contenido. QA visual en teléfono y gafas
+físicas sigue pendiente; no se infiere de la cámara emulada.

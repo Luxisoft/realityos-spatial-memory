@@ -53,6 +53,7 @@ internal fun decodeFaceThumb(match: JSONObject?): GalleryThumb? {
         mediaUrl = thumb,
         caption = match.optText("display_name").orEmpty(),
         mediaId = evidence.optText("media_id").orEmpty(),
+        profileUserId = normalizedProfileId(match.optText("user_id")).orEmpty(),
         matchedLabels = listOf(badge),
         confidence = if (match.isNull("similarity")) null else match.optDouble("similarity")
     )

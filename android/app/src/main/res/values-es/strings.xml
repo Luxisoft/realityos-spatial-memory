@@ -361,6 +361,9 @@
     <string name="meta_person_position">Persona %1$d de %2$d</string>
     <string name="meta_guest_no_person">Las cuentas de invitados no pueden buscar personas de Meta.</string>
     <string name="meta_face_group_photos">Ver fotos del match</string>
+    <string name="meta_open_profile">Abrir perfil en la app</string>
+    <string name="meta_open_profiles">Abrir perfiles en la app</string>
+    <string name="meta_match_profile_missing">Esta coincidencia no tiene un perfil disponible.</string>
     <string name="meta_face_group_more">+%1$d más</string>
     <string name="meta_face_color_1">dorado</string>
     <string name="meta_face_color_2">cian</string>

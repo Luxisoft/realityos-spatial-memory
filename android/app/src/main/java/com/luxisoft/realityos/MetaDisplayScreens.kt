@@ -321,6 +321,8 @@ internal fun RealityViewModel.renderFaceGroup() {
     val rows = faceGroupRows(metaController.matches, MetaDisplayPolicy.faceGroupPalette())
     if (rows.isEmpty()) return
     val language = RealityExperienceStore(app).language.value.languageTag
+    val profileTargets = displayProfileTargets(metaController.matches)
+    val revision = metaController.generation.revision
     sendDisplay {
         flexBox(direction = Direction.COLUMN, gap = 8, padding = 20, background = FlexBoxBackground.CARD) {
             text(copy(R.string.meta_search_person), style = TextStyle.HEADING)
@@ -337,10 +339,17 @@ internal fun RealityViewModel.renderFaceGroup() {
             val overflow = rows.size - MetaDisplayPolicy.FACE_GROUP_MAX_ROWS
             if (overflow > 0) text(copy(R.string.meta_face_group_more, overflow), style = TextStyle.META)
             if (rows.any { it.thumb.simulated }) text(copy(R.string.meta_simulated), style = TextStyle.META)
-            button(copy(R.string.meta_face_group_photos), style = ButtonStyle.PRIMARY, iconName = IconName.VIDEO_CAMERA, onClick = { renderFaceResult(0) })
-            button(copy(R.string.display_hear_again), style = ButtonStyle.SECONDARY, iconName = IconName.SPEAKER_WITH_TWO_ARCS, onClick = ::speakDisplayAnswer)
-            button(copy(R.string.display_new_query), style = ButtonStyle.SECONDARY, iconName = IconName.SPEECH_BUBBLE, onClick = ::beginQuery)
-            button(copy(R.string.display_home), style = ButtonStyle.OUTLINE, iconName = IconName.HOUSE, onClick = ::renderHome)
+            buttonGroup(alignment = ButtonGroupAlignment.CENTER) {
+                if (profileTargets.isNotEmpty()) {
+                    button(copy(if (profileTargets.size == 1) R.string.meta_open_profile else R.string.meta_open_profiles), style = ButtonStyle.PRIMARY, iconName = IconName.SPEECH_BUBBLE, onClick = { openMatchedProfiles(revision = revision) })
+                }
+                button(copy(R.string.meta_face_group_photos), style = ButtonStyle.SECONDARY, iconName = IconName.VIDEO_CAMERA, onClick = { renderFaceResult(0) })
+            }
+            buttonGroup(alignment = ButtonGroupAlignment.CENTER) {
+                button(copy(R.string.display_hear_again), style = ButtonStyle.SECONDARY, iconName = IconName.SPEAKER_WITH_TWO_ARCS, onClick = ::speakDisplayAnswer)
+                button(copy(R.string.display_new_query), style = ButtonStyle.SECONDARY, iconName = IconName.SPEECH_BUBBLE, onClick = ::beginQuery)
+                button(copy(R.string.display_home), style = ButtonStyle.OUTLINE, iconName = IconName.HOUSE, onClick = ::renderHome)
+            }
         }
     }
 }
@@ -393,6 +402,9 @@ private suspend fun RealityViewModel.loadFaceResult(index: Int, revision: Long) 
             }
             text("$badge · ${evidencePercent(item.confidence, language).orEmpty()}", style = TextStyle.META, color = TextColor.SECONDARY)
             if (item.simulated) text(copy(R.string.meta_simulated), style = TextStyle.META)
+            if (normalizedProfileId(item.profileUserId) != null) {
+                button(copy(R.string.meta_open_profile), style = ButtonStyle.PRIMARY, iconName = IconName.SPEECH_BUBBLE, onClick = { openMatchedProfiles(item.profileUserId, revision) })
+            }
             buttonGroup(alignment = ButtonGroupAlignment.CENTER) {
                 if (index > 0) button(copy(R.string.meta_previous), style = ButtonStyle.OUTLINE, iconName = IconName.ARROW_LEFT, onClick = { renderFaceResult(index - 1) })
                 if (index < metaController.matches.lastIndex) button(copy(R.string.meta_next), style = ButtonStyle.SECONDARY, iconName = IconName.CHECKMARK, onClick = { renderFaceResult(index + 1) })

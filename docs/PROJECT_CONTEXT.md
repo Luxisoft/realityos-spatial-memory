@@ -434,3 +434,11 @@ timeout de inicio y liberación del estado ocupado independiente de la generaci�
 de respuestas. CI pulsa Buscar objeto/persona en el WebView oficial y verifica
 CameraX en cámara emulada, con regresiones de permisos y cancelación. Backend y
 consentimientos sin cambios; QA física pendiente. Ver `IMPLEMENTATION_STATUS.md`.
+
+Señalización facial y perfil desde Display (2026-11-01): las etiquetas numéricas
+se colocan fuera de todos los rostros, con una banda de reserva para grupos
+densos; los contornos de la foto encontrada se dimensionan según la cara.
+Los resultados incorporan Abrir perfil en la app; varias coincidencias permiten
+elegir el perfil y volver al mismo resultado. Se usa el `user_id` interno devuelto
+por la búsqueda y la pantalla de perfil existente, con autorización habitual.
+Sin cambios de contratos, reconocimiento, consentimientos ni migraciones.

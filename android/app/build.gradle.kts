@@ -139,6 +139,8 @@ dependencies {
 }
 
 val refactoredKotlin = files(
+    "src/main/java/com/luxisoft/realityos/DisplayProfileNavigation.kt",
+    "src/test/java/com/luxisoft/realityos/DisplayProfileNavigationTest.kt",
     "src/androidTest/java/com/luxisoft/realityos/DisplaySearchCameraTest.kt",
     "src/main/java/com/luxisoft/realityos/LocalAccessPolicy.kt",
     "src/test/java/com/luxisoft/realityos/LocalAccessPolicyTest.kt",

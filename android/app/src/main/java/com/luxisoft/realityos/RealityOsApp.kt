@@ -461,6 +461,7 @@ private fun RealityHostShell(
                     modifier = Modifier.fillMaxWidth()
                 )
             }
+            DisplayProfileOverlay(viewModel)
         }
     }
 }

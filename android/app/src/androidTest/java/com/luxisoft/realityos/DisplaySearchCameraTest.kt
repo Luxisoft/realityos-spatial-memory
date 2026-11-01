@@ -13,8 +13,13 @@ import android.webkit.WebView
 import androidx.activity.ComponentActivity
 import androidx.camera.core.Preview
 import androidx.camera.core.ViewPort
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.Button
+import androidx.compose.material3.Text
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.test.assertTextContains
 import androidx.compose.ui.test.click
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithTag
@@ -22,6 +27,7 @@ import androidx.compose.ui.test.performTouchInput
 import androidx.lifecycle.ViewModelProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
+import com.luxisoft.realityos.host.DisplayProfileOverlay
 import java.io.File
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
@@ -76,7 +82,17 @@ class DisplaySearchCameraTest {
             vm.connectDisplay(identifier)
         }
         compose.setContent {
-            RealityOsTheme { DeveloperPreviewStage(vm, enabled = false, modifier = Modifier.fillMaxSize()) }
+            RealityOsTheme {
+                DeveloperPreviewStage(vm, enabled = false, modifier = Modifier.fillMaxSize())
+                DisplayProfileOverlay(vm) { id, back ->
+                    // Profile fetching is covered by the server's scoped
+                    // profile tests; this fixture checks native navigation.
+                    Column {
+                        Text("profile:$id", Modifier.testTag("matched-profile-content"))
+                        Button(onClick = back, modifier = Modifier.testTag("matched-profile-back")) { Text("Back") }
+                    }
+                }
+            }
         }
         await { vm.state.value.wearable.displayReady }
         main { vm.renderSearchMenu() }
@@ -86,6 +102,7 @@ class DisplaySearchCameraTest {
     @After fun stopDisplay() = runBlocking {
         if (::vm.isInitialized) {
             main {
+                vm.closeMatchedProfiles()
                 vm.cancelPendingActionAndRenderHome()
                 vm.disconnectDisplay()
             }
@@ -257,6 +274,66 @@ class DisplaySearchCameraTest {
         }
         gate.complete(Unit)
         await { source.completedBinds > completed }
+    }
+
+    @Test fun matchProfileButtonOpensNativeProfileAndBackKeepsDisplayResult() {
+        val id = "d678c6d6-8d86-48f9-9d30-59dcf08c6799"
+        showFaceMatches(listOf(profileMatch(id, "Ana")))
+        tapButton(vm.copy(R.string.meta_open_profile))
+        await { vm.displayProfileRequest.value != null }
+        compose.onNodeWithTag("matched-profile-content").assertTextContains(id)
+        compose.onNodeWithTag("matched-profile-back").performTouchInput { click() }
+        await { vm.displayProfileRequest.value == null }
+        awaitButton(vm.copy(R.string.meta_open_profile))
+        assertEquals(id, vm.metaController.matches.single().profileUserId)
+    }
+
+    @Test fun multipleMatchesLetTheUserChooseTheCorrectNativeProfile() {
+        val first = "d678c6d6-8d86-48f9-9d30-59dcf08c6799"
+        val second = "48bbde50-535b-49af-a505-a0d4945f0685"
+        showFaceMatches(listOf(profileMatch(first, "Ana"), profileMatch(second, "Luis")))
+        tapButton(vm.copy(R.string.meta_open_profiles))
+        compose.onNodeWithTag("matched-profile-$second").performTouchInput { click() }
+        compose.onNodeWithTag("matched-profile-content").assertTextContains(second)
+        compose.onNodeWithTag("matched-profile-back").performTouchInput { click() }
+        compose.onNodeWithTag("matched-profile-$first").performTouchInput { click() }
+        compose.onNodeWithTag("matched-profile-content").assertTextContains(first)
+    }
+
+    @Test fun staleAccountAndUnmatchedIdsCannotOpenAProfile() {
+        val id = "d678c6d6-8d86-48f9-9d30-59dcf08c6799"
+        showFaceMatches(listOf(profileMatch(id, "Ana")))
+        main { vm.openMatchedProfiles("48bbde50-535b-49af-a505-a0d4945f0685") }
+        assertNull(vm.displayProfileRequest.value)
+        val revision = vm.metaController.generation.revision
+        main {
+            vm.metaController.generation.invalidate()
+            vm.openMatchedProfiles(id, revision)
+        }
+        assertNull(vm.displayProfileRequest.value)
+        main { vm.openMatchedProfiles(id) }
+        await { vm.displayProfileRequest.value != null }
+        main { vm.clearMetaAccount() }
+        await { vm.displayProfileRequest.value == null }
+        main { vm.openMatchedProfiles(id) }
+        assertNull(vm.displayProfileRequest.value)
+    }
+
+    private fun profileMatch(id: String, name: String) = GalleryThumb(
+        thumbnailUrl = "https://example.invalid/thumbnail.jpg",
+        mediaUrl = "https://example.invalid/thumbnail.jpg",
+        caption = name,
+        profileUserId = id,
+        confidence = 0.92,
+        probeBox = FaceProbeBox(0.2f, 0.2f, 0.3f, 0.3f, 0)
+    )
+
+    private fun showFaceMatches(matches: List<GalleryThumb>) {
+        main {
+            vm.metaController.matches = matches
+            vm.metaController.faceGroupUrl = "https://example.invalid/probe.jpg"
+            vm.renderFaceGroup()
+        }
     }
 
     private fun grantCamera() {

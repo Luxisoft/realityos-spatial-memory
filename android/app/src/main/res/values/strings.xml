@@ -364,6 +364,9 @@
     <string name="meta_person_position">Person %1$d of %2$d</string>
     <string name="meta_guest_no_person">Guest accounts cannot search for Meta people.</string>
     <string name="meta_face_group_photos">See match photos</string>
+    <string name="meta_open_profile">Open profile in app</string>
+    <string name="meta_open_profiles">Open profiles in app</string>
+    <string name="meta_match_profile_missing">This match has no available profile.</string>
     <string name="meta_face_group_more">+%1$d more</string>
     <string name="meta_face_color_1">gold</string>
     <string name="meta_face_color_2">cyan</string>

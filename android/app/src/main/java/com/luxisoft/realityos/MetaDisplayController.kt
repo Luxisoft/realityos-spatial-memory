@@ -40,6 +40,7 @@ internal class MetaDisplayController(private val vm: RealityViewModel) {
     }.getOrNull()
 
     internal fun authenticated(): Boolean = owner != null && owner == subject()
+    internal fun profileOwner(): String? = owner?.takeIf { authenticated() }
 
     private fun update(block: (MetaDisplayState) -> MetaDisplayState) {
         vm.mutableUiState.update { it.copy(meta = block(it.meta)) }
@@ -347,6 +348,7 @@ internal class MetaDisplayController(private val vm: RealityViewModel) {
     }
 
     fun clear() {
+        vm.displayProfileRequest.value = null
         configurationJob?.cancel()
         configurationJob = null
         pause()

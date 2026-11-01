@@ -9,12 +9,13 @@ from typing import Literal
 
 import jwt
 from fastapi import APIRouter, Depends, File, Form, HTTPException, Request, UploadFile
-from PIL import Image, ImageDraw, ImageFont, ImageOps
+from PIL import Image, ImageOps
 from pydantic import BaseModel, Field, ValidationError, field_validator
 from sqlalchemy.orm import Session
 
 from app.dependencies import get_current_user, get_db
 from app.models import User
+from app.social_features.display_annotations import render_face_group
 from app.social_features.evidence import evidence_image
 from app.social_features.gallery import thumbnail
 from app.social_features.uploads import publication_upload_preview
@@ -194,24 +195,7 @@ async def face_group_link(
             frame = ImageOps.exif_transpose(decoded).convert("RGB")
     except Exception as error:
         raise HTTPException(status_code=422, detail="The image cannot be decoded.") from error
-    picture = ImageOps.contain(frame, (600, 280))
-    canvas = Image.new("RGB", (600, 280), "black")
-    offset_x = (600 - picture.width) // 2
-    offset_y = (280 - picture.height) // 2
-    canvas.paste(picture, (offset_x, offset_y))
-    draw = ImageDraw.Draw(canvas)
-    font = ImageFont.load_default()
-    for mark in parsed:
-        color = mark.color
-        rgb = (int(color[1:3], 16), int(color[3:5], 16), int(color[5:7], 16))
-        left = offset_x + mark.box["x"] * picture.width
-        top = offset_y + mark.box["y"] * picture.height
-        right = left + mark.box["width"] * picture.width
-        bottom = top + mark.box["height"] * picture.height
-        draw.rectangle([left, top, right, bottom], outline=rgb, width=3)
-        badge = [left, top, left + 30, top + 30]
-        draw.rectangle(badge, fill=rgb)
-        draw.text((left + 9, top + 8), str(mark.number), fill="white", font=font)
+    canvas = render_face_group(frame, parsed)
     output = io.BytesIO()
     canvas.save(output, "JPEG", quality=92)
     settings = request.app.state.settings

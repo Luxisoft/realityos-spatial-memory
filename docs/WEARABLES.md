@@ -145,6 +145,12 @@ configurable on the phone (**In the app** or **By location**), with app
 gallery as the default.
 Gallery results use confidence ordering, short-lived authorized images,
 last-seen date, visual confidence and an explicit partial/simulated label.
+
+Face numbers sit outside all face regions; crowded images use a reserved label
+band and thin outlines. Open profile in app opens the matched internal profile
+on the phone, or a selector when several profiles match. Back preserves the
+Display result. Profile access uses the existing authenticated server routes;
+Facebook URLs are not used for this navigation.
 Previous/next actions share one compact row; title, notes, replay and another
 query live on the result actions screen.
 
