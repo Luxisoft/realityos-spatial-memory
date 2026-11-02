@@ -2,6 +2,8 @@ package com.luxisoft.realityos
 
 import android.Manifest
 import android.app.Application
+import android.graphics.Bitmap
+import android.graphics.Color
 import android.os.Looper
 import android.os.SystemClock
 import android.util.Base64
@@ -29,12 +31,23 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import com.luxisoft.realityos.host.DisplayProfileOverlay
+import java.io.ByteArrayOutputStream
 import java.io.File
+import java.net.URL
+import java.time.Instant
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
+import javax.net.ssl.HttpsURLConnection
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.runBlocking
+import okhttp3.mockwebserver.Dispatcher
+import okhttp3.mockwebserver.MockResponse
+import okhttp3.mockwebserver.MockWebServer
+import okhttp3.mockwebserver.RecordedRequest
+import okhttp3.tls.HandshakeCertificates
+import okhttp3.tls.HeldCertificate
+import okio.Buffer
 import org.json.JSONObject
 import org.junit.After
 import org.junit.Assert.*
@@ -52,13 +65,65 @@ class DisplaySearchCameraTest {
     private lateinit var source: CameraSource
     private lateinit var controller: DeveloperPreviewController
     private var retainedFile: File? = null
+    private lateinit var imageServer: MockWebServer
+    private lateinit var imageLoader: DisplayResultImages
+    private var groupLink: DisplayImageLink? = null
+    private var imageNow: Instant? = null
+
+    @Volatile private var imageStatus = 200
+
+    @Volatile private var brokenImage = false
+
+    @Volatile private var groupDownloads = 0
+    private var imageGate: CountDownLatch? = null
+    private val imageRequested = CountDownLatch(1)
+
+    private fun startImageServer() {
+        val certificate = HeldCertificate.Builder().commonName("localhost").addSubjectAlternativeName("localhost").build()
+        val serverTls = HandshakeCertificates.Builder().heldCertificate(certificate).build()
+        val clientTls = HandshakeCertificates.Builder().addTrustedCertificate(certificate.certificate).build()
+        imageServer = MockWebServer().apply {
+            useHttps(serverTls.sslSocketFactory(), false)
+            dispatcher = object : Dispatcher() {
+                override fun dispatch(request: RecordedRequest): MockResponse {
+                    imageRequested.countDown()
+                    imageGate?.await(10, TimeUnit.SECONDS)
+                    if (request.path == "/group") groupDownloads++
+                    if (imageStatus != 200) return MockResponse().setResponseCode(imageStatus)
+                    val color = when (request.path) {
+                        "/group" -> Color.BLUE
+                        "/second" -> Color.GREEN
+                        else -> Color.RED
+                    }
+                    val bytes = ByteArrayOutputStream().use { output ->
+                        Bitmap.createBitmap(600, 280, Bitmap.Config.ARGB_8888).apply { eraseColor(color) }
+                            .compress(Bitmap.CompressFormat.PNG, 100, output)
+                        output.toByteArray()
+                    }
+                    return MockResponse().setHeader("Content-Type", "image/png")
+                        .setBody(if (brokenImage) Buffer().writeUtf8("invalid image") else Buffer().write(bytes))
+                }
+            }
+            start()
+        }
+        imageLoader = DisplayResultImages(
+            requestLink = { payload ->
+                JSONObject().put("url", imageServer.url("/" + payload.getString("resource_id")).toString())
+                    .put("expires_at", Instant.now().plusSeconds(300).toString())
+            },
+            openConnection = { (URL(it).openConnection() as HttpsURLConnection).apply { sslSocketFactory = clientTls.sslSocketFactory() } },
+            now = { imageNow ?: Instant.now() }
+        )
+        groupLink = DisplayImageLink(imageServer.url("/group").toString(), Instant.now().plusSeconds(300))
+    }
 
     @Before fun startDisplay() = runBlocking {
+        startImageServer()
         val app = instrumentation.targetContext.applicationContext as RealityOsApplication
         for (permission in listOf(Manifest.permission.BLUETOOTH_CONNECT, Manifest.permission.CAMERA)) {
             instrumentation.uiAutomation.grantRuntimePermission(app.packageName, permission)
         }
-        // This fixture never contacts a server or authenticates a real account.
+        // Only the loopback image server is used; no real account is authenticated.
         // A CUSTOM device profile prevents automatic Live bootstrap in the test.
         DeviceProvisioningStore(app).save(DeviceProvisioning("https://example.invalid/v1", "camera-test", "camera-test", "test-only"))
         val payload = Base64.encodeToString("""{"sub":"display-camera-test"}""".toByteArray(), Base64.URL_SAFE or Base64.NO_WRAP or Base64.NO_PADDING)
@@ -69,9 +134,10 @@ class DisplaySearchCameraTest {
         compose.activityRule.scenario.onActivity { activity ->
             vm = ViewModelProvider(activity)[RealityViewModel::class.java]
             // Set only the account identity normally established by refresh();
-            // the fixture avoids network requests and changes no login gates.
+            // the fixture avoids backend requests and changes no login gates.
             MetaDisplayController::class.java.getDeclaredField("owner").apply { isAccessible = true }
                 .set(vm.metaController, "display-camera-test")
+            vm.displayResultImages = imageLoader
             source = CameraSource()
             vm.setPhoneInputSources(source, AndroidPhoneSpeechSource(activity))
             vm.mutableUiState.update { current ->
@@ -108,6 +174,8 @@ class DisplaySearchCameraTest {
                 vm.disconnectDisplay()
             }
         }
+        imageGate?.countDown()
+        if (::imageServer.isInitialized) imageServer.shutdown()
         retainedFile?.delete()
         if (::controller.isInitialized) controller.stop()
         SocialSession.token = null
@@ -326,19 +394,151 @@ class DisplaySearchCameraTest {
         assertNull(vm.displayProfileRequest.value)
     }
 
+    @Test fun realImagesSurviveMatchNavigationActionsAndNativeProfileReturn() {
+        val id = "d678c6d6-8d86-48f9-9d30-59dcf08c6799"
+        showFaceMatches(listOf(profileMatch(id, "Ana"), profileMatch("48bbde50-535b-49af-a505-a0d4945f0685", "Luis")))
+        awaitImage("blue")
+        repeat(3) {
+            tapButton(vm.copy(R.string.meta_face_group_photos))
+            awaitButton(vm.copy(R.string.meta_next))
+            awaitImage("red")
+            tapButton(vm.copy(R.string.meta_next))
+            awaitButton(vm.copy(R.string.meta_previous))
+            awaitImage("green")
+            tapButton(vm.copy(R.string.meta_previous))
+            awaitButton(vm.copy(R.string.meta_next))
+            awaitImage("red")
+            tapButton(vm.copy(R.string.meta_open_profile))
+            awaitNativeTag("matched-profile-back")
+            compose.onNodeWithTag("matched-profile-back").performTouchInput { click() }
+            await { vm.displayProfileRequest.value == null }
+            awaitImage("red")
+            tapButton(vm.copy(R.string.meta_result_actions))
+            tapButton(vm.copy(R.string.display_back))
+            awaitButton(vm.copy(R.string.meta_face_group_photos))
+            awaitImage("blue")
+        }
+        assertEquals("Returning must restore the loaded group image", 1, groupDownloads)
+    }
+
+    @Test fun failedMatchImageShowsRetryAndCanRecoverWithoutRepeatingSearch() {
+        showFaceMatches(listOf(profileMatch("d678c6d6-8d86-48f9-9d30-59dcf08c6799", "Ana")))
+        awaitImage("blue")
+        imageStatus = 404
+        tapButton(vm.copy(R.string.meta_face_group_photos))
+        awaitButtonText(vm.copy(R.string.meta_image_failed))
+        await { !vm.state.value.busy }
+        imageStatus = 200
+        tapButton(vm.copy(R.string.display_retry))
+        awaitButton(vm.copy(R.string.meta_open_profile))
+        awaitImage("red")
+    }
+
+    @Test fun corruptMatchImageShowsAnErrorInsteadOfAnEmptyCard() {
+        showFaceMatches(listOf(profileMatch("d678c6d6-8d86-48f9-9d30-59dcf08c6799", "Ana")))
+        awaitImage("blue")
+        brokenImage = true
+        tapButton(vm.copy(R.string.meta_face_group_photos))
+        awaitButtonText(vm.copy(R.string.meta_image_failed))
+        await { !vm.state.value.busy }
+    }
+
+    @Test fun cancelledImageDownloadCannotReplaceTheMenuOrLeaveBusyLatched() {
+        imageGate = CountDownLatch(1)
+        showFaceMatches(listOf(profileMatch("d678c6d6-8d86-48f9-9d30-59dcf08c6799", "Ana")))
+        assertTrue(imageRequested.await(5, TimeUnit.SECONDS))
+        val previousLoad = vm.galleryImageJob
+        main { vm.renderSearchMenu() }
+        assertFalse(vm.state.value.busy)
+        imageGate?.countDown()
+        runBlocking { previousLoad?.join() }
+        awaitButton(vm.copy(R.string.meta_search_object))
+        compose.waitForIdle()
+        assertNull(vm.metaController.faceGroupImage)
+        assertNull(vm.metaController.faceGroupLink)
+    }
+
+    @Test fun accountChangeDuringImageDownloadCannotRestorePrivatePixels() {
+        imageGate = CountDownLatch(1)
+        showFaceMatches(listOf(profileMatch("d678c6d6-8d86-48f9-9d30-59dcf08c6799", "Ana")))
+        assertTrue(imageRequested.await(5, TimeUnit.SECONDS))
+        val previousLoad = vm.galleryImageJob
+        main { vm.clearMetaAccount() }
+        imageGate?.countDown()
+        runBlocking { previousLoad?.join() }
+        await { !vm.state.value.busy }
+        assertNull(vm.metaController.faceGroupImage)
+        assertTrue(vm.metaController.matches.isEmpty())
+    }
+
+    @Test fun expiredGroupImageOffersANewSearchInsteadOfReusingCachedPixels() {
+        showFaceMatches(listOf(profileMatch("d678c6d6-8d86-48f9-9d30-59dcf08c6799", "Ana")))
+        awaitImage("blue")
+        imageNow = checkNotNull(groupLink).expiresAt.plusSeconds(1)
+        main { vm.renderFaceGroup() }
+        awaitButtonText(vm.copy(R.string.meta_image_failed))
+        awaitButton(vm.copy(R.string.display_new_query))
+        await { !vm.state.value.busy }
+        assertNull(vm.metaController.faceGroupImage)
+        assertEquals(1, groupDownloads)
+    }
+
+    @Test fun anotherSearchCannotReuseThePreviousGroupBitmap() {
+        showFaceMatches(listOf(profileMatch("d678c6d6-8d86-48f9-9d30-59dcf08c6799", "Ana")))
+        awaitImage("blue")
+        showSearch()
+        assertNull(vm.metaController.faceGroupImage)
+        showFaceMatches(listOf(profileMatch("48bbde50-535b-49af-a505-a0d4945f0685", "Luis")))
+        awaitImage("blue")
+        assertEquals(2, groupDownloads)
+        tapButton(vm.copy(R.string.meta_face_group_photos))
+        awaitImage("green")
+    }
+
+    @Test fun missingEnrollmentShowsImageErrorInsteadOfAnImagelessMatch() {
+        val match = profileMatch("d678c6d6-8d86-48f9-9d30-59dcf08c6799", "Ana").copy(faceEnrollmentId = "")
+        showFaceMatches(listOf(match))
+        awaitImage("blue")
+        tapButton(vm.copy(R.string.meta_face_group_photos))
+        awaitButtonText(vm.copy(R.string.meta_image_failed))
+        await { !vm.state.value.busy }
+    }
+
+    /** Read actual decoded pixels in Meta's WebView, not just image tags or button text. */
+    private fun awaitImage(color: String) {
+        await {
+            javascript(
+                """
+                Array.from(document.images).some(img => {
+                    if (!img.complete || img.naturalWidth !== 600 || img.naturalHeight !== 280) return false;
+                    const r = img.getBoundingClientRect();
+                    if (r.width <= 0 || r.height <= 0 || getComputedStyle(img).visibility === 'hidden') return false;
+                    const canvas = document.createElement('canvas'); canvas.width = 1; canvas.height = 1;
+                    const ctx = canvas.getContext('2d'); ctx.drawImage(img, 300, 140, 1, 1, 0, 0, 1, 1);
+                    const p = ctx.getImageData(0, 0, 1, 1).data;
+                    const channel = {red: 0, green: 1, blue: 2}["$color"];
+                    return p[channel] > 200 && p[(channel+1)%3] < 50 && p[(channel+2)%3] < 50;
+                })
+                """.trimIndent()
+            ) == "true"
+        }
+    }
+
     private fun profileMatch(id: String, name: String) = GalleryThumb(
         thumbnailUrl = "https://example.invalid/thumbnail.jpg",
         mediaUrl = "https://example.invalid/thumbnail.jpg",
         caption = name,
         profileUserId = id,
         confidence = 0.92,
-        probeBox = FaceProbeBox(0.2f, 0.2f, 0.3f, 0.3f, 0)
+        probeBox = FaceProbeBox(0.2f, 0.2f, 0.3f, 0.3f, 0),
+        faceEnrollmentId = if (name == "Luis") "second" else "first"
     )
 
     private fun showFaceMatches(matches: List<GalleryThumb>) {
         main {
             vm.metaController.matches = matches
-            vm.metaController.faceGroupUrl = "https://example.invalid/probe.jpg"
+            vm.metaController.faceGroupLink = groupLink
+            vm.mutableUiState.update { it.copy(meta = it.meta.copy(photoSearchKind = MetaPhotoSearchKind.PERSON)) }
             vm.renderFaceGroup()
         }
     }
@@ -417,6 +617,7 @@ class DisplaySearchCameraTest {
                 """
             (() => {
                 const b = Array.from(document.querySelectorAll('button,[role=button]')).find(b => b.textContent.includes(${JSONObject.quote(label)}));
+                b.scrollIntoView({block: "center"});
                 const r = b.getBoundingClientRect();
                 return {x: r.x + r.width / 2, y: r.y + r.height / 2, viewport: window.innerWidth};
             })()

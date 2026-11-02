@@ -1386,3 +1386,39 @@ se conservan. Windows utiliza su propia clave ElevenLabs y no copia claves de
 producción. Las referencias previas a modelos/volúmenes y rollbacks de Seamless
 son históricas y quedan retiradas; la recuperación inmediata usa la última
 versión ElevenLabs, sin modelo local. Se mantienen datos de usuario y biometría.
+
+
+## Carga verificada de fotos al navegar en Display — 2026-11-02
+
+Se conserva el diseño de Buscar persona, la tarjeta grupal señalizada, las
+fotos coincidentes y Abrir perfil en la app. Android descarga los derivados
+firmados y comprueba HTTP, formato, tamaño, decodificación y vencimiento antes
+de entregarlos a DAT como Bitmap. Un match sin enrolamiento o una foto fallida
+muestra un error con reintento; no genera una tarjeta silenciosamente vacía.
+Cada visita a un candidato solicita un enlace nuevo mediante la autorización
+existente. La tarjeta grupal se conserva solo en memoria durante la búsqueda,
+hasta el vencimiento del enlace; salir, desconectar o cambiar de cuenta la
+elimina. Un enlace grupal vencido ofrece otra búsqueda. Cancelar la carga libera
+el estado ocupado y las respuestas tardías no reemplazan pantallas nuevas.
+La navegación del perfil mantiene montado el mismo resultado.
+
+Las regresiones usan un servidor HTTPS de imágenes de prueba generado en
+memoria, sin cuentas ni medios de producción. La decodificación usa el motor
+gráfico nativo de Robolectric, incluyendo fotos corruptas. Las pruebas
+instrumentadas leen píxeles del WebView oficial tras repetir tres veces fotos
+coincidentes, siguiente/anterior, acciones/volver y perfil/regresar. También
+cubren 404, datos corruptos, enrolamiento ausente, vencimiento, búsqueda nueva,
+cancelación y cambio de cuenta. El certificado de prueba se confía únicamente
+en las conexiones de la fixture, sin modificar la confianza TLS de la app.
+
+Validación local: 170 pruebas Android, ktlint, lint sin errores, compilación de
+pruebas instrumentadas y APK Debug aprobados. APK `0.1.6-debug-20261102-0729`,
+SHA-256 `8180f234161c1186bf1bc374b417dbe7c6c2884cb1af5906273e7f0b39f8affa`.
+El Debug local declara explícitamente
+`includeSubdomains=false` para los tres hosts de loopback, resolviendo errores
+preexistentes de lint sin ampliar su acceso. Sin cambios de servidor,
+contratos API, permisos, reconocimiento, consentimientos ni migraciones.
+La ejecución instrumentada corresponde al emulador de CI; este host no tiene
+emulador ni dispositivo ADB. La validación física en teléfono/gafas sigue
+pendiente. El único APK Debug permanece en
+`android/app/build/outputs/apk/debug/app-debug.apk`.

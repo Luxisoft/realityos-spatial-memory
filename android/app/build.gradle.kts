@@ -116,9 +116,13 @@ dependencies {
   implementation(libs.mwdat.speech)
   testImplementation("junit:junit:4.13.2")
   testImplementation("org.robolectric:robolectric:4.16.1")
+  testImplementation("com.squareup.okhttp3:mockwebserver:4.12.0")
+  testImplementation("com.squareup.okhttp3:okhttp-tls:4.12.0")
   testImplementation("androidx.compose.ui:ui-test-junit4")
   androidTestImplementation("androidx.test.ext:junit:1.2.1")
   androidTestImplementation("androidx.test:runner:1.6.2")
+  androidTestImplementation("com.squareup.okhttp3:mockwebserver:4.12.0")
+  androidTestImplementation("com.squareup.okhttp3:okhttp-tls:4.12.0")
   androidTestImplementation(platform(libs.androidx.compose.bom))
   androidTestImplementation("androidx.compose.ui:ui-test-junit4")
   // Debug builds expose Meta's Developer Preview on a phone. Release builds
@@ -139,6 +143,8 @@ dependencies {
 }
 
 val refactoredKotlin = files(
+    "src/main/java/com/luxisoft/realityos/DisplayResultImages.kt",
+    "src/test/java/com/luxisoft/realityos/DisplayResultImagesTest.kt",
     "src/main/java/com/luxisoft/realityos/DisplayProfileNavigation.kt",
     "src/test/java/com/luxisoft/realityos/DisplayProfileNavigationTest.kt",
     "src/androidTest/java/com/luxisoft/realityos/DisplaySearchCameraTest.kt",

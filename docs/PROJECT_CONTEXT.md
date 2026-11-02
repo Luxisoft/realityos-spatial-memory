@@ -474,3 +474,14 @@ se conservan. Windows utiliza su propia clave ElevenLabs y no copia claves de
 producción. Las referencias previas a modelos/volúmenes y rollbacks de Seamless
 son históricas y quedan retiradas; la recuperación inmediata usa la última
 versión ElevenLabs, sin modelo local. Se mantienen datos de usuario y biometría.
+
+
+Carga verificada de fotos en Display (2026-11-02): se conserva el diseño actual.
+Android valida y decodifica los derivados firmados antes de pasarlos a DAT como
+Bitmap; la tarjeta grupal se restaura desde memoria durante la misma búsqueda,
+respetando el vencimiento. Los matches solicitan enlaces autorizados nuevos y
+los fallos muestran recuperación explícita. Cancelación y cambios de pantalla o
+cuenta impiden restaurar imágenes anteriores. Pasan 170 pruebas Android locales;
+regresiones HTTPS y de píxeles incorporadas al emulador de CI. Ver `WEARABLES.md`
+e `IMPLEMENTATION_STATUS.md`. Sin cambios de backend ni biometría; QA física
+pendiente.

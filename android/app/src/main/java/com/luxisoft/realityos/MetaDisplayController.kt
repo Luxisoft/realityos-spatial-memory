@@ -31,7 +31,8 @@ internal class MetaDisplayController(private val vm: RealityViewModel) {
     internal val answerText: String get() = answer?.text.orEmpty()
     internal var resultStatus: String = ""
     internal var lastQuestion: String = ""
-    internal var faceGroupUrl: String? = null
+    internal var faceGroupLink: DisplayImageLink? = null
+    internal var faceGroupImage: LoadedDisplayImage? = null
     private val meta get() = vm.state.value.meta
 
     private fun subject(): String? = runCatching {
@@ -101,6 +102,7 @@ internal class MetaDisplayController(private val vm: RealityViewModel) {
         }
         update { it.copy(searchScope = scope, resultIndex = 0, resultCount = 0) }
         matches = emptyList()
+        clearResultImages()
     }
 
     fun beginCapture() {
@@ -122,6 +124,7 @@ internal class MetaDisplayController(private val vm: RealityViewModel) {
         vm.viewModelScope.launch(Dispatchers.Main.immediate) {
             if (!requireAccount()) return@launch
             if (!canOpenCamera()) return@launch
+            clearResultImages()
             update { it.copy(captureForSearch = true, photoSearchKind = kind, error = null) }
             requestCamera()
         }
@@ -332,13 +335,13 @@ internal class MetaDisplayController(private val vm: RealityViewModel) {
 
     internal fun pause() {
         generation.invalidate()
-        val cancelledOperation = vm.captureOperationJob?.isActive == true || vm.queryJob?.isActive == true || job?.isActive == true
+        val cancelledOperation = vm.captureOperationJob?.isActive == true || vm.queryJob?.isActive == true || vm.galleryImageJob?.isActive == true || job?.isActive == true
         vm.captureOperationJob?.cancel()
         vm.captureOperationJob = null
         vm.queryJob?.cancel()
         vm.queryJob = null
-        vm.galleryImageJob?.cancel()
-        vm.galleryImageJob = null
+        vm.cancelDisplayImageLoad()
+        clearResultImages()
         // Network cancellation retains the request key and private original for a safe retry.
         job?.cancel()
         job = null
@@ -368,8 +371,13 @@ internal class MetaDisplayController(private val vm: RealityViewModel) {
         matches = emptyList()
         answer = null
         lastQuestion = ""
-        faceGroupUrl = null
+        clearResultImages()
         update { MetaDisplayState() }
         vm.renderHome()
+    }
+
+    internal fun clearResultImages() {
+        faceGroupLink = null
+        faceGroupImage = null
     }
 }

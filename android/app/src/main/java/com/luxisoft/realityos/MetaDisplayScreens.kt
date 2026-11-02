@@ -3,33 +3,44 @@ package com.luxisoft.realityos
 import androidx.lifecycle.viewModelScope
 import com.meta.wearable.dat.display.views.*
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.json.JSONArray
 import org.json.JSONObject
 
-internal fun RealityViewModel.renderMetaHome(): Unit = sendDisplay {
-    val meta = state.value.meta
-    flexBox(direction = Direction.COLUMN, gap = 10, padding = 24, background = FlexBoxBackground.CARD) {
-        text("RealityOS", style = TextStyle.HEADING)
-        button(copy(R.string.meta_search), style = ButtonStyle.PRIMARY, iconName = IconName.SPEECH_BUBBLE, onClick = ::renderSearchMenu)
-        if (meta.pendingMime != null) {
-            text(meta.pendingDestination.orEmpty(), style = TextStyle.BODY)
-            button(copy(R.string.meta_pending_capture), style = ButtonStyle.PRIMARY, iconName = IconName.VIDEO_CAMERA, onClick = ::renderPublicationReview)
-        } else {
-            button(copy(R.string.meta_capture), style = ButtonStyle.SECONDARY, iconName = IconName.VIDEO_CAMERA, onClick = ::beginMetaCapture)
+internal fun RealityViewModel.renderMetaHome() {
+    cancelDisplayImageLoad()
+    metaController.clearResultImages()
+    sendDisplay {
+        val meta = state.value.meta
+        flexBox(direction = Direction.COLUMN, gap = 10, padding = 24, background = FlexBoxBackground.CARD) {
+            text("RealityOS", style = TextStyle.HEADING)
+            button(copy(R.string.meta_search), style = ButtonStyle.PRIMARY, iconName = IconName.SPEECH_BUBBLE, onClick = ::renderSearchMenu)
+            if (meta.pendingMime != null) {
+                text(meta.pendingDestination.orEmpty(), style = TextStyle.BODY)
+                button(copy(R.string.meta_pending_capture), style = ButtonStyle.PRIMARY, iconName = IconName.VIDEO_CAMERA, onClick = ::renderPublicationReview)
+            } else {
+                button(copy(R.string.meta_capture), style = ButtonStyle.SECONDARY, iconName = IconName.VIDEO_CAMERA, onClick = ::beginMetaCapture)
+            }
         }
     }
 }
 
-internal fun RealityViewModel.renderSearchMenu(): Unit = sendDisplay {
-    flexBox(direction = Direction.COLUMN, gap = 10, padding = 24, background = FlexBoxBackground.CARD) {
-        text(copy(R.string.meta_search), style = TextStyle.HEADING)
-        button(copy(R.string.meta_search_object), style = ButtonStyle.PRIMARY, iconName = IconName.VIDEO_CAMERA, onClick = ::beginMetaObjectSearch)
-        button(copy(R.string.meta_search_person), style = ButtonStyle.PRIMARY, iconName = IconName.VIDEO_CAMERA, onClick = ::beginMetaPersonSearch)
-        button(copy(R.string.meta_voice_command), style = ButtonStyle.SECONDARY, iconName = IconName.SPEECH_BUBBLE, onClick = ::beginQuery)
-        button(copy(R.string.display_back), style = ButtonStyle.OUTLINE, iconName = IconName.ARROW_LEFT, onClick = ::renderHome)
+internal fun RealityViewModel.renderSearchMenu() {
+    cancelDisplayImageLoad()
+    metaController.clearResultImages()
+    sendDisplay {
+        flexBox(direction = Direction.COLUMN, gap = 10, padding = 24, background = FlexBoxBackground.CARD) {
+            text(copy(R.string.meta_search), style = TextStyle.HEADING)
+            button(copy(R.string.meta_search_object), style = ButtonStyle.PRIMARY, iconName = IconName.VIDEO_CAMERA, onClick = ::beginMetaObjectSearch)
+            button(copy(R.string.meta_search_person), style = ButtonStyle.PRIMARY, iconName = IconName.VIDEO_CAMERA, onClick = ::beginMetaPersonSearch)
+            button(copy(R.string.meta_voice_command), style = ButtonStyle.SECONDARY, iconName = IconName.SPEECH_BUBBLE, onClick = ::beginQuery)
+            button(copy(R.string.display_back), style = ButtonStyle.OUTLINE, iconName = IconName.ARROW_LEFT, onClick = ::renderHome)
+        }
     }
 }
 
@@ -109,6 +120,7 @@ internal fun RealityViewModel.executePersonTextQuery(question: String) {
         return
     }
     if (state.value.busy) return
+    metaController.clearResultImages()
     val revision = metaController.generation.revision
     setBusy(true)
     queryJob = viewModelScope.launch {
@@ -162,10 +174,13 @@ internal fun RealityViewModel.executeGalleryQuery(question: String, photo: ByteA
         return
     }
     if (state.value.busy) return
+    mutableUiState.value = state.value.copy(meta = state.value.meta.copy(photoSearchKind = MetaPhotoSearchKind.OBJECT))
+    metaController.clearResultImages()
     val revision = metaController.generation.revision
     setBusy(true)
     queryJob = viewModelScope.launch {
         renderNotice(copy(R.string.meta_searching), showHome = false)
+        val screen = renderRevision
         try {
             val language = RealityExperienceStore(app).syncAccountLanguage().languageTag
             val raw = withContext(Dispatchers.IO) {
@@ -189,7 +204,7 @@ internal fun RealityViewModel.executeGalleryQuery(question: String, photo: ByteA
                     }
                 )
             }
-            if (!metaController.generation.accepts(revision) || !metaController.authenticated()) return@launch
+            if (!acceptsDisplayImage(revision, screen)) return@launch
             val responseLanguage = raw.optText("response_language") ?: language
             if (responseLanguage != RealityExperienceStore(app).selectedLanguage().languageTag) return@launch
             metaController.matches = orderedEvidence(
@@ -223,7 +238,7 @@ internal fun RealityViewModel.executeGalleryQuery(question: String, photo: ByteA
             speak(raw.optText("tts_text") ?: metaController.answerText, responseLanguage)
         } catch (failure: Exception) {
             if (failure is CancellationException) throw failure
-            showError(copy(R.string.status_query_failed), retry = if (photo == null) ({ executeGalleryQuery(question) }) else ::beginMetaObjectSearch)
+            if (acceptsDisplayImage(revision, screen)) showError(copy(R.string.status_query_failed), retry = if (photo == null) ({ executeGalleryQuery(question) }) else ::beginMetaObjectSearch)
         } finally {
             if (metaController.generation.accepts(revision)) setBusy(false)
         }
@@ -236,10 +251,13 @@ internal fun RealityViewModel.executeFaceQuery(photo: ByteArray) {
         return
     }
     if (state.value.busy) return
+    mutableUiState.value = state.value.copy(meta = state.value.meta.copy(photoSearchKind = MetaPhotoSearchKind.PERSON))
+    metaController.clearResultImages()
     val revision = metaController.generation.revision
     setBusy(true)
     queryJob = viewModelScope.launch {
         renderNotice(copy(R.string.meta_searching_person), showHome = false)
+        val screen = renderRevision
         try {
             val raw = withContext(Dispatchers.IO) {
                 JSONObject(
@@ -252,7 +270,7 @@ internal fun RealityViewModel.executeFaceQuery(photo: ByteArray) {
                     )
                 )
             }
-            if (!metaController.generation.accepts(revision) || !metaController.authenticated()) return@launch
+            if (!acceptsDisplayImage(revision, screen)) return@launch
             metaController.matches = orderedEvidence(
                 raw.optJSONArray("matches")?.let { array ->
                     (0 until array.length()).mapNotNull {
@@ -274,59 +292,79 @@ internal fun RealityViewModel.executeFaceQuery(photo: ByteArray) {
             metaController.resultStatus = ""
             metaController.lastQuestion = ""
             mutableUiState.value = state.value.copy(meta = state.value.meta.copy(resultIndex = 0, resultCount = metaController.matches.size))
-            metaController.faceGroupUrl = null
+            metaController.clearResultImages()
             if (metaController.matches.isEmpty()) {
                 renderNotice(metaController.answerText, copy(R.string.display_new_query), ::beginQuery)
             } else {
                 val marks = faceGroupMarks(faceGroupRows(metaController.matches, MetaDisplayPolicy.faceGroupPalette()))
-                metaController.faceGroupUrl = if (marks.isEmpty()) {
+                val groupLink = if (marks.isEmpty()) {
                     null
                 } else {
                     try {
                         withContext(Dispatchers.IO) {
-                            JSONObject(
-                                SocialSession.requestMultipart(
-                                    "display/face-group-links",
-                                    mapOf("marks" to faceGroupMarksJson(marks)),
-                                    photo,
-                                    "grupo.jpg",
-                                    "image/jpeg"
+                            DisplayImageLink.decode(
+                                JSONObject(
+                                    SocialSession.requestMultipart(
+                                        "display/face-group-links",
+                                        mapOf("marks" to faceGroupMarksJson(marks)),
+                                        photo,
+                                        "grupo.jpg",
+                                        "image/jpeg"
+                                    )
                                 )
-                            ).optText("url")
+                            )
                         }
                     } catch (failure: Exception) {
                         if (failure is CancellationException) throw failure
                         null
                     }
                 }
-                if (!metaController.generation.accepts(revision) || !metaController.authenticated()) return@launch
-                if (metaController.faceGroupUrl != null) {
-                    renderFaceGroup()
-                } else {
-                    loadFaceResult(0, revision)
+                if (!acceptsDisplayImage(revision, screen)) return@launch
+                metaController.faceGroupLink = groupLink
+                try {
+                    if (groupLink != null) loadFaceGroup(revision) else loadFaceResult(0, revision)
+                } catch (failure: Exception) {
+                    if (failure is CancellationException) throw failure
+                    if (acceptsDisplayImage(revision, screen)) {
+                        showError(copy(R.string.meta_image_failed), retry = if (groupLink != null) ::renderFaceGroup else ({ renderFaceResult(0) }))
+                    }
                 }
             }
             speakDisplayAnswer()
         } catch (failure: Exception) {
             if (failure is CancellationException) throw failure
-            showError(copy(R.string.status_query_failed), retry = ::beginMetaPersonSearch)
+            if (acceptsDisplayImage(revision, screen)) showError(copy(R.string.status_query_failed), retry = ::beginMetaPersonSearch)
         } finally {
             if (metaController.generation.accepts(revision)) setBusy(false)
         }
     }
 }
 
-internal fun RealityViewModel.renderFaceGroup() {
-    val url = metaController.faceGroupUrl ?: return
+internal fun RealityViewModel.renderFaceGroup(): Unit = launchDisplayImageLoad(retry = ::renderFaceGroup) { revision ->
+    val link = metaController.faceGroupLink
+    if (link != null && !displayResultImages.valid(link)) {
+        metaController.faceGroupImage = null
+        renderNotice(copy(R.string.meta_image_failed), copy(R.string.display_new_query), ::beginMetaPersonSearch)
+    } else {
+        loadFaceGroup(revision)
+    }
+}
+
+private suspend fun RealityViewModel.loadFaceGroup(revision: Long) {
+    val link = checkNotNull(metaController.faceGroupLink)
+    val screen = renderRevision
+    val cached = metaController.faceGroupImage?.takeIf { it.link == link && displayResultImages.valid(it) }
+    val bitmap = cached?.bitmap ?: displayResultImages.load(link)
+    if (!acceptsDisplayImage(revision, screen)) return
+    metaController.faceGroupImage = LoadedDisplayImage(link, bitmap)
     val rows = faceGroupRows(metaController.matches, MetaDisplayPolicy.faceGroupPalette())
     if (rows.isEmpty()) return
     val language = RealityExperienceStore(app).language.value.languageTag
     val profileTargets = displayProfileTargets(metaController.matches)
-    val revision = metaController.generation.revision
     sendDisplay {
         flexBox(direction = Direction.COLUMN, gap = 8, padding = 20, background = FlexBoxBackground.CARD) {
             text(copy(R.string.meta_search_person), style = TextStyle.HEADING)
-            image(uri = authorizedMediaUrl(url), sizePreset = ImageSize.FILL)
+            image(bitmap = bitmap, sizePreset = ImageSize.FILL)
             rows.take(MetaDisplayPolicy.FACE_GROUP_MAX_ROWS).forEach { row ->
                 val color = copy(MetaDisplayPolicy.faceMarkColorName(row.colorIndex))
                 val confidence = evidencePercent(row.thumb.confidence, language).orEmpty()
@@ -354,46 +392,21 @@ internal fun RealityViewModel.renderFaceGroup() {
     }
 }
 
-internal fun RealityViewModel.renderFaceResult(index: Int) {
-    if (state.value.busy || metaController.matches.getOrNull(index) == null) return
-    val revision = metaController.generation.revision
-    setBusy(true)
-    galleryImageJob = viewModelScope.launch {
-        try {
-            loadFaceResult(index, revision)
-        } catch (failure: Exception) {
-            if (failure is CancellationException) throw failure
-            showError(copy(R.string.meta_image_failed), retry = { renderFaceResult(index) })
-        } finally {
-            if (metaController.generation.accepts(revision)) setBusy(false)
-        }
-    }
+internal fun RealityViewModel.renderFaceResult(index: Int): Unit = launchDisplayImageLoad(retry = { renderFaceResult(index) }) { revision ->
+    loadFaceResult(index, revision)
 }
 
 private suspend fun RealityViewModel.loadFaceResult(index: Int, revision: Long) {
     val item = metaController.matches.getOrNull(index) ?: return
-    val link = if (item.faceEnrollmentId.isBlank()) {
-        null
-    } else {
-        withContext(Dispatchers.IO) {
-            JSONObject(
-                SocialSession.request(
-                    "display/media-links",
-                    JSONObject()
-                        .put("kind", MetaDisplayPolicy.faceDisplayKind())
-                        .put("resource_id", item.faceEnrollmentId)
-                        .put("labels", JSONArray())
-                )
-            ).optText("url")
-        }
-    }
-    if (!metaController.generation.accepts(revision) || !metaController.authenticated()) return
+    val screen = renderRevision
+    val bitmap = displayResultImages.match(MetaDisplayPolicy.faceDisplayKind(), item.faceEnrollmentId)
+    if (!acceptsDisplayImage(revision, screen)) return
     mutableUiState.value = state.value.copy(meta = state.value.meta.copy(resultIndex = index))
     val language = RealityExperienceStore(app).language.value.languageTag
     sendDisplay {
         flexBox(direction = Direction.COLUMN, gap = 8, padding = 20, background = FlexBoxBackground.CARD) {
             text(copy(R.string.meta_person_position, index + 1, metaController.matches.size), style = TextStyle.META)
-            link?.let { image(uri = authorizedMediaUrl(it), sizePreset = ImageSize.FILL) }
+            image(bitmap = bitmap, sizePreset = ImageSize.FILL)
             text(item.caption.take(120), style = TextStyle.HEADING)
             val badge = if (item.matchedLabels.contains("possible_acquaintance")) {
                 copy(R.string.face_badge_knows)
@@ -414,41 +427,21 @@ private suspend fun RealityViewModel.loadFaceResult(index: Int, revision: Long) 
     }
 }
 
-internal fun RealityViewModel.renderGalleryResult(index: Int) {
-    if (state.value.busy || metaController.matches.getOrNull(index) == null) return
-    val revision = metaController.generation.revision
-    setBusy(true)
-    galleryImageJob = viewModelScope.launch {
-        try {
-            loadGalleryResult(index, revision)
-        } catch (failure: Exception) {
-            if (failure is CancellationException) throw failure
-            showError(copy(R.string.meta_image_failed), retry = { renderGalleryResult(index) })
-        } finally {
-            if (metaController.generation.accepts(revision)) setBusy(false)
-        }
-    }
+internal fun RealityViewModel.renderGalleryResult(index: Int): Unit = launchDisplayImageLoad(retry = { renderGalleryResult(index) }) { revision ->
+    loadGalleryResult(index, revision)
 }
 
 private suspend fun RealityViewModel.loadGalleryResult(index: Int, revision: Long) {
     val item = metaController.matches.getOrNull(index) ?: return
-    val link = withContext(Dispatchers.IO) {
-        JSONObject(
-            SocialSession.request(
-                "display/media-links",
-                JSONObject()
-                    .put("kind", "evidence").put("resource_id", item.evidenceId)
-                    .put("labels", JSONArray(item.matchedLabels))
-            )
-        ).getString("url")
-    }
-    if (!metaController.generation.accepts(revision) || !metaController.authenticated()) return
+    val screen = renderRevision
+    val bitmap = displayResultImages.match("evidence", item.evidenceId, item.matchedLabels)
+    if (!acceptsDisplayImage(revision, screen)) return
     mutableUiState.value = state.value.copy(meta = state.value.meta.copy(resultIndex = index))
     val language = RealityExperienceStore(app).language.value.languageTag
     sendDisplay {
         flexBox(direction = Direction.COLUMN, gap = 8, padding = 20, background = FlexBoxBackground.CARD) {
             text(copy(R.string.meta_result_position, index + 1, metaController.matches.size), style = TextStyle.META)
-            image(uri = authorizedMediaUrl(link), sizePreset = ImageSize.FILL)
+            image(bitmap = bitmap, sizePreset = ImageSize.FILL)
             val confidence = evidencePercent(item.confidence, language).orEmpty()
             text(copy(R.string.meta_evidence_details, item.publishedAt.take(10), confidence), style = TextStyle.META, color = TextColor.SECONDARY)
             if (item.simulated) text(copy(R.string.meta_simulated), style = TextStyle.META)
@@ -475,7 +468,7 @@ internal fun RealityViewModel.renderResultActions(): Unit = sendDisplay {
         button(copy(R.string.display_new_query), style = ButtonStyle.PRIMARY, iconName = IconName.SPEECH_BUBBLE, onClick = ::beginQuery)
         button(copy(R.string.display_back), style = ButtonStyle.OUTLINE, iconName = IconName.ARROW_LEFT, onClick = {
             if (state.value.meta.photoSearchKind == MetaPhotoSearchKind.PERSON) {
-                if (metaController.faceGroupUrl != null) renderFaceGroup() else renderFaceResult(state.value.meta.resultIndex)
+                if (metaController.faceGroupLink != null) renderFaceGroup() else renderFaceResult(state.value.meta.resultIndex)
             } else {
                 renderGalleryResult(state.value.meta.resultIndex)
             }
@@ -488,3 +481,37 @@ internal fun RealityViewModel.renderResultActions(): Unit = sendDisplay {
 internal fun RealityViewModel.speakDisplayAnswer() {
     metaController.answer?.let { speak(it.text, it.language) }
 }
+
+/** A result callback can originate on DAT's thread, so own its job on main. */
+private fun RealityViewModel.launchDisplayImageLoad(retry: () -> Unit, load: suspend (Long) -> Unit) {
+    viewModelScope.launch(Dispatchers.Main.immediate) {
+        if (state.value.busy || !metaController.authenticated()) return@launch
+        val revision = metaController.generation.revision
+        val screen = renderRevision
+        setBusy(true)
+        val request = viewModelScope.launch(start = CoroutineStart.LAZY) {
+            try {
+                load(revision)
+            } catch (failure: Exception) {
+                if (failure is CancellationException) throw failure
+                if (acceptsDisplayImage(revision, screen)) showError(copy(R.string.meta_image_failed), retry = retry)
+            } finally {
+                if (galleryImageJob === currentCoroutineContext()[Job]) {
+                    galleryImageJob = null
+                    setBusy(false)
+                }
+            }
+        }
+        galleryImageJob = request
+        request.start()
+    }
+}
+
+internal fun RealityViewModel.cancelDisplayImageLoad() {
+    val request = galleryImageJob ?: return
+    galleryImageJob = null
+    request.cancel()
+    setBusy(false)
+}
+
+private fun RealityViewModel.acceptsDisplayImage(revision: Long, screen: Long): Boolean = metaController.generation.accepts(revision) && metaController.authenticated() && renderRevision == screen

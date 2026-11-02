@@ -156,6 +156,7 @@ class RealityViewModel(application: Application) : AndroidViewModel(application)
     internal var captureOperationJob: Job? = null
     internal var queryJob: Job? = null
     internal var galleryImageJob: Job? = null
+    internal var displayResultImages = DisplayResultImages()
     internal var recordingLimitJob: Job? = null
     internal val renderMutex = Mutex()
     internal var renderRevision = 0L
@@ -217,6 +218,7 @@ class RealityViewModel(application: Application) : AndroidViewModel(application)
     /** Refresh Display copy while retaining an active capture and pending upload. */
     private fun refreshDisplayLanguage() {
         stopSpeak()
+        cancelDisplayImageLoad()
         val queryActive = queryJob?.isActive == true
         queryJob?.cancel()
         queryJob = null

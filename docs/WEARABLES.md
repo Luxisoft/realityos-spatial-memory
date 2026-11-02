@@ -154,6 +154,16 @@ Facebook URLs are not used for this navigation.
 Previous/next actions share one compact row; title, notes, replay and another
 query live on the result actions screen.
 
+The Android host downloads and validates signed result images before sending
+bitmaps to DAT, so image decoding failures produce a retry action rather than
+an empty result card. Each candidate visit requests a fresh authorized link.
+The marked group image remains in memory only for the current search and up
+to its link expiry; returning from match photos restores those pixels. Home,
+a new search, disconnect and account changes discard the group image. Expired
+group links offer a new person search. Image requests are cancelled on leaving
+the result flow, and late responses cannot replace a newer screen. The native
+profile overlay keeps the existing Display result mounted.
+
 Capture opens the camera directly with **Take photo / Record video**. Taking
 the photo or stopping the video (up to 120 seconds) sends it through the
 existing publication-upload flow to the signed-in account's private Profile
