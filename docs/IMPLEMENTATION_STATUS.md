@@ -1449,7 +1449,22 @@ Debug/Release y fuentes instrumentadas verificadas. No se ejecutó QA en
 teléfono/gafas. También se verificaron 19 pruebas seleccionadas en una copia
 con solo el contenido preparado para el commit.
 
-Despliegue API/worker preparado en `.runtime/deploy_compact_profile.py`, pendiente
-de autorización Docker explícita; no ejecutado. La entrega omite CI automático
-para preservar los ajustes locales de memoria y arranque bajo demanda todavía
-no publicados. No se crearon dumps ni se modificó el runtime del gateway.
+Desplegados API/worker, con autorización Docker del propietario, como
+`realityos-backend:compact-profile-20261102`. Salud real de API y pública,
+contrato OpenAPI idéntico, Alembic `20261101_0030 (head)` y ping del worker
+verificados. Las 27 comprobaciones HTTP autorizadas en producción validan tres
+perfiles, paginación, enlaces internos denegados y permisos de Trabajo; no
+invocan proveedores. Permanecen almacenadas las 225 referencias internas,
+136 enrolamientos y 22 consentimientos; el código biométrico coincide por SHA-256.
+Entorno, comandos, redes y límites de memoria/CPU conservados, junto con el
+proxy/gateway y el arranque bajo demanda. Sin migración nueva ni dump.
+
+Release y rollback: `.runtime/compact-profile-20261102-release.json` y
+`.runtime/compact-profile-20261102-rollback.json`; comando Compose exacto en
+`.runtime/compact-profile-20261102-compose-command.json`, comprobaciones en
+`-verification.json` y `-live-smoke.json` bajo el mismo prefijo. Para revertir,
+sustituir el último overlay por el rollback y recrear únicamente API/worker.
+Se retiraron los contenedores anteriores y el temporal de Alembic; se conservan
+la imagen actual y la anterior necesaria para rollback. La entrega omite CI
+automático para preservar los ajustes locales de memoria/arranque aún no
+publicados. La validación física del APK en teléfono/gafas sigue pendiente.

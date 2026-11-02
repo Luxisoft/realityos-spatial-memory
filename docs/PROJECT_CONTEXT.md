@@ -493,5 +493,9 @@ despliegan, el CV vive en Editar y EN/ES en el menú. Publicaciones admite foto/
 y refresca las capturas. Las referencias Facebook/directorio quedan internas
 en feeds, búsqueda, duplicados y URLs ordinarias; el brazo facial y los avatares
 se conservan. Sin migraciones. Validación: 225 pruebas backend relevantes y
-177 Android; formato, lint y builds. Despliegue preparado, pendiente de
-autorización Docker y sin QA física; ver IMPLEMENTATION_STATUS.md.
+177 Android; formato, lint y builds. API/worker desplegados con
+`realityos-backend:compact-profile-20261102`: salud/OpenAPI/head/worker y 27
+comprobaciones HTTP reales aprobadas, conservando referencias internas,
+biometría, entorno, límites y arranque bajo demanda. Rollback:
+`.runtime/compact-profile-20261102-rollback.json`. QA física pendiente; ver
+IMPLEMENTATION_STATUS.md.
