@@ -399,22 +399,22 @@ class DisplaySearchCameraTest {
         showFaceMatches(listOf(profileMatch(id, "Ana"), profileMatch("48bbde50-535b-49af-a505-a0d4945f0685", "Luis")))
         awaitImage("blue")
         repeat(3) {
-            tapButton(vm.copy(R.string.meta_face_group_photos))
+            activateResultButton(vm.copy(R.string.meta_face_group_photos))
             awaitButton(vm.copy(R.string.meta_next))
             awaitImage("red")
-            tapButton(vm.copy(R.string.meta_next))
+            activateResultButton(vm.copy(R.string.meta_next))
             awaitButton(vm.copy(R.string.meta_previous))
             awaitImage("green")
-            tapButton(vm.copy(R.string.meta_previous))
+            activateResultButton(vm.copy(R.string.meta_previous))
             awaitButton(vm.copy(R.string.meta_next))
             awaitImage("red")
-            tapButton(vm.copy(R.string.meta_open_profile))
+            activateResultButton(vm.copy(R.string.meta_open_profile))
             awaitNativeTag("matched-profile-back")
             compose.onNodeWithTag("matched-profile-back").performTouchInput { click() }
             await { vm.displayProfileRequest.value == null }
             awaitImage("red")
-            tapButton(vm.copy(R.string.meta_result_actions))
-            tapButton(vm.copy(R.string.display_back))
+            activateResultButton(vm.copy(R.string.meta_result_actions))
+            activateResultButton(vm.copy(R.string.display_back))
             awaitButton(vm.copy(R.string.meta_face_group_photos))
             awaitImage("blue")
         }
@@ -502,6 +502,23 @@ class DisplaySearchCameraTest {
         tapButton(vm.copy(R.string.meta_face_group_photos))
         awaitButtonText(vm.copy(R.string.meta_image_failed))
         await { !vm.state.value.busy }
+    }
+
+    /** DAT's real click bridge models activation from glasses without phone-coordinate drift. */
+    private fun activateResultButton(label: String) {
+        awaitButton(label)
+        val activated = javascript(
+            """
+            (() => {
+                const button = Array.from(document.querySelectorAll('button,[role=button]'))
+                    .find(b => b.textContent.includes(${JSONObject.quote(label)}));
+                if (!button) return false;
+                button.click();
+                return true;
+            })()
+            """.trimIndent()
+        )
+        assertEquals("The requested DAT action must exist", "true", activated)
     }
 
     /** Read actual decoded pixels in Meta's WebView, not just image tags or button text. */

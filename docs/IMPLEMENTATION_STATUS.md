@@ -1405,15 +1405,16 @@ La navegación del perfil mantiene montado el mismo resultado.
 Las regresiones usan un servidor HTTPS de imágenes de prueba generado en
 memoria, sin cuentas ni medios de producción. La decodificación usa el motor
 gráfico nativo de Robolectric, incluyendo fotos corruptas. Las pruebas
-instrumentadas leen píxeles del WebView oficial tras repetir tres veces fotos
+instrumentadas activan los botones mediante el puente real del WebView y leen
+sus píxeles tras repetir tres veces fotos
 coincidentes, siguiente/anterior, acciones/volver y perfil/regresar. También
 cubren 404, datos corruptos, enrolamiento ausente, vencimiento, búsqueda nueva,
 cancelación y cambio de cuenta. El certificado de prueba se confía únicamente
 en las conexiones de la fixture, sin modificar la confianza TLS de la app.
 
 Validación local: 170 pruebas Android, ktlint, lint sin errores, compilación de
-pruebas instrumentadas y APK Debug aprobados. APK `0.1.6-debug-20261102-0729`,
-SHA-256 `8180f234161c1186bf1bc374b417dbe7c6c2884cb1af5906273e7f0b39f8affa`.
+pruebas instrumentadas y APK Debug aprobados. APK `0.1.6-debug-20261102-0751`,
+SHA-256 `8baa5555d95341b7c57b94d522b6e4eeb54508cd831c9eef2ed84effad78b92c`.
 El Debug local declara explícitamente
 `includeSubdomains=false` para los tres hosts de loopback, resolviendo errores
 preexistentes de lint sin ampliar su acceso. Sin cambios de servidor,
