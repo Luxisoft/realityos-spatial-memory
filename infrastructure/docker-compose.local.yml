@@ -7,7 +7,6 @@ x-backend: &backend
     dockerfile: backend/Dockerfile
   env_file: ../.env.local
   environment:
-    TTS_PROVIDER: seamless
     DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-realityos_local}:${POSTGRES_PASSWORD:?Configure .env.local}@postgres:5432/${POSTGRES_DB:-realityos_local}
     REDIS_URL: redis://redis:6379/0
   networks: [internal, egress]
@@ -75,36 +74,9 @@ services:
       display: {condition: service_started}
     networks: [internal, egress]
     restart: unless-stopped
-  seamless-tts:
-    image: realityos-local-tts:dev
-    build:
-      context: ..
-      dockerfile: infrastructure/tts/Dockerfile
-    environment:
-      TTS_SERVICE_TOKEN: ${TTS_SERVICE_TOKEN:?Configure .env.local}
-      TTS_DTYPE: ${TTS_DTYPE:-auto}
-      HF_HOME: /models
-      TTS_CPU_THREADS: "2"
-    volumes: [seamless_models:/models]
-    mem_limit: ${LOCAL_TTS_MEMORY:-8g}
-    memswap_limit: ${LOCAL_TTS_MEMORY:-8g}
-    cpus: 2
-    pids_limit: 128
-    read_only: true
-    tmpfs: [/tmp]
-    security_opt: [no-new-privileges:true]
-    networks: [egress]
-    restart: "no"
-    healthcheck:
-      test: [CMD, python, -c, "import urllib.request; urllib.request.urlopen('http://localhost:8091/health/ready')"]
-      interval: 10s
-      timeout: 5s
-      start_period: 1800s
-      retries: 6
 networks:
   internal: {internal: true}
   egress: {}
 volumes:
   postgres_data: {}
   redis_data: {}
-  seamless_models: {}

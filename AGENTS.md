@@ -49,10 +49,10 @@ configuration and non-code files, or when the graph is unavailable.
 - `MODEL_API_KEY`, JWT secrets and database credentials remain server-side.
 - Production supports direct RealityOS connections and FRONTEND gateway fallback.
   Keep `MODEL_API_KEY` in private server runtime files on both hosts; the gateway
-  token and speech-service token are independent. `.env` selects the connection.
+  token and ElevenLabs API key are independent. `.env` selects the connection.
 - Production synthesis uses ElevenLabs only on authenticated audio requests.
-  Muse Voice Transcribe remains Meta STT. Seamless is an explicit Windows-local
-  alternative; never start its resident model in production with ElevenLabs.
+  Muse Voice Transcribe remains Meta STT. No local synthesis model is supported,
+  including Windows; do not reintroduce Seamless, its weights or build jobs.
 - Mock outputs are deterministic and visibly labelled simulated.
 - Confirm current official Meta endpoint/SDK signatures before coding Live.
 

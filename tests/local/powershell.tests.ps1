@@ -13,7 +13,7 @@ try {
     $values = Get-LocalEnvironment $root
     Assert-Condition ($values.LOCAL_ACCOUNT_PASSWORD -ceq $password) 'Password escaping is not lossless.'
     Assert-LocalConfiguration $values
-    Set-LocalEnvironment $root @{ LOCAL_TTS_MEMORY = '4g' }
+    Set-LocalEnvironment $root @{ ELEVENLABS_VOICE_ID = 'JBFqnCBsd6RMkjVDRZzb' }
     $again = Get-LocalEnvironment $root
     Assert-Condition ($again.MODEL_API_KEY -ceq $values.MODEL_API_KEY) 'A restart replaced the Meta key.'
     Assert-Condition ($again.LOCAL_ACCOUNT_PASSWORD -ceq $password) 'A restart replaced the password.'
@@ -35,10 +35,10 @@ try {
     $rejected = $false
     try { Assert-LocalConfiguration $values } catch { $rejected = $true }
     Assert-Condition $rejected 'The local startup accepted a simulated provider.'
-    $values.META_MODE = 'live'; $values.TTS_SERVICE_URL = 'https://realityos.luxisoft.com/tts/synthesize'
+    $values.META_MODE = 'live'; $values.META_API_BASE_URL = 'https://meta.luxisoft.com/v1'
     $rejected = $false
     try { Assert-LocalConfiguration $values } catch { $rejected = $true }
-    Assert-Condition $rejected 'The local startup accepted a production speech dependency.'
+    Assert-Condition $rejected 'The local startup accepted a production Meta dependency.'
     $previousPassword = $env:POSTGRES_PASSWORD
     $env:POSTGRES_PASSWORD = 'external-production-environment'
     function docker {
@@ -59,7 +59,7 @@ try {
         $ErrorActionPreference = $previousError
         if ($composeAvailable) {
             $updates = @{}
-            foreach ($key in @('POSTGRES_PASSWORD', 'JWT_SECRET', 'DEVICE_CREDENTIAL_PEPPER', 'TTS_SERVICE_TOKEN')) { $updates[$key] = New-LocalSecret }
+            foreach ($key in @('POSTGRES_PASSWORD', 'JWT_SECRET', 'DEVICE_CREDENTIAL_PEPPER')) { $updates[$key] = New-LocalSecret }
             Set-LocalEnvironment $root $updates
             New-Item -ItemType Directory -Path (Join-Path $root 'infrastructure') | Out-Null
             Copy-Item (Join-Path (Get-LocalRoot) 'infrastructure/docker-compose.local.yml') (Join-Path $root 'infrastructure/docker-compose.local.yml')

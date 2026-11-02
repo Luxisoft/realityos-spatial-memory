@@ -8,7 +8,6 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 WORKDIR /app
 COPY meta-gateway/pyproject.toml ./pyproject.toml
 COPY meta-gateway/realityos_meta_gateway ./realityos_meta_gateway
-COPY backend/app/tts_contracts.py ./app/tts_contracts.py
 RUN python -m pip install --upgrade pip && python -m pip install .
 
 RUN useradd --system --create-home --uid 10001 gateway

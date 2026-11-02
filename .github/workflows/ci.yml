@@ -45,13 +45,6 @@ jobs:
       - run: pytest -q gateway-tests
       - run: docker build --file meta-gateway/Dockerfile --tag realityos-meta-gateway:ci .
 
-  seamless-tts:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      # Validates pinned inference dependencies and imports without model weights.
-      - run: docker build --file infrastructure/tts/Dockerfile --tag realityos-tts:ci .
-
   web:
     runs-on: ubuntu-latest
     steps:

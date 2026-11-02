@@ -3,9 +3,7 @@
 import argparse
 import asyncio
 import json
-from urllib.parse import urlsplit
 
-import httpx
 from app.config import Settings
 from app.local_runtime import validate_local_settings
 from app.meta import LiveMetaModelClient
@@ -37,13 +35,7 @@ def main():
         if engine.simulated:
             raise SystemExit("A real face engine is required.")
         report["face_engine"] = engine.name
-    else:
-        url = urlsplit(str(settings.tts_service_url))
-        health = f"{url.scheme}://{url.netloc}/health/ready"
-        with httpx.Client(timeout=10, follow_redirects=False) as client:
-            response = client.get(health)
-            response.raise_for_status()
-            report["speech_model"] = response.json()["model"]
+    report["speech_provider"] = "elevenlabs"
     if args.speech:
         for language, text in {
             "es": "La voz local está lista.",

@@ -11,8 +11,11 @@ def validate_local_settings(settings):
         return
     if settings.meta_mode != "live" or settings.face_engine != "insightface":
         raise ValueError("Local installations require META_MODE=live and FACE_ENGINE=insightface.")
-    if not settings.tts_service_url or not settings.tts_service_token:
-        raise ValueError("Local installations require a real speech service and its token.")
+    if (
+        not settings.elevenlabs_api_key
+        or not settings.elevenlabs_api_key.get_secret_value().strip()
+    ):
+        raise ValueError("Local installations require their own ElevenLabs API key.")
     from app.providers.connections import provider_routes
 
     provider_routes(settings)

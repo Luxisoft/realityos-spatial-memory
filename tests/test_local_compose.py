@@ -30,7 +30,7 @@ def test_standalone_compose_isolated_and_real(tmp_path):
         "POSTGRES_PASSWORD": "postgres-local-test-secret",
         "JWT_SECRET": "local-unit-test-secret-with-enough-length",
         "DEVICE_CREDENTIAL_PEPPER": "local-unit-test-pepper-with-enough-length",
-        "TTS_SERVICE_TOKEN": "local-unit-test-speech-token-long-enough",
+        "ELEVENLABS_API_KEY": "local-unit-test-speech-api-key",
         "MODEL_API_KEY": "local-unit-test-meta-key",
     }
     for key, value in secrets.items():
@@ -71,13 +71,14 @@ def test_standalone_compose_isolated_and_real(tmp_path):
         assert service["environment"]["META_MODE"] == "live"
         assert service["environment"]["FACE_ENGINE"] == "insightface"
         assert service["environment"]["META_GATEWAY_FALLBACK_ENABLED"] == "false"
-    speech = config["services"]["seamless-tts"]
-    assert "MODEL_API_KEY" not in speech["environment"]
-    assert "LOCAL_ACCOUNT_PASSWORD" not in speech["environment"]
+    assert (
+        config["services"]["api"]["environment"]["ELEVENLABS_API_KEY"]
+        == secrets["ELEVENLABS_API_KEY"]
+    )
     assert config["services"]["proxy"]["ports"][0]["host_ip"] == "127.0.0.1"
     assert all(
         not config["services"][name].get("ports")
-        for name in ("postgres", "redis", "api", "worker", "seamless-tts")
+        for name in ("postgres", "redis", "api", "worker")
     )
     assert all(
         volume["name"].startswith("realityos-local_")

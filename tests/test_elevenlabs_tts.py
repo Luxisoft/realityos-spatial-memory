@@ -27,7 +27,6 @@ def test_elevenlabs_is_request_only_and_independent_of_meta_gateway(
     calls = []
     configured = client.app.state.settings
     configured.meta_mode = "live"
-    configured.tts_provider = "elevenlabs"
     configured.elevenlabs_api_key = SecretStr("private-elevenlabs-test-key")
     configured.meta_connection_mode = "gateway"
     configured.meta_gateway_base_url = None

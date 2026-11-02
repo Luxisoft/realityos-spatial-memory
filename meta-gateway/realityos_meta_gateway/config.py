@@ -16,5 +16,3 @@ class GatewaySettings(BaseSettings):
         default=1024 * 1024 * 1024, ge=1024, le=1024 * 1024 * 1024
     )
     gateway_timeout_seconds: float = Field(default=300, gt=0, le=900)
-    tts_service_url: AnyHttpUrl | None = None
-    tts_service_token: str | None = Field(default=None, min_length=24)

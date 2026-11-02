@@ -1,4 +1,4 @@
-"""Small shared wire contract for RealityOS, its gateway and Seamless service."""
+"""Speech request and WAV response contract for RealityOS clients."""
 
 import io
 import wave

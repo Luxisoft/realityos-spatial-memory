@@ -7,7 +7,7 @@ servidor RealityOS ni a FRONTEND, y sus comandos no modifican la instalación de
 producción.
 
 La IA es real: Muse Spark/SAM/transcripción se consultan en la API de Meta con tu
-clave; InsightFace y Seamless corren en contenedores locales. No se cargan medios
+clave; ElevenLabs genera la voz con una clave propia e InsightFace corre localmente. No se cargan medios
 sintéticos ni se ejecutan los scripts de seed. Las primeras pantallas están
 vacías hasta que registres o publiques tus propios datos.
 
@@ -18,13 +18,10 @@ vacías hasta que registres o publiques tus propios datos.
   para arrancar el sistema: se construyen dentro de Docker.
 - Internet para descargar imágenes/modelos y consultar la API de Meta; una clave
   propia con `muse-spark-1.3`, `sam-3.1` y `muse-voice-transcribe-1.0` habilitados.
-- Al menos cuatro CPU asignadas a Docker y 25 GiB libres en su unidad de datos.
-  La descarga inicial de pesos Seamless ocupa aproximadamente 9 GiB y se conserva.
-- Memoria asignada a Docker: al menos 8 GiB con BF16 nativo o 12 GiB para FP32.
-  Se recomienda un equipo con 32 GiB para dejar margen a Windows y Android Studio.
-  La voz usa dos CPU y tiene un límite de 4/8 GiB sin swap según el formato.
-  No se exige GPU. Si la CPU no cumple la latencia, el diagnóstico lo informa;
-  no sustituye el modelo por respuestas simuladas.
+- Una clave propia de ElevenLabs para generar audio; se introduce sin mostrarse.
+- Al menos cuatro CPU, 8 GiB de RAM asignados a Docker y 25 GiB libres para
+  imágenes y datos locales. No se exige GPU ni instrucciones BF16 para voz;
+  no se descarga ni ejecuta un modelo local de síntesis.
 
 Configura Docker Desktop antes de empezar. El motor debe ser **Linux / WSL2**;
 no sirve el modo Windows containers. Consulta los [requisitos oficiales de
@@ -43,9 +40,9 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\local\Start-Re
 `ExecutionPolicy Bypass` aplica solo a ese proceso; no cambia la política global.
 También puedes ejecutar el archivo directamente si tu política ya lo permite.
 
-El comando crea `.env.local` desde `.env.local.example`, solicita tu clave Meta,
+El comando crea `.env.local` desde `.env.local.example`, solicita tus claves Meta y ElevenLabs,
 correo y contraseña local (mínimo 12 caracteres) y genera secretos independientes
-para PostgreSQL, JWT, dispositivos y voz. La clave y contraseña se introducen sin
+para PostgreSQL, JWT y dispositivos. La clave y contraseña se introducen sin
 mostrarse. El archivo se protege para tu usuario de Windows y SYSTEM, y no entra
 en Git ni en las imágenes Docker.
 
@@ -86,12 +83,11 @@ META_MODE=live
 FACE_ENGINE=insightface
 META_CONNECTION_MODE=direct
 META_GATEWAY_FALLBACK_ENABLED=false
-TTS_SERVICE_URL=http://seamless-tts:8091/synthesize
-TTS_DTYPE=auto
+ELEVENLABS_API_KEY=<clave-propia>
+ELEVENLABS_MODEL_ID=eleven_flash_v2_5
 ```
 
-`auto` selecciona BF16 si la CPU lo soporta nativamente y FP32 en otro caso.
-El comportamiento de voz ya configurado en producción se conserva. El gateway
+La generación de voz consulta ElevenLabs solo al solicitar audio. El gateway
 no es una dependencia local. No copies el `.env` del servidor ni sus claves.
 Las variables exportadas en PowerShell no sobrescriben las del archivo local.
 Los contextos Docker remotos se rechazan para evitar actuar sobre otro equipo.
@@ -113,15 +109,14 @@ Para detener sin borrar datos ni modelos:
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\local\Stop-RealityOS.ps1
 ```
 
-No uses `down -v` si quieres conservarlos. Para ver la carga/descarga del modelo:
+No uses `down -v` si quieres conservar los datos. Para revisar errores de voz:
 
 ```powershell
-docker compose --project-name realityos-local --env-file .env.local --file infrastructure/docker-compose.local.yml logs --tail 50 seamless-tts
+docker compose --project-name realityos-local --env-file .env.local --file infrastructure/docker-compose.local.yml logs --tail 50 api
 ```
 
 Si el puerto 8080 ya está ocupado, cambia `LOCAL_HTTP_PORT` en `.env.local` y usa
-ese mismo puerto en las URLs y en la conexión Android. PostgreSQL, Redis y el
-puerto interno de voz no se publican en Windows.
+ese mismo puerto en las URLs y en la conexión Android. PostgreSQL y Redis no se publican en Windows.
 
 ## Android local, sin Facebook ni reconocimiento facial al entrar
 

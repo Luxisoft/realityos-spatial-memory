@@ -1,6 +1,5 @@
 """Routing decisions, credential isolation, replay safety and bounded fallback."""
 
-import asyncio
 from contextlib import contextmanager
 from io import BytesIO
 
@@ -8,8 +7,6 @@ import httpx
 import pytest
 from app.config import Settings
 from app.meta import LiveMetaModelClient, MetaProviderError, MetaProviderUncertainError
-from app.providers.tts import SpeechUnavailable, synthesize
-from app.tts_contracts import SpeechRequest
 from pydantic import ValidationError
 
 
@@ -24,9 +21,6 @@ def settings(**changes):
         "meta_gateway_token": "gateway-test-token",
         "meta_api_base_url": "https://meta.test/v1",
         "meta_max_retries": 0,
-        "tts_provider": "seamless",
-        "tts_service_url": "https://realityos.test/tts/synthesize",
-        "tts_service_token": "speech-test-token",
     }
     return Settings(**(values | changes))
 
@@ -202,43 +196,3 @@ def test_incomplete_accepted_stream_never_switches_route(monkeypatch, once):
     with pytest.raises(MetaProviderUncertainError):
         client._stream_events_once({}) if once else client._stream_events({})
     assert len(calls) == 1
-
-
-@pytest.mark.parametrize(
-    "direct_status,expected",
-    [
-        (200, ["realityos.test"]),
-        (404, ["realityos.test", "gateway.test"]),
-        (400, ["realityos.test"]),
-    ],
-)
-def test_speech_direct_and_gateway_routes(direct_status, expected):
-    import io
-    import wave
-
-    output = io.BytesIO()
-    with wave.open(output, "wb") as audio:
-        audio.setparams((1, 2, 16000, 1600, "NONE", "not compressed"))
-        audio.writeframes(b"\0\0" * 1600)
-    calls = []
-
-    def upstream(request):
-        calls.append(request)
-        status = direct_status if request.url.host == "realityos.test" else 200
-        return httpx.Response(status, content=output.getvalue())
-
-    payload = SpeechRequest(text="Hello", language="en")
-    if direct_status == 400:
-        with pytest.raises(SpeechUnavailable):
-            asyncio.run(synthesize(payload, settings(), httpx.MockTransport(upstream)))
-    else:
-        assert (
-            asyncio.run(synthesize(payload, settings(), httpx.MockTransport(upstream)))
-            == output.getvalue()
-        )
-    assert [r.url.host for r in calls] == expected
-    assert calls[0].headers["authorization"] == "Bearer speech-test-token"
-    assert "x-realityos-gateway-token" not in calls[0].headers
-    if len(calls) > 1:
-        assert "authorization" not in calls[1].headers
-        assert calls[1].headers["x-realityos-gateway-token"] == "gateway-test-token"

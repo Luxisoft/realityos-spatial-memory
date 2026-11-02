@@ -30,8 +30,6 @@ MODEL_API_KEY=<active server-only Meta key>
 META_API_BASE_URL=https://api.meta.ai/v1
 META_GATEWAY_BASE_URL=https://meta.luxisoft.com/v1
 META_GATEWAY_TOKEN=<independent gateway token>
-TTS_SERVICE_URL=https://realityos.luxisoft.com/tts/synthesize
-TTS_SERVICE_TOKEN=<independent speech token>
 ```
 
 `direct` uses RealityOS egress even when gateway settings are present. `gateway`
@@ -93,23 +91,9 @@ instead of a public development value.
 Use `make gateway-api` with a local `meta-gateway/.env` copied from
 `infrastructure/gateway/runtime.env.example`. Do not expose its port publicly.
 
-## Response speech fallback (2026-11-01)
+## Síntesis fuera del gateway
 
-The gateway additionally implements `POST /v1/tts/synthesize`, protected by the
-same gateway token and existing IP allowlist. This one route targets a fixed
-`TTS_SERVICE_URL` with its separate `TTS_SERVICE_TOKEN`; the Meta API key and
-RealityOS gateway token are never forwarded to the speech service. Payloads
-are bounded/validated using the contract from `backend/app/tts_contracts.py`,
-which is copied into the gateway image. Other routes retain Meta forwarding.
-
-Build the gateway from the monorepo root. For standalone gateway development or
-its tests without the backend installed, set `PYTHONPATH=backend`; CI does this.
-Configuration left unset returns 503. Local synthesis and real gateway fallback
-were verified on 2026-11-01; see [TTS](TTS.md).
-
-
-Seamless runs on RealityOS, not FRONTEND. The gateway speech target is fixed to
-`https://realityos.luxisoft.com/tts/synthesize`, authenticated with the separate
-speech token. There is no forwarding loop: that URL maps directly to Seamless,
-not to `/v1/tts`. A model outage affects both speech paths and clients retain
-their existing native/browser voice. See [TTS](TTS.md).
+El gateway conserva exclusivamente las rutas permitidas de Meta, incluida
+Muse Voice Transcribe. La generación de voz usa ElevenLabs desde el API de
+RealityOS y su credencial privada; no existe una ruta de síntesis en este
+gateway. Ver [TTS](TTS.md).

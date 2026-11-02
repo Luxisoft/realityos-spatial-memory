@@ -10,7 +10,6 @@ def update_runtime(existing: Path, incoming: Path, image_key: str):
     if image_key not in {
         "REALITYOS_GATEWAY_IMAGE",
         "REALITYOS_BACKEND_IMAGE",
-        "REALITYOS_TTS_IMAGE",
     }:
         raise ValueError("Unsupported image setting")
     values = dict(
@@ -21,7 +20,16 @@ def update_runtime(existing: Path, incoming: Path, image_key: str):
         raise ValueError("Missing image reference")
     if existing.exists() and existing.stat().st_size:
         rows = existing.read_text().splitlines()
-        rows = [row for row in rows if not row.startswith(image_key + "=")]
+        retired = {
+            "REALITYOS_TTS_IMAGE",
+            "TTS_SERVICE_URL",
+            "TTS_SERVICE_TOKEN",
+            "TTS_LOCAL_ENABLED",
+            "TTS_PROVIDER",
+        }
+        rows = [
+            row for row in rows if row.split("=", 1)[0] not in retired | {image_key}
+        ]
         content = "\n".join([*rows, image_key + "=" + image]) + "\n"
     else:
         content = incoming.read_text()

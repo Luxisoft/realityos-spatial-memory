@@ -53,7 +53,7 @@ function fixture(app, stored = 'en') {
 }
 
 for (const app of ['frontend', 'display-webapp']) {
-  test(`${app}: authenticated Seamless audio and resource cleanup`, async () => {
+  test(`${app}: authenticated provider audio and resource cleanup`, async () => {
     const f = fixture(app);
     f.mount('owner-token');
     await f.module.requestLanguage('owner-token');

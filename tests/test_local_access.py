@@ -28,8 +28,7 @@ def local_settings(tmp_path, **changes):
         "meta_mode": "live",
         "face_engine": "insightface",
         "model_api_key": "local-unit-test-key",
-        "tts_service_url": "http://seamless-tts:8091/synthesize",
-        "tts_service_token": "local-speech-test-token-long-enough",
+        "elevenlabs_api_key": "local-speech-test-api-key",
         "enqueue_processing": False,
     }
     return Settings(**(values | changes))
@@ -204,7 +203,7 @@ def test_local_profile_does_not_join_another_owners_matching_workspace(local_cli
     [
         {"meta_mode": "mock"},
         {"face_engine": "mock"},
-        {"tts_service_token": None},
+        {"elevenlabs_api_key": None},
         {"model_api_key": None},
     ],
 )
@@ -221,15 +220,3 @@ def test_local_provisioning_is_denied_for_production(local_client):
                 db, s, "new@local.test", "DifferentPassword123!", "New"
             )
         assert db.query(User).count() == 1
-
-
-def test_runtime_precision_defaults_and_cpu_fallback(monkeypatch):
-    from app.providers.seamless_service import speech_precision
-
-    monkeypatch.delenv("TTS_DTYPE", raising=False)
-    assert speech_precision() == "bfloat16"
-    assert speech_precision("auto", "flags avx2") == "float32"
-    assert speech_precision("auto", "flags avx512_bf16") == "bfloat16"
-    assert speech_precision("auto", "flags amx_bf16") == "bfloat16"
-    with pytest.raises(ValueError):
-        speech_precision("mock")

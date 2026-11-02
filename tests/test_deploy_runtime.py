@@ -24,16 +24,14 @@ update = module("update_runtime_env")
 preserve = module("preserve_backend_runtime")
 
 
-@pytest.mark.parametrize(
-    "key", ["REALITYOS_GATEWAY_IMAGE", "REALITYOS_BACKEND_IMAGE", "REALITYOS_TTS_IMAGE"]
-)
+@pytest.mark.parametrize("key", ["REALITYOS_GATEWAY_IMAGE", "REALITYOS_BACKEND_IMAGE"])
 def test_image_update_preserves_existing_credentials_and_optional_settings(
     tmp_path, key
 ):
     installed = tmp_path / "runtime.env"
     incoming = tmp_path / "incoming.env"
     installed.write_text(
-        f"{key}=previous\nMETA_GATEWAY_TOKEN=existing-private-test-token\nTTS_SERVICE_URL=http://speech:8091/synthesize\n"
+        f"{key}=previous\nMETA_GATEWAY_TOKEN=existing-private-test-token\nELEVENLABS_VOICE_ID=voice-test\n"
     )
     incoming.write_text(
         f"{key}=next\nMETA_GATEWAY_TOKEN=replacement-that-must-not-overwrite\n"
@@ -44,7 +42,7 @@ def test_image_update_preserves_existing_credentials_and_optional_settings(
     assert result.count(key + "=") == 1
     assert "existing-private-test-token" in result
     assert "replacement-that-must-not-overwrite" not in result
-    assert "TTS_SERVICE_URL=http://speech:8091/synthesize" in result
+    assert "ELEVENLABS_VOICE_ID=voice-test" in result
     assert stat.S_IMODE(installed.stat().st_mode) == 0o600
 
 
@@ -127,3 +125,33 @@ def test_private_overlay_permissions_and_round_trip(tmp_path):
     preserve.save(path, value)
     assert json.loads(path.read_text()) == value
     assert stat.S_IMODE(path.stat().st_mode) == 0o600
+
+
+def test_removed_local_speech_settings_cannot_return_in_overlays():
+    env = preserve.application_environment(
+        {
+            "Config": {
+                "Env": [
+                    "TTS_PROVIDER=seamless",
+                    "TTS_LOCAL_ENABLED=true",
+                    "TTS_SERVICE_TOKEN=retired-test",
+                    "FACE_ENGINE=insightface",
+                ]
+            }
+        },
+        {"Config": {"Env": []}},
+    )
+    assert env == {"FACE_ENGINE": "insightface"}
+
+
+def test_runtime_upgrade_removes_obsolete_speech_configuration(tmp_path):
+    installed, incoming = tmp_path / "runtime.env", tmp_path / "incoming.env"
+    installed.write_text(
+        "REALITYOS_BACKEND_IMAGE=old\nREALITYOS_TTS_IMAGE=retired\nTTS_SERVICE_TOKEN=retired\nTTS_PROVIDER=seamless\nELEVENLABS_MODEL_ID=eleven_flash_v2_5\n"
+    )
+    incoming.write_text("REALITYOS_BACKEND_IMAGE=next\n")
+    update.update_runtime(installed, incoming, "REALITYOS_BACKEND_IMAGE")
+    assert (
+        installed.read_text()
+        == "ELEVENLABS_MODEL_ID=eleven_flash_v2_5\nREALITYOS_BACKEND_IMAGE=next\n"
+    )

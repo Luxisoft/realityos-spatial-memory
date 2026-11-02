@@ -77,11 +77,9 @@ En reanudaciones sin objetos nuevos por revisar, se guardan igualmente las
 resoluciones retenidas y se recalcula el contador de revisión pendiente.
 
 
-## Voz local
+## Voz por API
 
-Combinar también `infrastructure/tts/compose.realityos.yml`. Solo después de
-pasar el benchmark real, configurar `TTS_LOCAL_ENABLED=true`; CI actualizará el
-contenedor con la imagen inmutable `REALITYOS_TTS_IMAGE`. Su token se lee de
-`.env`, pero ninguna credencial Meta/DB/JWT entra en el contenedor de voz.
-El virtual host HTTPS publica `/tts/synthesize` directamente al puerto loopback
-8091. No requiere otro dominio ni cambios en el contrato Android/web.
+La síntesis usa ElevenLabs desde el API, con `ELEVENLABS_API_KEY` en el archivo
+privado `.env.elevenlabs` (0600), inyectado únicamente en el API. Muse Voice
+Transcribe continúa usando Meta. No hay imágenes ni servicios de síntesis local
+que construir o activar. Ver [TTS](TTS.md).

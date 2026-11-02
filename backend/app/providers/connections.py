@@ -34,25 +34,16 @@ def gateway_route(settings):
     )
 
 
-def provider_routes(settings, *, speech=False):
+def provider_routes(settings):
     if settings.meta_connection_mode == "gateway":
         return (gateway_route(settings),)
-    if speech:
-        if not settings.tts_service_url or not settings.tts_service_token:
-            raise MetaProviderError("TTS_SERVICE_URL and TTS_SERVICE_TOKEN are required.")
-        direct = ProviderRoute(
-            "direct",
-            str(settings.tts_service_url),
-            {"Authorization": f"Bearer {settings.tts_service_token}"},
-        )
-    else:
-        if not settings.model_api_key:
-            raise MetaProviderError("MODEL_API_KEY is required for a direct Meta connection.")
-        direct = ProviderRoute(
-            "direct",
-            str(settings.meta_api_base_url).rstrip("/"),
-            {"Authorization": f"Bearer {settings.model_api_key}"},
-        )
+    if not settings.model_api_key:
+        raise MetaProviderError("MODEL_API_KEY is required for a direct Meta connection.")
+    direct = ProviderRoute(
+        "direct",
+        str(settings.meta_api_base_url).rstrip("/"),
+        {"Authorization": f"Bearer {settings.model_api_key}"},
+    )
     if settings.meta_gateway_fallback_enabled:
         return (direct, gateway_route(settings))
     return (direct,)

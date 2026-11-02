@@ -45,7 +45,7 @@ session; query endpoints are evidence-only and never start a recording.
 
 An independent Windows + Docker Desktop installation is available alongside the
 server deployment. It has its own configuration, account, database and volumes.
-Meta uses your own API key; InsightFace and Seamless run locally. No sample media
+Meta and ElevenLabs use your own API keys; InsightFace runs locally. No sample media
 or simulated model responses are loaded.
 
 ```powershell

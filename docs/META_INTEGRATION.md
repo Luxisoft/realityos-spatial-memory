@@ -94,21 +94,11 @@ Confident explicit rejections are retained instead of being overwritten by an
 ambiguous crop. Accepted incomplete streams remain explicit errors; this is
 not a blind replay of the same failed request.
 
-## SeamlessM4T v2 response audio (2026-11-01)
+## Respuestas de audio
 
-TTS uses the separate private Seamless service through an explicit gateway route;
-it is not an assumed endpoint of the hosted Meta Model API. Model and processor
-are pinned to `facebook/seamless-m4t-v2-large` revision
-`5f8cc790b19fc3f67a61c105133b20b34e3dcb76`, with the dedicated
-`SeamlessM4Tv2ForTextToSpeech` class and same-language `spa`/`eng` generation.
-The independent CPU image includes PyTorch, Transformers, SentencePiece and
-protobuf; none is added to API/worker. Image imports and the real processor were
-validated for both languages without loading model weights.
-
-Implementation, capacity checks, benchmark and current activation limits are in
-[TTS](TTS.md). Full model inference and acoustic validation remain pending on
-FRONTEND; do not report generated Seamless audio or a successful model benchmark.
-
+Muse Voice Transcribe se mantiene exclusivamente como STT. La generación de
+voz usa ElevenLabs desde RealityOS, independiente de la conexión Meta y sin
+inferencias locales de síntesis. Ver [TTS](TTS.md).
 
 ## Direct connection and automatic fallback — 2026-11-01
 

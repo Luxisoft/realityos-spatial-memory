@@ -1375,3 +1375,14 @@ RAM quedan en `.runtime/ram-elevenlabs-20261102-*` y
 `/home/jmarin/server-memory-audit-20261102/`. Consultar esos recibos para el
 resultado efectivo del despliegue y sus límites; no confundir preflight con QA
 física de Android/gafas.
+
+
+## Eliminación de síntesis local — 2026-11-02
+
+Por instrucción explícita del propietario se elimina Seamless, incluyendo código,
+contenedor, imagen, volumen de pesos, dependencias, trabajos de CI y opciones
+Windows. ElevenLabs es el único motor de síntesis; Muse Voice Transcribe/Spark/SAM
+se conservan. Windows utiliza su propia clave ElevenLabs y no copia claves de
+producción. Las referencias previas a modelos/volúmenes y rollbacks de Seamless
+son históricas y quedan retiradas; la recuperación inmediata usa la última
+versión ElevenLabs, sin modelo local. Se mantienen datos de usuario y biometría.

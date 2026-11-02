@@ -14,19 +14,31 @@ CONNECTION_SETTINGS = {
     "META_API_BASE_URL",
     "META_GATEWAY_BASE_URL",
     "META_GATEWAY_TOKEN",
-    "TTS_PROVIDER",
     "ELEVENLABS_API_KEY",
     "ELEVENLABS_VOICE_ID",
     "ELEVENLABS_MODEL_ID",
+}
+
+
+RETIRED_SETTINGS = {
+    "TTS_PROVIDER",
     "TTS_SERVICE_URL",
     "TTS_SERVICE_TOKEN",
+    "TTS_LOCAL_ENABLED",
+    "TTS_DTYPE",
+    "TTS_CPU_THREADS",
+    "LOCAL_TTS_MEMORY",
 }
 
 
 def application_environment(container, image):
     defaults = dict(row.split("=", 1) for row in image["Config"].get("Env", []) or [])
     active = dict(row.split("=", 1) for row in container["Config"].get("Env", []) or [])
-    return {key: value for key, value in active.items() if defaults.get(key) != value}
+    return {
+        key: value
+        for key, value in active.items()
+        if defaults.get(key) != value and key not in RETIRED_SETTINGS
+    }
 
 
 def runtime_overlays(inspect):

@@ -13,11 +13,9 @@ persistidos. La alternativa de voz de Android/navegador permanece disponible
 ante indisponibilidad del proveedor.
 
 ```dotenv
-TTS_PROVIDER=elevenlabs
 ELEVENLABS_VOICE_ID=JBFqnCBsd6RMkjVDRZzb
 ELEVENLABS_MODEL_ID=eleven_flash_v2_5
 TTS_TIMEOUT_SECONDS=30
-TTS_LOCAL_ENABLED=false
 ```
 
 La credencial `ELEVENLABS_API_KEY` vive únicamente en `.env.elevenlabs`, archivo
@@ -44,19 +42,18 @@ El antiguo `/tts/synthesize` con token de servicio se retira con HTTP 410;
 producción ya no depende de 8091 ni del circuito de voz por FRONTEND que
 regresaba al mismo motor local. El gateway Meta para visión/STT se conserva.
 
-## Modelo local opcional y recuperación
+## Ejecución
 
-La instalación Windows sigue siendo independiente: `TTS_PROVIDER=seamless`,
-`TTS_SERVICE_URL=http://seamless-tts:8091/synthesize` y el proyecto Docker
-`realityos-local`. Conserva `facebook/seamless-m4t-v2-large`, revisión
-`5f8cc790b19fc3f67a61c105133b20b34e3dcb76`, y su licencia
-[CC-BY-NC-4.0](https://huggingface.co/facebook/seamless-m4t-v2-large).
+La síntesis usa exclusivamente ElevenLabs tanto en producción como en la
+instalación Windows. Esta última solicita una clave propia en `.env.local`;
+no copia credenciales del servidor. No hay contenedor, pesos, dependencias de
+inferencia, perfil Compose ni compilaciones de un modelo de voz local.
 
-En producción, el despliegue solo arranca Seamless si ambos valores son
-explícitos: `TTS_PROVIDER=seamless` y `TTS_LOCAL_ENABLED=true`. En otro caso,
-desactiva el reinicio automático y detiene cualquier contenedor existente.
-Se conservan su volumen de pesos y los archivos de recuperación. Los cambios
-normales de CI no deben volver a encenderlo con ElevenLabs seleccionado.
+El 2026-11-02 el propietario solicitó eliminar por completo Seamless después
+de verificar ElevenLabs y Muse Voice Transcribe. Se retiraron el código,
+contenedor, imagen y volumen de pesos, además de los trabajos de CI y opciones
+locales. Las menciones antiguas en el historial de implementación describen
+releases retirados y no son instrucciones vigentes.
 
 Referencias: [ElevenLabs Create speech](https://elevenlabs.io/docs/api-reference/text-to-speech/convert)
 y [Meta Model API](https://dev.meta.ai/docs/overview).

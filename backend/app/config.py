@@ -61,15 +61,12 @@ class Settings(BaseSettings):
     meta_timeout_seconds: float = Field(default=30, gt=0, le=120)
     meta_video_timeout_seconds: float = Field(default=600, gt=0, le=900)
     meta_max_retries: int = Field(default=2, ge=0, le=5)
-    tts_provider: Literal["elevenlabs", "seamless"] = "elevenlabs"
     elevenlabs_api_key: SecretStr | None = None
     elevenlabs_voice_id: str = Field(
         default="JBFqnCBsd6RMkjVDRZzb", pattern=r"^[A-Za-z0-9_-]{1,128}$"
     )
     elevenlabs_model_id: Literal["eleven_flash_v2_5"] = "eleven_flash_v2_5"
     tts_timeout_seconds: float = Field(default=30, gt=0, le=30)
-    tts_service_url: AnyHttpUrl | None = None
-    tts_service_token: str | None = None
     enqueue_processing: bool = True
     # Hackathon-only virtual glasses enrollment. This deliberately creates a
     # revocable device identity instead of embedding a reusable credential in
