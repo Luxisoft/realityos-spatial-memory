@@ -25,6 +25,7 @@ from app.social_features.evidence_models import (
     PublicationUpload,
 )
 from app.social_features.models import Publication
+from app.social_features.publication_visibility import publication_content
 from app.social_features.visual import ground, normalize, similar
 
 
@@ -49,6 +50,7 @@ def same_scope(db, owner, audience, workspace):
             Publication.audience == audience,
             Publication.workspace_id == workspace,
             Publication.hidden.is_(False),
+            publication_content(),
         )
         .order_by(Publication.published_at, Publication.id)
     )
@@ -61,7 +63,7 @@ def duplicate(db, client, raw, owner, audience, workspace, older_than=None):
         same_scope(db, owner, audience, workspace)
         if audience is not None
         else select(Publication)
-        .where(Publication.owner_id == owner, Publication.hidden.is_(False))
+        .where(Publication.owner_id == owner, Publication.hidden.is_(False), publication_content())
         .order_by(Publication.published_at, Publication.id)
     )
     for post in db.scalars(statement):

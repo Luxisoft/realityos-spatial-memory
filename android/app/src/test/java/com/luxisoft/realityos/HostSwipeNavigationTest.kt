@@ -22,7 +22,6 @@ class HostSwipeNavigationTest {
     @Test
     fun `destinations outside the pager have no page`() {
         assertEquals(-1, HostSwipeNavigation.pageFor(HostDestination.META_DISPLAY))
-        assertEquals(-1, HostSwipeNavigation.pageFor(HostDestination.LANGUAGE))
     }
 
     @Test

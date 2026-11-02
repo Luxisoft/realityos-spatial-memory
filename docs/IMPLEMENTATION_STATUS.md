@@ -1423,3 +1423,33 @@ La ejecución instrumentada corresponde al emulador de CI; este host no tiene
 emulador ni dispositivo ADB. La validación física en teléfono/gafas sigue
 pendiente. El único APK Debug permanece en
 `android/app/build/outputs/apk/debug/app-debug.apk`.
+
+
+## Cabecera global compacta y referencias internas — 2026-11-02
+
+Android comparte una cabecera fija de 96 dp entre Perfil, Trabajo, Buscar y
+Ray-Ban: avatar/nombre/correo, Facebook y gafas; ubicación, ciudad y demás
+datos empiezan plegados. El editor conserva los campos existentes e incorpora
+la carga PDF/DOCX; EN/ES se guarda desde el menú, sin pantalla Idioma. Los
+perfiles visitados reutilizan el componente con Volver y sin controles de dueño.
+Publicaciones admite imágenes y MP4, señala videos y se refresca al volver de
+Ray-Ban o cambiar el estado de una captura. Las escenas de Trabajo de prueba
+conservadas llevan una etiqueta visible Simulado/Simulated.
+
+El servidor excluye `facebook` y `simulator` antes de paginar y buscar, y de
+los candidatos de duplicados. Sus URLs ordinarias, aliases y derivados no
+permiten mostrarlos como publicaciones. Se conservan BYTEA, avatares,
+importación y flujo facial autorizado, sin modificar el módulo biométrico ni
+añadir migraciones. Los medios compartidos explícitamente mantienen sus permisos.
+
+Validación: 225 pruebas sociales/biométricas/contrato, ocho regresiones de
+visibilidad y 177 pruebas Android (siete nuevas) aprobadas; Ruff, arquitectura,
+ktlint y lint sin errores. APK Debug en la ruta única habitual; compilaciones
+Debug/Release y fuentes instrumentadas verificadas. No se ejecutó QA en
+teléfono/gafas. También se verificaron 19 pruebas seleccionadas en una copia
+con solo el contenido preparado para el commit.
+
+Despliegue API/worker preparado en `.runtime/deploy_compact_profile.py`, pendiente
+de autorización Docker explícita; no ejecutado. La entrega omite CI automático
+para preservar los ajustes locales de memoria y arranque bajo demanda todavía
+no publicados. No se crearon dumps ni se modificó el runtime del gateway.

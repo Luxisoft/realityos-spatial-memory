@@ -485,3 +485,13 @@ cuenta impiden restaurar imágenes anteriores. Pasan 170 pruebas Android locales
 regresiones HTTPS y de píxeles incorporadas al emulador de CI. Ver `WEARABLES.md`
 e `IMPLEMENTATION_STATUS.md`. Sin cambios de backend ni biometría; QA física
 pendiente.
+
+
+Cabecera compacta global Android (2026-11-02): Perfil/Trabajo/Buscar/Ray-Ban
+comparten avatar, nombre, correo y accesos Facebook/gafas; los detalles se
+despliegan, el CV vive en Editar y EN/ES en el menú. Publicaciones admite foto/MP4
+y refresca las capturas. Las referencias Facebook/directorio quedan internas
+en feeds, búsqueda, duplicados y URLs ordinarias; el brazo facial y los avatares
+se conservan. Sin migraciones. Validación: 225 pruebas backend relevantes y
+177 Android; formato, lint y builds. Despliegue preparado, pendiente de
+autorización Docker y sin QA física; ver IMPLEMENTATION_STATUS.md.

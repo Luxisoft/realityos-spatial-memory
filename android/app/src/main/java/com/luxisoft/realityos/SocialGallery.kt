@@ -528,15 +528,14 @@ fun SocialGallery(
         } else {
             LazyVerticalGrid(columns = GridCells.Fixed(3), modifier = Modifier.weight(1f)) {
                 items(posts.filter { audience != "work" || groupId == null || it.optString("workspace_id") == groupId }) { post ->
-                    DatabaseImage(
-                        model = coil.request.ImageRequest.Builder(context)
-                            .data("${BuildConfig.DEFAULT_REALITYOS_API_BASE_URL}/${post.getString("thumbnail_url")}")
-                            .addHeader("Authorization", "Bearer ${SocialSession.token}").build(),
-                        contentDescription = post.optString("caption"), contentScale = ContentScale.Crop,
-                        modifier = Modifier.padding(1.dp).aspectRatio(0.75f).clickable {
-                            selected = post
-                        },
-                    )
+                    Box(Modifier.padding(1.dp).aspectRatio(0.75f).clickable { selected = post }) {
+                        DatabaseImage(
+                            model = profileImageRequest(context, post.getString("thumbnail_url")),
+                            contentDescription = post.optString("caption"), contentScale = ContentScale.Crop,
+                            modifier = Modifier.fillMaxSize(),
+                        )
+                        PublicationSourceBadge(post.optString("source"), Modifier.align(Alignment.BottomStart).padding(4.dp))
+                    }
                 }
                 if (authenticated && posts.isNotEmpty()) item(span = { GridItemSpan(maxLineSpan) }) {
                     val loadMore = GalleryPagingPolicy.shouldLoadMore(loading, endReached)
@@ -575,6 +574,7 @@ fun SocialGallery(
             noteText = post.optString("note_text"),
             noteSource = post.optString("note_source"),
             metaLines = listOf(
+                if (post.optString("source").startsWith("simulator")) localizedText(R.string.profile_simulated_media) else "",
                 post.optJSONObject("owner")?.optString("display_name").orEmpty().let { if (it.isNotBlank()) localizedText(R.string.ui_by_1_s, it) else "" },
                 post.optString("published_at").substringBefore("T").let { if (it.isNotBlank()) localizedText(R.string.ui_published_on_1_s, it) else "" },
             ),

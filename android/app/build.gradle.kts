@@ -143,6 +143,10 @@ dependencies {
 }
 
 val refactoredKotlin = files(
+    "src/main/java/com/luxisoft/realityos/ProfileHeader.kt",
+    "src/main/java/com/luxisoft/realityos/ProfileDetails.kt",
+    "src/main/java/com/luxisoft/realityos/ProfileScreen.kt",
+    "src/testDebug/java/com/luxisoft/realityos/ProfileHeaderTest.kt",
     "src/main/java/com/luxisoft/realityos/DisplayResultImages.kt",
     "src/test/java/com/luxisoft/realityos/DisplayResultImagesTest.kt",
     "src/main/java/com/luxisoft/realityos/DisplayProfileNavigation.kt",

@@ -609,4 +609,7 @@
         <item quantity="one">Encontré %1$d persona: %2$s</item>
         <item quantity="other">Encontré %1$d personas: %2$s</item>
     </plurals>
+    <string name="profile_choose_media">Elegir foto o video</string>
+    <string name="profile_play_video">Reproducir video</string>
+    <string name="profile_simulated_media">Simulado</string>
 </resources>

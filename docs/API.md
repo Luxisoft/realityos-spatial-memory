@@ -341,3 +341,16 @@ The backend allows one transient retry within a 30-second overall deadline.
 Android and both browser clients then use their existing device voice if audio
 is unavailable. Caller authentication errors are not retried or spoken through
 fallback. Existing query schemas and `tts_text` remain compatible. See [TTS](TTS.md).
+
+
+## Internal identity reference media — 2026-11-02
+
+Facebook imports (`source=facebook`) and directory reference scenes
+(`source=simulator`) remain stored for the isolated, consented face workflow.
+They are excluded before pagination from profile and gallery feeds, ordinary
+search results and duplicate candidates. Ordinary publication, thumbnail, boxed,
+interaction and signed publication routes reject their IDs, including aliases.
+Raw media routes reject reference-only assets. Avatar and facial-result routes
+retain their own authorization; independently published app copies and labelled
+`simulator-work` examples retain normal audience/workspace permissions.
+No REST shapes, routes, biometric contracts or database schema change.

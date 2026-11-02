@@ -22,6 +22,7 @@ import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
@@ -72,8 +73,7 @@ import kotlinx.coroutines.withContext
 internal enum class HostDestination {
     PROFILE,
     GALLERY,
-    META_DISPLAY,
-    LANGUAGE
+    META_DISPLAY
 }
 
 internal enum class MetaSection { PREVIEW, GLASSES }
@@ -153,7 +153,7 @@ private fun RealityHostShell(
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
     var selectedName by rememberSaveable { mutableStateOf(HostDestination.PROFILE.name) }
-    val selected = remember(selectedName) { HostDestination.valueOf(selectedName) }
+    val selected = remember(selectedName) { HostDestination.entries.firstOrNull { it.name == selectedName } ?: HostDestination.PROFILE }
     // The host gallery is always work: starting here avoids flashing another feed first.
     var audience by rememberSaveable { mutableStateOf("work") }
     var metaSectionName by rememberSaveable { mutableStateOf(MetaSection.PREVIEW.name) }
@@ -173,6 +173,7 @@ private fun RealityHostShell(
         }
     }
     val galleryBar = remember { GalleryTopBarState() }
+    val profileState = rememberProfileState()
     LaunchedEffect(selected) { mediaViewerOpen = false }
     val swipePages = remember { HostSwipeNavigation.pages }
     val pagerState = rememberPagerState(initialPage = HostSwipeNavigation.pageFor(selected).coerceAtLeast(0)) { swipePages.size }
@@ -281,14 +282,7 @@ private fun RealityHostShell(
         gesturesEnabled = !previewControlsOpen && !mediaViewerOpen && selected == HostDestination.PROFILE,
         drawerContent = {
             RealityDrawer(
-                selected = selected,
-                onSelect = { destination ->
-                    selectedName = destination.name
-                    scope.launch {
-                        previewControlsOpen = false
-                        drawerState.close()
-                    }
-                },
+                experienceStore = experienceStore,
                 onAbout = {
                     scope.launch { drawerState.close() }
                     onReplayWelcome()
@@ -313,15 +307,27 @@ private fun RealityHostShell(
                 contentWindowInsets = WindowInsets.safeDrawing,
                 topBar = {
                     if (!mediaViewerOpen) {
-                        HostTopBar(
-                            selected = selected,
-                            audience = audience,
-                            metaSection = metaSection,
-                            galleryBar = galleryBar,
-                            onOpenDrawer = { scope.launch { drawerState.open() } },
-                            onSelectMeta = { metaSectionName = it.name },
-                            onOpenMetaControls = { previewControlsOpen = true }
-                        )
+                        Column(Modifier.statusBarsPadding()) {
+                            ProfileHeader(
+                                state = profileState,
+                                onMenu = { scope.launch { drawerState.open() } },
+                                onGlasses = {
+                                    showSearchSheet = false
+                                    selectedName = HostDestination.META_DISPLAY.name
+                                },
+                                onEditDrawerChange = { profileEditOpen = it }
+                            )
+                            if (!showSearchSheet && (selected == HostDestination.GALLERY || selected == HostDestination.META_DISPLAY)) {
+                                HostTopBar(
+                                    selected = selected,
+                                    audience = audience,
+                                    metaSection = metaSection,
+                                    galleryBar = galleryBar,
+                                    onSelectMeta = { metaSectionName = it.name },
+                                    onOpenMetaControls = { previewControlsOpen = true }
+                                )
+                            }
+                        }
                     }
                 },
                 bottomBar = {
@@ -359,13 +365,13 @@ private fun RealityHostShell(
                             state = pagerState,
                             modifier = Modifier.fillMaxSize(),
                             beyondViewportPageCount = 2,
-                            userScrollEnabled = !mediaViewerOpen && !drawerState.isOpen && !(profileEditOpen && selected == HostDestination.PROFILE) && !(groupAdminOpen && selected == HostDestination.GALLERY)
+                            userScrollEnabled = !mediaViewerOpen && !drawerState.isOpen && !profileEditOpen && !(groupAdminOpen && selected == HostDestination.GALLERY)
                         ) { page ->
                             Box(
                                 Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)
                             ) {
                                 when (swipePages[page]) {
-                                    HostDestination.PROFILE -> ProfileScreen(viewModel = viewModel, onViewerChange = { mediaViewerOpen = it }, onEditDrawerChange = { profileEditOpen = it })
+                                    HostDestination.PROFILE -> ProfileScreen(viewModel = viewModel, onViewerChange = { mediaViewerOpen = it }, sharedProfile = profileState, active = selected == HostDestination.PROFILE, captureUploadStatus = state.meta.uploadStatus)
                                     HostDestination.GALLERY -> SocialGallery(viewModel, audience = audience, onWelcome = onReplayWelcome, onViewerChange = { mediaViewerOpen = it }, galleryBar = galleryBar, onAdminDrawerChange = { groupAdminOpen = it })
                                     else -> {}
                                 }
@@ -379,7 +385,7 @@ private fun RealityHostShell(
                             modifier = Modifier.fillMaxSize()
                         ) { destination ->
                             when (destination) {
-                                HostDestination.PROFILE -> ProfileScreen(viewModel = viewModel, onViewerChange = { mediaViewerOpen = it })
+                                HostDestination.PROFILE -> ProfileScreen(viewModel = viewModel, onViewerChange = { mediaViewerOpen = it }, sharedProfile = profileState, active = selected == HostDestination.PROFILE, captureUploadStatus = state.meta.uploadStatus)
                                 HostDestination.GALLERY -> SocialGallery(viewModel, audience = audience, onWelcome = onReplayWelcome, onViewerChange = { mediaViewerOpen = it }, galleryBar = galleryBar, onAdminDrawerChange = { groupAdminOpen = it })
                                 HostDestination.META_DISPLAY -> when (metaSection) {
                                     MetaSection.PREVIEW -> PreviewDestination(state = state, viewModel = viewModel)
@@ -391,58 +397,57 @@ private fun RealityHostShell(
                                         onDisconnectDisplay = onDisconnectDisplay
                                     )
                                 }
-                                HostDestination.LANGUAGE -> LanguageDestination(experienceStore)
                             }
                         }
                     }
-                }
-            }
-            if (showSearchSheet) {
-                BackHandler { showSearchSheet = false }
-                var searchPanelVisible by remember { mutableStateOf(false) }
-                LaunchedEffect(Unit) { searchPanelVisible = true }
-                fun closeSearch() {
-                    scope.launch {
-                        searchPanelVisible = false
-                        delay(220)
-                        showSearchSheet = false
-                    }
-                }
-                // Custom bottom panel instead of ModalBottomSheet: its height
-                // behavior ignored every 90% cap, so the cap is structural now.
-                Box(Modifier.fillMaxSize()) {
-                    Box(
-                        Modifier.fillMaxSize()
-                            .background(Color.Black.copy(alpha = 0.45f))
-                            .clickable(
-                                role = Role.Button,
-                                onClickLabel = localizedText(R.string.ui_close_search),
-                                onClick = ::closeSearch
+                    if (showSearchSheet) {
+                        BackHandler { showSearchSheet = false }
+                        var searchPanelVisible by remember { mutableStateOf(false) }
+                        LaunchedEffect(Unit) { searchPanelVisible = true }
+                        fun closeSearch() {
+                            scope.launch {
+                                searchPanelVisible = false
+                                delay(220)
+                                showSearchSheet = false
+                            }
+                        }
+                        // Custom bottom panel instead of ModalBottomSheet: its height
+                        // behavior ignored every 90% cap, so the cap is structural now.
+                        Box(Modifier.fillMaxSize()) {
+                            Box(
+                                Modifier.fillMaxSize()
+                                    .background(Color.Black.copy(alpha = 0.45f))
+                                    .clickable(
+                                        role = Role.Button,
+                                        onClickLabel = localizedText(R.string.ui_close_search),
+                                        onClick = ::closeSearch
+                                    )
                             )
-                    )
-                    AnimatedVisibility(
-                        visible = searchPanelVisible,
-                        enter = slideInVertically { it },
-                        exit = slideOutVertically { it },
-                        modifier = Modifier.align(Alignment.BottomCenter)
-                    ) {
-                        Surface(
-                            modifier = Modifier.fillMaxWidth().fillMaxHeight(0.9f).imePadding(),
-                            shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
-                            tonalElevation = 4.dp
-                        ) {
-                            Column(Modifier.fillMaxSize()) {
-                                Box(
-                                    Modifier.align(Alignment.CenterHorizontally)
-                                        .padding(top = 12.dp, bottom = 4.dp)
-                                        .size(width = 32.dp, height = 4.dp)
-                                        .background(
-                                            MaterialTheme.colorScheme.onSurfaceVariant,
-                                            CircleShape
+                            AnimatedVisibility(
+                                visible = searchPanelVisible,
+                                enter = slideInVertically { it },
+                                exit = slideOutVertically { it },
+                                modifier = Modifier.align(Alignment.BottomCenter)
+                            ) {
+                                Surface(
+                                    modifier = Modifier.fillMaxWidth().fillMaxHeight(0.9f).imePadding(),
+                                    shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
+                                    tonalElevation = 4.dp
+                                ) {
+                                    Column(Modifier.fillMaxSize()) {
+                                        Box(
+                                            Modifier.align(Alignment.CenterHorizontally)
+                                                .padding(top = 12.dp, bottom = 4.dp)
+                                                .size(width = 32.dp, height = 4.dp)
+                                                .background(
+                                                    MaterialTheme.colorScheme.onSurfaceVariant,
+                                                    CircleShape
+                                                )
                                         )
-                                )
-                                Box(Modifier.weight(1f).fillMaxWidth()) {
-                                    UnifiedSearch(chatMessages, viewModel)
+                                        Box(Modifier.weight(1f).fillMaxWidth()) {
+                                            UnifiedSearch(chatMessages, viewModel)
+                                        }
+                                    }
                                 }
                             }
                         }

@@ -22,6 +22,7 @@ from app.models import (
     WorkspaceMember,
 )
 from app.social_features.models import FacebookFriend, FacebookProfile, Publication, UserProfile
+from app.social_features.publication_visibility import publication_content
 from app.social_features.schemas import ProfileSearchRequest, ProfileUpdate
 
 """Facebook identities and explicitly shared audiovisual publications."""
@@ -432,6 +433,7 @@ def _profile_search_text(
             .where(
                 Publication.owner_id == target.id,
                 Publication.hidden.is_(False),
+                publication_content(),
                 or_(
                     Publication.audience == "public",
                     Publication.owner_id == viewer.id,

@@ -42,3 +42,18 @@ keeps portrait sources intact and avoids stacking full-width navigation rows.
 The phone owns destination selection, connection state and recovery controls;
 its existing Preview/Glasses/Controls navigation remains. The optical shell
 and Debug-only camera view remain intact, now with an elapsed recording label.
+
+
+## Compact shared Android profile header — 2026-11-02
+
+The authenticated phone host uses one fixed 96 dp profile header below the
+status inset: menu/back, 48 dp avatar with owner edit action, name/email, and
+Facebook above Ray-Ban actions. Existing dark/blue tokens and system typography
+remain. Location, hometown and other profile details begin collapsed; the
+expanded details scroll within 40% of the window. The header is shared across
+Profile, Work, Search and Ray-Ban; destination controls use a compact contextual
+row. Full-screen media and login keep their dedicated presentation. Visited
+profiles reuse the header without owner controls. Resume upload lives inside
+Edit profile; EN/ES is a segmented selector inside the menu, persisted to the
+account with an inline retryable save error. Identity reference photos never
+form the publication grid; explicit phone/glasses photos and MP4s do.

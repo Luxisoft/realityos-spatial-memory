@@ -87,7 +87,9 @@ def index_publication(
     publication = db.get(Publication, publication_id)
     if publication is None:
         return None
-    if publication.hidden:
+    from app.social_features.publication_visibility import REFERENCE_SOURCES
+
+    if publication.hidden or publication.source in REFERENCE_SOURCES:
         return publication
     if publication.indexed_at is not None and not force:
         from app.social_features.localizations import prepare_posts
@@ -232,8 +234,9 @@ def _index_video(
 
 def _visible_scope(viewer: User, audience: str | None, workspace_id: uuid.UUID | None):
     from app.social import Publication
+    from app.social_features.publication_visibility import publication_content
 
-    statement = select(Publication)
+    statement = select(Publication).where(publication_content())
     if audience is not None:
         statement = statement.where(Publication.audience == audience)
     if workspace_id is not None:

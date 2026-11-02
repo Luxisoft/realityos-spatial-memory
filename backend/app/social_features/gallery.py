@@ -27,6 +27,11 @@ from app.models import (
     WorkspaceMember,
 )
 from app.social_features.models import Comment, Publication, Reaction, Report
+from app.social_features.publication_visibility import (
+    publication_content,
+    require_ordinary_media,
+    require_publication_content,
+)
 from app.social_features.schemas import Interaction, Publish, Share
 
 """Facebook identities and explicitly shared audiovisual publications."""
@@ -94,6 +99,7 @@ def share(
 
 def visible(post: Publication, user: User, db: Session) -> Publication:
 
+    require_publication_content(post)
     if post.hidden:
         raise HTTPException(404, "Publication unavailable.")
     if user.is_guest and post.owner_id != user.id:
@@ -112,6 +118,9 @@ def get_post(post_id: uuid.UUID, user: User, db: Session):
 
     from app.social_features.evidence_models import PublicationDuplicate
 
+    original = db.get(Publication, post_id)
+    if original is not None:
+        require_publication_content(original)
     alias = db.get(PublicationDuplicate, post_id)
     if alias is not None:
         post_id = alias.canonical_id
@@ -217,6 +226,7 @@ def profile_media_page(
     query = select(Publication).where(
         Publication.owner_id == user_id,
         Publication.hidden.is_(False),
+        publication_content(),
     )
     if user.id != user_id:
         query = query.where(Publication.audience == "public")
@@ -236,6 +246,7 @@ def gallery_page(
     query = select(Publication).where(
         Publication.audience == audience,
         Publication.hidden.is_(False),
+        publication_content(),
     )
     if audience == "home":
         query = query.where(Publication.owner_id == user.id)
@@ -269,7 +280,9 @@ def gallery(
     query = (
         select(Publication)
         .join(MediaAsset, Publication.media_id == MediaAsset.id)
-        .where(Publication.audience == audience, Publication.hidden.is_(False))
+        .where(
+            Publication.audience == audience, Publication.hidden.is_(False), publication_content()
+        )
     )
     if audience == "home":
         query = query.where(Publication.owner_id == user.id)
@@ -313,6 +326,7 @@ def publish(
     if session is None or session.created_by_id != user.id:
         raise HTTPException(403, "Only the capture owner can publish it.")
     workspace_member(asset.workspace_id, user, db)
+    require_ordinary_media(asset, user, db)
     if payload.audience == "work":
         if payload.workspace_id is None:
             raise HTTPException(422, "Choose a work group.")

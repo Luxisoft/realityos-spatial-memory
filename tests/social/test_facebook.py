@@ -172,13 +172,8 @@ def test_facebook_login_syncs_profile_and_imports_photos(client, monkeypatch):
     assert all(item["media_id"] for item in own.json()["media"])
     page = client.get(f"/v1/profiles/{user_id}/media?limit=2", headers=headers)
     assert page.status_code == 200
-    assert len(page.json()["items"]) == 2
-    assert page.json()["next_cursor"]
-    next_page = client.get(
-        f"/v1/profiles/{user_id}/media?limit=2&cursor={page.json()['next_cursor']}",
-        headers=headers,
-    )
-    assert len(next_page.json()["items"]) == 1
+    assert page.json()["items"] == []
+    assert page.json()["next_cursor"] is None
 
 
 def test_facebook_video_import_enrolls_from_frames(client, monkeypatch, tmp_path):

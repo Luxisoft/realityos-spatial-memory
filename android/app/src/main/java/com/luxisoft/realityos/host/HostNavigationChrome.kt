@@ -40,13 +40,16 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalDrawerSheet
 import androidx.compose.material3.NavigationDrawerItem
 import androidx.compose.material3.NavigationDrawerItemDefaults
+import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -84,6 +87,7 @@ import com.adamglin.phosphoricons.regular.SlidersHorizontal
 import com.adamglin.phosphoricons.regular.UserCircle
 import com.luxisoft.realityos.*
 import com.luxisoft.realityos.localizedText
+import kotlinx.coroutines.launch
 
 /**
  * Opens the host drawer from an edge swipe on pages where the pager would
@@ -134,122 +138,107 @@ internal fun HostTopBar(
     audience: String,
     metaSection: MetaSection,
     galleryBar: GalleryTopBarState,
-    onOpenDrawer: () -> Unit,
     onSelectMeta: (MetaSection) -> Unit,
     onOpenMetaControls: () -> Unit
 ) {
-    androidx.compose.material3.TopAppBar(
-        navigationIcon = { IconButton(onClick = onOpenDrawer, modifier = Modifier.testTag("host-menu-button")) { Icon(Icons.Filled.Menu, stringResource(R.string.content_open_menu)) } },
-        title = {
-            Column {
-                Text("RealityOS", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-                Text(
-                    when (selected) {
-                        HostDestination.PROFILE -> localizedText(R.string.ui_profile)
-                        HostDestination.GALLERY -> localizedText(R.string.ui_work)
-                        HostDestination.META_DISPLAY -> "Meta Ray-Ban Display"
-                        HostDestination.LANGUAGE -> localizedText(R.string.ui_language)
-                    },
-                    style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.tertiary
-                )
-            }
-        },
-        actions = {
-            if (selected == HostDestination.GALLERY && audience == "work" && (galleryBar.loading || galleryBar.options.isNotEmpty())) {
-                var workspaceMenu by remember { mutableStateOf(false) }
-                Box {
-                    TextButton(
-                        onClick = { workspaceMenu = true },
-                        contentPadding = PaddingValues(horizontal = 8.dp)
-                    ) {
-                        if (galleryBar.loading) {
-                            SkeletonBlock(Modifier.width(100.dp).height(16.dp))
-                        } else {
-                            Text(
-                                GalleryWorkspaceLabels.selectedName(galleryBar.options, galleryBar.selectedId, localizedText(R.string.ui_all_workspaces)),
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis,
-                                modifier = Modifier.widthIn(max = 110.dp)
-                            )
-                        }
-                        Icon(Icons.Filled.ArrowDropDown, contentDescription = localizedText(R.string.ui_select_workspace))
+    Row(
+        modifier = Modifier.fillMaxWidth().height(48.dp).padding(horizontal = 8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = androidx.compose.foundation.layout.Arrangement.End
+    ) {
+        if (selected == HostDestination.GALLERY && audience == "work" && (galleryBar.loading || galleryBar.options.isNotEmpty())) {
+            var workspaceMenu by remember { mutableStateOf(false) }
+            Box {
+                TextButton(
+                    onClick = { workspaceMenu = true },
+                    contentPadding = PaddingValues(horizontal = 8.dp)
+                ) {
+                    if (galleryBar.loading) {
+                        SkeletonBlock(Modifier.width(100.dp).height(16.dp))
+                    } else {
+                        Text(
+                            GalleryWorkspaceLabels.selectedName(galleryBar.options, galleryBar.selectedId, localizedText(R.string.ui_all_workspaces)),
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                            modifier = Modifier.widthIn(max = 110.dp)
+                        )
                     }
-                    DropdownMenu(expanded = workspaceMenu, onDismissRequest = { workspaceMenu = false }) {
-                        if (galleryBar.loading) {
-                            SkeletonList(Modifier.width(220.dp).padding(16.dp), rows = 3)
-                        } else {
+                    Icon(Icons.Filled.ArrowDropDown, contentDescription = localizedText(R.string.ui_select_workspace))
+                }
+                DropdownMenu(expanded = workspaceMenu, onDismissRequest = { workspaceMenu = false }) {
+                    if (galleryBar.loading) {
+                        SkeletonList(Modifier.width(220.dp).padding(16.dp), rows = 3)
+                    } else {
+                        DropdownMenuItem(
+                            text = { Text(localizedText(R.string.ui_all_workspaces)) },
+                            onClick = {
+                                galleryBar.onSelect(null)
+                                workspaceMenu = false
+                            },
+                            leadingIcon = if (galleryBar.selectedId == null) {
+                                { Icon(Icons.Filled.Check, contentDescription = null) }
+                            } else {
+                                null
+                            }
+                        )
+                        galleryBar.options.forEach { option ->
                             DropdownMenuItem(
-                                text = { Text(localizedText(R.string.ui_all_workspaces)) },
+                                text = { Text(option.name) },
                                 onClick = {
-                                    galleryBar.onSelect(null)
+                                    galleryBar.onSelect(option.id)
                                     workspaceMenu = false
                                 },
-                                leadingIcon = if (galleryBar.selectedId == null) {
+                                leadingIcon = if (galleryBar.selectedId == option.id) {
                                     { Icon(Icons.Filled.Check, contentDescription = null) }
                                 } else {
                                     null
                                 }
                             )
-                            galleryBar.options.forEach { option ->
-                                DropdownMenuItem(
-                                    text = { Text(option.name) },
-                                    onClick = {
-                                        galleryBar.onSelect(option.id)
-                                        workspaceMenu = false
-                                    },
-                                    leadingIcon = if (galleryBar.selectedId == option.id) {
-                                        { Icon(Icons.Filled.Check, contentDescription = null) }
-                                    } else {
-                                        null
-                                    }
-                                )
-                            }
                         }
                     }
                 }
-                IconButton(onClick = galleryBar.onPublish, enabled = !galleryBar.loading && galleryBar.publishEnabled) {
-                    Icon(Icons.Filled.Add, contentDescription = localizedText(R.string.ui_publish))
-                }
-                if (galleryBar.showInvite) {
-                    IconButton(onClick = galleryBar.onInvite) {
-                        Icon(Icons.Filled.PersonAdd, contentDescription = localizedText(R.string.ui_invite))
-                    }
-                }
-                if (galleryBar.showAdmin) {
-                    IconButton(onClick = galleryBar.onAdmin) {
-                        Icon(Icons.Filled.AdminPanelSettings, contentDescription = localizedText(R.string.ui_manage))
-                    }
+            }
+            IconButton(onClick = galleryBar.onPublish, enabled = !galleryBar.loading && galleryBar.publishEnabled) {
+                Icon(Icons.Filled.Add, contentDescription = localizedText(R.string.ui_publish))
+            }
+            if (galleryBar.showInvite) {
+                IconButton(onClick = galleryBar.onInvite) {
+                    Icon(Icons.Filled.PersonAdd, contentDescription = localizedText(R.string.ui_invite))
                 }
             }
-            if (selected == HostDestination.META_DISPLAY) {
-                IconButton(onClick = { onSelectMeta(MetaSection.PREVIEW) }) {
-                    Icon(
-                        imageVector = if (metaSection == MetaSection.PREVIEW) PhosphorIcons.Fill.Eye else PhosphorIcons.Regular.Eye,
-                        contentDescription = localizedText(R.string.ui_preview),
-                        tint = if (metaSection == MetaSection.PREVIEW) RealityIconSelected else RealityIconDefault
-                    )
-                }
-                IconButton(onClick = { onSelectMeta(MetaSection.GLASSES) }) {
-                    Icon(
-                        imageVector = if (metaSection == MetaSection.GLASSES) PhosphorIcons.Fill.Eyeglasses else PhosphorIcons.Regular.Eyeglasses,
-                        contentDescription = localizedText(R.string.ui_glasses),
-                        tint = if (metaSection == MetaSection.GLASSES) RealityIconSelected else RealityIconDefault
-                    )
-                }
-                IconButton(
-                    onClick = onOpenMetaControls,
-                    modifier = Modifier.testTag("host-preview-controls-button")
-                ) {
-                    Icon(
-                        imageVector = PhosphorIcons.Regular.SlidersHorizontal,
-                        contentDescription = localizedText(R.string.ui_controls),
-                        tint = RealityIconDefault
-                    )
+            if (galleryBar.showAdmin) {
+                IconButton(onClick = galleryBar.onAdmin) {
+                    Icon(Icons.Filled.AdminPanelSettings, contentDescription = localizedText(R.string.ui_manage))
                 }
             }
         }
-    )
+        if (selected == HostDestination.META_DISPLAY) {
+            IconButton(onClick = { onSelectMeta(MetaSection.PREVIEW) }) {
+                Icon(
+                    imageVector = if (metaSection == MetaSection.PREVIEW) PhosphorIcons.Fill.Eye else PhosphorIcons.Regular.Eye,
+                    contentDescription = localizedText(R.string.ui_preview),
+                    tint = if (metaSection == MetaSection.PREVIEW) RealityIconSelected else RealityIconDefault
+                )
+            }
+            IconButton(onClick = { onSelectMeta(MetaSection.GLASSES) }) {
+                Icon(
+                    imageVector = if (metaSection == MetaSection.GLASSES) PhosphorIcons.Fill.Eyeglasses else PhosphorIcons.Regular.Eyeglasses,
+                    contentDescription = localizedText(R.string.ui_glasses),
+                    tint = if (metaSection == MetaSection.GLASSES) RealityIconSelected else RealityIconDefault
+                )
+            }
+            IconButton(
+                onClick = onOpenMetaControls,
+                modifier = Modifier.testTag("host-preview-controls-button")
+            ) {
+                Icon(
+                    imageVector = PhosphorIcons.Regular.SlidersHorizontal,
+                    contentDescription = localizedText(R.string.ui_controls),
+                    tint = RealityIconDefault
+                )
+            }
+        }
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -421,8 +410,7 @@ internal fun RowScope.BottomBarItem(
 
 @Composable
 internal fun RealityDrawer(
-    selected: HostDestination,
-    onSelect: (HostDestination) -> Unit,
+    experienceStore: RealityExperienceStore,
     onAbout: () -> Unit,
     onLogout: () -> Unit
 ) {
@@ -453,20 +441,7 @@ internal fun RealityDrawer(
             }
             HorizontalDivider(color = MaterialTheme.colorScheme.secondaryContainer)
             Spacer(Modifier.height(8.dp))
-            NavigationDrawerItem(
-                label = { Text("Meta Ray-Ban Display") },
-                icon = {
-                    Icon(
-                        imageVector = if (selected == HostDestination.META_DISPLAY) PhosphorIcons.Fill.Eyeglasses else PhosphorIcons.Regular.Eyeglasses,
-                        contentDescription = null
-                    )
-                },
-                selected = selected == HostDestination.META_DISPLAY,
-                onClick = { onSelect(HostDestination.META_DISPLAY) },
-                colors = flatDrawerItemColors(),
-                modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
-            )
-            DrawerItem(HostDestination.LANGUAGE, selected, R.string.nav_language, Icons.Outlined.Language, onSelect)
+            DrawerLanguageSelector(experienceStore)
             NavigationDrawerItem(
                 label = { Text(stringResource(R.string.nav_about)) },
                 icon = { Icon(Icons.Outlined.Memory, null) },
@@ -498,22 +473,46 @@ internal fun RealityDrawer(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-internal fun DrawerItem(
-    destination: HostDestination,
-    selected: HostDestination,
-    label: Int,
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
-    onSelect: (HostDestination) -> Unit
+internal fun DrawerLanguageSelector(
+    experienceStore: RealityExperienceStore,
+    saveLanguage: suspend (RealityLanguage) -> Unit = { experienceStore.saveAccountLanguage(it) }
 ) {
-    NavigationDrawerItem(
-        label = { Text(stringResource(label)) },
-        selected = destination == selected,
-        onClick = { onSelect(destination) },
-        icon = { Icon(icon, contentDescription = null) },
-        colors = flatDrawerItemColors(),
-        modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
-    )
+    val selected by experienceStore.language.collectAsState()
+    val scope = rememberCoroutineScope()
+    var saving by remember { mutableStateOf(false) }
+    var saveError by remember { mutableStateOf(false) }
+    Column(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp)) {
+        Text(stringResource(R.string.nav_language), style = MaterialTheme.typography.labelMedium)
+        androidx.compose.material3.SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth().testTag("drawer-language")) {
+            RealityLanguage.entries.forEachIndexed { index, language ->
+                SegmentedButton(
+                    selected = selected == language,
+                    enabled = !saving,
+                    shape = androidx.compose.material3.SegmentedButtonDefaults.itemShape(index, RealityLanguage.entries.size),
+                    onClick = {
+                        if (!saving && selected != language) {
+                            scope.launch {
+                                saving = true
+                                saveError = false
+                                try {
+                                    saveLanguage(language)
+                                } catch (failure: kotlinx.coroutines.CancellationException) {
+                                    throw failure
+                                } catch (_: Exception) {
+                                    saveError = true
+                                } finally {
+                                    saving = false
+                                }
+                            }
+                        }
+                    }
+                ) { Text(language.languageTag.uppercase()) }
+            }
+        }
+        if (saveError) Text(stringResource(R.string.language_save_failed), color = MaterialTheme.colorScheme.error, modifier = Modifier.testTag("language-save-error"))
+    }
 }
 
 @Composable

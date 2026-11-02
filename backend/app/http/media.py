@@ -32,6 +32,7 @@ from app.security import (
 from app.services import (
     media_is_chunked,
 )
+from app.social_features.publication_visibility import require_ordinary_media
 
 logger = logging.getLogger(__name__)
 
@@ -46,6 +47,7 @@ async def get_media(
     if asset is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Media not found.")
     workspace_member(asset.workspace_id, user, db)
+    require_ordinary_media(asset, user, db)
     headers = {"Content-Disposition": f'inline; filename="{asset.id}"'}
     if media_is_chunked(asset):
 
@@ -147,6 +149,7 @@ async def highlighted_media(
     if asset is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Media not found.")
     workspace_member(asset.workspace_id, user, db)
+    require_ordinary_media(asset, user, db)
     observation = db.scalar(
         select(ObjectObservation)
         .where(
