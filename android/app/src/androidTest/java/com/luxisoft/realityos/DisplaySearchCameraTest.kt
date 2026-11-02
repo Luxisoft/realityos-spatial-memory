@@ -19,9 +19,10 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.test.assertTextContains
+import androidx.compose.ui.test.assertTextEquals
 import androidx.compose.ui.test.click
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
+import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performTouchInput
 import androidx.lifecycle.ViewModelProvider
@@ -281,7 +282,8 @@ class DisplaySearchCameraTest {
         showFaceMatches(listOf(profileMatch(id, "Ana")))
         tapButton(vm.copy(R.string.meta_open_profile))
         await { vm.displayProfileRequest.value != null }
-        compose.onNodeWithTag("matched-profile-content").assertTextContains(id)
+        awaitNativeTag("matched-profile-content")
+        compose.onNodeWithTag("matched-profile-content").assertTextEquals("profile:$id")
         compose.onNodeWithTag("matched-profile-back").performTouchInput { click() }
         await { vm.displayProfileRequest.value == null }
         awaitButton(vm.copy(R.string.meta_open_profile))
@@ -293,11 +295,16 @@ class DisplaySearchCameraTest {
         val second = "48bbde50-535b-49af-a505-a0d4945f0685"
         showFaceMatches(listOf(profileMatch(first, "Ana"), profileMatch(second, "Luis")))
         tapButton(vm.copy(R.string.meta_open_profiles))
+        await { vm.displayProfileRequest.value?.targets?.size == 2 }
+        awaitNativeTag("matched-profile-$second")
         compose.onNodeWithTag("matched-profile-$second").performTouchInput { click() }
-        compose.onNodeWithTag("matched-profile-content").assertTextContains(second)
+        awaitNativeTag("matched-profile-content")
+        compose.onNodeWithTag("matched-profile-content").assertTextEquals("profile:$second")
         compose.onNodeWithTag("matched-profile-back").performTouchInput { click() }
+        awaitNativeTag("matched-profile-$first")
         compose.onNodeWithTag("matched-profile-$first").performTouchInput { click() }
-        compose.onNodeWithTag("matched-profile-content").assertTextContains(first)
+        awaitNativeTag("matched-profile-content")
+        compose.onNodeWithTag("matched-profile-content").assertTextEquals("profile:$first")
     }
 
     @Test fun staleAccountAndUnmatchedIdsCannotOpenAProfile() {
@@ -352,6 +359,9 @@ class DisplaySearchCameraTest {
     }
 
     private fun await(condition: () -> Boolean) = compose.waitUntil(20_000, condition)
+    private fun awaitNativeTag(tag: String) {
+        await { compose.onAllNodesWithTag(tag).fetchSemanticsNodes().size == 1 }
+    }
     private fun regression(reason: String, condition: () -> Boolean) {
         try {
             await(condition)
