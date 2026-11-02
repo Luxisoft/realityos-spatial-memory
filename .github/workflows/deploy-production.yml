@@ -207,8 +207,8 @@ jobs:
       - name: Synchronize versioned deployment files
         run: |
           rsync -az \
-            --exclude .env --exclude .env.facebook --exclude .runtime --exclude android/local.properties \
-            --exclude .git --exclude .venv --exclude node_modules --exclude dist \
+            --exclude .env --exclude .env.facebook --exclude .env.elevenlabs --exclude .runtime --exclude android/local.properties \
+            --exclude .git --exclude .venv --exclude node_modules --exclude dist --exclude android --exclude docs \
             -e 'ssh -i ~/.ssh/realityos' \
             ./ "$REALITYOS_USER@$REALITYOS_HOST:$REALITYOS_DEPLOY_PATH/"
       - name: Activate configured API and worker connections
@@ -250,7 +250,7 @@ jobs:
             sudo install -d -m 0755 /opt/realityos
             incoming_deploy_path=$(sed -n "s/^REALITYOS_DEPLOY_PATH=//p" /tmp/realityos-runtime.env)
             sudo python3 "$incoming_deploy_path/scripts/deploy/update_runtime_env.py" /opt/realityos/runtime.env /tmp/realityos-runtime.env REALITYOS_BACKEND_IMAGE
-            if grep -qx "TTS_LOCAL_ENABLED=true" "$incoming_deploy_path/.env"; then
+            if grep -qx "TTS_LOCAL_ENABLED=true" "$incoming_deploy_path/.env" && grep -qx "TTS_PROVIDER=seamless" "$incoming_deploy_path/.env"; then
               sudo python3 "$incoming_deploy_path/scripts/deploy/update_runtime_env.py" /opt/realityos/runtime.env /tmp/realityos-runtime.env REALITYOS_TTS_IMAGE
             fi
             realityos_deploy_path=$(sudo sed -n "s/^REALITYOS_DEPLOY_PATH=//p" /opt/realityos/runtime.env)
@@ -263,9 +263,12 @@ jobs:
             sudo docker compose --env-file .env --env-file /opt/realityos/runtime.env -f infrastructure/docker-compose.yml -f infrastructure/docker-compose.production.yml -f infrastructure/tts/compose.realityos.yml -f "$runtime_overlay" pull api worker
             sudo docker compose --env-file .env --env-file /opt/realityos/runtime.env -f infrastructure/docker-compose.yml -f infrastructure/docker-compose.production.yml -f infrastructure/tts/compose.realityos.yml -f "$runtime_overlay" up -d --no-build api worker
             sudo docker compose --env-file .env --env-file /opt/realityos/runtime.env -f infrastructure/docker-compose.yml -f infrastructure/docker-compose.production.yml -f infrastructure/tts/compose.realityos.yml -f "$runtime_overlay" exec -T api alembic upgrade head
-            if grep -qx "TTS_LOCAL_ENABLED=true" .env; then
+            if grep -qx "TTS_LOCAL_ENABLED=true" .env && grep -qx "TTS_PROVIDER=seamless" .env; then
               sudo docker compose --env-file .env --env-file /opt/realityos/runtime.env -f infrastructure/docker-compose.yml -f infrastructure/docker-compose.production.yml -f infrastructure/tts/compose.realityos.yml --profile speech pull seamless-tts
               sudo docker compose --env-file .env --env-file /opt/realityos/runtime.env -f infrastructure/docker-compose.yml -f infrastructure/docker-compose.production.yml -f infrastructure/tts/compose.realityos.yml --profile speech up -d --no-deps --wait --wait-timeout 180 seamless-tts
+            elif sudo docker container inspect infrastructure-seamless-tts-1 >/dev/null 2>&1; then
+              sudo docker update --restart=no infrastructure-seamless-tts-1
+              sudo docker stop infrastructure-seamless-tts-1
             fi
             # Browser apps are deliberately built on the target from the same
             # synchronized commit. They do not receive the Meta API key.

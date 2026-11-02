@@ -50,8 +50,9 @@ configuration and non-code files, or when the graph is unavailable.
 - Production supports direct RealityOS connections and FRONTEND gateway fallback.
   Keep `MODEL_API_KEY` in private server runtime files on both hosts; the gateway
   token and speech-service token are independent. `.env` selects the connection.
-- Seamless speech runs on RealityOS in its isolated, resource-limited container;
-  FRONTEND remains the gateway fallback and does not host the speech model.
+- Production synthesis uses ElevenLabs only on authenticated audio requests.
+  Muse Voice Transcribe remains Meta STT. Seamless is an explicit Windows-local
+  alternative; never start its resident model in production with ElevenLabs.
 - Mock outputs are deterministic and visibly labelled simulated.
 - Confirm current official Meta endpoint/SDK signatures before coding Live.
 

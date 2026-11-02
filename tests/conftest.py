@@ -45,6 +45,8 @@ def isolate_provider_credentials(monkeypatch):
         "META_GATEWAY_TOKEN": "",
         "TTS_SERVICE_TOKEN": "",
         "TTS_SERVICE_URL": "https://speech.test/synthesize",
+        "TTS_PROVIDER": "elevenlabs",
+        "ELEVENLABS_API_KEY": "unit-test-placeholder-key",
     }.items():
         monkeypatch.setenv(key, value)
 

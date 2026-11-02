@@ -2,10 +2,12 @@
 
 import asyncio
 import logging
+import threading
 
 import httpx
 
 from app.config import Settings
+from app.providers import elevenlabs
 from app.providers.connections import fallback_log, fallback_status, provider_routes
 from app.providers.contracts import MetaProviderError
 from app.tts_contracts import MAX_AUDIO_BYTES, SpeechRequest, validate_wav
@@ -17,7 +19,26 @@ class SpeechUnavailable(Exception):
     pass
 
 
+_generation_slots = threading.BoundedSemaphore(2)
+
+
 async def synthesize(payload: SpeechRequest, settings: Settings, transport=None) -> bytes:
+    if settings.meta_mode != "live":
+        raise SpeechUnavailable("Speech synthesis is unavailable in simulated mode.")
+    if not _generation_slots.acquire(blocking=False):
+        raise SpeechUnavailable("Speech generation is busy.")
+    try:
+        if settings.tts_provider == "elevenlabs":
+            try:
+                return await elevenlabs.synthesize(payload, settings, transport)
+            except elevenlabs.ElevenLabsUnavailable as error:
+                raise SpeechUnavailable(str(error)) from error
+        return await _seamless_synthesize(payload, settings, transport)
+    finally:
+        _generation_slots.release()
+
+
+async def _seamless_synthesize(payload: SpeechRequest, settings: Settings, transport=None) -> bytes:
     if settings.meta_mode != "live":
         raise SpeechUnavailable("Speech synthesis is unavailable in simulated mode.")
     try:

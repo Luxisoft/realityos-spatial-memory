@@ -24,6 +24,7 @@ def settings(**changes):
         "meta_gateway_token": "gateway-test-token",
         "meta_api_base_url": "https://meta.test/v1",
         "meta_max_retries": 0,
+        "tts_provider": "seamless",
         "tts_service_url": "https://realityos.test/tts/synthesize",
         "tts_service_token": "speech-test-token",
     }

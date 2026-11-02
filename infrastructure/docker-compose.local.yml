@@ -7,6 +7,7 @@ x-backend: &backend
     dockerfile: backend/Dockerfile
   env_file: ../.env.local
   environment:
+    TTS_PROVIDER: seamless
     DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-realityos_local}:${POSTGRES_PASSWORD:?Configure .env.local}@postgres:5432/${POSTGRES_DB:-realityos_local}
     REDIS_URL: redis://redis:6379/0
   networks: [internal, egress]

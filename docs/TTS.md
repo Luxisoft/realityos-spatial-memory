@@ -1,63 +1,62 @@
-# Voz Seamless local y respaldo por FRONTEND
+# Voz por ElevenLabs y transcripción por Meta
 
-RealityOS ejecuta `facebook/seamless-m4t-v2-large`, revisión
-`5f8cc790b19fc3f67a61c105133b20b34e3dcb76`, en este servidor. FRONTEND no
-aloja el modelo: conserva únicamente el gateway de respaldo.
+Producción conserva Muse Voice Transcribe para audio → texto, Muse Spark para
+interpretación/respuestas y SAM 3.1 para segmentación. Solo texto → voz pasa a
+ElevenLabs, sin pesos de síntesis residentes en este servidor.
 
-## Contratos y configuración
+## Contrato y configuración
 
 Android, panel y Display conservan `POST /v1/tts` autenticado por usuario o
-dispositivo: `{text, language}` (`en`/`es`) devuelve WAV PCM mono. El texto se
-muestra antes de solicitar audio. La síntesis no crea capturas, evidencia,
-mensajes, cachés compartidas ni audio persistido. Detener, cambiar idioma o
-sesión invalida la reproducción anterior.
-
-La conexión se selecciona con `META_CONNECTION_MODE=direct|gateway` y
-`META_GATEWAY_FALLBACK_ENABLED=true|false` en `.env`, igual que las consultas
-Meta. En directo, el backend utiliza:
+dispositivo: `{text, language}` (`en`/`es`) devuelve WAV PCM mono a 24 kHz.
+La síntesis no crea capturas, evidencia, mensajes, cachés de audio ni medios
+persistidos. La alternativa de voz de Android/navegador permanece disponible
+ante indisponibilidad del proveedor.
 
 ```dotenv
-TTS_SERVICE_URL=https://realityos.luxisoft.com/tts/synthesize
-TTS_SERVICE_TOKEN=<separate server-only token, at least 24 characters>
+TTS_PROVIDER=elevenlabs
+ELEVENLABS_VOICE_ID=JBFqnCBsd6RMkjVDRZzb
+ELEVENLABS_MODEL_ID=eleven_flash_v2_5
 TTS_TIMEOUT_SECONDS=30
-TTS_LOCAL_ENABLED=true
+TTS_LOCAL_ENABLED=false
 ```
 
-`/tts/synthesize` es un endpoint HTTPS público autenticado con Bearer token,
-limitado por IP a 30 peticiones/minuto y 32 KiB de entrada. Nginx conecta
-directamente al contenedor local, ligado exclusivamente a `127.0.0.1:8091`.
-Los clientes siguen usando `/v1/tts`; nunca reciben ese token.
+La credencial `ELEVENLABS_API_KEY` vive únicamente en `.env.elevenlabs`, archivo
+privado modo 0600 inyectado en el API mediante Compose de producción. No se
+versiona ni se envía a clientes o al gateway. Se reutiliza la cuenta de Luxisoft
+por instrucción del propietario. CI preserva ese archivo y toma la selección
+del proveedor de `.env`.
 
-El gateway de FRONTEND conserva `/v1/tts/synthesize` y su token independiente.
-Su `TTS_SERVICE_URL` apunta al endpoint público de RealityOS y utiliza el token
-de voz. No hay bucle: `/tts/synthesize` termina directamente en Seamless.
-Esta ruta alternativa comparte el motor local; no ofrece una segunda réplica
-si el modelo cae. Si ambas rutas fallan, continúa la voz de Android/navegador.
+Cada solicitud autorizada llama directamente a
+`https://api.elevenlabs.io/v1/text-to-speech/{voice_id}?output_format=pcm_24000`,
+con `xi-api-key`, texto, idioma y modelo. La biblioteca estándar añade la
+cabecera WAV; no se cargan modelos, PyTorch ni conversores locales para voz.
+Esta selección no depende de `META_CONNECTION_MODE` ni altera el respaldo Meta.
 
-## Runtime y activación
+Se permiten dos generaciones simultáneas por proceso, sin cola de espera,
+un presupuesto HTTP total de 30 segundos, hasta 300 segundos de audio y una
+respuesta WAV de hasta 16 MiB. No hay reintentos automáticos de generación,
+incluidos los fallos ambiguos, para evitar cobros duplicados. Los errores se
+traducen a indisponibilidad sin exponer texto, secretos o respuestas internas.
+Los logs incluyen proveedor, tiempo, identificador y character-cost disponible.
 
-Combinar el Compose de RealityOS con `infrastructure/tts/compose.realityos.yml`
-y activar el perfil `speech`. El contenedor tiene 4 GiB de RAM, sin swap, dos
-CPU, una sola inferencia simultánea, raíz de solo lectura y volumen persistente
-para pesos. Las dependencias pesadas no entran en API/worker. El modelo usa
-BF16; generación EN/ES sin muestreo y `speaker_id=0`.
+Nginx limita `/v1/tts` a 30 peticiones/minuto por IP con ráfaga de cuatro.
+El antiguo `/tts/synthesize` con token de servicio se retira con HTTP 410;
+producción ya no depende de 8091 ni del circuito de voz por FRONTEND que
+regresaba al mismo motor local. El gateway Meta para visión/STT se conserva.
 
-La salud ready exige el modelo cargado. Una segunda inferencia recibe 429 y
-el lock se mantiene mientras el cálculo siga en curso. El presupuesto HTTP
-total es 30 segundos, con como máximo dos intentos entre directo y respaldo.
-La generación comprueba su límite de 13 segundos entre frases y al terminar;
-no interrumpe kernels de PyTorch a mitad del cálculo.
+## Modelo local opcional y recuperación
 
-Antes de activar, descargar pesos en el volumen y ejecutar
-`scripts/benchmark_tts.py`: seis WAV válidos EN/ES, cada uno por debajo de
-15 segundos, sin OOM ni degradación del API. Si falla, detener el contenedor,
-poner `TTS_LOCAL_ENABLED=false` y conservar la voz del dispositivo. No ampliar
-recursos ni cambiar de modelo automáticamente.
+La instalación Windows sigue siendo independiente: `TTS_PROVIDER=seamless`,
+`TTS_SERVICE_URL=http://seamless-tts:8091/synthesize` y el proyecto Docker
+`realityos-local`. Conserva `facebook/seamless-m4t-v2-large`, revisión
+`5f8cc790b19fc3f67a61c105133b20b34e3dcb76`, y su licencia
+[CC-BY-NC-4.0](https://huggingface.co/facebook/seamless-m4t-v2-large).
 
-El preflight real del 2026-11-01 en RealityOS cargó el modelo y produjo seis
-muestras válidas entre 2,22 y 3,01 segundos, sin OOM. El informe privado queda
-en `.runtime/direct-tts-20261101-benchmark.json`.
+En producción, el despliegue solo arranca Seamless si ambos valores son
+explícitos: `TTS_PROVIDER=seamless` y `TTS_LOCAL_ENABLED=true`. En otro caso,
+desactiva el reinicio automático y detiene cualquier contenedor existente.
+Se conservan su volumen de pesos y los archivos de recuperación. Los cambios
+normales de CI no deben volver a encenderlo con ElevenLabs seleccionado.
 
-El modelo mantiene su licencia [CC-BY-NC-4.0](https://huggingface.co/facebook/seamless-m4t-v2-large),
-separada de la licencia del proyecto. Referencia de implementación:
-[Transformers SeamlessM4T v2](https://huggingface.co/docs/transformers/model_doc/seamless_m4t_v2).
+Referencias: [ElevenLabs Create speech](https://elevenlabs.io/docs/api-reference/text-to-speech/convert)
+y [Meta Model API](https://dev.meta.ai/docs/overview).

@@ -442,3 +442,24 @@ Los resultados incorporan Abrir perfil en la app; varias coincidencias permiten
 elegir el perfil y volver al mismo resultado. Se usa el `user_id` interno devuelto
 por la búsqueda y la pantalla de perfil existente, con autorización habitual.
 Sin cambios de contratos, reconocimiento, consentimientos ni migraciones.
+
+
+## Voz sin modelo residente — 2026-11-02
+
+Producción pasa a `TTS_PROVIDER=elevenlabs`, modelo `eleven_flash_v2_5`, voz
+George y WAV PCM 24 kHz; `/v1/tts` conserva autenticación y contrato. Muse Voice
+Transcribe, Muse Spark y SAM permanecen. La credencial se copia desde la
+configuración privada de Luxisoft a `.env.elevenlabs` (solo API). Seamless
+queda detenido y sin reinicio automático en producción; Windows local conserva
+su opción explícita. CI reconcilia el estado aun si existe el contenedor viejo.
+El antiguo endpoint de servicio `/tts/synthesize` responde 410. Ver `TTS.md`.
+
+Validación previa: 369 pruebas backend/gateway y lint aprobados; muestras
+reales ElevenLabs EN/ES válidas, cuenta Starter
+activa; pruebas cubren autenticación, ausencia de egress en mock, independencia
+del gateway Meta, concurrencia/cancelación, límites, errores sin replay y
+reconciliación del despliegue. El recibo privado de release y las mediciones de
+RAM quedan en `.runtime/ram-elevenlabs-20261102-*` y
+`/home/jmarin/server-memory-audit-20261102/`. Consultar esos recibos para el
+resultado efectivo del despliegue y sus límites; no confundir preflight con QA
+física de Android/gafas.
