@@ -1,12 +1,14 @@
 """Check localized documentation, local links/anchors and catalog coverage offline."""
 
+import argparse
 import html
+import posixpath
 import re
 import subprocess
 import unicodedata
 from collections import Counter
 from pathlib import Path
-from urllib.parse import unquote, urlsplit
+from urllib.parse import unquote, urlsplit, urlunsplit
 
 ROOT = Path(__file__).resolve().parents[1]
 REPO_URLS = (
@@ -78,13 +80,49 @@ def local_target(source, value):
     return target.resolve(), unquote(parts.fragment)
 
 
+def root_readme():
+    """Publish the canonical English overview at the root with working links."""
+    text = (ROOT / "docs/en/README.md").read_text()
+
+    def rebase(value):
+        parts = urlsplit(value)
+        if parts.scheme or parts.netloc or not parts.path:
+            return value
+        path = posixpath.normpath(posixpath.join("docs/en", parts.path))
+        return urlunsplit(("", "", path, parts.query, parts.fragment))
+
+    def replace(match):
+        value = match[1]
+        start, end = match.span(1)
+        offset = match.start()
+        return match[0][: start - offset] + rebase(value) + match[0][end - offset :]
+
+    text = re.sub(r"\]\(([^\s)]+)\)", replace, text)
+    text = re.sub(r"""\b(?:href|src)=["']([^"']+)["']""", replace, text)
+    return (
+        "<!-- Generated from docs/en/README.md. Edit the EN/ES originals, then run "
+        "python3 scripts/check_docs.py --sync-readme. -->\n\n" + text
+    )
+
+
 def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--sync-readme", action="store_true")
+    args = parser.parse_args()
+    expected_readme = root_readme()
+    if args.sync_readme:
+        (ROOT / "README.md").write_text(expected_readme)
     documents = sorted((ROOT / "docs").rglob("*.md")) + [
         ROOT / name for name in ("README.md", "AGENTS.md", "MUSE.md")
     ]
     contents = {path.resolve(): prose(path.read_text()) for path in documents}
     ids = {path: anchors(text) for path, text in contents.items()}
     errors, checked = [], 0
+    if (ROOT / "README.md").read_text() != expected_readme:
+        errors.append(
+            "README.md: out of sync with docs/en/README.md; "
+            "run python3 scripts/check_docs.py --sync-readme"
+        )
     tracked = {
         (ROOT / path).resolve()
         for path in subprocess.check_output(

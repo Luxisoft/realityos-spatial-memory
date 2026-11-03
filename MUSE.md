@@ -1,4 +1,4 @@
-# RealityOS — Claude conventions
+# RealityOS — Muse conventions
 
 Project conventions live in `AGENTS.md` and are binding. Start with
 `docs/es/project/PROJECT_CONTEXT.md` for the repo map and current state.
