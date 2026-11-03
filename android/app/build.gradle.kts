@@ -135,7 +135,7 @@ dependencies {
   debugImplementation("androidx.compose.ui:ui-test-manifest")
 }
 
-// Format the refactored host/chat code without rewriting protected biometric UI.
+// Format maintained UI modules. Only the explicitly requested recognition setup is included from biometric UI.
 val ktlint by configurations.creating
 
 dependencies {
@@ -143,6 +143,9 @@ dependencies {
 }
 
 val refactoredKotlin = files(
+    "src/main/java/com/luxisoft/realityos/AccountBiometricSetup.kt",
+    "src/main/java/com/luxisoft/realityos/AccountBiometricSetupScreen.kt",
+    "src/testDebug/java/com/luxisoft/realityos/AccountBiometricSetupTest.kt",
     "src/main/java/com/luxisoft/realityos/ProfilePersonalDetails.kt",
     "src/testDebug/java/com/luxisoft/realityos/ProfilePersonalDetailsTest.kt",
     "src/main/java/com/luxisoft/realityos/AccountConflict.kt",
@@ -233,7 +236,7 @@ tasks.register<JavaExec>("ktlintCheck") {
 
 tasks.register<JavaExec>("ktlintFormat") {
     group = "formatting"
-    description = "Format refactored host and chat modules; excludes biometric UI."
+    description = "Format maintained UI modules, including recognition setup; excludes other biometric UI."
     classpath = ktlint
     mainClass.set("com.pinterest.ktlint.Main")
     args("--format")

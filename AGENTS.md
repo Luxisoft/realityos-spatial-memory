@@ -114,6 +114,13 @@ Do not create extra APK copies named after versions, dates or individual fixes.
 
 ## Validation
 
+- Standing owner preference (2026-11-03): every screen, view and component must
+  follow the app's established UI/UX without needing another reminder. Before
+  changing UI, compare adjacent screens and reuse their theme tokens, typography,
+  spacing, shapes, icons, navigation and controls. Read `docs/es/architecture/UI_DESIGN.md`;
+  do not ship a separate visual language or an unstructured stack of default controls.
+  Review rendered states in ES/EN, narrow widths and 200% text before delivery,
+  and state explicitly when visual/device validation could not be performed.
 - Add tests with changes and cover permission and workspace isolation.
 - Do not claim an Android build, device test, live Meta request, Docker run or
   PR unless it has actually run in the applicable environment.

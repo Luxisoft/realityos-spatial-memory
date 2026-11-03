@@ -2,16 +2,9 @@ package com.luxisoft.realityos
 
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -40,36 +33,51 @@ internal fun AccountBiometricGate(content: @Composable () -> Unit) {
         scope.launch {
             busy = true
             failed = false
-            try { action() } catch (cancelled: CancellationException) { throw cancelled }
-            catch (error: Exception) { failed = true; AppNotices.show(error.message.orEmpty(), NoticeKind.ERROR) }
-            finally { busy = false; progress = "" }
+            try {
+                action()
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (error: Exception) {
+                failed = true
+                AppNotices.show(error.message.orEmpty(), NoticeKind.ERROR)
+            } finally {
+                busy = false
+                progress = ""
+            }
         }
     }
     LaunchedEffect(session) { operation { refresh() } }
     val profilePicker = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
-        if (uri != null) operation {
-            withContext(Dispatchers.IO) {
-                val raw = context.contentResolver.openInputStream(uri)?.use { it.readBytes() } ?: error(localizedText(R.string.face_unreadable))
-                val mime = context.contentResolver.getType(uri) ?: "image/jpeg"
-                SocialSession.requestMultipart("faces/profile-photo", emptyMap(), raw, "profile-photo", mime)
-                SocialSession.requestMultipart("me/profile/avatar", emptyMap(), raw, "avatar", mime)
+        if (uri != null) {
+            operation {
+                withContext(Dispatchers.IO) {
+                    val raw = context.contentResolver.openInputStream(uri)?.use { it.readBytes() } ?: error(localizedText(R.string.face_unreadable))
+                    val mime = context.contentResolver.getType(uri) ?: "image/jpeg"
+                    SocialSession.requestMultipart("faces/profile-photo", emptyMap(), raw, "profile-photo", mime)
+                    SocialSession.requestMultipart("me/profile/avatar", emptyMap(), raw, "avatar", mime)
+                }
+                refresh()
             }
-            refresh()
         }
     }
     val referencePicker = rememberLauncherForActivityResult(ActivityResultContracts.OpenMultipleDocuments()) { uris ->
-        if (uris.isNotEmpty()) operation {
-            val remaining = (25 - (status?.optInt("accepted_photos") ?: 0)).coerceAtLeast(0)
-            for ((index, uri) in uris.take(remaining).withIndex()) {
-                progress = "${index + 1} / ${uris.size.coerceAtMost(remaining)}"
-                try {
-                    withContext(Dispatchers.IO) {
-                        val raw = context.contentResolver.openInputStream(uri)?.use { it.readBytes() } ?: error(localizedText(R.string.face_unreadable))
-                        SocialSession.requestMultipart("faces/reference-photos", emptyMap(), raw, "reference-photo", context.contentResolver.getType(uri) ?: "image/jpeg")
+        if (uris.isNotEmpty()) {
+            operation {
+                val remaining = (25 - (status?.optInt("accepted_photos") ?: 0)).coerceAtLeast(0)
+                for ((index, uri) in uris.take(remaining).withIndex()) {
+                    progress = "${index + 1} / ${uris.size.coerceAtMost(remaining)}"
+                    try {
+                        withContext(Dispatchers.IO) {
+                            val raw = context.contentResolver.openInputStream(uri)?.use { it.readBytes() } ?: error(localizedText(R.string.face_unreadable))
+                            SocialSession.requestMultipart("faces/reference-photos", emptyMap(), raw, "reference-photo", context.contentResolver.getType(uri) ?: "image/jpeg")
+                        }
+                    } catch (cancelled: CancellationException) {
+                        throw cancelled
+                    } catch (error: Exception) {
+                        AppNotices.show("${index + 1}: ${error.message.orEmpty()}", NoticeKind.ERROR)
                     }
-                } catch (cancelled: CancellationException) { throw cancelled }
-                catch (error: Exception) { AppNotices.show("${index + 1}: ${error.message.orEmpty()}", NoticeKind.ERROR) }
-                refresh()
+                    refresh()
+                }
             }
         }
     }
@@ -77,54 +85,51 @@ internal fun AccountBiometricGate(content: @Composable () -> Unit) {
         content()
         return
     }
-    Column(Modifier.fillMaxSize().safeDrawingPadding().imePadding().verticalScroll(rememberScrollState()).padding(24.dp).testTag("account-biometric-setup"), verticalArrangement = Arrangement.spacedBy(16.dp)) {
-        Text(localizedText(R.string.biometric_setup_title), style = MaterialTheme.typography.headlineSmall)
-        Text(localizedText(R.string.biometric_setup_body))
-        if (status == null) {
-            if (busy) CircularProgressIndicator()
-            if (failed) Button(onClick = { operation { refresh() } }) { Text(localizedText(R.string.ui_retry)) }
-        } else {
-            val value = status!!
-            if (!value.optBoolean("consented")) {
-                Text(localizedText(R.string.face_consent_body))
-                Button(onClick = { operation {
-                    withContext(Dispatchers.IO) { SocialSession.request("faces/consent", JSONObject().put("confirm", true)) }
-                    refresh()
-                } }, enabled = !busy) { Text(localizedText(R.string.face_consent_accept)) }
-            } else {
-                val primary = value.optBoolean("profile_photo_ready") && value.optBoolean("avatar_ready")
-                Text(localizedText(if (primary) R.string.biometric_profile_ready else R.string.biometric_profile_needed))
-                Button(onClick = { profilePicker.launch("image/*") }, enabled = !busy) { Text(localizedText(R.string.biometric_choose_profile)) }
-                Text(localizedText(R.string.biometric_reference_count, value.optInt("accepted_photos")))
-                OutlinedButton(onClick = { referencePicker.launch(arrayOf("image/jpeg", "image/png", "image/webp")) }, enabled = !busy && primary && value.optInt("accepted_photos") < 25) { Text(localizedText(R.string.biometric_choose_references)) }
-                if (value.optInt("accepted_photos") > 0) {
-                    TextButton(onClick = { resetReferences = true }, enabled = !busy) { Text(localizedText(R.string.biometric_reset_references)) }
-                }
-                if (busy) { LinearProgressIndicator(Modifier.fillMaxWidth()); Text(progress) }
-                Button(onClick = { operation {
-                    withContext(Dispatchers.IO) { SocialSession.request("faces/setup/complete", JSONObject()) }
-                    refresh()
-                } }, enabled = !busy && primary && value.optInt("accepted_photos") >= 3) { Text(localizedText(R.string.biometric_complete)) }
-            }
-        }
-        TextButton(onClick = { SocialSession.clear() }, enabled = !busy) { Text(localizedText(R.string.ui_sign_out)) }
-    }
-    if (resetReferences) AlertDialog(
-        onDismissRequest = { resetReferences = false },
-        title = { Text(localizedText(R.string.biometric_reset_references)) },
-        text = { Text(localizedText(R.string.biometric_reset_body)) },
-        confirmButton = { TextButton(onClick = {
-            resetReferences = false
+    AccountBiometricSetupScreen(
+        status = status,
+        busy = busy,
+        failed = failed,
+        progress = progress,
+        onRetry = { operation { refresh() } },
+        onConsent = {
             operation {
-                val ids = status?.optJSONArray("reference_ids")
-                withContext(Dispatchers.IO) {
-                    if (ids != null) for (index in 0 until ids.length()) {
-                        SocialSession.requestJson("faces/reference-photos/${ids.getString(index)}", "DELETE")
-                    }
-                }
+                withContext(Dispatchers.IO) { SocialSession.request("faces/consent", JSONObject().put("confirm", true)) }
                 refresh()
             }
-        }) { Text(localizedText(R.string.biometric_reset_references)) } },
-        dismissButton = { TextButton(onClick = { resetReferences = false }) { Text(localizedText(R.string.ui_cancel)) } }
+        },
+        onProfile = { profilePicker.launch("image/*") },
+        onReferences = { referencePicker.launch(arrayOf("image/jpeg", "image/png", "image/webp")) },
+        onResetReferences = { resetReferences = true },
+        onComplete = {
+            operation {
+                withContext(Dispatchers.IO) { SocialSession.request("faces/setup/complete", JSONObject()) }
+                refresh()
+            }
+        },
+        onSignOut = { SocialSession.clear() }
     )
+    if (resetReferences) {
+        AlertDialog(
+            onDismissRequest = { resetReferences = false },
+            title = { Text(localizedText(R.string.biometric_reset_references)) },
+            text = { Text(localizedText(R.string.biometric_reset_body)) },
+            confirmButton = {
+                TextButton(onClick = {
+                    resetReferences = false
+                    operation {
+                        val ids = status?.optJSONArray("reference_ids")
+                        withContext(Dispatchers.IO) {
+                            if (ids != null) {
+                                for (index in 0 until ids.length()) {
+                                    SocialSession.requestJson("faces/reference-photos/${ids.getString(index)}", "DELETE")
+                                }
+                            }
+                        }
+                        refresh()
+                    }
+                }) { Text(localizedText(R.string.biometric_reset_references)) }
+            },
+            dismissButton = { TextButton(onClick = { resetReferences = false }) { Text(localizedText(R.string.ui_cancel)) } }
+        )
+    }
 }

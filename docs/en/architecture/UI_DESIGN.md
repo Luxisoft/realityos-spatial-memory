@@ -15,6 +15,32 @@
 | **Accessibility** | 48 dp touch targets, text up to 200%, labelled controls and decorative graphics excluded from screen readers. EN/ES. |
 | **Evaluation** | Robolectric screenshots and Compose tests cover states and widths; they do not replace physical keyboard, camera or glasses checks. |
 
+## Required consistency across the app
+
+Standing owner preference (November 3, 2026): every screen, view and component
+must maintain the same quality and visual language without another reminder.
+Compare adjacent screens before implementation and reuse `RealityOsTheme` and
+shared components. Preserve system typography, the gray/blue palette, 12 dp
+corners, spacing and action hierarchy; do not invent a separate style per screen.
+
+Account entry and setup use `EntryBrandHeader`, `EntryPrimary` and the shared
+`AccountMuted` and `AccountFieldSurface` colors. Content has 24 dp horizontal
+padding and a maximum width of 528 dp; primary buttons grow from 56 dp and touch
+targets from 48 dp. Long content must scroll and adapt to larger text without
+fixed text heights.
+
+Recognition setup presents three actual steps: consent, profile photo and private
+references. It highlights the current step, summarizes completed steps and shows
+how many accepted photos are still needed for the minimum of three, up to a
+maximum of 25. The visible photo is distinguished from private references.
+Loading, recoverable errors and submissions have explicit states, without
+enabling actions before consent or completing registration automatically.
+
+Before delivering UI changes, review relevant state screenshots in English and
+Spanish, at 320–480 dp and 200% text, alongside interaction tests and an APK build.
+`AccountBiometricSetupTest` generates this screen's captures in
+`android/app/build/outputs/recognition-design/`.
+
 ```mermaid
 flowchart LR
     N0["Action"] --> N1["Loading"] --> N2["Result"]
