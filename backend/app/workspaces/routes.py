@@ -1,3 +1,4 @@
+import asyncio
 import secrets
 import uuid
 
@@ -45,11 +46,17 @@ async def integration(request: Request, db: Session = Depends(get_db)):
         if key
         else None
     )
-    if row is None:
-        raise HTTPException(401, "Invalid integration credential.")
-    # Revocation of the administrator's membership also revokes ingestion.
-    workspace_member(row.workspace_id, db.get(User, row.created_by_id), db, {Role.ADMIN})
+    authorize_connection(db, row)
     return row
+
+
+def authorize_connection(db, row):
+    if row is None or not row.active:
+        raise HTTPException(401, "Invalid integration credential.")
+    owner = db.get(User, row.created_by_id, populate_existing=True)
+    if owner is None or not owner.is_active:
+        raise HTTPException(401, "Invalid integration credential.")
+    workspace_member(row.workspace_id, owner, db, {Role.ADMIN})
 
 
 @router.post("/workspaces/{workspace_id}/connections", status_code=201)
@@ -64,7 +71,7 @@ async def create_connection(
     from app.workspaces.sync import encrypt_secret, validate_source
 
     if payload.source_url:
-        validate_source(payload.source_url, request.app.state.settings)
+        await asyncio.to_thread(validate_source, payload.source_url, request.app.state.settings)
     secret = secrets.token_urlsafe(32)
     row = Connection(
         workspace_id=workspace_id,
@@ -114,6 +121,7 @@ async def ingest(
 ):
     # Serialize writes per source, including concurrent idempotent retries.
     db.refresh(source, with_for_update=True)
+    authorize_connection(db, source)
     return import_batch(db, source, payload)
 
 

@@ -14,6 +14,15 @@ from app.workspaces.routes import router, scoped_record
 from app.workspaces.schemas import MedicationCheck
 
 
+def source_date(value):
+    if not isinstance(value, str):
+        raise ValueError("Date must be an ISO timestamp")
+    parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
+    if parsed.tzinfo is None:
+        raise ValueError("Date needs a timezone")
+    return parsed
+
+
 @router.post("/workspaces/{workspace_id}/records/{person_id}/medication-check")
 async def medication_check(
     workspace_id: uuid.UUID,
@@ -53,16 +62,17 @@ async def medication_check(
         raise HTTPException(422, "checked_at requires a timezone.")
     for key, is_start in (("valid_from", True), ("valid_until", False)):
         try:
-            value = datetime.fromisoformat(prescription.data[key].replace("Z", "+00:00"))
-            if value.tzinfo is None:
-                raise ValueError()
+            value = source_date(prescription.data[key])
             if (is_start and now < value) or (not is_start and now > value):
                 issues.append("prescription_outside_validity")
         except (KeyError, ValueError, TypeError):
             missing.append(key)
     if prescription.data.get("state") != "active":
         issues.append("prescription_not_active")
-    if not person.data.get("allergies_reviewed_at"):
+    try:
+        if source_date(person.data.get("allergies_reviewed_at")) > now:
+            raise ValueError("Review occurs after this comparison")
+    except ValueError:
         missing.append("allergy_review")
     related = list(
         db.scalars(
@@ -80,8 +90,8 @@ async def medication_check(
         sources.append(str(row.id))
         if (
             row.kind == "allergy"
-            and str(row.data.get("substance", "")).casefold()
-            == payload.observed_ingredient.casefold()
+            and str(row.data.get("substance", "")).strip().casefold()
+            == payload.observed_ingredient.strip().casefold()
         ):
             issues.append("recorded_allergy")
         if row.kind == "administration" and prescription.external_id in row.related_ids:

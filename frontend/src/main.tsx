@@ -115,9 +115,11 @@ function App() {
           </div>
           <div className="mode-pill">
             <i />{" "}
-            {page === "registrar"
-              ? t("REGISTER · WRITE")
-              : t("QUERY · READ ONLY")}
+            {page === "registros"
+              ? t("Workspace records")
+              : page === "registrar"
+                ? t("REGISTER · WRITE")
+                : t("QUERY · READ ONLY")}
           </div>
         </header>
         {error && <p className="error">{error}</p>}
@@ -127,6 +129,9 @@ function App() {
             token={token}
             workspaceId={workspaceId}
             admin={workspace?.role === "admin"}
+            canWrite={
+              workspace?.role === "admin" || workspace?.role === "register"
+            }
           />
         )}
         {page === "inicio" && (

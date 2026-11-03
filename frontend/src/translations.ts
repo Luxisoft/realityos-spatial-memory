@@ -1,5 +1,8 @@
 // System text only; user content retains its original form.
 export const translations = {
+  "Record pages": "Páginas de registros",
+  "Previous records": "Registros anteriores",
+  "Next records": "Siguientes registros",
   "Compare medication fields": "Comparar campos de medicación",
   "Recorded prescription": "Prescripción registrada",
   Select: "Seleccionar",

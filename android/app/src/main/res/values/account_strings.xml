@@ -21,6 +21,7 @@
     <string name="records_note">Add note</string>
     <string name="records_save">Save note</string>
     <string name="records_video">Open video</string>
+    <string name="records_more">Load more records</string>
     <string name="medication_compare">Compare medication fields</string>
     <string name="medication_ingredient">Observed ingredient</string>
     <string name="medication_concentration">Observed concentration</string>

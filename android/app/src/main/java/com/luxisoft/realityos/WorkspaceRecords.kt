@@ -19,7 +19,7 @@ import java.net.URLEncoder
 import java.time.Instant
 
 @Composable
-internal fun WorkspaceRecords(workspaceId: String, onBack: () -> Unit) {
+internal fun WorkspaceRecords(workspaceId: String, canWrite: Boolean, onBack: () -> Unit) {
     var query by remember { mutableStateOf("") }
     var rows by remember { mutableStateOf<List<JSONObject>>(emptyList()) }
     var selected by remember { mutableStateOf<JSONObject?>(null) }
@@ -28,6 +28,8 @@ internal fun WorkspaceRecords(workspaceId: String, onBack: () -> Unit) {
     var message by remember { mutableStateOf("") }
     var busy by remember { mutableStateOf(false) }
     var refresh by remember { mutableIntStateOf(0) }
+    var offset by remember { mutableIntStateOf(0) }
+    var hasMore by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
     val base = "workspaces/$workspaceId/records"
     val openedAttachment = attachment
@@ -46,6 +48,7 @@ internal fun WorkspaceRecords(workspaceId: String, onBack: () -> Unit) {
         return
     }
     fun open(id: String) {
+        if (selected?.optString("id") != id) note = ""
         busy = true
         scope.launch {
             try { selected = withContext(Dispatchers.IO) { JSONObject(SocialSession.request("$base/$id")) } }
@@ -54,11 +57,13 @@ internal fun WorkspaceRecords(workspaceId: String, onBack: () -> Unit) {
             finally { busy = false }
         }
     }
-    LaunchedEffect(workspaceId, refresh) {
+    LaunchedEffect(workspaceId, refresh, offset) {
         busy = true
         try {
-            val array = withContext(Dispatchers.IO) { JSONArray(SocialSession.request("$base?q=${URLEncoder.encode(query, "UTF-8")}")) }
-            rows = (0 until array.length()).map { array.getJSONObject(it) }
+            val array = withContext(Dispatchers.IO) { JSONArray(SocialSession.request("$base?q=${URLEncoder.encode(query, "UTF-8")}&offset=$offset")) }
+            val page = (0 until array.length()).map { array.getJSONObject(it) }
+            rows = if (offset == 0) page else (rows + page).distinctBy { it.getString("id") }
+            hasMore = page.size == 50
         } catch (cancelled: CancellationException) { throw cancelled }
         catch (_: Exception) { message = localizedText(R.string.account_failed) }
         finally { busy = false }
@@ -71,7 +76,7 @@ internal fun WorkspaceRecords(workspaceId: String, onBack: () -> Unit) {
         val item = selected
         if (item == null) {
             OutlinedTextField(query, { query = it }, Modifier.fillMaxWidth(), singleLine = true, label = { Text(stringResource(R.string.records_search)) })
-            Button(onClick = { refresh++ }, enabled = !busy) { Text(stringResource(R.string.records_search)) }
+            Button(onClick = { offset = 0; refresh++ }, enabled = !busy) { Text(stringResource(R.string.records_search)) }
             if (!busy && rows.isEmpty()) Text(stringResource(R.string.records_empty))
             rows.forEach { row ->
                 OutlinedButton(onClick = { open(row.getString("id")) }, enabled = !busy, modifier = Modifier.fillMaxWidth()) {
@@ -82,6 +87,7 @@ internal fun WorkspaceRecords(workspaceId: String, onBack: () -> Unit) {
                     }
                 }
             }
+            if (hasMore) OutlinedButton(onClick = { offset += 50 }, enabled = !busy) { Text(stringResource(R.string.records_more)) }
         } else {
             Text(item.getString("title"), style = MaterialTheme.typography.titleLarge)
             Text(item.getString("external_id") + " · v" + item.getInt("version"))
@@ -102,18 +108,21 @@ internal fun WorkspaceRecords(workspaceId: String, onBack: () -> Unit) {
                 Text(n.getString("occurred_at"), style = MaterialTheme.typography.labelSmall)
                 Text(n.getString("text"))
             }
+            if (canWrite) {
             OutlinedTextField(note, { note = it }, Modifier.fillMaxWidth(), label = { Text(stringResource(R.string.records_note)) })
             Button(enabled = !busy && note.isNotBlank(), onClick = {
                 busy = true
                 scope.launch {
                     try {
                         withContext(Dispatchers.IO) { SocialSession.request("$base/${item.getString("id")}/notes", JSONObject().put("text", note).put("occurred_at", Instant.now().toString())) }
-                        note = ""; open(item.getString("id"))
+                        note = ""
+                        selected = withContext(Dispatchers.IO) { JSONObject(SocialSession.request("$base/${item.getString("id")}")) }
                     } catch (cancelled: CancellationException) { throw cancelled }
                     catch (_: Exception) { message = localizedText(R.string.account_failed) }
                     finally { busy = false }
                 }
             }) { Text(stringResource(R.string.records_save)) }
+            }
             val media = item.optJSONArray("media") ?: JSONArray()
             (0 until media.length()).forEach { i ->
                 val file = media.getJSONObject(i)

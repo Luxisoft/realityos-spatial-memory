@@ -1,4 +1,4 @@
-import { FormEvent, useEffect, useState } from "react";
+import { FormEvent, useEffect, useRef, useState } from "react";
 import { apiUrl, request } from "../../api";
 import { MedicationCheck } from "./MedicationCheck";
 import { t } from "../../language";
@@ -27,16 +27,22 @@ export function Records({
   token,
   workspaceId,
   admin,
+  canWrite,
 }: {
   token: string;
   workspaceId: string;
   admin: boolean;
+  canWrite: boolean;
 }) {
   const [rows, setRows] = useState<Entry[]>([]),
     [selected, setSelected] = useState<Entry | null>(null),
     [q, setQ] = useState(""),
     [note, setNote] = useState(""),
     [message, setMessage] = useState("");
+  const [offset, setOffset] = useState(0);
+  const [loading, setLoading] = useState(false);
+  const selectedId = useRef("");
+  const detailRequest = useRef(0);
   const [attachment, setAttachment] = useState<{
     url: string;
     mime: string;
@@ -59,19 +65,37 @@ export function Records({
   const base = `/v1/workspaces/${workspaceId}`;
   useEffect(() => {
     let current = true;
+    detailRequest.current++;
+    selectedId.current = "";
     setSelected(null);
+    setBusy(false);
     setRows([]);
-    setKey("");
-    setConnections([]);
     setMessage("");
     if (!workspaceId) return;
-    request<Entry[]>(`${base}/records?q=${encodeURIComponent(q)}`, token)
+    setLoading(true);
+    request<Entry[]>(
+      `${base}/records?q=${encodeURIComponent(q)}&offset=${offset}`,
+      token,
+    )
       .then((v) => {
         if (current) setRows(v);
       })
       .catch((e) => {
         if (current) setMessage(e.message);
+      })
+      .finally(() => {
+        if (current) setLoading(false);
       });
+    return () => {
+      current = false;
+      detailRequest.current++;
+      selectedId.current = "";
+    };
+  }, [base, token, q, workspaceId, offset]);
+  useEffect(() => {
+    let current = true;
+    setConnections([]);
+    setKey("");
     if (admin)
       request<Connection[]>(`${base}/connections`, token)
         .then((v) => {
@@ -83,15 +107,21 @@ export function Records({
     return () => {
       current = false;
     };
-  }, [base, token, q, admin, workspaceId]);
+  }, [base, token, admin]);
   async function open(id: string) {
+    const requestId = ++detailRequest.current;
+    selectedId.current = id;
+    setSelected(null);
+    setAttachment(null);
+    setNote("");
     setBusy(true);
     try {
-      setSelected(await request<Entry>(`${base}/records/${id}`, token));
+      const entry = await request<Entry>(`${base}/records/${id}`, token);
+      if (requestId === detailRequest.current) setSelected(entry);
     } catch (e) {
-      setMessage(String(e));
+      if (requestId === detailRequest.current) setMessage(String(e));
     } finally {
-      setBusy(false);
+      if (requestId === detailRequest.current) setBusy(false);
     }
   }
   async function addNote(e: FormEvent) {
@@ -106,12 +136,13 @@ export function Records({
           occurred_at: new Date().toISOString(),
         }),
       });
+      if (selectedId.current !== selected.id) return;
       setNote("");
       await open(selected.id);
     } catch (e) {
-      setMessage(String(e));
+      if (selectedId.current === selected.id) setMessage(String(e));
     } finally {
-      setBusy(false);
+      if (selectedId.current === selected.id) setBusy(false);
     }
   }
   async function connect(e: FormEvent) {
@@ -144,7 +175,13 @@ export function Records({
       </p>
       <label>
         {t("Search records")}
-        <input value={q} onChange={(e) => setQ(e.target.value)} />
+        <input
+          value={q}
+          onChange={(e) => {
+            setQ(e.target.value);
+            setOffset(0);
+          }}
+        />
       </label>
       {message && <p role="status">{message}</p>}
       <div className="record-layout">
@@ -157,7 +194,22 @@ export function Records({
               {r.simulated ? " · Simulated" : ""}
             </button>
           ))}
-          {!rows.length && <p>{t("No records found.")}</p>}
+          {loading && <p role="status">{t("Loading…")}</p>}
+          {!loading && !rows.length && <p>{t("No records found.")}</p>}
+          <nav aria-label={t("Record pages")} className="record-pages">
+            <button
+              disabled={loading || offset === 0}
+              onClick={() => setOffset(Math.max(0, offset - 50))}
+            >
+              {t("Previous records")}
+            </button>
+            <button
+              disabled={loading || rows.length < 50}
+              onClick={() => setOffset(offset + 50)}
+            >
+              {t("Next records")}
+            </button>
+          </nav>
         </div>
         {selected && (
           <article>
@@ -197,18 +249,20 @@ export function Records({
                 {n.text}
               </p>
             ))}
-            <form onSubmit={addNote}>
-              <label>
-                {t("Add note")}
-                <textarea
-                  value={note}
-                  onChange={(e) => setNote(e.target.value)}
-                  required
-                  maxLength={10000}
-                />
-              </label>
-              <button disabled={busy}>{t("Save note")}</button>
-            </form>
+            {canWrite && (
+              <form onSubmit={addNote}>
+                <label>
+                  {t("Add note")}
+                  <textarea
+                    value={note}
+                    onChange={(e) => setNote(e.target.value)}
+                    required
+                    maxLength={10000}
+                  />
+                </label>
+                <button disabled={busy}>{t("Save note")}</button>
+              </form>
+            )}
             <h3>{t("Attachments")}</h3>
             {selected.media?.map((m) => (
               <button
@@ -220,9 +274,9 @@ export function Records({
                     });
                     if (!response.ok)
                       throw Error(t("Unable to open attachment"));
-                    const objectUrl = URL.createObjectURL(
-                      await response.blob(),
-                    );
+                    const blob = await response.blob();
+                    if (selectedId.current !== selected.id) return;
+                    const objectUrl = URL.createObjectURL(blob);
                     setAttachment({ url: objectUrl, mime: m.mime_type });
                   } catch (e) {
                     setMessage(String(e));

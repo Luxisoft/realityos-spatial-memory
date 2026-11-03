@@ -323,7 +323,7 @@ internal fun AiChat(
         try {
             val response = withContext(Dispatchers.IO) { JSONArray(SocialSession.request("workspaces")) }
             val spaces = (0 until response.length()).map { response.getJSONObject(it) }
-            if (workspaceId.isBlank() && spaces.isNotEmpty()) workspaceId = spaces.first().getString("id")
+            workspaceId = queryWorkspaceId(spaces.map { it.getString("id") to it.getString("name") }, SocialSession.workWorkspaceId, SocialSession.workspaceId)
         } catch (_: Exception) {
         }
     }

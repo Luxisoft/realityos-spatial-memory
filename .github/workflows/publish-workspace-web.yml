@@ -26,6 +26,7 @@ jobs:
       - run: npm --prefix frontend run build
         env:
           VITE_API_URL: ""
+      - run: npm --prefix frontend run test:workspace-ui
       - name: Publish only frontend; preserve installed API and checkout
         shell: bash
         run: |

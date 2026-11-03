@@ -49,10 +49,17 @@ def import_batch(db, connection, payload):
         for r in db.scalars(select(Record).where(Record.connection_id == connection.id))
     }
     available = set(existing) | set(external_ids)
+    targets = {**existing, **{r.external_id: r for r in payload.records}}
     # Atomic validation: incomplete graphs do not become searchable.
     for entry in payload.records:
         if set(entry.related_ids) - available:
             raise HTTPException(422, f"Unresolved relationships for {entry.external_id}.")
+        if entry.status == "active" and entry.kind in {"prescription", "allergy", "administration"}:
+            patients = [targets[key] for key in entry.related_ids if targets[key].kind == "person"]
+            if len(patients) != 1 or patients[0].status != "active":
+                raise HTTPException(
+                    422, f"Clinical record requires one active person: {entry.external_id}."
+                )
         previous_row = existing.get(entry.external_id)
         if previous_row and (
             entry.kind != previous_row.kind or entry.version <= previous_row.version

@@ -29,7 +29,8 @@ Un administrador crea una conexión con
 La respuesta muestra `integration_key` una sola vez. Enviar esa credencial como
 `X-RealityOS-Integration-Key` en las rutas de integración. No es un token de usuario.
 Revocar la conexión impide nuevas importaciones. Perder la pertenencia administrativa
-del creador también bloquea esa credencial.
+del creador o desactivar su cuenta también bloquea esa credencial. La revocación
+se vuelve a comprobar antes de escribir, incluso si una descarga estaba en curso.
 
 `POST /v1/integrations/imports` acepta un lote atómico de hasta 100 registros y
 2 MiB. Ejemplo mínimo:
@@ -67,13 +68,16 @@ Adjuntar originales: `POST /v1/integrations/records/{record_id}/media`, multipar
 hasta 64 MiB; MP4 hasta 120 segundos o el límite menor del servidor. Con `publish=true`
 crea una publicación de trabajo y solicita indexación al worker existente.
 El autor debe ser miembro activo del mismo espacio. Una nueva revisión de archivo
-requiere otro identificador externo; nunca se sobrescribe silenciosamente el original.
+requiere otro identificador externo; nunca se sobrescribe silenciosamente el original
+ni se cambia su autor mediante un reintento. Se comprueba el formato real de las imágenes.
 `POST /v1/integrations/records/{id}/index` permite reintentar indexación.
 
 Para sincronización de entrada HTTP, la conexión puede incluir `source_url` y
 `source_token`. El origen debe servir el mismo JSON de lote. El servidor autoriza
 sus dominios mediante `INTEGRATION_SOURCE_HOSTS`; solo HTTPS/443, sin redirecciones
-ni direcciones privadas. `INTEGRATION_ENCRYPTION_KEY` cifra las credenciales guardadas.
+ni direcciones privadas. La descarga fija la IP pública validada y conserva la
+verificación TLS del dominio para evitar cambios de DNS entre validación y conexión.
+`INTEGRATION_ENCRYPTION_KEY` cifra las credenciales guardadas.
 `POST /v1/workspaces/{id}/connections/{connection_id}/sync` realiza una sincronización
 explícita. Los archivos se cargan mediante multipart, no se descargan URLs arbitrarias.
 No se afirma compatibilidad universal con cualquier EHR ni conformidad FHIR.
@@ -86,8 +90,14 @@ Los adjuntos incluyen tipo MIME y tamaño; web y Android abren fotos y videos
 con autenticación. La lectura de originales admite rangos HTTP y medios por chunks.
 `POST .../records/search` recibe `question`, `language` y `record_id` opcional;
 recupera únicamente registros activos del espacio autorizado antes de consultar IA.
-La búsqueda actual selecciona hasta ocho registros de los 500 más recientes;
-los listados paginan de 50 en 50 mediante `offset`. No hay búsqueda global de Facebook.
+La búsqueda filtra y ordena en SQL por título, identificador, datos y notas locales
+antes de limitar resultados; un registro antiguo no queda excluido por tener 500
+registros más recientes. Selecciona hasta cuatro coincidencias principales y sus
+relaciones activas de la misma fuente, con un máximo de ocho registros y veinte
+notas por registro. `context_truncated` indica resultados o contexto recortados,
+y la respuesta de IA debe señalar que la información recuperada es parcial.
+Web y Android permiten paginar los listados de 50 en 50 mediante `offset`.
+No hay búsqueda global de Facebook.
 La consulta del propio perfil/CV se conserva separada.
 
 `POST .../records/{id}/publications` relaciona una publicación existente del mismo
@@ -95,6 +105,8 @@ espacio mediante `publication_id`. `POST .../records/{id}/notes` agrega una nota
 con `text` y `occurred_at`; no modifica datos importados. Las revisiones son de
 lectura administrativa y las notas son anexos, no reemplazos del historial externo.
 
+Cada prescripción, alergia o administración activa importada debe relacionarse
+con exactamente una persona activa de la misma fuente.
 La comparación clínica recibe prescripción, ingrediente y concentración observados,
 confirmación profesional de identidad y fecha. Compara campos exactos, vigencia,
 alergias y antecedentes de administración. No convierte unidades ni calcula dosis,
@@ -136,3 +148,23 @@ La migración de cuentas y registros es `20261102_0031`.
 
 La publicación web aislada usa el workflow manual `Publish workspace web`: valida y
 construye el frontend en CI, publica solo su imagen y conserva el checkout y backend.
+
+## Alcance de la revisión del 2 de noviembre de 2026
+
+La regresión cubre registro y recuperación de cuenta, renovación de sesión Android,
+autorización por espacio, claves revocadas, importación atómica, medios, notas,
+relaciones, búsqueda de registros antiguos y límites del contexto de IA. Las pruebas
+de correo verifican enlaces, tokens, TLS y recuperación ante fallos usando transporte
+controlado; no equivalen a recepción de un correo real.
+
+La prueba de navegador usa 51 registros sintéticos para comprobar paginación,
+permisos del editor de notas y que una foto recibida tarde no aparezca en el perfil
+de otro paciente. También comprueba la vista móvil de 390 píxeles. El conjunto
+instalado conserva 47 registros; los 51 de esa prueba no se cargan en producción.
+
+Pendientes de validación externa: recepción de confirmación y recuperación en un
+correo autorizado, conexión a una fuente institucional que implemente el contrato
+y pruebas físicas con teléfono y Ray-Ban. La importación HTTP del conjunto del jurado
+sí se ejecutó contra la API real. La conexión de estos nuevos registros de personas
+al reconocimiento facial y la lectura automática de envases no están implementadas;
+el módulo biométrico existente permanece sin cambios por indicación del propietario.

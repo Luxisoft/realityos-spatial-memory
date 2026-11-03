@@ -140,8 +140,11 @@ internal object SocialSession {
     fun requestJson(path: String, method: String, payload: JSONObject? = null): String {
         return requestOnce(path, method, payload, true)
     }
+    internal var openJsonConnection: (String) -> HttpURLConnection = { path ->
+        URL("${BuildConfig.DEFAULT_REALITYOS_API_BASE_URL}/$path").openConnection() as HttpURLConnection
+    }
     private fun requestOnce(path: String, method: String, payload: JSONObject?, mayRefresh: Boolean, timeoutMillis: Int = 30000): String {
-        val connection = URL("${BuildConfig.DEFAULT_REALITYOS_API_BASE_URL}/$path").openConnection() as HttpURLConnection
+        val connection = openJsonConnection(path)
         connection.setRequestProperty("X-Client-Version", BuildConfig.VERSION_NAME)
         connection.connectTimeout = minOf(15000, timeoutMillis)
         connection.readTimeout = timeoutMillis
@@ -153,13 +156,14 @@ internal object SocialSession {
                 connection.setRequestProperty("Content-Type", "application/json")
                 connection.outputStream.bufferedWriter().use { it.write(payload.toString()) }
             }
-            if (connection.responseCode == 401 && mayRefresh && refreshToken != null && !path.startsWith("auth/")) {
+            val authenticatedAccountRoute = path in setOf("auth/account-session", "auth/account-capture-profile")
+            if (connection.responseCode == 401 && mayRefresh && refreshToken != null && (!path.startsWith("auth/") || authenticatedAccountRoute)) {
                 val refreshed = JSONObject(requestOnce("auth/refresh", "POST", JSONObject().put("refresh_token", refreshToken), false, timeoutMillis))
                 remember(refreshed)
                 return requestOnce(path, method, payload, false, timeoutMillis)
             }
             if (connection.responseCode == 401 && !path.startsWith("auth/facebook")) {
-                val wasGuest = isGuest
+                val wasGuest = isGuest || passwordAccount
                 clear()
                 error(if (wasGuest) localizedText(R.string.ui_your_session_expired_sign_in_again) else localizedText(R.string.ui_your_session_expired_continue_with_facebook_again))
             }
@@ -531,7 +535,7 @@ fun SocialGallery(
         finally { groupsLoading = false }
     }
     if (showRecords && groupId != null) {
-        WorkspaceRecords(groupId!!, onBack = { showRecords = false })
+        WorkspaceRecords(groupId!!, canWrite = groups.firstOrNull { it.optString("id") == groupId }?.optString("role") in setOf("admin", "register"), onBack = { showRecords = false })
         return
     }
     Column(Modifier.fillMaxSize()) {

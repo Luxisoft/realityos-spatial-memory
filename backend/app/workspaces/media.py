@@ -11,7 +11,7 @@ from app.dependencies import get_current_user, get_db, workspace_member
 from app.models import MediaAsset, MediaKind, User
 from app.social_features.models import Publication
 from app.workspaces.models import Connection, Record, RecordMedia
-from app.workspaces.routes import integration, router, scoped_record
+from app.workspaces.routes import authorize_connection, integration, router, scoped_record
 
 
 @router.post("/integrations/records/{record_id}/media", status_code=201)
@@ -26,6 +26,7 @@ async def upload(
     db: Session = Depends(get_db),
 ):
     db.refresh(source, with_for_update=True)
+    authorize_connection(db, source)
     record = db.get(Record, record_id)
     if record is None or record.connection_id != source.id or record.status == "deleted":
         raise HTTPException(404)
@@ -43,6 +44,8 @@ async def upload(
     if mime in {"image/jpeg", "image/png", "image/webp"}:
         try:
             with Image.open(io.BytesIO(raw)) as image:
+                if image.format not in {"JPEG", "PNG", "WEBP"}:
+                    raise HTTPException(422, "Use JPEG, PNG or WebP image content.")
                 if image.width * image.height > 40_000_000:
                     raise HTTPException(413, "Image exceeds 40 megapixels.")
                 image.verify()
@@ -66,6 +69,10 @@ async def upload(
         if (
             db.get(MediaAsset, link.media_id).sha256 != digest
             or bool(link.publication_id) != publish
+            or (
+                link.publication_id
+                and db.get(Publication, link.publication_id).owner_id != author.id
+            )
         ):
             raise HTTPException(409, "Attachment ID already used. Use a new ID for a new revision.")
         return {
