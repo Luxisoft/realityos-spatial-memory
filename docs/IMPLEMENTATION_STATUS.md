@@ -1658,3 +1658,19 @@ mismo y cachea la IP del API; tras recrear el API hay que reiniciarlo
 `/v1/` real. Producción: `realityos-backend:face-records-20261103-r2`,
 Alembic `20261103_0033`, 6 enrolamientos intactos, sonda Ana Solis 1.0 en vivo.
 Rollback: `.runtime/face-records-r2-rollback.json` (+ downgrade a `0032`).
+
+
+## Revisión r3: stop limpio del API — 2026-11-03
+
+`/v1/` se colgaba de forma intermitente con `000` mientras `/health/ready`
+daba 200: el gateway de demanda cachea la IP del API y una parada que nunca
+termina deja todas las peticiones esperando `stopping`. Causa: el comando del
+API en `docker-compose.yml` era `sh -c "... && uvicorn"` sin `exec`, así que
+PID 1 era `sh` (no propaga SIGTERM) y `docker stop` agotaba los 600 s hasta
+SIGKILL (exit 137). El `exec` existía en el árbol pero CI lo revirtió al
+sincronizar. Fix de una palabra en committed compose: stop medido 600 s/137 →
+0 s/exit 0. Producción: api `face-records-20261103-r2`, worker
+`GHCR:8904449` (mismo código), Alembic `0033`, proxy con demanda, gateway
+reiniciado, `/v1/openapi.json` público 200. Rollback de versión: bajar a
+`0032` desde una imagen con `0033` y luego GHCR:99a83e0; restauración de
+config: `.runtime/face-records-r2-rollback.json`.
