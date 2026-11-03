@@ -24,6 +24,7 @@ def main():
         archive.extractall(stage, filter="data")
     (stage / "Dockerfile").write_text(
         "FROM nginx:1.27-alpine\nCOPY dist /usr/share/nginx/html\n"
+        "RUN chmod -R a+rX /usr/share/nginx/html\n"
     )
     # Open existing shared build lock read-only: Linux protected_regular rejects
     # root write-opens of a lock owned by the interactive deployment user.
