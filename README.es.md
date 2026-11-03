@@ -7,7 +7,7 @@
 
 # RealityOS
 
-[API / Postman](docs/API.es.md) · [Todas las guías](docs/README.es.md)
+[Entrar a probar](#evaluate) · [API / Postman](docs/API.es.md) · [Todas las guías](docs/README.es.md)
 
 
 **Una plataforma de reconocimiento facial, contexto autorizado y memoria visual para Android y gafas Meta.**
@@ -25,6 +25,37 @@ Permite encontrar personas y objetos, consultar información relacionada y recup
   <a href="https://github.com/Luxisoft/realityos-spatial-memory/actions/workflows/ci.yml"><img src="https://github.com/Luxisoft/realityos-spatial-memory/actions/workflows/ci.yml/badge.svg?branch=main" alt="Estado de las pruebas automáticas"></a>
   · <a href="LICENSE">Apache 2.0</a> · <a href="README.md">English</a>
 </p>
+
+<a id="evaluate"></a>
+
+## Entrar a probar
+
+**La cuenta de prueba se entrega lista: foto de perfil, publicaciones y grupo de trabajo asignado.** Los expedientes y sus retratos ya están cargados en el servidor. Para el recorrido inicial solo necesitas el APK y tu usuario/contraseña.
+
+1. **Instala la app.** Recibe **app-debug.apk** del responsable o descárgalo de una [compilación exitosa](https://github.com/Luxisoft/realityos-spatial-memory/actions/workflows/ci.yml): abre la ejecución → **Artifacts** → **realityos-android-debug-apk**, descomprime el ZIP e instala el APK en Android 12 o superior. GitHub puede pedir iniciar sesión.
+2. **Entra.** Abre RealityOS → **Continuar con correo** → **Iniciar sesión**. En **Usuario o correo**, escribe la cuenta recibida, por ejemplo `elena-marquez`, y pega su contraseña. La cuenta ya está creada y confirmada.
+3. **Prueba lo que ya está cargado.** En **Perfil** verás tu foto y publicaciones. En **Trabajo**, elige el grupo asignado → **Registros del espacio** y abre uno de sus expedientes. Los retratos están dentro del expediente.
+
+| Prueba | Cuenta principal | Grupo ya asignado | Abre primero |
+| --- | --- | --- | --- |
+| Enfermería | `elena-marquez` | California Valley Medical Center | Expediente de Ana Solis: retrato, notas y registros relacionados. |
+| Policial | `alex-rivera` | Pacific Ridge Police Department | Caso de prueba 1 y evidencia del turno. |
+| Memoria | `noah-brooks` | Sonoran Neurological Institute | Expediente de Luis Moreno y su recordatorio. |
+
+**La contraseña llega junto al APK en la [ficha de acceso](docs/DEMO.es.md#handoff).** Es la contraseña de esa cuenta, no la de tu correo ni la cuenta pública de Postman. El responsable prepara y verifica los datos; quien prueba entra y los usa.
+
+[Recorrido paso a paso y las nueve cuentas →](docs/DEMO.es.md#access)
+
+Los tres escenarios contienen **47 registros, 27 adjuntos y seis retratos de personas enrolados**. Las personas y escenas son ficticias; el servidor y sus proveedores son reales. Los videos sintéticos muestran escenas estáticas.
+
+<details>
+<summary><strong>Solo quiero probar la API con Postman</strong></summary>
+
+Importa [la colección](https://raw.githubusercontent.com/Luxisoft/realityos-spatial-memory/main/docs/postman/RealityOS.postman_collection.json) y ejecuta **Server requests → 00 Quick start**. Ya incluye la cuenta pública `postman-demo@realityos.example.test` y la contraseña `RealityOS-Postman-Demo-2026!`. Su espacio es de consulta y está vacío; los escenarios de la tabla usan las cuentas asignadas arriba. [Guía breve de Postman →](docs/API.es.md#quick-start)
+
+</details>
+
+La app habitual ya conecta al servidor. [Windows local](docs/DEPLOYMENT_LOCALHOST.es.md) es una instalación adicional que empieza vacía.
 
 ## Capacidades de la plataforma
 
@@ -114,22 +145,6 @@ Las consultas contextuales de expedientes, perfiles y memoria visual pueden llam
 La API de expedientes importa personas, casos, atenciones, objetos, prescripciones, alergias y administraciones mediante lotes versionados, relaciones y adjuntos. Los conectores HTTPS usan un contrato explícito. [Integración de datos →](docs/WORKSPACE_DATA.es.md)
 
 **Decisiones de ingeniería:** originales en PostgreSQL BYTEA; permisos por espacio en cada recurso; consentimiento biométrico; consultas de evidencia sin iniciar captura; claves de proveedores solo en servidor; fallos Live visibles y mock rotulado. El gateway Meta restringido es un respaldo de conexión. Android es la única app; el panel del navegador y la web Display están retirados.
-
-<a id="evaluate"></a>
-
-## Probar como jurado
-
-1. Descarga `realityos-android-debug-apk` de una [ejecución aprobada](https://github.com/Luxisoft/realityos-spatial-memory/actions/workflows/ci.yml), descomprime e instala. GitHub puede pedir iniciar sesión. El APK habitual usa `https://realityos.luxisoft.com/v1`.
-2. Elige **Continuar con correo** e inicia sesión con una cuenta de evaluación y la contraseña demo de tu invitación.
-3. Selecciona el espacio y sigue el [guion de pruebas](docs/DEMO.es.md): búsqueda facial, apertura de expediente, contexto y evidencia visual.
-
-| Espacio ficticio | Cuenta | Prueba inicial |
-| --- | --- | --- |
-| Pacific Ridge Police Department | `alex-rivera` | Caso de prueba 1, notas y evidencia del turno. |
-| California Valley Medical Center | `elena-marquez` | Retrato de Ana Solis → expediente → comparación de medicación. |
-| Sonoran Neurological Institute | `noah-brooks` | Luis Moreno → recordatorio → última evidencia de documentos. |
-
-El conjunto contiene **47 registros, 27 adjuntos y seis retratos de personas enrolados**. Las personas y escenas son ficticias; la API, el almacenamiento y los proveedores Live son reales. Los MP4 sintéticos son escenas estáticas. El operador conserva las contraseñas demo en el archivo privado `.runtime/jury-access.json`; `@jury.example.test` no recibe correo. [Directorio social de pruebas →](simulator/social-directory/README.es.md)
 
 <a id="watch"></a>
 

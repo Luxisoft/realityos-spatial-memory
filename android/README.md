@@ -44,6 +44,10 @@ flowchart LR
 
 **Android is the only app.** The hosted browser panel and web Display have been retired. The glasses experience remains native to Android.
 
+## Sign in with a test account
+
+Receive the APK, username, password and group in one [access card](../docs/DEMO.md#handoff). Use **Continue with email → Sign in**. All nine scenario accounts already have avatars, posts and assigned groups; person portraits are in their records. [Installation and sign-in steps →](../README.md#evaluate)
+
 <a id="build"></a>
 
 ## Build and install

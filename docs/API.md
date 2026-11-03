@@ -4,42 +4,59 @@
 
 **Query people, records and visual evidence from your own tools.** This guide explains what to send, what to expect and how to begin. Permissions are the same as in Android.
 
-[📥 Postman collection](https://raw.githubusercontent.com/Luxisoft/realityos-spatial-memory/main/docs/postman/RealityOS.postman_collection.json) · [Public environment](https://raw.githubusercontent.com/Luxisoft/realityos-spatial-memory/main/docs/postman/RealityOS.public.postman_environment.json) · [Local environment](https://raw.githubusercontent.com/Luxisoft/realityos-spatial-memory/main/docs/postman/RealityOS.local.postman_environment.json) · [Full reference](API_REFERENCE.md) · [Documentation index](README.md)
+[📥 Postman collection](https://raw.githubusercontent.com/Luxisoft/realityos-spatial-memory/main/docs/postman/RealityOS.postman_collection.json) · [Optional environments](postman/README.md) · [Full reference](API_REFERENCE.md) · [Documentation index](README.md)
 
-## Try the included account
+<a id="quick-start"></a>
 
-1. Download and import **RealityOS.postman_collection.json**. All variables are included: no environment import or credential copying is needed for the demo.
-2. Open **Consultas servidor → 00 Quick start / Inicio rápido** and **Run** that subfolder. It logs in, saves tokens, reads your user, lists workspaces and submits a query to the demo workspace.
-3. For localhost, start your installation and run `powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\local\Enable-PostmanDemo.ps1` once. Then run **Consultas localhost → 00 Quick start / Inicio rápido**. Setup creates an independent local account; it does not copy server accounts or keys.
+## First test: import and run
 
-| Included setting | Consultas servidor | Consultas localhost |
-| --- | --- | --- |
-| URL | `https://realityos.luxisoft.com` | `http://localhost:8080` |
-| Variable prefix | `server_` | `localhost_` |
-| Public test account | `postman-demo@realityos.example.test` | `postman-local@realityos.example.test` |
-| Public test password | `RealityOS-Postman-Demo-2026!` | `RealityOS-Postman-Local-2026!` |
-| Workspace | Postman Demo - public test workspace | Postman Demo - localhost test workspace |
-| Role in that workspace | Query, without administration or capture | Query, without administration or capture |
+**Use Postman desktop and the existing server.** The public account checks access and queries in an empty workspace. For prepared photos, posts and records in Android, use the [scenario account guide](DEMO.md#access).
 
-User and workspace IDs are preconfigured. The demo workspace is empty, so a query may return no matches; it does not fabricate evidence. These shared accounts and passwords are intentionally public for this demo. Write, device, integration and existing-resource operations require an account with the corresponding permissions and that account's IDs/files.
+1. In Postman, open **Import** (in recent versions, **Use resources or import → Import**) and paste this link:
 
-To use your own account, edit **Collection → Variables**: replace `server_email`, `server_password` and `server_workspace_id` (or the `localhost_` equivalents), clear previous tokens and log in again. Copy your workspace from `GET /v1/workspaces`. Downloadable environments are optional and contain the same variables for each target; when one is active, edit its values because they override collection values. Real tokens are saved after login and never published in the GitHub JSON. See [Postman's variable scopes](https://learning.postman.com/docs/sending-requests/variables/variables/).
+   ```text
+   https://raw.githubusercontent.com/Luxisoft/realityos-spatial-memory/main/docs/postman/RealityOS.postman_collection.json
+   ```
 
-Your own public registration requires a real confirmation email. The provisioned demo account needs no confirmation; `example.test` does not receive mail.
+2. Confirm the import and leave the environment selector on **No environment**. The collection already contains the username, password and workspace.
+3. Open **Server requests → 00 Quick start** and click **Run**. Run that subfolder's five requests once, in the included order. If **Start run** appears, use it to start.
+4. Check the responses:
 
-```mermaid
-sequenceDiagram
-    actor U as User
-    participant P as Postman
-    participant A as API
-    U->>P: Choose server or localhost folder
-    P->>A: Login
-    A-->>P: Session tokens
-    P->>A: List authorized workspaces
-    U->>P: Use demo workspace or select own
-    P->>A: Query evidence
-    A-->>P: Result, date and source
+If an older collection shows **Consultas servidor / Consultas localhost**, these are the same folders; **00 Quick start / Inicio rápido** is the same quick start.
+
+| Request | Expected result |
+| --- | --- |
+| `GET /health/live` | `200`: server available. |
+| `POST /v1/auth/login` | `200`: signed in; tokens saved automatically. |
+| `GET /v1/auth/me` | `200`: authenticated test account. |
+| `GET /v1/workspaces` | `200`: **Postman Demo - public test workspace** appears. |
+| `POST /v1/queries` | `200`: no matches because this workspace is empty. |
+
+**Included access:** `postman-demo@realityos.example.test` / `RealityOS-Postman-Demo-2026!`. This shared account has query permission in its workspace, without administration or capture. It is already confirmed; its `example.test` address does not receive email. The official [import instructions](https://learning.postman.com/docs/getting-started/importing-and-exporting/importing-data/) and [folder run instructions](https://learning.postman.com/docs/tests-and-scripts/running-collections/intro-to-collection-runs/) describe Postman's controls.
+
+### Query a scenario with prepared data
+
+In **Collection → Variables**, set `server_email` to the username from your access card and `server_password` to its password. Clear `server_access_token` and `server_refresh_token`. Run **login**, then **GET /v1/workspaces**; copy the assigned group's ID into `server_workspace_id` before running the query. That group's photos and records are already loaded; the public account cannot access them.
+
+<details>
+<summary><strong>Optional: test your localhost installation</strong></summary>
+
+Complete the [Windows setup](DEPLOYMENT_LOCALHOST.md) first. Then run this once from the repository root:
+
+```powershell
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\local\Enable-PostmanDemo.ps1
 ```
+
+Run **Localhost requests → 00 Quick start**. This folder uses the included `http://localhost:8080`, `postman-local@realityos.example.test` and `RealityOS-Postman-Local-2026!`. Setup creates an independent local query account and empty workspace. It does not copy server scenarios or credentials.
+
+</details>
+
+<details>
+<summary><strong>Optional: environments and your own account</strong></summary>
+
+Downloadable environments contain the same demo variables and are optional. An active environment overrides the collection: edit its values or return to **No environment** to avoid mixing accounts. Tokens are saved after login; they are not published on GitHub. A new personal account requires confirmation through a real email address. [Postman variable scopes](https://learning.postman.com/docs/sending-requests/variables/variables/).
+
+</details>
 
 ## Choose an operation
 
@@ -62,7 +79,7 @@ sequenceDiagram
 
 ## Variables and authentication
 
-Every variable starts with `server_` or `localhost_`. Each folder exclusively references its prefix, including tokens, IDs and write controls. Additional local routes only appear under **Consultas localhost → Local installation only**.
+Every variable starts with `server_` or `localhost_`. Each folder exclusively references its prefix, including tokens, IDs and write controls. Additional local routes only appear under **Localhost requests → Local installation only**.
 
 | Variable (add the prefix) | Value or purpose |
 | --- | --- |

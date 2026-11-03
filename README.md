@@ -7,7 +7,7 @@
 
 # RealityOS
 
-[API / Postman](docs/API.md) · [All guides](docs/README.md)
+[Start testing](#evaluate) · [API / Postman](docs/API.md) · [All guides](docs/README.md)
 
 
 **A platform for facial recognition, authorized context and visual memory on Android and Meta glasses.**
@@ -25,6 +25,37 @@ Find people and objects, query related information and retrieve evidence through
   <a href="https://github.com/Luxisoft/realityos-spatial-memory/actions/workflows/ci.yml"><img src="https://github.com/Luxisoft/realityos-spatial-memory/actions/workflows/ci.yml/badge.svg?branch=main" alt="Current automated test status"></a>
   · <a href="LICENSE">Apache 2.0</a> · <a href="README.es.md">Español</a>
 </p>
+
+<a id="evaluate"></a>
+
+## Start testing
+
+**Your test account comes ready: profile photo, posts and an assigned work group.** Records and their portraits are already loaded on the server. For the first walkthrough, you only need the APK and your username/password.
+
+1. **Install the app.** Get **app-debug.apk** from the organizer or download it from a [successful build](https://github.com/Luxisoft/realityos-spatial-memory/actions/workflows/ci.yml): open the run → **Artifacts** → **realityos-android-debug-apk**, unzip it and install the APK on Android 12 or newer. GitHub may require sign-in.
+2. **Sign in.** Open RealityOS → **Continue with email** → **Sign in**. In **Username or email**, enter the supplied account, such as `elena-marquez`, and paste its password. The account is already created and confirmed.
+3. **Explore the prepared data.** In **Profile**, see your photo and posts. In **Work**, choose your assigned group → **Workspace records** and open a record. Portraits are available inside the record.
+
+| Scenario | Primary account | Assigned group | Open first |
+| --- | --- | --- | --- |
+| Nursing | `elena-marquez` | California Valley Medical Center | Ana Solis's record: portrait, notes and related records. |
+| Police | `alex-rivera` | Pacific Ridge Police Department | Test case 1 and shift evidence. |
+| Memory | `noah-brooks` | Sonoran Neurological Institute | Luis Moreno's record and reminder. |
+
+**The password comes with the APK in the [access card](docs/DEMO.md#handoff).** Use that account's password, not your email password or the public Postman account. The organizer prepares and checks the data; the evaluator signs in and uses it.
+
+[Step-by-step walkthrough and all nine accounts →](docs/DEMO.md#access)
+
+The three scenarios contain **47 records, 27 attachments and six enrolled person portraits**. People and scenes are fictional; the server and its providers are real. Synthetic videos show static scenes.
+
+<details>
+<summary><strong>I only want to try the API with Postman</strong></summary>
+
+Import [the collection](https://raw.githubusercontent.com/Luxisoft/realityos-spatial-memory/main/docs/postman/RealityOS.postman_collection.json) and run **Server requests → 00 Quick start**. It includes the public account `postman-demo@realityos.example.test` and password `RealityOS-Postman-Demo-2026!`. Its workspace is query-only and empty; the scenarios in the table use the accounts assigned above. [Short Postman guide →](docs/API.md#quick-start)
+
+</details>
+
+The regular app already connects to the server. [Windows local](docs/DEPLOYMENT_LOCALHOST.md) is an additional installation that starts empty.
 
 ## Platform capabilities
 
@@ -114,22 +145,6 @@ Contextual record, profile and visual-memory queries can call Muse Spark from th
 The records API imports people, cases, encounters, objects, prescriptions, allergies and administrations through versioned batches, relationships and attachments. HTTPS connectors use an explicit contract. [Data integration →](docs/WORKSPACE_DATA.md)
 
 **Engineering decisions:** PostgreSQL BYTEA originals; workspace checks on every resource; biometric consent; evidence queries that never start capture; server-only provider keys; explicit Live failures and labelled mock output. A restricted Meta gateway provides connection fallback. Android is the only app; the browser panel and web Display are retired.
-
-<a id="evaluate"></a>
-
-## Evaluate the project
-
-1. Download `realityos-android-debug-apk` from a [successful run](https://github.com/Luxisoft/realityos-spatial-memory/actions/workflows/ci.yml), unzip and install. GitHub sign-in may be required. The regular APK targets `https://realityos.luxisoft.com/v1`.
-2. Choose **Continue with email** and use an evaluation account with the demo password from your invitation.
-3. Select the workspace and follow the [test walkthrough](docs/DEMO.md): face search, record lookup, context and visual evidence.
-
-| Fictional workspace | Account | First scenario |
-| --- | --- | --- |
-| Pacific Ridge Police Department | `alex-rivera` | Test case 1, notes and shift evidence. |
-| California Valley Medical Center | `elena-marquez` | Ana Solis portrait → record → medication comparison. |
-| Sonoran Neurological Institute | `noah-brooks` | Luis Moreno → reminder → last evidence of documents. |
-
-The fixture contains **47 records, 27 attachments and six enrolled person portraits**. People and scenes are fictional; the API, storage and Live providers are real. Synthetic MP4s are static scenes. Operators keep demo passwords in the private `.runtime/jury-access.json`; `@jury.example.test` does not receive email. [Synthetic social directory →](simulator/social-directory/README.md)
 
 <a id="watch"></a>
 

@@ -10,7 +10,7 @@
 | --- | --- |
 | **Sesiones** | Contraseñas con scrypt y sal; access tokens vencen y refresh tokens rotan con revocación persistida. |
 | **Autorización** | Comprobar pertenencia y rol también al servir medios. Los enlaces firmados tienen alcance y vigencia limitados. |
-| **Secretos** | Claves Meta/ElevenLabs, JWT, SMTP y DB solo en runtime privado del servidor. Exportaciones Postman sin credenciales. |
+| **Secretos** | Claves Meta/ElevenLabs, JWT, SMTP y DB solo en runtime privado del servidor. Postman incluye solo las credenciales demo publicadas expresamente; tokens y credenciales privadas quedan fuera de Git. |
 | **Dispositivos** | ID público y clave independiente; solo hash con pepper en servidor. Enrolamiento, rotación y revocación auditados. |
 | **Biometría** | Consentimiento y autorización por espacio; revocar consentimiento elimina enrolamientos de usuario. Candidatos requieren confirmación. |
 | **Retención** | Existen bajas de recursos y borrado de CV/consentimiento; no equivalen a una política integral de retención, exportación y borrado de clientes. |

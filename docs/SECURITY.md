@@ -10,7 +10,7 @@
 | --- | --- |
 | **Sessions** | Salted scrypt passwords; access tokens expire and refresh tokens rotate with persisted revocation. |
 | **Authorization** | Check membership and role when serving media too. Signed links have limited scope and lifetime. |
-| **Secrets** | Meta/ElevenLabs, JWT, SMTP and DB secrets stay in private server runtime. Postman exports contain no credentials. |
+| **Secrets** | Meta/ElevenLabs, JWT, SMTP and DB secrets stay in private server runtime. Postman includes only explicitly public demo credentials; tokens and private credentials stay out of Git. |
 | **Devices** | Public ID and independent key; server stores only a peppered hash. Enrollment, rotation and revocation are audited. |
 | **Biometrics** | Consent and workspace authorization; revocation deletes user enrollments. Candidates require confirmation. |
 | **Retention** | Resource removal and CV/consent deletion exist; these do not constitute a complete customer retention, export and erasure policy. |

@@ -4,42 +4,59 @@
 
 **Consulta personas, expedientes y evidencia visual desde tus herramientas.** Esta guía explica qué enviar, qué esperar y cómo comenzar. Los permisos son los mismos que en Android.
 
-[📥 Colección Postman](https://raw.githubusercontent.com/Luxisoft/realityos-spatial-memory/main/docs/postman/RealityOS.postman_collection.json) · [Entorno público](https://raw.githubusercontent.com/Luxisoft/realityos-spatial-memory/main/docs/postman/RealityOS.public.postman_environment.json) · [Entorno local](https://raw.githubusercontent.com/Luxisoft/realityos-spatial-memory/main/docs/postman/RealityOS.local.postman_environment.json) · [Referencia completa](API_REFERENCE.es.md) · [Índice](README.es.md)
+[📥 Colección Postman](https://raw.githubusercontent.com/Luxisoft/realityos-spatial-memory/main/docs/postman/RealityOS.postman_collection.json) · [Entornos opcionales](postman/README.es.md) · [Referencia completa](API_REFERENCE.es.md) · [Índice](README.es.md)
 
-## Probar con la cuenta incluida
+<a id="quick-start"></a>
 
-1. Descarga e importa **RealityOS.postman_collection.json**. El archivo incluye todas las variables: no necesitas importar un entorno ni copiar credenciales para la demo.
-2. Abre **Consultas servidor → 00 Quick start / Inicio rápido** y ejecuta esa subcarpeta con **Run**. Hace login, guarda los tokens, consulta tu usuario, lista los espacios y envía una consulta al espacio demo.
-3. Para localhost, inicia tu instalación y ejecuta una sola vez `powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\local\Enable-PostmanDemo.ps1`. Después ejecuta **Consultas localhost → 00 Quick start / Inicio rápido**. Este paso crea una cuenta local independiente; no copia cuentas ni claves del servidor.
+## Primera prueba: importar y ejecutar
 
-| Configuración incluida | Consultas servidor | Consultas localhost |
-| --- | --- | --- |
-| URL | `https://realityos.luxisoft.com` | `http://localhost:8080` |
-| Prefijo de variables | `server_` | `localhost_` |
-| Cuenta pública de prueba | `postman-demo@realityos.example.test` | `postman-local@realityos.example.test` |
-| Contraseña pública de prueba | `RealityOS-Postman-Demo-2026!` | `RealityOS-Postman-Local-2026!` |
-| Espacio | Postman Demo - public test workspace | Postman Demo - localhost test workspace |
-| Rol en ese espacio | Consulta, sin administración ni captura | Consulta, sin administración ni captura |
+**Usa Postman de escritorio y el servidor ya instalado.** La cuenta pública comprueba acceso y consultas en un espacio vacío. Para ver fotos, publicaciones y expedientes preparados en Android, usa la [guía de cuentas de escenario](DEMO.es.md#access).
 
-Los IDs de usuario y espacio ya están configurados. El espacio demo está vacío y una consulta puede devolver que no hay coincidencias; no se inventa evidencia. Las cuentas son compartidas y sus contraseñas están publicadas expresamente para esta demo. Las rutas de escritura, dispositivos, integración y recursos existentes requieren una cuenta con los permisos correspondientes y los IDs/archivos de esa cuenta.
+1. En Postman, abre **Import** (en versiones recientes, **Use resources or import → Import**) y pega este enlace:
 
-Para usar una cuenta propia, edita **Collection → Variables**: cambia `server_email`, `server_password` y `server_workspace_id` (o sus equivalentes `localhost_`), vacía los tokens anteriores y vuelve a ejecutar login. Copia el nuevo espacio de `GET /v1/workspaces`. Los entornos descargables son opcionales y contienen el mismo conjunto de variables de cada destino; si activas uno, edita sus valores porque prevalecen sobre los de la colección. Los tokens reales se guardan después del login, nunca se publican en el JSON de GitHub. Consulta el [alcance de variables de Postman](https://learning.postman.com/docs/sending-requests/variables/variables/).
+   ```text
+   https://raw.githubusercontent.com/Luxisoft/realityos-spatial-memory/main/docs/postman/RealityOS.postman_collection.json
+   ```
 
-El registro de cuentas propias requiere confirmar un correo real. La cuenta demo provisionada no necesita confirmación y `example.test` no recibe correos.
+2. Confirma la importación y deja el selector de entorno en **No environment**. Usuario, contraseña y espacio ya vienen en la colección.
+3. Abre **Server requests → 00 Quick start** y pulsa **Run**. Ejecuta las cinco solicitudes de esa subcarpeta, en el orden incluido, una vez. Si aparece **Start run**, úsalo para comenzar.
+4. Comprueba las respuestas:
 
-```mermaid
-sequenceDiagram
-    actor U as Usuario
-    participant P as Postman
-    participant A as API
-    U->>P: Elegir carpeta servidor o localhost
-    P->>A: Login
-    A-->>P: Tokens de sesión
-    P->>A: Listar espacios autorizados
-    U->>P: Usar espacio demo o elegir el propio
-    P->>A: Consultar evidencia
-    A-->>P: Resultado, fecha y fuente
+Si tu colección anterior muestra **Consultas servidor / Consultas localhost**, son las mismas carpetas; **00 Quick start / Inicio rápido** es el mismo inicio rápido.
+
+| Solicitud | Resultado esperado |
+| --- | --- |
+| `GET /health/live` | `200`: servidor disponible. |
+| `POST /v1/auth/login` | `200`: inicio de sesión; guarda los tokens automáticamente. |
+| `GET /v1/auth/me` | `200`: cuenta de prueba autenticada. |
+| `GET /v1/workspaces` | `200`: aparece **Postman Demo - public test workspace**. |
+| `POST /v1/queries` | `200`: consulta sin coincidencias porque este espacio está vacío. |
+
+**Acceso incluido:** `postman-demo@realityos.example.test` / `RealityOS-Postman-Demo-2026!`. Es una cuenta compartida con permiso de consulta en su espacio, sin administración ni captura. Ya está confirmada; su dirección `example.test` no recibe correo. Los [pasos oficiales de importación](https://learning.postman.com/docs/getting-started/importing-and-exporting/importing-data/) y [ejecución de carpetas](https://learning.postman.com/docs/tests-and-scripts/running-collections/intro-to-collection-runs/) detallan los controles de Postman.
+
+### Consultar un escenario con datos preparados
+
+En **Collection → Variables**, pon el usuario de tu ficha en `server_email` y su contraseña en `server_password`. Vacía `server_access_token` y `server_refresh_token`. Ejecuta **login** y después **GET /v1/workspaces**; copia el ID del grupo asignado a `server_workspace_id` antes de ejecutar la consulta. Las fotos y expedientes de ese grupo ya están cargados; la cuenta pública no tiene acceso a ellos.
+
+<details>
+<summary><strong>Opcional: probar tu instalación localhost</strong></summary>
+
+Primero completa la [instalación Windows](DEPLOYMENT_LOCALHOST.es.md). Después, desde la raíz del repositorio, ejecuta una sola vez:
+
+```powershell
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\local\Enable-PostmanDemo.ps1
 ```
+
+Ejecuta **Localhost requests → 00 Quick start**. Esta carpeta usa `http://localhost:8080`, `postman-local@realityos.example.test` y `RealityOS-Postman-Local-2026!`, ya incluidos. Crea una cuenta local de consulta y un espacio vacío independiente. No copia los escenarios ni las credenciales del servidor.
+
+</details>
+
+<details>
+<summary><strong>Opcional: entornos y cuenta propia</strong></summary>
+
+Los archivos de entorno descargables contienen las mismas variables demo y son opcionales. Un entorno activo prevalece sobre la colección: edita sus valores o vuelve a **No environment** para evitar mezclar cuentas. Los tokens se guardan tras el login; no se publican en GitHub. Una cuenta propia nueva requiere confirmar un correo real. [Alcance de variables de Postman](https://learning.postman.com/docs/sending-requests/variables/variables/).
+
+</details>
 
 ## Qué operación necesito
 
@@ -62,7 +79,7 @@ sequenceDiagram
 
 ## Variables y autenticación
 
-Todas las variables llevan `server_` o `localhost_`. Cada carpeta referencia exclusivamente su prefijo, incluidos tokens, IDs y controles de escritura. Las rutas locales adicionales solo aparecen dentro de **Consultas localhost → Solo instalación local**.
+Todas las variables llevan `server_` o `localhost_`. Cada carpeta referencia exclusivamente su prefijo, incluidos tokens, IDs y controles de escritura. Las rutas locales adicionales solo aparecen dentro de **Localhost requests → Local installation only**.
 
 | Variable (añadir el prefijo) | Valor o uso |
 | --- | --- |

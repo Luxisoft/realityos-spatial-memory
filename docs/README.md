@@ -1,7 +1,7 @@
 <p align="center"><a href="README.md"><img src="assets/readme/language-en-active.svg" alt="English" height="32"></a> <a href="README.es.md"><img src="assets/readme/language-es.svg" alt="Español" height="32"></a></p>
 # RealityOS documentation
 [← RealityOS](../README.md) · [Android](../android/README.md) · [Postman](postman/RealityOS.postman_collection.json)
-**Start with API/Postman to try requests, Demo to evaluate the product or Installation to prepare an environment.**
+**To try the app, start with [Start testing](../README.md#evaluate): APK, prepared account and assigned group.** [Account handoff and walkthrough](DEMO.md#access) · [API only: Postman](API.md#quick-start). Installation guides are for setting up another environment.
 
 | Guide | Open |
 | --- | --- |

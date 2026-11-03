@@ -44,6 +44,10 @@ flowchart LR
 
 **Android es la única app.** El panel del navegador y la web Display alojados están retirados. La experiencia de las gafas sigue siendo nativa de Android.
 
+## Entrar con una cuenta de prueba
+
+Recibe el APK, usuario, contraseña y grupo en una sola [ficha de acceso](../docs/DEMO.es.md#handoff). Entra por **Continuar con correo → Iniciar sesión**. Las nueve cuentas de escenario ya tienen avatar, publicaciones y grupo asignado; los retratos de personas están en sus expedientes. [Pasos para instalar y entrar →](../README.es.md#evaluate)
+
 <a id="build"></a>
 
 ## Compilar e instalar
