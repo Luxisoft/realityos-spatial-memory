@@ -6,7 +6,7 @@
 
 Generada del contrato. Los nombres de operaciones y campos conservan los identificadores del API. ✓ = obligatorio. Los ejemplos requieren tus identificadores y archivos; no son respuestas capturadas de producción.
 
-Los ejemplos de referencia usan variables sin prefijo. La colección descargable incluye las carpetas Consultas servidor y Consultas localhost y añade respectivamente `server_` o `localhost_` a cada variable, con cuenta y espacio demo preconfigurados.
+Los ejemplos de referencia usan variables sin prefijo. La colección descargable incluye las carpetas Server requests y Localhost requests y añade respectivamente `server_` o `localhost_` a cada variable, con cuenta y espacio demo preconfigurados.
 
 Bearer = sesión de usuario; device = credenciales de dispositivo; integration = clave de integración; signed = enlace temporal; none = sin credenciales de transporte.
 

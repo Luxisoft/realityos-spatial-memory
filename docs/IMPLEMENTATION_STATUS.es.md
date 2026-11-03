@@ -247,7 +247,7 @@ Formato, lint, estructura y builds Debug/Release aprobados. APK Debug instalable
 
 ## Demo Postman servidor/local — 2026-11-03
 
-La colección incluye **Consultas servidor** y **Consultas localhost**, con
+La colección incluye **Server requests** y **Localhost requests**, con
 96 variables declaradas y 324 solicitudes entre ambos destinos. Cada carpeta
 usa URL, credenciales, tokens, IDs y control de escritura independientes.
 Funciona sin entorno; los dos entornos opcionales reflejan las variables de
@@ -271,3 +271,19 @@ La preparación local es explícita con `scripts/local/Enable-PostmanDemo.ps1`,
 usa solo el proyecto Compose local y crea otras credenciales demo. Creación,
 login, renovación y permisos probados con base aislada; la ejecución física en
 Windows Docker Desktop sigue pendiente. Instrucciones en [API / Postman](API.es.md).
+
+
+## Postman en inglés y sesiones automáticas — 2026-11-03
+
+La colección y ambos entornos opcionales tienen nombres, descripciones, ejemplos
+y mensajes de scripts en inglés. Se conservan las 324 solicitudes, con 98 variables
+separadas por destino. Send inicia sesión automáticamente, comprueba la sesión y
+renueva tokens caducados. Cambiar API o cuenta inicia otra sesión. Un fallo de
+autenticación detiene la petición; se conservan permisos y controles de escritura.
+
+Pasaron 11 pruebas de documentación/permisos demo, 324 comprobaciones de scripts,
+166 controles de escritura, regeneración, formato/lint y arquitectura. Newman
+verificó consulta directa con login automático, usuario, refresh y espacios contra
+el servidor real: cinco aserciones y cero fallos. La colección sobre los espacios
+existentes está preparada de forma privada; publicar ese acceso queda pendiente
+de la elección del propietario sobre los permisos de la cuenta pública.

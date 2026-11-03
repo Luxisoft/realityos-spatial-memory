@@ -52,7 +52,7 @@ def test_all_contract_operations_have_one_reference_request():
         if m in {"get", "post", "put", "patch", "delete"}
     }
     targets = collection()["item"]
-    assert [t["name"] for t in targets] == ["Consultas servidor", "Consultas localhost"]
+    assert [t["name"] for t in targets] == ["Server requests", "Localhost requests"]
     for index, target in enumerate(targets):
         names = [i["name"] for i in items(target)]
         assert len(names) == len(set(names))
@@ -101,8 +101,10 @@ def test_all_variables_are_declared_and_isolated_with_only_public_demo_credentia
             ).read_text()
         )
         values = {v["key"]: v["value"] for v in env["values"]}
+        assert env["name"] == "RealityOS · " + target["name"]
         assert values == {k: variables[k] for k in keys}
         assert values[prefix + "_base_url"] == origin
+        assert values[prefix + "_language"] == "en"
         assert values[prefix + "_enable_write_requests"] == "false"
         published = {
             "email",
@@ -153,6 +155,7 @@ def test_transport_auth_and_uploads_match_their_realm():
 
 def test_quick_start_uses_the_explicit_demo_workspace_without_enrolling_or_capturing():
     for target in collection()["item"]:
+        assert target["item"][0]["name"] == "00 Quick start"
         quick = target["item"][0]["item"]
         assert [i["name"] for i in quick] == [
             "GET /health/live",

@@ -24,8 +24,8 @@ READ_POSTS = {
 }
 AUTH_POSTS = {"/v1/auth/login", "/v1/auth/refresh", "/v1/auth/local-login"}
 TARGETS = [
-    ("public", "server", "Consultas servidor", "https://realityos.luxisoft.com"),
-    ("local", "localhost", "Consultas localhost", "http://localhost:8080"),
+    ("public", "server", "Server requests", "https://realityos.luxisoft.com"),
+    ("local", "localhost", "Localhost requests", "http://localhost:8080"),
 ]
 DEFAULT_VARIABLES = {
     "base_url": "https://realityos.luxisoft.com",
@@ -37,6 +37,7 @@ DEFAULT_VARIABLES = {
     "new_password": "",
     "access_token": "",
     "refresh_token": "",
+    "session_identity": "",
     "workspace_id": "",
     "language": "en",
     "query": "Where were the documents last seen?",
@@ -47,24 +48,25 @@ DEFAULT_VARIABLES = {
     "token": "",
 }
 VARIABLE_DESCRIPTIONS = {
-    "base_url": "API origin, without /v1. / URL del API, sin /v1.",
-    "email": "Public demo email prefilled. Replace locally to use your own account. / Correo demo incluido. Cámbialo localmente para usar tu cuenta.",
-    "username": "Demo username prefilled; use an existing username or email for correction. / Usuario demo incluido; usa tu usuario o correo actual para corregir una cuenta propia.",
-    "display_name": "Demo display name prefilled. / Nombre visible demo incluido.",
-    "password": "Public demo password prefilled. Replace locally to use your own account. / Contraseña pública demo incluida. Cámbiala localmente para usar tu cuenta.",
-    "new_email": "Replacement email for a pending account. / Correo nuevo que reemplaza al pendiente.",
-    "new_password": "New password for recovery, at least 12 characters. / Nueva contraseña de recuperación, mínimo 12 caracteres.",
-    "access_token": "Saved automatically after login/refresh. / Se guarda automáticamente al iniciar o renovar sesión.",
-    "refresh_token": "Saved and rotated automatically after login/refresh. / Se guarda y rota automáticamente al iniciar o renovar sesión.",
-    "workspace_id": "Demo workspace preselected. For your own account, copy an ID from GET /v1/workspaces. / Espacio demo preseleccionado. Para tu cuenta, copia un ID de GET /v1/workspaces.",
-    "user_id": "Demo user ID prefilled. For your own account, copy id from GET /v1/auth/me. / ID del usuario demo incluido. Para tu cuenta, copia id de GET /v1/auth/me.",
-    "language": "Response language: en or es. / Idioma de respuesta: en o es.",
-    "query": "Question for evidence/record searches. / Pregunta para consultar evidencia o expedientes.",
-    "enable_write_requests": "Set true to enable explicit write operations for this target. / Activa true para habilitar escrituras en este destino.",
-    "facebook_access_token": "Your Facebook user token; never a RealityOS session token. / Token de usuario Facebook; no es el token de RealityOS.",
-    "device_key": "Key issued when provisioning this target's device. / Clave entregada al provisionar el dispositivo de este destino.",
-    "integration_key": "Key issued for this target's integration. / Clave de integración emitida en este destino.",
-    "token": "Temporary email action or signed resource token. / Token temporal del correo o recurso firmado.",
+    "base_url": "API origin, without /v1.",
+    "email": "Public demo email prefilled. Replace locally to use your own account.",
+    "username": "Demo username prefilled; use an existing username or email for correction.",
+    "display_name": "Demo display name prefilled.",
+    "password": "Public demo password prefilled. Replace locally to use your own account.",
+    "new_email": "Replacement email for a pending account.",
+    "new_password": "New password for recovery, at least 12 characters.",
+    "access_token": "Saved automatically after login/refresh.",
+    "refresh_token": "Saved and rotated automatically after login/refresh.",
+    "session_identity": "Managed automatically to keep sessions tied to the configured account and API.",
+    "workspace_id": "Demo workspace preselected. For your own account, copy an ID from GET /v1/workspaces.",
+    "user_id": "Demo user ID prefilled. For your own account, copy id from GET /v1/auth/me.",
+    "language": "Response language: en or es.",
+    "query": "Question for evidence/record searches.",
+    "enable_write_requests": "Set true to enable explicit write operations for this target.",
+    "facebook_access_token": "Your Facebook user token; never a RealityOS session token.",
+    "device_key": "Key issued when provisioning this target's device.",
+    "integration_key": "Key issued for this target's integration.",
+    "token": "Temporary email action or signed resource token.",
 }
 GROUPS = [
     ("auth", "Access / Acceso"),
@@ -222,14 +224,14 @@ def target_item(value, prefix, variables):
 def variable_description(key):
     return VARIABLE_DESCRIPTIONS.get(
         key,
-        "Copy this identifier from an authorized response for this target. / "
-        "Copia este identificador de una respuesta autorizada de este destino.",
+        "Copy this identifier from an authorized response for this target.",
     )
 
 
 def generate(spec, check=False):
     spanish = json.loads((ROOT / "docs/postman/operation-labels.es.json").read_text())
     demo = json.loads((ROOT / "simulator/postman/demo.json").read_text())
+    auto_auth = (ROOT / "scripts/postman/auto_auth.js").read_text().splitlines()
     # Local routes are intentionally absent from the production contract.
     local = copy.deepcopy(spec)
     login = copy.deepcopy(spec["paths"]["/v1/auth/login"]["post"])
@@ -273,13 +275,12 @@ def generate(spec, check=False):
             )
             name = f"{method.upper()} {path}"
             summary = op.get("summary", name)
-            translated = spanish.get(summary, summary)
-            description = f"{summary} / {translated}\n\n" + (
-                "Explicit action / Acción explícita (escritura o proveedor). Set `enable_write_requests=true` to send. / Activa esa variable para enviar."
+            description = f"{summary}\n\n" + (
+                "Explicit action (write or provider call). Set `enable_write_requests=true` to send."
                 if mutable
-                else "Read or session access / Consulta o acceso de sesión."
+                else "Read or session access."
             )
-            description += "\n\nUse your authorized workspace and role. Provider calls may incur costs. / Usa tu espacio y rol autorizados. Las llamadas a proveedores pueden tener coste."
+            description += "\n\nUse your authorized workspace and role. Provider calls may incur costs."
             request = {
                 "method": method.upper(),
                 "header": [],
@@ -396,18 +397,21 @@ def generate(spec, check=False):
                     q["key"] + "=" + q["value"] for q in enabled_query
                 )
             tests = [
-                'pm.test("Successful response / Respuesta correcta", () => pm.expect(pm.response.code).to.be.below(400));'
+                'pm.test("Successful response", () => pm.expect(pm.response.code).to.be.below(400));'
             ]
             if path in AUTH_POSTS | {"/v1/auth/facebook", "/v1/auth/guest"}:
                 tests += [
-                    'pm.test("Login succeeds / Acceso correcto", () => pm.expect(pm.response.code).to.eql(200));',
+                    'pm.test("Login succeeds", () => pm.expect(pm.response.code).to.eql(200));',
                     "if (pm.response.code === 200) {",
                     "  const b = pm.response.json();",
                     '  if (typeof b.access_token === "string" && b.access_token && typeof b.refresh_token === "string" && b.refresh_token) {',
                     '    pm.collectionVariables.set("access_token", b.access_token);',
                     '    pm.collectionVariables.set("refresh_token", b.refresh_token);',
+                    '    const identity = JSON.stringify([String(pm.variables.get("base_url")).replace(/\\/$/, ""), pm.variables.get("email")]);',
+                    '    pm.collectionVariables.set("session_identity", identity);',
                     '    if (pm.environment.has("access_token")) pm.environment.set("access_token", b.access_token);',
                     '    if (pm.environment.has("refresh_token")) pm.environment.set("refresh_token", b.refresh_token);',
+                    '    if (pm.environment.has("session_identity")) pm.environment.set("session_identity", identity);',
                     "  }",
                     "}",
                 ]
@@ -422,11 +426,26 @@ def generate(spec, check=False):
                         "script": {
                             "type": "text/javascript",
                             "exec": [
-                                'if (pm.variables.get("enable_write_requests") !== "true") { console.warn("Skipped write. / Escritura omitida: activa la variable enable_write_requests de este destino."); pm.execution.skipRequest(); }'
+                                'if (pm.variables.get("enable_write_requests") !== "true") { console.warn("Skipped write: set this target\'s enable_write_requests variable to true."); pm.execution.skipRequest(); }'
                             ],
                         },
                     },
                 )
+            if mode == "bearer" or path == "/v1/auth/refresh":
+                if mutable:
+                    events[0]["script"]["exec"] += [
+                        'if (pm.variables.get("enable_write_requests") === "true") {',
+                        *auto_auth,
+                        "}",
+                    ]
+                else:
+                    events.insert(
+                        0,
+                        {
+                            "listen": "prerequest",
+                            "script": {"type": "text/javascript", "exec": auto_auth},
+                        },
+                    )
             saved = []
             for code, response in op.get("responses", {}).items():
                 if not code.startswith("2"):
@@ -439,7 +458,7 @@ def generate(spec, check=False):
                 if schema:
                     saved.append(
                         {
-                            "name": "Synthetic example / Ejemplo sintético",
+                            "name": "Synthetic example",
                             "originalRequest": copy.deepcopy(request),
                             "status": "Example",
                             "code": int(code),
@@ -512,23 +531,15 @@ def generate(spec, check=False):
                 next(i for f in folders.values() for i in f if i["name"] == name)
             )
         )
-    quick[-1]["event"].insert(
+    quick[-1]["event"][0]["script"]["exec"].insert(
         0,
-        {
-            "listen": "prerequest",
-            "script": {
-                "type": "text/javascript",
-                "exec": [
-                    'if (!pm.variables.get("workspace_id")) { throw new Error("Choose workspace_id from your authorized workspaces. / Selecciona workspace_id de este destino explícitamente."); }'
-                ],
-            },
-        },
+        'if (!pm.variables.get("workspace_id")) { throw new Error("Choose workspace_id from your authorized workspaces for this target."); }',
     )
     collection = {
         "info": {
-            "name": "RealityOS API · EN / ES",
+            "name": "RealityOS API",
             "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-            "description": "Two independent folders: Consultas servidor (https://realityos.luxisoft.com) and Consultas localhost (http://localhost:8080). All variables, public demo credentials and demo workspace IDs are included; environments are optional. Run 00 Quick start inside the chosen folder to log in, save tokens and query. The demo role is query-only in an empty test workspace; use your own authorized account for writes and real data. Enable the local demo once with scripts/local/Enable-PostmanDemo.ps1. / Dos carpetas independientes con variables, cuenta pública de prueba y espacio demo preconfigurados. Ejecuta 00 Quick start dentro del destino elegido para autenticar, guardar tokens y consultar. La cuenta demo tiene rol de consulta en un espacio vacío; para escrituras y datos propios usa tu cuenta autorizada. En localhost activa primero la demo con scripts/local/Enable-PostmanDemo.ps1. Los tokens de sesión nunca se incluyen en el archivo publicado.",
+            "description": "Two independent folders: Server requests (https://realityos.luxisoft.com) and Localhost requests (http://localhost:8080). All variables, public demo credentials and demo workspace IDs are included; environments are optional. Click Send on a protected request: sign-in and token renewal run automatically. Run 00 Quick start to check the full access sequence. The demo role is query-only in an empty test workspace; use your own authorized account for writes and real data. Enable the local demo once with scripts/local/Enable-PostmanDemo.ps1. Session tokens are never included in the published file.",
         },
         "item": [],
         "variable": [],
@@ -537,13 +548,13 @@ def generate(spec, check=False):
         target_quick = copy.deepcopy(quick)
         target_folders = [
             {
-                "name": "00 Quick start / Inicio rápido",
-                "description": "Run this subfolder: health, login, current user, workspaces and query. Demo credentials and workspace are already configured; session tokens are saved automatically. / Ejecuta esta subcarpeta: salud, login, usuario, espacios y consulta. Credenciales y espacio demo ya configurados; los tokens se guardan automáticamente.",
+                "name": "00 Quick start",
+                "description": "Run this subfolder: health, login, current user, workspaces and query. Demo credentials and workspace are already configured; session tokens are saved automatically.",
                 "item": target_quick,
             }
         ]
         target_folders += [
-            {"name": f"{n:02} {label}", "item": folders[key]}
+            {"name": f"{n:02} {label.split(' / ')[0]}", "item": folders[key]}
             for n, (key, label) in enumerate(GROUPS, 1)
             if folders[key] and (realm == "local" or key != "local")
         ]
@@ -551,7 +562,7 @@ def generate(spec, check=False):
             {
                 "name": title,
                 "description": f"{url} · Variables: {prefix}_* · "
-                "Independent credentials, session and resource IDs. / Credenciales, sesión e IDs independientes.",
+                "Independent credentials, session and resource IDs.",
                 "item": target_item(target_folders, prefix, all_vars),
             }
         )
@@ -614,9 +625,9 @@ def generate(spec, check=False):
                 else "Generated from the contract. Operation and field names preserve API identifiers. ✓ = required. Examples need your own identifiers and files; they are not captured production responses."
             ),
             (
-                "Los ejemplos de referencia usan variables sin prefijo. La colección descargable incluye las carpetas Consultas servidor y Consultas localhost y añade respectivamente `server_` o `localhost_` a cada variable, con cuenta y espacio demo preconfigurados."
+                "Los ejemplos de referencia usan variables sin prefijo. La colección descargable incluye las carpetas Server requests y Localhost requests y añade respectivamente `server_` o `localhost_` a cada variable, con cuenta y espacio demo preconfigurados."
                 if es
-                else "Reference examples use unprefixed variables. The downloadable collection includes Consultas servidor and Consultas localhost folders and prefixes each variable with `server_` or `localhost_`, with demo credentials and workspace IDs preconfigured."
+                else "Reference examples use unprefixed variables. The downloadable collection includes Server requests and Localhost requests folders and prefixes each variable with `server_` or `localhost_`, with demo credentials and workspace IDs preconfigured."
             ),
             "Bearer = "
             + (

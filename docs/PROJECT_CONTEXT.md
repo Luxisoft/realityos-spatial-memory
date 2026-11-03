@@ -674,8 +674,8 @@ Validación Android: 220 pruebas aprobadas y capturas nativas ES/EN revisadas, i
 APK Debug único reconstruido; builds Debug/Release, lint/formato y estructura aprobados.
 
 
-Postman listo para demo (2026-11-03): dos carpetas, Consultas servidor y
-Consultas localhost, con 96 variables separadas por prefijo y credenciales
+Postman listo para demo (2026-11-03): dos carpetas, Server requests y
+Localhost requests, con 96 variables separadas por prefijo y credenciales
 públicas de prueba incluidas por petición del propietario. Cuenta servidor
 provisionada con espacio vacío propio y rol de consulta; localhost requiere
 ejecutar una vez `scripts/local/Enable-PostmanDemo.ps1`. No reutiliza cuentas
@@ -683,3 +683,10 @@ ni credenciales privadas. Newman: siete peticiones reales exitosas, login y
 refresh verificados; 451 pruebas Python/gateway aprobadas. Ver API.es.md y
 IMPLEMENTATION_STATUS.es.md. No hay cambios de backend/Android ni contrato;
 la ejecución del instalador demo en Windows físico sigue pendiente.
+
+
+Postman en inglés y Send automático (2026-11-03): colección y entornos con
+98 variables, acceso y renovación automáticos por destino; 11 pruebas de
+documentación/permisos y 324 scripts aprobados. Flujo real de consulta sin token
+previo verificado con Newman. Preparada colección privada sobre los tres espacios
+existentes; pendiente decidir el acceso público antes de publicar sus credenciales.

@@ -271,7 +271,7 @@ Formatting, lint, architecture checks and Debug/Release builds passed. The insta
 
 ## Postman server/local demo — 2026-11-03
 
-The collection now contains **Consultas servidor** and **Consultas localhost**,
+The collection now contains **Server requests** and **Localhost requests**,
 with 96 declared variables and 324 requests across both destinations. Each
 folder uses independent URLs, credentials, tokens, IDs and write controls.
 The collection works without an environment; the two optional environments
@@ -296,3 +296,20 @@ the isolated local Compose project, and creates different demo credentials.
 Provisioning/login/refresh and permissions were tested in the isolated test
 database; actual execution on Windows Docker Desktop remains pending.
 See [API / Postman](API.md) for the import/run instructions.
+
+
+## Postman English and automatic sessions — 2026-11-03
+
+The collection and both optional environments now use English names, descriptions,
+examples and script messages. All 324 requests remain represented, with 98
+variables separated by target. Protected requests automatically sign in on Send,
+validate cached sessions and renew expired tokens; changing the configured API or
+account starts a new session. Failed authentication stops the outgoing request.
+Write guards and workspace permissions remain enforced.
+
+Validation: 11 documentation/demo permission tests, 324 offline script checks,
+166 write guards, generation checks, formatting/lint and architecture checks passed.
+Newman verified query-first automatic login, current user, explicit refresh and
+workspace listing against the real server: five assertions, zero failures.
+The existing-workspace collection is prepared privately; publishing access to
+those records remains pending the owner's choice of public account permissions.

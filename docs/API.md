@@ -19,7 +19,7 @@
    ```
 
 2. Confirm the import and leave the environment selector on **No environment**. The collection already contains the username, password and workspace.
-3. Open **Server requests → 00 Quick start** and click **Run**. Run that subfolder's five requests once, in the included order. If **Start run** appears, use it to start.
+3. Open **Server requests → 00 Quick start** and click **Send** on a request. Protected requests sign in automatically using the included credentials and renew expired tokens. To run all five requests together, click **Run**, then **Start run** if prompted.
 4. Check the responses:
 
 If an older collection shows **Consultas servidor / Consultas localhost**, these are the same folders; **00 Quick start / Inicio rápido** is the same quick start.
@@ -85,7 +85,8 @@ Every variable starts with `server_` or `localhost_`. Each folder exclusively re
 | --- | --- |
 | `base_url` | Preconfigured origin without `/v1`. If you change `LOCAL_HTTP_PORT`, update `localhost_base_url`. |
 | `email`, `username`, `password`, `display_name` | Preconfigured demo account; replace with your own account if needed. |
-| `access_token`, `refresh_token` | Saved per target after successful login/refresh, even without an active environment. |
+| `access_token`, `refresh_token` | Obtained and renewed automatically on Send, even without an active environment. |
+| `session_identity` | Managed automatically to keep sessions tied to their configured API and account. |
 | `user_id`, `workspace_id` | Demo account and workspace IDs; independent per target. |
 | `query`, `language` | Editable example question and language (`en` or `es`). |
 | `new_email`, `new_password` | New address/password for correcting or recovering your own account; distinct from current credentials. |

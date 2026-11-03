@@ -6,7 +6,7 @@
 
 Generated from the contract. Operation and field names preserve API identifiers. ✓ = required. Examples need your own identifiers and files; they are not captured production responses.
 
-Reference examples use unprefixed variables. The downloadable collection includes Consultas servidor and Consultas localhost folders and prefixes each variable with `server_` or `localhost_`, with demo credentials and workspace IDs preconfigured.
+Reference examples use unprefixed variables. The downloadable collection includes Server requests and Localhost requests folders and prefixes each variable with `server_` or `localhost_`, with demo credentials and workspace IDs preconfigured.
 
 Bearer = user session; device = device credentials; integration = integration key; signed = temporary link; none = no transport credentials.
 

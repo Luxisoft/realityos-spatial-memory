@@ -19,7 +19,7 @@
    ```
 
 2. Confirma la importación y deja el selector de entorno en **No environment**. Usuario, contraseña y espacio ya vienen en la colección.
-3. Abre **Server requests → 00 Quick start** y pulsa **Run**. Ejecuta las cinco solicitudes de esa subcarpeta, en el orden incluido, una vez. Si aparece **Start run**, úsalo para comenzar.
+3. Abre **Server requests → 00 Quick start** y pulsa **Send** en una solicitud. Las peticiones protegidas inician sesión con las credenciales incluidas y renuevan los tokens caducados automáticamente. Para ejecutar las cinco juntas, pulsa **Run** y después **Start run** si aparece.
 4. Comprueba las respuestas:
 
 Si tu colección anterior muestra **Consultas servidor / Consultas localhost**, son las mismas carpetas; **00 Quick start / Inicio rápido** es el mismo inicio rápido.
@@ -85,7 +85,8 @@ Todas las variables llevan `server_` o `localhost_`. Cada carpeta referencia exc
 | --- | --- |
 | `base_url` | URL preconfigurada, sin `/v1`. Si cambias `LOCAL_HTTP_PORT`, actualiza `localhost_base_url`. |
 | `email`, `username`, `password`, `display_name` | Cuenta demo preconfigurada; sustituibles por tu cuenta. |
-| `access_token`, `refresh_token` | Se guardan por destino después de login y renovación correctos, incluso sin entorno activo. |
+| `access_token`, `refresh_token` | Se obtienen y renuevan automáticamente al pulsar Send, incluso sin entorno activo. |
+| `session_identity` | Se gestiona automáticamente para asociar cada sesión a su API y cuenta configuradas. |
 | `user_id`, `workspace_id` | IDs de la cuenta y espacio demo; se mantienen separados por destino. |
 | `query`, `language` | Pregunta de ejemplo e idioma (`en` o `es`), editables. |
 | `new_email`, `new_password` | Destino nuevo o contraseña nueva para corregir/recuperar una cuenta propia; no reemplazan las credenciales actuales. |
