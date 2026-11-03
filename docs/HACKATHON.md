@@ -5,6 +5,8 @@
 
 # Submission requirements and review
 
+**[Operational acceptance checklist](IMPLEMENTATION_CHECKLIST.md)** · [Camera-ready visual cards](QA_VISUAL_FIXTURES.md). Record manual tests and technical evidence per release before closing the submission.
+
 [← Project](../README.md) · [Demo walkthrough](DEMO.md) · [Technical status](IMPLEMENTATION_STATUS.md)
 
 **Source:** the complete participant guide supplied by the owner on November 3, 2026, published at [Event Details](https://cerebralvalley.ai/e/meta-ai-developer-hackathon/details), and the [official rules](https://cerebralvalley.ai/e/meta-ai-developer-hackathon/waiver). The guide does not mandate a README template. This review organizes evaluator evidence and distinguishes participation, submission and documentation requirements.

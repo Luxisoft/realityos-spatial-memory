@@ -306,3 +306,31 @@ espacios y publicaciones: 38 peticiones pasaron de inmediato; Memoria recibió u
 (50,5 segundos). Se ejercitaron correctamente las 39; no se afirma que el proveedor
 IA esté libre de fallos. Evidencia en `.runtime/postman-public-verification.json`
 y `.runtime/postman-memory-retry.json`. Sin cambios de contrato backend/Android.
+
+## Checklist de aceptación y datos QA preparados — 2026-11-03
+
+El [checklist manual](IMPLEMENTATION_CHECKLIST.es.md) contiene 77 casos de
+aceptación y seis de cierre/envío, con los mismos IDs en español e inglés.
+Define pasos, cuentas, resultados y evidencia para teléfono Android físico,
+Display con Mock Device Kit, correo y Facebook reales. Todas las casillas
+permanecen pendientes; aprobar el 100 % exige evidencia de los 77 casos para
+el build y entorno identificados. Gafas físicas y Windows local quedan fuera.
+
+Las [láminas de cámara](QA_VISUAL_FIXTURES.es.md) reutilizan retratos y escenas
+sintéticos existentes; se abren en la computadora sin descargar retratos al
+teléfono. Dos PDF sintéticos en `simulator/acceptance/` permiten probar el
+reemplazo del CV. Las nueve cuentas de escenario conservan sus datos.
+
+Se prepararon cuatro cuentas QA aisladas: administrador, registro, consulta y
+una cuenta externa. Cada una tiene avatar y una publicación privada original
+accesible. Admin y miembro tienen consentimiento y enrolamiento sintético
+explícito; reader y outsider no. Se verificaron por HTTP los roles, medios,
+rechazo sin consentimiento, aislamiento frente a los tres escenarios y una
+búsqueda real que devuelve al miembro QA esperado. Esto acredita preparación,
+no ejecución de cámara o pantallas. Evidencia privada:
+`.runtime/acceptance-readiness.json`; accesos en `.runtime/accesos-prueba.txt`;
+registro de ejecución pendiente en `.runtime/acceptance-run.csv`.
+
+Sin cambios de código backend/Android, contrato ni esquema; no se reconstruyó
+ni desplegó una imagen o APK por esta documentación. Continúan pendientes las
+pruebas manuales de teléfono, correo, Facebook y Display y el envío al portal.

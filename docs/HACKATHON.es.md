@@ -5,6 +5,8 @@
 
 # Entrega y revisión de requisitos
 
+**[Checklist operativo de aceptación](IMPLEMENTATION_CHECKLIST.es.md)** · [Láminas listas para cámara](QA_VISUAL_FIXTURES.es.md). Registra pruebas manuales y evidencia técnica por versión antes de cerrar la entrega.
+
 [← Proyecto](../README.es.md) · [Guion de demo](DEMO.es.md) · [Estado técnico](IMPLEMENTATION_STATUS.es.md)
 
 **Fuente:** guía completa de participantes aportada por el propietario el 3 de noviembre de 2026, publicada en [Event Details](https://cerebralvalley.ai/e/meta-ai-developer-hackathon/details), y [bases oficiales](https://cerebralvalley.ai/e/meta-ai-developer-hackathon/waiver). La guía no prescribe una plantilla de README. Esta revisión organiza las evidencias que necesita el jurado y distingue requisitos de participación, entrega y documentación.

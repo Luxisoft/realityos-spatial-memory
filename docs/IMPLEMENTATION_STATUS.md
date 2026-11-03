@@ -337,3 +337,31 @@ requests passed immediately; the Memory AI query returned a transient 503, then
 requests were exercised successfully, without claiming external AI is error-free.
 Evidence is in `.runtime/postman-public-verification.json` and
 `.runtime/postman-memory-retry.json`. No backend/Android contract changed.
+
+## Acceptance checklist and prepared QA data — 2026-11-03
+
+The [manual checklist](IMPLEMENTATION_CHECKLIST.md) defines 77 acceptance cases
+and six closure/submission steps, with matching English and Spanish IDs.
+Steps, accounts, expected results and evidence cover a physical Android phone,
+Display with Mock Device Kit, real email and Facebook. All boxes remain pending;
+100% approval requires evidence for all 77 cases on the identified build and
+environment. Physical glasses and Windows local are outside this run.
+
+[Camera cards](QA_VISUAL_FIXTURES.md) reuse existing synthetic portraits and
+scenes, opened on a computer without downloading portraits to the phone. Two
+synthetic PDFs in `simulator/acceptance/` support CV replacement testing. The
+nine scenario accounts retain their existing data.
+
+Four isolated QA accounts are ready: administrator, register, query and an
+outsider. Each has an avatar and an accessible original private publication.
+Admin and member have explicit synthetic consent/enrollment; reader and
+outsider do not. HTTP verification covered roles, media, consent rejection,
+isolation from all three scenarios and a real-engine probe returning the
+expected QA member. This verifies preparation, not camera or screen testing.
+Private evidence: `.runtime/acceptance-readiness.json`; access cards:
+`.runtime/accesos-prueba.txt`; pending execution log:
+`.runtime/acceptance-run.csv`.
+
+No backend/Android source, contract or schema changed; no image or APK was
+rebuilt or deployed for these documentation changes. Manual phone, email,
+Facebook and Display tests and the portal submission remain pending.

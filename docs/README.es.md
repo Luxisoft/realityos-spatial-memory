@@ -24,7 +24,7 @@
 | Diseño e interacción | [→ UI_DESIGN](UI_DESIGN.es.md) |
 | Propósito y capacidades | [→ REALITYOS_MISSION](REALITYOS_MISSION.es.md) |
 | Plan y evolución | [→ IMPLEMENTATION_PLAN](IMPLEMENTATION_PLAN.es.md) |
-| Comprobaciones de aceptación | [→ IMPLEMENTATION_CHECKLIST](IMPLEMENTATION_CHECKLIST.es.md) |
+| Checklist manual para entrega + evidencia | [→ IMPLEMENTATION_CHECKLIST](IMPLEMENTATION_CHECKLIST.es.md) |
 | Estado y evidencia de implementación | [→ IMPLEMENTATION_STATUS](IMPLEMENTATION_STATUS.es.md) |
 | Prueba con fotos propias | [→ MANUAL_PHOTO_TEST](MANUAL_PHOTO_TEST.es.md) |
 | Entrega de hackathon | [→ HACKATHON](HACKATHON.es.md) |

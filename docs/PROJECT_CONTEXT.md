@@ -84,6 +84,7 @@ Speech: API -> ElevenLabs; STT -> Meta Muse Voice Transcribe
 | Android/DAT/Display | `docs/WEARABLES.md`, `android/README.md` |
 | Misión, plan, checklist, demo, UI | `docs/REALITYOS_MISSION.md`, `IMPLEMENTATION_PLAN.md`, `IMPLEMENTATION_CHECKLIST.md`, `DEMO.md`, `UI_DESIGN.md` |
 | Probar con fotos propias | `docs/MANUAL_PHOTO_TEST.md` (opt-in, no registra ni llama a Meta) |
+| Ejecutar aceptación para entrega | `docs/IMPLEMENTATION_CHECKLIST.es.md` + `docs/QA_VISUAL_FIXTURES.es.md` (77 casos, seis pasos de cierre, datos preparados) |
 | Convenciones de agente | `AGENTS.md` (raíz) |
 
 ## Estado actual (2026-10-31)
@@ -700,3 +701,12 @@ automático, expedientes/perfiles/publicaciones seleccionados. Fixture autorizad
 datos o Android. Las 39 peticiones se verificaron; una consulta IA tuvo 503
 temporal y respondió 200 con cuatro coincidencias al reintentar. Doce pruebas
 Python y comprobaciones de scripts, esquema, regeneración y lint aprobadas.
+
+Aceptación manual preparada (2026-11-03): checklist ES/EN con 77 casos y seis
+pasos de cierre, láminas para cámara desde computadora y dos CV sintéticos.
+Cuatro cuentas QA aisladas tienen avatar/publicación; admin y miembro tienen
+enrolamiento sintético explícito y reader sigue sin consentimiento. Roles,
+medios, aislamiento y candidato de usuario comprobados por HTTP; evidencia en
+`.runtime/acceptance-readiness.json`. Los 83 pasos manuales siguen pendientes
+en `.runtime/acceptance-run.csv`. No se cambió código, contrato ni esquema;
+no hubo nuevo build/despliegue. Ver `IMPLEMENTATION_STATUS.es.md`.

@@ -7,7 +7,7 @@
 
 # RealityOS
 
-[Entrar a probar](#evaluate) · [API / Postman](docs/API.es.md) · [Todas las guías](docs/README.es.md)
+[Entrar a probar](#evaluate) · [Checklist de pruebas](docs/IMPLEMENTATION_CHECKLIST.es.md) · [API / Postman](docs/API.es.md) · [Todas las guías](docs/README.es.md)
 
 
 **Una plataforma de reconocimiento facial, contexto autorizado y memoria visual para Android y gafas Meta.**

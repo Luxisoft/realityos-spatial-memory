@@ -7,7 +7,7 @@
 
 # RealityOS
 
-[Start testing](#evaluate) · [API / Postman](docs/API.md) · [All guides](docs/README.md)
+[Start testing](#evaluate) · [Test checklist](docs/IMPLEMENTATION_CHECKLIST.md) · [API / Postman](docs/API.md) · [All guides](docs/README.md)
 
 
 **A platform for facial recognition, authorized context and visual memory on Android and Meta glasses.**
