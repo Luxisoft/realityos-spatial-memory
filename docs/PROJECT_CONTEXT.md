@@ -724,4 +724,6 @@ física de Windows. Sin cambios de backend, datos, permisos ni Android.
 
 Conexiones R2/S3 (2026-11-03): nuevo módulo `backend/app/storage` y pantalla Android Mis conexiones. Importa copias a BYTEA con credenciales privadas por cuenta, origen y sincronización. Migración `20261103_0035`, servicio scheduler y guía `docs/STORAGE_CONNECTIONS.es.md`. Ver IMPLEMENTATION_STATUS para validación y pendientes externos; inventario demo offline no equivale a carga R2.
 
-Conexiones: 21 regresiones específicas y 222 pruebas Android aprobadas; Debug/Release compilados. Inventario ampliado a 426 recursos sintéticos y preparador de conexiones para nueve cuentas de escenario + cuatro QA. Checklist vigente: 89 casos y seis de cierre. R2 real, pruebas físicas y despliegue local pendientes de sus requisitos; ver estado antes de afirmar aceptación.
+Conexiones: 21 regresiones específicas y 222 pruebas Android aprobadas; Debug/Release compilados. Inventario ampliado a 426 recursos sintéticos y preparador de conexiones para nueve cuentas de escenario + cuatro QA. Checklist vigente: 89 casos y seis de cierre. R2 real y pruebas físicas pendientes de sus requisitos; ver estado antes de afirmar aceptación.
+
+Despliegue del conector verificado por CI (`81a69d2`, run `41666700365`): API/worker/scheduler activos, Alembic `20261103_0035 (head)`, HTTPS readiness 200 y OpenAPI idéntico al contrato. Tres cuentas del jurado consultan conexiones con 200; listas vacías hasta disponer de las credenciales R2. Rollback privado: `.runtime/storage-connections-20261103-rollback.json`.
