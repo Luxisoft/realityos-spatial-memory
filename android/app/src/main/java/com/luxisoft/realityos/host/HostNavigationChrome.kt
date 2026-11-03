@@ -78,7 +78,6 @@ import com.adamglin.phosphoricons.Regular
 import com.adamglin.phosphoricons.fill.Eye
 import com.adamglin.phosphoricons.fill.Eyeglasses
 import com.adamglin.phosphoricons.fill.ImagesSquare
-import com.adamglin.phosphoricons.fill.SlidersHorizontal
 import com.adamglin.phosphoricons.fill.UserCircle
 import com.adamglin.phosphoricons.regular.Eye
 import com.adamglin.phosphoricons.regular.Eyeglasses
@@ -318,38 +317,6 @@ internal fun ProfileAvatarFallback(selected: Boolean) {
         modifier = Modifier.size(30.dp),
         tint = if (selected) RealityIconSelected else RealityIconDefault
     )
-}
-
-@Composable
-internal fun MetaDisplayBottomBar(
-    selected: MetaSection,
-    onSelect: (MetaSection) -> Unit,
-    onControls: () -> Unit
-) {
-    CompactBottomBar {
-        BottomBarItem(
-            selected = selected == MetaSection.PREVIEW,
-            onClick = { onSelect(MetaSection.PREVIEW) },
-            selectedIcon = PhosphorIcons.Fill.Eye,
-            unselectedIcon = PhosphorIcons.Regular.Eye,
-            contentDescription = localizedText(R.string.ui_preview)
-        )
-        BottomBarItem(
-            selected = selected == MetaSection.GLASSES,
-            onClick = { onSelect(MetaSection.GLASSES) },
-            selectedIcon = PhosphorIcons.Fill.Eyeglasses,
-            unselectedIcon = PhosphorIcons.Regular.Eyeglasses,
-            contentDescription = localizedText(R.string.ui_glasses)
-        )
-        BottomBarItem(
-            selected = false,
-            onClick = onControls,
-            selectedIcon = PhosphorIcons.Fill.SlidersHorizontal,
-            unselectedIcon = PhosphorIcons.Regular.SlidersHorizontal,
-            contentDescription = localizedText(R.string.ui_controls),
-            modifier = Modifier.testTag("host-preview-controls-button")
-        )
-    }
 }
 
 @Composable

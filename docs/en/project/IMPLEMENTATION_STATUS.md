@@ -24,6 +24,8 @@ Updated **November 3, 2026**. This page consolidates the current state; earlier 
 - Installable APK: `android/app/build/outputs/apk/debug/app-debug.apk`. Identify each run by SHA-256; the version label alone does not distinguish builds.
 - Production uses direct Meta access with gateway fallback enabled. ElevenLabs and R2 have independent connections; credentials stay private.
 - The workflow preserves `.runtime/ci-runtime-rollback.json` for the previous image. Code rollback does not automatically reverse migrations or data; follow the [operations guide](../deployment/DEPLOYMENT.md).
+- November 3 cleanup: removed uncalled indexers, unused Android screens and controls, 93 obsolete strings per language, superseded scripts and historical baseline replay in CI. Current regression tests remain. Local validation: **487 backend/gateway tests and 223 Android tests**, with no failures; formatting, lint, documentation and Debug/Release builds passed. Also removed 2.42 GB of duplicate caches and retired web artifacts from the server.
+- GitHub still contains the retired `realityos-tts` package; current execution and deployment do not use it. Deletion returned `403`: the available token needs `read:packages` and `delete:packages`. No cleanup automation was added.
 
 ## Available evaluation data
 

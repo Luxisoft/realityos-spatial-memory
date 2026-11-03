@@ -1,36 +1,16 @@
 <resources>
     <string name="voice_device_fallback">Se usará la voz de este dispositivo para esta respuesta.</string>
-    <string name="facebook_access_title">Tu memoria, conectada.</string>
-    <string name="facebook_access_body">Encuentra lo que guardaste, mantén tu casa privada y comparte con tu equipo.</string>
     <string name="facebook_access_continue">Continuar con Facebook</string>
-    <string name="guest_access_continue">Entrar como invitado</string>
     <string name="facebook_access_connecting">Conectando…</string>
-    <string name="facebook_access_welcome">Conocer RealityOS</string>
-    <string name="facebook_access_note">Una identidad de Facebook. Tú decides qué compartir.</string>
     <string name="facebook_access_unavailable">El acceso con Facebook no está disponible en esta instalación.</string>
     <string name="facebook_access_failed">No pudimos iniciar sesión. Regresa de Facebook e inténtalo de nuevo.</string>
     <string name="facebook_access_hash_error">Facebook no reconoce la firma de esta app. Es necesario registrar su hash de clave.</string>
-    <string name="app_name">RealityOS</string>
-    <string name="brand_spatial_memory">MEMORIA ESPACIAL</string>
     <string name="content_open_menu">Abrir menú de navegación</string>
-    <string name="content_close_menu">Cerrar menú de navegación</string>
-    <string name="content_open_preview_controls">Abrir controles de Display</string>
     <string name="content_close_preview_controls">Cerrar controles de Display</string>
     <string name="content_luxisoft_mark">Símbolo LUXISOFT</string>
-    <string name="status_connected">Conectado</string>
     <string name="status_ready">Listo</string>
-    <string name="status_live">EN VIVO</string>
-    <string name="status_setup">CONFIGURACIÓN</string>
-    <string name="status_display_active">Display activo</string>
-    <string name="status_display_idle">Display inactivo</string>
 
     <string name="drawer_tagline">Memoria espacial compartida</string>
-    <string name="drawer_connection_summary">Identidad segura del dispositivo</string>
-    <string name="drawer_footer">La evidencia permanece en RealityOS. La captura siempre es explícita.</string>
-    <string name="nav_preview">Vista Display</string>
-    <string name="nav_connection">Conexión</string>
-    <string name="nav_glasses">Gafas Meta</string>
-    <string name="nav_developer_lab">Laboratorio de desarrollo</string>
     <string name="nav_language">Idioma</string>
     <string name="nav_about">Acerca de RealityOS</string>
 
@@ -40,15 +20,12 @@
     <string name="preview_waiting_body">Registra Meta y conecta gafas compatibles desde el menú Gafas Meta. Esta pantalla no inicia captura de foto, video ni audio.</string>
     <string name="preview_open_glasses">Abrir Gafas Meta</string>
     <string name="preview_simulator_title">Vista previa simulada Meta Display</string>
-    <string name="preview_simulator_body">El renderizador oficial de Meta permanece como superficie principal. Los controles de simulación y conexión están en el drawer de controles.</string>
     <string name="preview_controls_title">Controles de Display</string>
     <string name="preview_controls_body">La conexión, simulación y diagnóstico quedan fuera de la vista previa de Display.</string>
     <string name="preview_select_target">Destino de vista previa</string>
     <string name="preview_in_app">En la app</string>
     <string name="preview_chrome">Chrome</string>
-    <string name="preview_start_virtual">Iniciar gafas virtuales</string>
     <string name="preview_restart_virtual">Reiniciar vista virtual</string>
-    <string name="preview_stop_virtual">Detener vista previa</string>
     <string name="preview_waiting_renderer">Esperando Meta Display…</string>
     <string name="preview_desktop_only">La simulación de Chrome solo está disponible desde los controles de Display en un escritorio conectado.</string>
     <string name="preview_chrome_title">Simulador Display para Chrome</string>
@@ -70,58 +47,14 @@
     <string name="glasses_disconnect">Desconectar Display</string>
     <string name="glasses_capture_note">RealityOS solicita cámara o micrófono solo desde una acción explícita en las gafas.</string>
 
-    <string name="language_title">Idioma</string>
-    <string name="language_body">Elige el idioma del host de teléfono y de las indicaciones para Display. Inglés es el idioma de demostración predeterminado.</string>
-    <string name="language_english">English</string>
-    <string name="language_spanish">Español</string>
-    <string name="language_selected">Seleccionado</string>
 
-    <string name="about_title">Acerca de RealityOS</string>
-    <string name="about_eyebrow">UNA MEMORIA ESPACIAL INTELIGENTE</string>
-    <string name="about_problem_title">De una búsqueda cotidiana a un problema operativo</string>
-    <string name="about_problem_body">Todos hemos perdido tiempo buscando llaves, un control remoto o una herramienta. En talleres, bodegas y operaciones el mismo problema retrasa a los equipos cuando una observación se va con quien la hizo.</string>
-    <string name="about_solution_title">Una memoria visual compartida</string>
-    <string name="about_solution_body">RealityOS convierte fotos voluntarias y recorridos en video en evidencia persistente: objetos, su última observación verificada, contexto cercano e historial. Otro trabajador puede recuperar lo que alguien vio sin volver a grabar el espacio.</string>
-    <string name="about_difference_title">La capa diferencial</string>
-    <string name="about_difference_body">Meta AI puede ayudar con contexto personal. RealityOS agrega una memoria operativa compartida, respaldada por evidencia y propiedad del espacio de trabajo: historial entre turnos, medios reales de soporte y un registro claro de “última vez visto”, no una afirmación de que el objeto siga allí.</string>
-    <string name="about_meta_title">Impulsado por tecnología Meta</string>
-    <string name="about_meta_body">Muse Spark interpreta evidencia y preguntas. SAM 3.1 localiza un objeto cuando se requiere resaltarlo. Meta Wearables Device Access Toolkit conecta capacidades compatibles de cámara, micrófono, audio y Display. La disponibilidad depende de hardware compatible y acceso oficial.</string>
-    <string name="about_privacy_title">Evidencia, no vigilancia</string>
-    <string name="about_privacy_body">Registrar es explícito. Consultar no inicia una captura. RealityOS conserva la evidencia y etiqueta una respuesta como “última vez visto” para que las personas evalúen su vigencia.</string>
-    <string name="about_replay">Ver introducción nuevamente</string>
-    <string name="about_team_title">Creado para Meta AI Developer Hackathon 2026</string>
     <string name="about_developed_by">Desarrollado por LUXISOFT</string>
     <string name="about_creator">José Wilson Marin Giraldo · Luximus</string>
-    <string name="about_location">Cali, Valle del Cauca, Colombia</string>
-    <string name="about_linkedin">LinkedIn</string>
-    <string name="about_email">Correo</string>
-    <string name="about_github">Repositorio GitHub</string>
 
     <string name="intro_skip">Saltar</string>
     <string name="intro_close">Cerrar</string>
-    <string name="intro_continue">Continuar</string>
-    <string name="intro_enter">Abrir RealityOS</string>
-    <string name="intro_page_home_kicker">UN PROBLEMA HUMANO</string>
-    <string name="intro_page_home_title">Dale memoria al mundo que te rodea.</string>
-    <string name="intro_page_home_body">Desde encontrar las llaves en casa hasta recuperar una herramienta en el trabajo, las personas pierden tiempo buscando cosas que ya habían visto.</string>
-    <string name="intro_page_work_kicker">EL COSTO DE OLVIDAR</string>
-    <string name="intro_page_work_title">Una búsqueda personal se convierte en un costo operativo.</string>
-    <string name="intro_page_work_body">En talleres, bodegas, fábricas y almacenes, las observaciones útiles desaparecen entre personas y turnos. El inventario dice qué existe; rara vez muestra dónde fue visto por última vez.</string>
-    <string name="intro_page_memory_kicker">LA MEMORIA REALITYOS</string>
-    <string name="intro_page_memory_title">Captura voluntariamente. Conserva la evidencia.</string>
-    <string name="intro_page_memory_body">RealityOS transforma fotos reales y momentos seleccionados de video en una memoria compartida de objetos, ubicaciones, contexto cercano e historial de observaciones.</string>
-    <string name="intro_page_shared_kicker">LA DIFERENCIA</string>
-    <string name="intro_page_shared_title">El contexto personal se vuelve conocimiento de equipo.</string>
-    <string name="intro_page_shared_body">Meta AI puede ayudar a una persona a recordar contexto. RealityOS permite a un equipo recuperar lo que otros observaron, respaldado por la foto original y un registro de “última vez visto”.</string>
-    <string name="intro_page_meta_kicker">IMPULSADO POR META AI</string>
-    <string name="intro_page_meta_title">Comprende, localiza y presenta evidencia real.</string>
-    <string name="intro_page_meta_body">Muse Spark comprende evidencia visual y preguntas en lenguaje natural. SAM 3.1 resalta un objeto solicitado cuando es necesario. La tecnología Meta Wearables conecta gafas compatibles y experiencias Display.</string>
-    <string name="intro_page_future_kicker">LUXISOFT · HACKATHON 2026</string>
-    <string name="intro_page_future_title">No solo veas el mundo. Recuérdalo.</string>
-    <string name="intro_page_future_body">RealityOS construye una memoria espacial persistente para hogares hoy y equipos operativos mañana: una observación real a la vez.</string>
     <string name="intro_contact_linkedin">Perfil de LinkedIn</string>
     <string name="intro_contact_github">Proyecto en GitHub</string>
-    <string name="intro_trace_label">OBSERVA · RECUERDA · COMPARTE</string>
 
     <string name="status_initial">Preparando el host de RealityOS.</string>
     <string name="status_live_not_confirmed">El servidor no confirmó procesamiento Meta en vivo.</string>
@@ -159,7 +92,6 @@
     <string name="status_capture_mode_first">Abre primero el modo de captura.</string>
     <string name="status_unreadable_photo">Las gafas devolvieron una foto ilegible.</string>
     <string name="status_photo_stored">Foto almacenada. El análisis visual básico está en cola.</string>
-    <string name="status_photo_upload_failed">Falló la carga de la foto.</string>
     <string name="status_capture_upload_failed">Falló la carga de la evidencia. Reintenta con la misma captura.</string>
     <string name="status_photo_capture_failed">Falló la captura de foto.</string>
     <string name="status_recording_video">Grabando video con audio.</string>
@@ -180,9 +112,6 @@
     <string name="status_processing_status_failed">No fue posible verificar el estado del procesamiento.</string>
     <string name="status_processing_status_unavailable">La evidencia se almacenó, pero su estado de procesamiento no está disponible. Reintenta consultarlo en un momento.</string>
 
-    <string name="display_spatial_memory">Memoria espacial</string>
-    <string name="display_register">Registrar</string>
-    <string name="display_find_object">Buscar objeto</string>
     <string name="display_choose_location">Elegir ubicación</string>
     <string name="display_capture_after_location">La captura inicia solo después de elegir una ubicación.</string>
     <string name="display_back">Atrás</string>
@@ -190,7 +119,6 @@
     <string name="display_selected_location">Ubicación seleccionada</string>
     <string name="display_take_photo">Tomar foto</string>
     <string name="display_stop_video">Detener video</string>
-    <string name="display_video_recording">Grabando video (hasta 2 minutos)</string>
     <string name="display_record_video">Grabar video</string>
     <string name="display_finish_capture">Finalizar captura</string>
     <string name="display_ask">Preguntar a RealityOS</string>
@@ -205,9 +133,6 @@
     <string name="display_home">Inicio</string>
     <string name="display_retry">Reintentar</string>
 
-    <string name="debug_lab_title">Laboratorio de desarrollo</string>
-    <string name="debug_lab_body">Controles oficiales de Mock Device Kit para validar la misma sesión DAT que usan gafas compatibles. Es una simulación, no validación en hardware.</string>
-    <string name="debug_start_prompt">Inicia las gafas virtuales desde Vista Display para habilitar los controles de ciclo de vida, medios y voz.</string>
     <string name="debug_mock">Simulación</string>
     <string name="debug_power">Energía</string>
     <string name="debug_open">Abiertas</string>
@@ -229,18 +154,13 @@
     <string name="debug_media_hint">Usa JPEG o PNG para fotos; AVC/H.264 o HEVC/H.265 para streaming de video.</string>
     <string name="debug_choose_photo">Elegir foto</string>
     <string name="debug_choose_video">Elegir video</string>
-    <string name="debug_rear_camera">Cámara trasera del teléfono</string>
-    <string name="debug_front_camera">Cámara frontal del teléfono</string>
     <string name="debug_photo">Foto</string>
     <string name="debug_video">Video</string>
-    <string name="debug_phone_feed">Fuente del teléfono</string>
     <string name="debug_speech">Voz simulada</string>
     <string name="debug_spoken_query">Consulta hablada simulada</string>
     <string name="debug_send_partial">Enviar parcial</string>
     <string name="debug_send_final">Enviar consulta final</string>
     <string name="debug_dismiss">Cerrar</string>
-    <string name="debug_camera_permission_required">Se requiere permiso de cámara del teléfono para esta fuente simulada.</string>
-    <string name="debug_start_before_camera">Inicia las gafas virtuales antes de seleccionar la cámara del teléfono.</string>
     <string name="debug_virtual_display_not_ready">La pantalla virtual Meta aún no está lista. Reinicia la vista virtual.</string>
     <string name="facebook_consent_entry">Acepto la búsqueda biométrica de rostros para encontrar personas en mis espacios.</string>
     <string name="face_consent_title">Búsqueda biométrica de rostros</string>
@@ -318,9 +238,7 @@
     <string name="chat_no_evidence">Sin evidencia suficiente.</string>
     <string name="chat_query_failed">No pude completar la búsqueda. Inténtalo de nuevo.</string>
     <string name="chat_route_failed">No pude entender la petición. Inténtalo de nuevo.</string>
-    <string name="chat_choose_target">¿Buscas una persona o un objeto?</string>
     <string name="chat_workspace_missing">Aún no hay un espacio disponible.</string>
-    <string name="chat_image_question">¿Qué quieres buscar en esta imagen? También puedes escribirlo.</string>
     <string name="chat_image_failed">No pude analizar la imagen. Inténtalo de nuevo.</string>
     <string name="chat_voice_missing">No reconocí voz en el audio.</string>
     <string name="chat_voice_failed">No pude transcribir la voz. Inténtalo de nuevo.</string>
@@ -341,11 +259,6 @@
     <string name="meta_search_registry">Por ubicación</string>
     <string name="meta_search_mode">Fuente de búsqueda por voz</string>
     <string name="meta_publication_destination">Publicar en</string>
-    <string name="meta_choose_destination">Elige Perfil o un grupo de Trabajo</string>
-    <string name="meta_choose_destination_phone">Elige un destino en el teléfono</string>
-    <string name="meta_change_destination">Elegir destino</string>
-    <string name="meta_publish_destination">Publicar en destino elegido</string>
-    <string name="meta_register_location">Registrar por ubicación</string>
     <string name="meta_configuration_failed">No se pudieron cargar tus destinos. Reintenta.</string>
     <string name="meta_capture_explanation">Las fotos y los videos van directamente a tu Perfil, sin grupo. Organízalos y añade los detalles en la app.</string>
     <string name="meta_pending_capture">Retomar captura pendiente</string>
@@ -353,7 +266,6 @@
     <string name="meta_photo">Foto</string>
     <string name="meta_profile">Perfil</string>
     <string name="meta_voice_command">Comando de voz</string>
-    <string name="meta_search_photo">Buscar por foto</string>
     <string name="meta_search_object">Buscar objeto</string>
     <string name="meta_search_person">Buscar persona</string>
     <string name="meta_search_photo_object">Buscar objeto por foto</string>
@@ -597,7 +509,6 @@
     <string name="ui_search">Buscar</string>
     <string name="ui_controls">Controles</string>
     <string name="ui_glasses">Gafas</string>
-    <string name="ui_language">Idioma</string>
     <string name="ui_invite">Invitar</string>
     <string name="ui_profile">Perfil</string>
     <string name="ui_work">Trabajo</string>

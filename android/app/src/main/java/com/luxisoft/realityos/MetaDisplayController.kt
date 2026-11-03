@@ -80,20 +80,6 @@ internal class MetaDisplayController(private val vm: RealityViewModel) {
         }
     }
 
-    fun selectDestination(destination: MetaDestination) {
-        if (!authenticated() || !MetaDisplayPolicy.canChangeDestination(
-                meta.captureForPublication || meta.captureForSearch || vm.state.value.wearable.cameraActive,
-                pending != null,
-                vm.state.value.busy
-            ) || !MetaDisplayPolicy.destinationAllowed(destination, meta.destinations)
-        ) {
-            return
-        }
-        preferences.edit().putString("$owner.destination", destination.id).apply()
-        update { it.copy(destination = destination, error = null) }
-        if (vm.display != null) vm.renderHome()
-    }
-
     fun selectScope(scope: MetaSearchScope) {
         if (vm.state.value.busy || vm.state.value.wearable.speechActive ||
             vm.state.value.wearable.cameraActive || meta.captureForSearch || pending != null

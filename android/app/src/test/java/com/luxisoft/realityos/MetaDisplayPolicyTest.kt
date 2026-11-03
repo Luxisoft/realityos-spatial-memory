@@ -7,13 +7,6 @@ class MetaDisplayPolicyTest {
     private val profile = MetaDestination("home", "Profile", "home")
     private val work = MetaDestination("group-a", "Workshop", "work")
 
-    @Test fun destinationMustBeExplicitAndStillAuthorized() {
-        assertFalse(MetaDisplayPolicy.destinationAllowed(null, listOf(profile, work)))
-        assertTrue(MetaDisplayPolicy.destinationAllowed(work, listOf(profile, work)))
-        assertFalse(MetaDisplayPolicy.destinationAllowed(work, listOf(profile)))
-        assertFalse(MetaDisplayPolicy.destinationAllowed(work.copy(audience = "home"), listOf(work)))
-    }
-
     @Test fun captureAndPendingUploadFreezeDestination() {
         assertTrue(MetaDisplayPolicy.canChangeDestination(false, false, false))
         assertFalse(MetaDisplayPolicy.canChangeDestination(true, false, false))

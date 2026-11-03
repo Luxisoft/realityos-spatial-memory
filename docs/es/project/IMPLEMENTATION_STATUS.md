@@ -24,6 +24,8 @@ Actualizado el **3 de noviembre de 2026**. Esta página reúne el estado actual;
 - APK instalable: `android/app/build/outputs/apk/debug/app-debug.apk`. Identificar cada ejecución por SHA-256; la etiqueta de versión sola no distingue builds.
 - Producción usa Meta directo con gateway habilitado como respaldo. ElevenLabs y R2 tienen conexiones independientes. Las claves permanecen privadas.
 - El workflow conserva `.runtime/ci-runtime-rollback.json` para la imagen previa. Revertir código no revierte automáticamente migraciones o datos; seguir la [guía operativa](../deployment/DEPLOYMENT.md).
+- Limpieza del 3 de noviembre: retirados indexadores sin llamadas, pantallas y controles Android sin uso, 93 textos obsoletos por idioma, scripts sustituidos y la repetición de una regresión histórica en CI. Las pruebas actuales se conservan. Validación local: **487 pruebas backend/gateway y 223 Android**, sin fallos; formato, lint, documentación y builds Debug/Release aprobados. También se retiraron 2,42 GB de cachés duplicadas y archivos de la web retirada del servidor.
+- GitHub conserva el paquete retirado `realityos-tts`; no interviene en la ejecución ni en el despliegue actual. El intento de borrarlo recibió `403`: el token disponible necesita `read:packages` y `delete:packages`. No se añadió ninguna automatización de limpieza.
 
 ## Datos disponibles para evaluar
 

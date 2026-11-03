@@ -185,7 +185,6 @@ class RealityViewModel(application: Application) : AndroidViewModel(application)
     internal val metaController = MetaDisplayController(this)
 
     fun refreshMetaConfiguration() = metaController.refresh()
-    fun selectMetaDestination(destination: MetaDestination) = metaController.selectDestination(destination)
     fun selectMetaSearch(scope: MetaSearchScope) = metaController.selectScope(scope)
     fun beginMetaCapture() = metaController.beginCapture()
     fun beginMetaPhotoSearch(kind: MetaPhotoSearchKind = MetaPhotoSearchKind.OBJECT) = metaController.beginPhotoSearch(kind)
@@ -399,15 +398,6 @@ class RealityViewModel(application: Application) : AndroidViewModel(application)
             return
         }
         cancelPendingActionAndRenderHome()
-    }
-
-    fun retryPhonePreview() {
-        if (inputRoute != InputRoute.PHONE || !mutableUiState.value.wearable.cameraActive) return
-        viewModelScope.launch {
-            mutableUiState.update { it.copy(phonePreview = it.phonePreview.copy(phase = PhonePreviewPhase.OPENING, error = null)) }
-            runCatching { phoneCapture?.startPreview() }
-                .onFailure { onPhonePreviewFailure(state.value.phonePreview.generation, it.message ?: copy(R.string.status_camera_not_ready)) }
-        }
     }
 
     fun onWearablesInitializationFailure(message: String) {

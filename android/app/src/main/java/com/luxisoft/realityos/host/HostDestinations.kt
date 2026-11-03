@@ -55,9 +55,6 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.luxisoft.realityos.*
 import com.luxisoft.realityos.R
-import java.time.Instant
-import java.time.ZoneId
-import java.time.format.DateTimeFormatter
 import kotlinx.coroutines.launch
 
 @Composable
@@ -292,7 +289,3 @@ internal fun ImageMark(size: androidx.compose.ui.unit.Dp) {
             .height(size * 0.56f)
     )
 }
-
-internal fun formatExpiry(value: Instant): String = value
-    .atZone(ZoneId.systemDefault())
-    .format(DateTimeFormatter.ofPattern("MMM d, HH:mm"))

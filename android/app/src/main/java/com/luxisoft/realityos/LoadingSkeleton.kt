@@ -63,18 +63,6 @@ internal fun SkeletonGrid(modifier: Modifier = Modifier, rows: Int = 2) {
     }
 }
 
-@Composable
-internal fun SkeletonProfile(modifier: Modifier = Modifier) {
-    Column(modifier.fillMaxWidth().loadingSemantics(), verticalArrangement = Arrangement.spacedBy(22.dp)) {
-        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(14.dp)) {
-            SkeletonBlock(Modifier.size(82.dp).clip(CircleShape))
-            SkeletonLines(Modifier.weight(1f))
-        }
-        SkeletonLines()
-        SkeletonGrid()
-    }
-}
-
 /** Media has its own loading lifecycle, independent of the JSON request. */
 @Composable
 internal fun DatabaseImage(

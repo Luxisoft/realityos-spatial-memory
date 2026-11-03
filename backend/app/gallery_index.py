@@ -16,24 +16,10 @@ from sqlalchemy import func, or_, select
 from sqlalchemy.orm import Session
 
 from app.meta import MetaModelClient, MetaProviderError
-from app.models import MediaAsset, MediaAssetChunk, MediaKind, User, WorkspaceMember
-from app.services import materialized_media_file, media_is_chunked, search_phrase
+from app.models import MediaAsset, MediaKind, User, WorkspaceMember
+from app.services import search_phrase
 
-MAX_VIDEO_FRAMES = 120
-MAX_SEARCH_TEXT_CHARS = 8000
 FACE_TOKENS = ("persona", "personas", "rostro", "rostros", "face", "faces", "person", "people")
-
-
-def _asset_bytes(db: Session, asset: MediaAsset) -> bytes:
-    if not media_is_chunked(asset):
-        return asset.original_bytes
-    return b"".join(
-        db.scalars(
-            select(MediaAssetChunk.content)
-            .where(MediaAssetChunk.asset_id == asset.id)
-            .order_by(MediaAssetChunk.chunk_index)
-        )
-    )
 
 
 def _count_faces(face_engine, image: bytes) -> int:
@@ -45,24 +31,6 @@ def _count_faces(face_engine, image: bytes) -> int:
         return 0
 
 
-def _index_texts(caption: str, labels: list[str], detail_parts: list[str], face_count: int):
-    seen: list[str] = []
-    for label in labels:
-        cleaned = " ".join(label.split())
-        if cleaned and cleaned.casefold() not in {item.casefold() for item in seen}:
-            seen.append(cleaned)
-    parts = [caption.strip(), *seen, *detail_parts]
-    if face_count > 0:
-        parts.extend(FACE_TOKENS)
-    search_text = " ".join(part for part in parts if part)[:MAX_SEARCH_TEXT_CHARS]
-    caption_bits = [caption.strip()] if caption.strip() else []
-    caption_bits.extend(seen[:12])
-    if face_count > 0:
-        caption_bits.append(f"{face_count} rostro(s)")
-    ai_caption = "; ".join(caption_bits)[:1000]
-    return seen, search_text, ai_caption
-
-
 def index_publication(
     db: Session,
     publication_id: uuid.UUID,
@@ -70,7 +38,6 @@ def index_publication(
     face_engine=None,
     *,
     force: bool = False,
-    max_video_frames: int = MAX_VIDEO_FRAMES,
     deduplicate: bool = True,
     checkpoint: bool = False,
     recover_legacy: bool = False,
@@ -148,88 +115,6 @@ def index_publication(
         return publication
     publication.indexed_at = datetime.now(UTC)
     return publication
-
-
-def _collect_detections(
-    client,
-    image: bytes,
-    mime_type: str,
-    caption: str,
-    labels,
-    details,
-    detections,
-    frame_index: int,
-) -> None:
-    analysis = client.analyze_image(
-        image,
-        mime_type,
-        caption.strip() or "Describe every distinct object visible in this image.",
-    )
-    for detection in analysis.detections:
-        labels.append(detection.label)
-        if detection.category:
-            labels.append(detection.category)
-        box = detection.bounding_box or {}
-        try:
-            x, y = float(box.get("x", 0.0)), float(box.get("y", 0.0))
-            width, height = float(box.get("width", 0.0)), float(box.get("height", 0.0))
-        except (TypeError, ValueError):
-            x = y = width = height = 0.0
-        if width > 0 and height > 0:
-            detections.append(
-                {
-                    "label": detection.label,
-                    "box": {"x": x, "y": y, "width": width, "height": height},
-                    "confidence": detection.confidence,
-                    "frame_index": frame_index,
-                }
-            )
-        fact_bits = [
-            fact.value_text or fact.normalized_value or ""
-            for fact in detection.facts
-            if fact.value_text or fact.normalized_value
-        ]
-        if detection.spatial_description:
-            details.append(detection.spatial_description[:300])
-        details.extend(bit[:200] for bit in fact_bits if bit)
-
-
-def _index_video(
-    db, asset, caption, client, face_engine, labels, details, detections, max_video_frames
-) -> int:
-    from app.video import (
-        VideoProcessingError,
-        extract_representative_frames_from_file,
-        probe_video_file,
-    )
-
-    if max_video_frames < 1:
-        raise MetaProviderError("Video indexing needs at least one frame.")
-    try:
-        with materialized_media_file(db, asset) as source:
-            info = probe_video_file(source)
-            frames = extract_representative_frames_from_file(
-                source,
-                info,
-                segment_seconds=10**9,
-                frames_per_segment=max_video_frames,
-            )
-    except VideoProcessingError as exc:
-        raise MetaProviderError(str(exc)) from exc
-    face_count = 0
-    for frame in frames[:max_video_frames]:
-        face_count = max(face_count, _count_faces(face_engine, frame.bytes))
-        _collect_detections(
-            client,
-            frame.bytes,
-            "image/jpeg",
-            caption,
-            labels,
-            details,
-            detections,
-            frame_index=frame.index,
-        )
-    return face_count
 
 
 def _visible_scope(viewer: User, audience: str | None, workspace_id: uuid.UUID | None):

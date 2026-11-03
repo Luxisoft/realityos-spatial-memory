@@ -31,11 +31,7 @@ internal object MetaDisplayPolicy {
     /** Glasses captures go to the account's Profile, regardless of a saved Work choice. */
     fun profileDestination(choices: List<MetaDestination>): MetaDestination? = choices.find { it.id == "home" && it.audience == "home" }
 
-    fun destinationAllowed(target: MetaDestination?, choices: List<MetaDestination>): Boolean = target != null && choices.any { it.id == target.id && it.audience == target.audience }
-
     fun canChangeDestination(capturing: Boolean, pending: Boolean, busy: Boolean): Boolean = !capturing && !pending && !busy
-
-    fun needsConfirmation(status: String?): Boolean = status == null || status == "duplicate"
 
     /** Object photos query gallery evidence; person photos run the 1:N face arm. */
     fun photoSearchPath(kind: MetaPhotoSearchKind): String = when (kind) {

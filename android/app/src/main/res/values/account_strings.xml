@@ -2,14 +2,11 @@
     <string name="account_access">Continue with email</string>
     <string name="account_register">Create account</string>
     <string name="account_login">Sign in</string>
-    <string name="account_recover">Recover password</string>
     <string name="account_name">Full name</string>
     <string name="account_username">Username</string>
     <string name="account_identifier">Username or email</string>
     <string name="account_password_hint">At least 12 characters</string>
-    <string name="account_email_sent">If your account is eligible, you will receive an email to continue. Check your inbox and spam folder.</string>
     <string name="account_failed">Could not complete the request. Check your details and email confirmation, then retry.</string>
-    <string name="account_send">Send email</string>
     <string name="account_resend">Resend confirmation</string>
     <string name="account_back">Back</string>
     <string name="records_title">Workspace records</string>
@@ -35,7 +32,6 @@
     <string name="records_face_basis">Authorization basis</string>
     <string name="records_face_candidate">Face matches are candidates; confirm identity.</string>
     <string name="account_forgot">Forgot your password?</string>
-    <string name="account_signup_link">Don’t have an account? Create account</string>
     <string name="account_back_login">Back to sign in</string>
     <string name="account_show_password">Show</string>
     <string name="account_hide_password">Hide</string>
