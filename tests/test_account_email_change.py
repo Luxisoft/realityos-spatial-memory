@@ -224,3 +224,76 @@ def test_duplicate_data_is_identified_before_creating_or_sending(
     with client.app.state.database.session_factory() as db:
         assert db.scalar(select(func.count()).select_from(User)) == initial_count
     assert len(sent) == 1
+
+
+def test_replacement_accepts_current_email_without_needing_the_username(
+    client, pending
+):
+    payload, sent, user_id = pending
+    response = client.post(
+        "/v1/auth/change-pending-email",
+        json=correction(payload, username=" Initial@Example.Test "),
+    )
+    assert response.status_code == 202
+    with client.app.state.database.session_factory() as db:
+        assert db.get(User, user_id).email == "corrected@example.test"
+        assert db.get(PasswordAccount, user_id).username == payload["username"]
+    assert sent[-1][1] == "corrected@example.test"
+    # The replaced address must no longer identify the account.
+    assert (
+        client.post(
+            "/v1/auth/change-pending-email",
+            json=correction(
+                payload, username=payload["email"], email="third@example.test"
+            ),
+        ).status_code
+        == 401
+    )
+    assert len(sent) == 2
+
+
+def test_duplicate_email_then_correction_does_not_use_rejected_username(
+    client, pending
+):
+    payload, sent, user_id = pending
+    duplicate = payload | {"username": "never.created"}
+    response = client.post("/v1/auth/register", json=duplicate)
+    assert response.json()["detail"]["fields"] == ["email"]
+    assert (
+        client.post(
+            "/v1/auth/change-pending-email", json=correction(duplicate)
+        ).status_code
+        == 401
+    )
+    assert (
+        client.post(
+            "/v1/auth/change-pending-email",
+            json=correction(payload, username=payload["email"]),
+        ).status_code
+        == 202
+    )
+    with client.app.state.database.session_factory() as db:
+        assert db.get(User, user_id).email == "corrected@example.test"
+        assert (
+            db.scalar(
+                select(PasswordAccount).where(
+                    PasswordAccount.username == "never.created"
+                )
+            )
+            is None
+        )
+    assert len(sent) == 2
+
+
+def test_email_identifier_cannot_replace_another_accounts_email_with_wrong_password(
+    client, pending
+):
+    payload, sent, user_id = pending
+    response = client.post(
+        "/v1/auth/change-pending-email",
+        json=correction(payload, username=payload["email"], password="SomeoneElse123!"),
+    )
+    assert response.status_code == 401
+    with client.app.state.database.session_factory() as db:
+        assert db.get(User, user_id).email == payload["email"]
+    assert len(sent) == 1

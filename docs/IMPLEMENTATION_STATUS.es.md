@@ -170,3 +170,38 @@ La entrada de implementación del mismo día registra el nuevo `POST /v1/auth/ch
 El registro informa 419 pruebas backend/gateway (27 de cuentas), 212 pruebas Android, formato/lint y builds Debug/Release. Siete pruebas de gateway pasaron desde un directorio aislado después de problemas de acceso al `.env` de producción. Las capturas incluyen ES/EN, 320/390/480 dp y texto al 200 %. Continúan pendientes la QA física y una recepción real de correo después del cambio; no se enviaron correos de prueba ni se cambió manualmente el correo de un usuario real.
 
 Release documentado: `realityos-backend:email-correction-20261103`, salud, OpenAPI y Alembic `20261103_0033` verificados, sin migración. Rollback: `.runtime/email-correction-20261103-rollback.json`. Estos resultados pertenecen a ese cambio, no a una nueva ejecución durante la revisión documental. [Registro completo y hash APK](IMPLEMENTATION_STATUS.md#email-replacement-and-duplicate-accounts--2026-11-03).
+
+
+## Identidad de cuenta al corregir correo — 2026-11-03
+
+El registro rechazado por duplicado podía conservar un usuario propuesto que no
+existía y provocar un 401 antes del envío. Android separa ahora la cuenta
+existente del correo nuevo; conserva el identificador del registro exitoso o el
+correo de confirmación y permite corregir directamente desde el aviso de
+cuenta duplicada. `username` en `/v1/auth/change-pending-email` acepta usuario o
+correo actual y siempre verifica la contraseña. Se mantienen el mismo ID,
+los controles de duplicados y el reemplazo atómico de correo/enlaces.
+
+Errores diferenciados en ES/EN para credenciales, cuenta no elegible, límite de
+intentos, envío y conexión. Un rechazo de credenciales al corregir el correo no
+borra una sesión autenticada distinta. Recuperar cuenta utiliza el correo
+existente, nunca el nuevo. No se modificaron cuentas manualmente ni se enviaron
+correos reales durante las pruebas.
+
+Pasaron 37 pruebas focalizadas de backend/contrato/documentación/transporte
+(30 de cuentas) y 216 de Android. Capturas nativas del formulario y error, también
+a 320 dp con texto al 200 %. Pendientes: teléfono físico y recepción real.
+
+API/worker: `realityos-backend:email-identity-20261103`; salud, OpenAPI local y
+público, rechazo de credenciales y Alembic `20261103_0033 (head)` verificados.
+Sin migración; gateway y runtime conservados. Rollback:
+`.runtime/email-identity-20261103-rollback.json`.
+
+El despliegue CI anterior instaló Kombu 5.7 con redis-py 5.3.1 y dejó el worker
+reiniciándose. Se restauraron primero los servicios a la imagen funcional.
+`celery[redis]` incorpora las restricciones del transporte al resolver paquetes;
+la imagen final usa Kombu 5.6.2/redis-py 5.3.1, pasa `pip check` y responde a
+inspección del worker. La nueva regresión de transporte falla en la imagen
+incompatible anterior. Ver las fuentes oficiales enlazadas en la versión inglesa.
+
+Formato, lint, estructura y builds Debug/Release aprobados. Se reemplazó el único APK Debug instalable.

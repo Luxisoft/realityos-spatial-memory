@@ -187,3 +187,42 @@ no migration. Debug APK SHA-256:
 `ddc472c9620a8fc64d2a6960abf135e3957b5612928ee1f1cbed632b718c748f`.
 Rollback: `.runtime/email-correction-20261103-rollback.json`.
 Receipt: `.runtime/email-correction-20261103/verified.json`.
+
+
+## Correcting the existing account identity — 2026-11-03
+
+A rejected duplicate registration could leave its proposed username in the
+email correction form, producing HTTP 401 before any mail was sent. Android
+now separates the existing account identifier from the new address. It uses
+the successfully registered username or the address submitted for confirmation;
+the duplicate-account card also opens correction directly with the occupied
+identifier. `/v1/auth/change-pending-email` accepts either the existing username
+or current email in `username`, always verifies the password, and retains the
+same account, duplicate checks and atomic email/link replacement.
+
+The form explains credential rejection, ineligible accounts, throttling, delivery
+failure and network errors in EN/ES. Email-correction credential errors no longer
+clear an unrelated authenticated session. Recovery uses the existing address,
+never the proposed replacement. No production account was manually changed and
+no real confirmation email was sent during validation.
+
+Verified: 37 focused backend/contract/documentation/transport tests, including
+30 account tests, and 216 Android tests. Native snapshots cover the correction
+form and credential error, including 320 dp at 200% text. Physical handset QA
+and real inbox delivery remain pending.
+
+Production: `realityos-backend:email-identity-20261103`, API/worker readiness,
+public/local OpenAPI, invalid email-identifier rejection and Alembic
+`20261103_0033 (head)` verified. No schema migration; gateway and runtime preserved.
+Rollback: `.runtime/email-identity-20261103-rollback.json`.
+
+During validation, the preceding CI release installed Kombu 5.7 with redis-py
+5.3.1, leaving its worker restarting. Both services were restored to the last
+working image before this release. Declaring `celery[redis]` makes dependency
+resolution include Kombu's Redis constraints; the final image resolves Kombu
+5.6.2 with redis-py 5.3.1, passes `pip check` and responds to worker inspection.
+The new offline transport regression fails on the incompatible CI image.
+Upstream dependency declarations: [Celery Redis extra](https://github.com/celery/celery/blob/v5.6.3/requirements/extras/redis.txt),
+[Kombu Redis extra](https://github.com/celery/kombu/blob/v5.7.0/requirements/extras/redis.txt).
+
+Formatting, lint, architecture checks and Debug/Release builds passed. The single installable Debug APK was replaced.

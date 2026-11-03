@@ -162,6 +162,9 @@ internal object SocialSession {
                 val body = connection.errorStream?.bufferedReader()?.use { it.readText() }.orEmpty()
                 accountConflict(path, 409, body)?.let { throw it }
             }
+            if (connection.responseCode !in 200..299) {
+                accountFailure(path, connection.responseCode)?.let { throw it }
+            }
             if (connection.responseCode == 401 && mayRefresh && refreshToken != null && (!path.startsWith("auth/") || authenticatedAccountRoute)) {
                 val refreshed = JSONObject(requestOnce("auth/refresh", "POST", JSONObject().put("refresh_token", refreshToken), false, timeoutMillis))
                 remember(refreshed)

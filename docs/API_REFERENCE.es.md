@@ -133,7 +133,7 @@ Respuestas declaradas: `202`, `422`.
 
 | Campo | Ubicación | Obligatorio | Tipo | Restricciones |
 | --- | --- | --- | --- | --- |
-| `username` | body | ✓ | `string` | `{"pattern": "^[a-zA-Z][a-zA-Z0-9_.-]{2,63}$"}` |
+| `username` | body | ✓ | `string` | `{"maxLength": 320, "minLength": 3}` |
 | `email` | body | ✓ | `string` | `{"maxLength": 320, "minLength": 5}` |
 | `password` | body | ✓ | `string` | `{"maxLength": 512, "minLength": 1}` |
 

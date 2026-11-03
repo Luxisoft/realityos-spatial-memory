@@ -61,7 +61,7 @@
     <string name="account_password_error">Escribe tu contraseña (máximo 512 caracteres).</string>
     <string name="account_resent_notice">Solicitamos otro enlace. Revisa tu correo.</string>
     <string name="account_correct_title">Cambia el correo del registro</string>
-    <string name="account_correct_description">Usa el usuario y la contraseña del registro para reemplazar el correo de tu cuenta sin confirmar. Enviaremos un enlace de confirmación a la nueva dirección.</string>
+    <string name="account_correct_description">Identifica tu cuenta existente con su usuario o correo actual y contraseña. Luego indica el nuevo correo para recibir el enlace de confirmación.</string>
     <string name="account_correct_submit">Cambiar correo y enviar enlace</string>
     <string name="account_new_email">Nuevo correo electrónico</string>
     <string name="account_use_another_email">Usar otra dirección de correo</string>
@@ -72,4 +72,16 @@
     <string name="account_conflict_description">Si es tu cuenta, recupera el acceso o solicita la confirmación pendiente. Para crear otra cuenta, usa datos diferentes.</string>
     <string name="account_recover_existing">Recuperar mi cuenta</string>
     <string name="account_use_other_details">Usar otros datos</string>
+    <string name="account_existing_identifier">Usuario o correo</string>
+    <string name="account_existing_identifier_hint">Usa la cuenta que ya registraste, no un usuario nuevo.</string>
+    <string name="account_existing_identifier_error">Escribe el usuario o correo de tu cuenta existente.</string>
+    <string name="account_correction_credentials_error">La cuenta existente y la contraseña no coinciden. Usa los datos con los que te registraste; el correo nuevo va en el campo de abajo. Tu correo no ha cambiado.</string>
+    <string name="account_credentials_error">No pudimos iniciar sesión. Revisa tu usuario o correo, contraseña y confirmación de correo.</string>
+    <string name="account_confirmation_required">Confirma tu correo antes de ingresar. Abajo puedes solicitar otro enlace de confirmación.</string>
+    <string name="account_correction_unavailable">Esta cuenta no puede cambiar el correo desde el registro. Inicia sesión o recupera tu cuenta para continuar.</string>
+    <string name="account_too_many_attempts">Demasiados intentos. Espera 15 minutos antes de volver a intentar.</string>
+    <string name="account_delivery_failed">No pudimos enviar el correo. Intenta de nuevo en un momento. Si estabas cambiando tu correo, se conserva la dirección anterior.</string>
+    <string name="account_invalid_details">Revisa los campos y la longitud de los datos e intenta de nuevo.</string>
+    <string name="account_service_unavailable">El servicio no pudo completar la solicitud. Intenta de nuevo en un momento.</string>
+    <string name="account_network_error">No pudimos conectar. Revisa tu conexión a internet e intenta de nuevo.</string>
 </resources>

@@ -48,4 +48,37 @@ class AccountTransportTest {
         assertNull(accountConflict("auth/change-pending-email", 409, """{"detail":"Only an unconfirmed registration can change its email here."}"""))
         assertEquals(setOf("email", "username"), accountConflict("auth/register", 409, """{"detail":"This email or username cannot be registered."}""")!!.fields)
     }
+
+    @Test fun correctionErrorsKeepTheirCauseAndDoNotClearAnExistingSession() {
+        val original = SocialSession.openJsonConnection
+        val server = MockWebServer()
+        server.start()
+        try {
+            SocialSession.clear()
+            SocialSession.token = "synthetic-session"
+            SocialSession.openJsonConnection = { path -> server.url("/$path").toUrl().openConnection() as HttpURLConnection }
+            val expected = mapOf(
+                401 to R.string.account_correction_credentials_error,
+                409 to R.string.account_correction_unavailable,
+                429 to R.string.account_too_many_attempts,
+                503 to R.string.account_delivery_failed
+            )
+            expected.forEach { (status, message) ->
+                server.enqueue(MockResponse().setResponseCode(status).setBody("""{"detail":"private server explanation"}"""))
+                val failure = assertThrows(AccountFailure::class.java) {
+                    SocialSession.request("auth/change-pending-email", JSONObject().put("username", "initial@example.test"))
+                }
+                assertEquals(message, failure.messageResource)
+                assertEquals("synthetic-session", SocialSession.token)
+                assertEquals("/auth/change-pending-email", server.takeRequest().path)
+            }
+            assertNull(accountFailure("auth/facebook", 401))
+            assertNull(accountFailure("auth/account-session", 401))
+            assertNull(accountFailure("gallery", 503))
+        } finally {
+            SocialSession.openJsonConnection = original
+            SocialSession.clear()
+            server.shutdown()
+        }
+    }
 }

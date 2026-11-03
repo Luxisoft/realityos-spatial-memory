@@ -31,6 +31,7 @@ internal fun AccountField(field: String, value: String, onValue: (String) -> Uni
     val label = when (field) {
         "name" -> R.string.account_name
         "username" -> R.string.account_username
+        "identifier" -> R.string.account_existing_identifier
         "password" -> R.string.local_account_password
         else -> when (step) {
             AccountStep.Login -> R.string.account_identifier
@@ -40,12 +41,14 @@ internal fun AccountField(field: String, value: String, onValue: (String) -> Uni
     }
     val hint = when {
         field == "username" && registration -> R.string.account_username_hint
+        field == "identifier" -> R.string.account_existing_identifier_hint
         password && registration -> R.string.account_password_hint
         else -> null
     }
     val autofillType = when (field) {
         "name" -> ContentType.PersonFullName
         "username" -> if (registration) ContentType.NewUsername else ContentType.Username
+        "identifier" -> ContentType.Username + ContentType.EmailAddress
         "password" -> if (registration) ContentType.NewPassword else ContentType.Password
         else -> if (step == AccountStep.Login) ContentType.Username + ContentType.EmailAddress else ContentType.EmailAddress
     }
@@ -63,7 +66,7 @@ internal fun AccountField(field: String, value: String, onValue: (String) -> Uni
             Icon(
                 when (field) {
                     "name" -> Icons.Outlined.PersonOutline
-                    "username" -> Icons.Outlined.AlternateEmail
+                    "username", "identifier" -> Icons.Outlined.AlternateEmail
                     "password" -> Icons.Outlined.LockOpen
                     else -> Icons.Outlined.MailOutline
                 },

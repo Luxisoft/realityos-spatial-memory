@@ -207,7 +207,7 @@ class AccountEntryTest {
         tap("account-submit")
         tap("account-edit-email")
         compose.onNodeWithTag("account-title").assertTextEquals("Change your registration email")
-        compose.onNodeWithTag("account-username").assertTextContains("ana.solis")
+        compose.onNodeWithTag("account-identifier").assertTextContains("ana.solis")
         compose.onNodeWithTag("account-password").assert(SemanticsMatcher.expectValue(androidx.compose.ui.semantics.SemanticsProperties.EditableText, androidx.compose.ui.text.AnnotatedString("")))
         compose.onNodeWithTag("account-email").performTextReplacement("corrected@example.test")
         compose.onNodeWithTag("account-password").performTextInput("SecurePassword123!")
@@ -281,5 +281,69 @@ class AccountEntryTest {
         compose.onNodeWithTag("account-title").assertTextEquals("Confirm your email")
         tap("account-submit")
         compose.runOnIdle { assertEquals(listOf("register", "resend-confirmation"), actions) }
+    }
+
+    @Test fun rejectedRegistrationUsernameDoesNotCarryIntoEmailCorrection() {
+        val actions = mutableListOf<String>()
+        compose.setContent {
+            RealityOsTheme {
+                AccountForm(onBack = {}) { mode, payload ->
+                    actions.add(mode)
+                    if (mode == "register") throw AccountConflict(setOf("email"))
+                    if (mode == "change-pending-email") {
+                        assertEquals("initial@example.test", payload.getString("username"))
+                        assertEquals("corrected@example.test", payload.getString("email"))
+                    }
+                }
+            }
+        }
+        fillRegistration()
+        tap("account-submit")
+        tap("account-conflict-resend")
+        tap("account-submit")
+        tap("account-edit-email")
+        compose.onNodeWithTag("account-identifier").assertTextContains("initial@example.test")
+        compose.onNodeWithTag("account-email").performTextReplacement("corrected@example.test")
+        compose.onNodeWithTag("account-password").performTextInput("SecurePassword123!")
+        tap("account-submit")
+        compose.onNodeWithTag("account-recipient").assertTextEquals("corrected@example.test")
+        tap("account-edit-email")
+        compose.onNodeWithTag("account-identifier").assertTextContains("corrected@example.test")
+        compose.runOnIdle { assertEquals(listOf("register", "resend-confirmation", "change-pending-email"), actions) }
+    }
+
+    @Test fun duplicateUsernameOpensCorrectionForThatExistingAccount() {
+        compose.setContent {
+            RealityOsTheme {
+                AccountForm(onBack = {}) { _, _ -> throw AccountConflict(setOf("username")) }
+            }
+        }
+        fillRegistration()
+        tap("account-submit")
+        tap("account-conflict-correct")
+        compose.onNodeWithTag("account-identifier").assertTextContains("ana.solis")
+        compose.onNodeWithTag("account-email").assertTextContains("initial@example.test")
+        compose.onNodeWithTag("account-password").assertTextContains("")
+    }
+
+    @Test fun correctionExplainsInvalidCredentialsAndRecoveryUsesExistingAddress() {
+        compose.setContent {
+            RealityOsTheme {
+                AccountForm(onBack = {}) { _, _ -> throw AccountFailure(R.string.account_correction_credentials_error) }
+            }
+        }
+        tap("account-resend")
+        compose.onNodeWithTag("account-email").performTextInput("initial@example.test")
+        tap("account-correct-email")
+        compose.onNodeWithTag("account-email").performTextReplacement("corrected@example.test")
+        compose.onNodeWithTag("account-password").performTextInput("WrongPassword123!")
+        tap("account-submit")
+        compose.onNodeWithText(compose.activity.getString(R.string.account_correction_credentials_error)).assertExists()
+        compose.onNodeWithTag("account-identifier").assertTextContains("initial@example.test")
+        compose.onNodeWithTag("account-email").assertTextContains("corrected@example.test")
+        compose.onNodeWithTag("account-message").performScrollTo()
+        capture("correction-credentials-en-390")
+        tap("account-recover")
+        compose.onNodeWithTag("account-email").assertTextContains("initial@example.test")
     }
 }

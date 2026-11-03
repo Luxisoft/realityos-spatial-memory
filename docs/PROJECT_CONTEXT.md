@@ -641,3 +641,17 @@ Debug/Release aprobados. APK único SHA-256
 QA física y recepción real después de la corrección pendientes; no se enviaron
 correos de prueba. Rollback `.runtime/email-correction-20261103-rollback.json`;
 recibo `.runtime/email-correction-20261103/verified.json`.
+
+
+Corrección de identidad al cambiar correo (2026-11-03): Android separa la cuenta
+existente del nuevo destino y deja de reutilizar usuarios de registros
+rechazados. El endpoint `change-pending-email` acepta usuario o correo actual
+en `username` con la contraseña existente; muestra errores específicos y
+conserva el reemplazo atómico. API/worker `email-identity-20261103`, salud,
+OpenAPI y Alembic `20261103_0033` verificados. La dependencia `celery[redis]`
+evita la combinación incompatible instalada por el CI anterior; transporte y
+worker verificados. Pasan 37 pruebas focalizadas Python y 216 Android.
+Rollback `.runtime/email-identity-20261103-rollback.json`.
+Sin cambio manual de cuenta ni correo real de prueba; QA física pendiente.
+
+APK Debug único reconstruido; builds Debug/Release, lint y formato aprobados.

@@ -9,7 +9,7 @@
 | Tema | Qué debes saber |
 | --- | --- |
 | **Cuenta** | Registro con usuario, correo, nombre y contraseña; confirmar correo antes del acceso. Login acepta correo o usuario en `email`. |
-| **Corregir correo** | `POST /v1/auth/change-pending-email` usa usuario/contraseña de una cuenta pendiente; conserva su ID e invalida enlaces anteriores. No modifica cuentas confirmadas, activas o provisionadas. |
+| **Corregir correo** | `POST /v1/auth/change-pending-email` acepta el usuario o correo actual en `username` y verifica la contraseña de la cuenta pendiente; conserva su ID e invalida enlaces anteriores. No modifica cuentas confirmadas, activas o provisionadas. |
 | **Conexión** | Un admin crea una conexión; la clave de integración se muestra una vez y se envía por `X-RealityOS-Integration-Key`. |
 | **Lote** | Hasta 100 registros y 2 MiB; versiones crecientes, relaciones por IDs externos y transacción atómica. Misma clave/contenido devuelve el resultado original; contenido distinto da 409. |
 | **Tipos** | `person`, `case`, `encounter`, `event`, `object`, `prescription`, `allergy`, `administration`. Registros draft/deleted no aparecen en consultas. |

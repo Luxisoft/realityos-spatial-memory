@@ -61,7 +61,7 @@
     <string name="account_password_error">Enter your password (up to 512 characters).</string>
     <string name="account_resent_notice">Another link has been requested. Check your email.</string>
     <string name="account_correct_title">Change your registration email</string>
-    <string name="account_correct_description">Use your registration username and password to replace the email on your unconfirmed account. We will send a confirmation link to the new address.</string>
+    <string name="account_correct_description">Identify your existing account with its username or current email and password. Then enter the new email to receive a confirmation link.</string>
     <string name="account_correct_submit">Change email and send link</string>
     <string name="account_new_email">New email address</string>
     <string name="account_use_another_email">Use another email address</string>
@@ -72,4 +72,16 @@
     <string name="account_conflict_description">If it is yours, recover access or request the pending confirmation. To create another account, use different details.</string>
     <string name="account_recover_existing">Recover my account</string>
     <string name="account_use_other_details">Use different details</string>
+    <string name="account_existing_identifier">Username or email</string>
+    <string name="account_existing_identifier_hint">Use the account you already registered, not a new username.</string>
+    <string name="account_existing_identifier_error">Enter the username or email of your existing account.</string>
+    <string name="account_correction_credentials_error">The existing account and password do not match. Use the credentials you registered with; the new email goes in the field below. Your email has not changed.</string>
+    <string name="account_credentials_error">Could not sign in. Check your username or email, password and email confirmation.</string>
+    <string name="account_confirmation_required">Confirm your email before signing in. You can request another confirmation link below.</string>
+    <string name="account_correction_unavailable">This account cannot change its email from registration. Sign in or recover your account to continue.</string>
+    <string name="account_too_many_attempts">Too many attempts. Wait 15 minutes before trying again.</string>
+    <string name="account_delivery_failed">We could not send the email. Please try again in a moment. If you were changing your email, the previous address is still saved.</string>
+    <string name="account_invalid_details">Check your account details and their length, then try again.</string>
+    <string name="account_service_unavailable">The service could not complete this request. Please try again in a moment.</string>
+    <string name="account_network_error">Could not connect. Check your internet connection and try again.</string>
 </resources>

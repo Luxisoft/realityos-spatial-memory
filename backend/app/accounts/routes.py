@@ -4,7 +4,7 @@ from datetime import UTC, datetime
 from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import HTMLResponse
 from pydantic import BaseModel, Field, field_validator
-from sqlalchemy import select, update
+from sqlalchemy import or_, select, update
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
@@ -39,7 +39,11 @@ class EmailRequest(BaseModel):
 
 
 class PendingEmailChange(BaseModel):
-    username: str = Field(pattern=r"^[a-zA-Z][a-zA-Z0-9_.-]{2,63}$")
+    username: str = Field(
+        min_length=3,
+        max_length=320,
+        description="Existing registration username or current email address.",
+    )
     email: str = Field(min_length=5, max_length=320)
     password: str = Field(min_length=1, max_length=512)
 
@@ -118,12 +122,12 @@ async def resend(payload: EmailRequest, request: Request, db: Session = Depends(
 async def change_pending_email(
     payload: PendingEmailChange, request: Request, db: Session = Depends(get_db)
 ):
-    username = payload.username.casefold()
+    username = payload.username.strip().casefold()
     throttle(db, request, username, "change-email")
     user = db.scalar(
         select(User)
         .join(PasswordAccount, PasswordAccount.user_id == User.id)
-        .where(PasswordAccount.username == username)
+        .where(or_(PasswordAccount.username == username, User.email == username))
         .with_for_update(of=User)
     )
     if not user or not verify_password(payload.password, user.password_hash):
