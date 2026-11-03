@@ -46,7 +46,7 @@ Postman retains **Server requests** and **Localhost requests**, **393 total requ
 
 | Pending | Required evidence |
 | --- | --- |
-| App acceptance | Execute the checklist's **89 acceptance cases and six closure steps** against an identified APK/server; retain results and captures. |
+| App acceptance | Execute the checklist's **92 acceptance cases and six closure steps** against an identified APK/server; retain results and captures. |
 | Phone and external providers | Complete camera, permissions, audio, real email, real Facebook and Live demo walkthroughs. Unit tests do not approve these runs. |
 | Hardware and Windows | Physical glasses and a complete Windows/Docker installation require their own evidence. Simulated Display and Windows script tests have a different scope. |
 | Hackathon | Confirm team/track and requirements, review rights and demo outputs, record an accessible video and retain the portal receipt. [Submission guide](HACKATHON.md). |

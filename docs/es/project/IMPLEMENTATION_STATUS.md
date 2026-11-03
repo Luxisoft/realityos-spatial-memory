@@ -46,7 +46,7 @@ Postman mantiene **Server requests** y **Localhost requests**, **393 solicitudes
 
 | Pendiente | Evidencia necesaria |
 | --- | --- |
-| Aceptación de la app | Ejecutar los **89 casos de aceptación y seis de cierre** del checklist con el APK y servidor identificados; conservar resultados y capturas. |
+| Aceptación de la app | Ejecutar los **92 casos de aceptación y seis de cierre** del checklist con el APK y servidor identificados; conservar resultados y capturas. |
 | Teléfono y proveedores externos | Completar cámara, permisos, audio, correo real, Facebook real y los recorridos Live de la demo. No se marcan aprobados por las pruebas unitarias. |
 | Hardware y Windows | Gafas físicas y una instalación completa Windows/Docker requieren su propia evidencia. El Display simulado y los tests de scripts Windows tienen un alcance distinto. |
 | Hackathon | Confirmar equipo/track y requisitos, revisar derechos y salidas de la demo, grabar video accesible y guardar recibo del portal. [Guía de entrega](HACKATHON.md). |
