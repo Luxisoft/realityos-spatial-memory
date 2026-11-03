@@ -6,13 +6,12 @@ const c = JSON.parse(fs.readFileSync('docs/postman/RealityOS.reference.postman_c
 const jury = JSON.parse(fs.readFileSync('docs/postman/RealityOS.postman_collection.json'));
 const defaults = Object.fromEntries([...c.variable, ...jury.variable].map(v => [v.key, v.value]));
 const walk = items => items.flatMap(i => i.item ? walk(i.item) : [i]);
-function execute(item, listen, values = {}, environment = {}, code = 200, body = {}, replies = []) {
+function execute(item, listen, values = {}, environment = {}, code = 200, body = {}, replies = [], local = {}) {
   let skipped = false;
   const collection = { ...defaults, ...values };
   environment = { ...environment };
   const failures = [];
   const calls = [];
-  const local = {};
   const scope = values => ({ get: k => values[k], has: k => Object.hasOwn(values, k), set: (k, v) => { values[k] = v; } });
   const pm = {
     collectionVariables: scope(collection), environment: scope(environment),
@@ -59,6 +58,7 @@ for (const [index, target] of c.item.entries()) {
         const result = execute(i, 'test', { [other + 'access_token']: 'other-access' }, env, 200, tokens);
         for (const [name, token] of Object.entries(tokens)) {
           assert.equal(result.collection[prefix + name], token);
+          assert.equal(result.local[prefix + name], token);
           if (Object.hasOwn(env, prefix + name)) assert.equal(result.environment[prefix + name], token);
         }
         assert.equal(result.collection[other + 'access_token'], 'other-access');
@@ -113,6 +113,23 @@ for (const [index, target] of c.item.entries()) {
   assert.deepEqual(expired.calls.map(r => r.url), [origin + '/v1/auth/me', origin + '/v1/auth/refresh']);
   assert.deepEqual(JSON.parse(expired.calls[1].body.raw), { refresh_token: 'old-refresh' });
   assert.equal(expired.collection[prefix + 'refresh_token'], 'auto-refresh');
+  // Local variables persist across requests in the real Postman/Newman runner.
+  // Explicit login and refresh must replace tokens shadowing collection/environment.
+  const refresh = all.find(i => i.name === 'POST /v1/auth/refresh');
+  const local = { ...expired.local };
+  let state = expired;
+  for (const item of [login, refresh, refresh]) {
+    const before = execute(item, 'prerequest', state.collection, {}, 200, {}, [], local);
+    if (item === refresh) {
+      const raw = item.request.body.raw.replace(/{{([^}]+)}}/g, (_, key) => before.local[key] ?? before.collection[key]);
+      assert.equal(JSON.parse(raw).refresh_token, state.collection[prefix + 'refresh_token']);
+    }
+    const tokens = { access_token: 'new-' + state.collection[prefix + 'access_token'], refresh_token: 'new-' + state.collection[prefix + 'refresh_token'] };
+    state = execute(item, 'test', before.collection, {}, 200, tokens, [], local);
+    assert.equal(local[prefix + 'access_token'], tokens.access_token);
+    assert.equal(local[prefix + 'refresh_token'], tokens.refresh_token);
+    assert.equal(local[prefix + 'session_identity'], identity);
+  }
   const revoked = execute(query, 'prerequest', cached, {}, 200, {}, [{ code: 401 }, { code: 401 }]);
   assert.deepEqual(revoked.calls.map(r => r.url), [origin + '/v1/auth/me', origin + '/v1/auth/refresh', origin + '/v1/auth/login']);
   for (const changes of [{ [prefix + 'email']: 'own@example.test' }, { [prefix + 'base_url']: 'https://own.example.test' }]) {

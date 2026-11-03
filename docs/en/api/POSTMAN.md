@@ -21,6 +21,10 @@ Localhost points to `http://localhost:8080` and uses its own account. The local 
 
 Advanced file, device and integration operations retain their prerequisites. Replacing values with your own data is optional for quick starts and ready scenarios.
 
+To **create another account**, fill `registration_email`, `registration_username`, `registration_password` and `registration_display_name`, using the destination prefix (`server_` or `localhost_`). These are separate from jury login credentials. Resending confirmation uses `registration_email`; password recovery uses `account_email`, always a real email address. Mail endpoints cannot deliver to a login username.
+
+Login and refresh update tokens in all Postman scopes, including local variables during a collection run. Reimport an older collection to include this correction; a second refresh must use the new token.
+
 ## Profile pictures and references
 
 In the selected destination catalog, use **Facial recognition** and **Profiles and social**. To execute writes, set `server_enable_write_requests` or `localhost_enable_write_requests` to `true` only for the intended destination.

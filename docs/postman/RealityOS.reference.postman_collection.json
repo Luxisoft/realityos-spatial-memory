@@ -127,6 +127,9 @@
                       "    pm.collectionVariables.set(\"server_refresh_token\", b.refresh_token);",
                       "    const identity = JSON.stringify([String(pm.variables.get(\"server_base_url\")).replace(/\\/$/, \"\"), pm.variables.get(\"server_email\")]);",
                       "    pm.collectionVariables.set(\"server_session_identity\", identity);",
+                      "    pm.variables.set(\"server_access_token\", b.access_token);",
+                      "    pm.variables.set(\"server_refresh_token\", b.refresh_token);",
+                      "    pm.variables.set(\"server_session_identity\", identity);",
                       "    if (pm.environment.has(\"server_access_token\")) pm.environment.set(\"server_access_token\", b.access_token);",
                       "    if (pm.environment.has(\"server_refresh_token\")) pm.environment.set(\"server_refresh_token\", b.refresh_token);",
                       "    if (pm.environment.has(\"server_session_identity\")) pm.environment.set(\"server_session_identity\", identity);",
@@ -741,6 +744,9 @@
                       "    pm.collectionVariables.set(\"server_refresh_token\", b.refresh_token);",
                       "    const identity = JSON.stringify([String(pm.variables.get(\"server_base_url\")).replace(/\\/$/, \"\"), pm.variables.get(\"server_email\")]);",
                       "    pm.collectionVariables.set(\"server_session_identity\", identity);",
+                      "    pm.variables.set(\"server_access_token\", b.access_token);",
+                      "    pm.variables.set(\"server_refresh_token\", b.refresh_token);",
+                      "    pm.variables.set(\"server_session_identity\", identity);",
                       "    if (pm.environment.has(\"server_access_token\")) pm.environment.set(\"server_access_token\", b.access_token);",
                       "    if (pm.environment.has(\"server_refresh_token\")) pm.environment.set(\"server_refresh_token\", b.refresh_token);",
                       "    if (pm.environment.has(\"server_session_identity\")) pm.environment.set(\"server_session_identity\", identity);",
@@ -927,6 +933,9 @@
                       "    pm.collectionVariables.set(\"server_refresh_token\", b.refresh_token);",
                       "    const identity = JSON.stringify([String(pm.variables.get(\"server_base_url\")).replace(/\\/$/, \"\"), pm.variables.get(\"server_email\")]);",
                       "    pm.collectionVariables.set(\"server_session_identity\", identity);",
+                      "    pm.variables.set(\"server_access_token\", b.access_token);",
+                      "    pm.variables.set(\"server_refresh_token\", b.refresh_token);",
+                      "    pm.variables.set(\"server_session_identity\", identity);",
                       "    if (pm.environment.has(\"server_access_token\")) pm.environment.set(\"server_access_token\", b.access_token);",
                       "    if (pm.environment.has(\"server_refresh_token\")) pm.environment.set(\"server_refresh_token\", b.refresh_token);",
                       "    if (pm.environment.has(\"server_session_identity\")) pm.environment.set(\"server_session_identity\", identity);",
@@ -1153,7 +1162,7 @@
                     "value": "application/json"
                   }
                 ],
-                "description": "Register\n\nExplicit action (write or provider call). Set `server_enable_write_requests=true` to send.\n\nUse your authorized workspace and role. Provider calls may incur costs.",
+                "description": "Register\n\nExplicit action (write or provider call). Set `server_enable_write_requests=true` to send.\n\nUse your authorized workspace and role. Provider calls may incur costs.\n\nSupply your new account's registration_* variables. Existing evaluation login credentials are separate. Registration requires a real email address, a unique username and a password of at least 12 characters; 202 requires email confirmation.",
                 "url": {
                   "raw": "{{server_base_url}}/v1/auth/register",
                   "host": [
@@ -1170,7 +1179,7 @@
                 },
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"username\": \"{{server_username}}\",\n  \"email\": \"{{server_email}}\",\n  \"display_name\": \"{{server_display_name}}\",\n  \"password\": \"{{server_password}}\"\n}",
+                  "raw": "{\n  \"username\": \"{{server_registration_username}}\",\n  \"email\": \"{{server_registration_email}}\",\n  \"display_name\": \"{{server_registration_display_name}}\",\n  \"password\": \"{{server_registration_password}}\"\n}",
                   "options": {
                     "raw": {
                       "language": "json"
@@ -1210,7 +1219,7 @@
                     "value": "application/json"
                   }
                 ],
-                "description": "Resend\n\nExplicit action (write or provider call). Set `server_enable_write_requests=true` to send.\n\nUse your authorized workspace and role. Provider calls may incur costs.",
+                "description": "Resend\n\nExplicit action (write or provider call). Set `server_enable_write_requests=true` to send.\n\nUse your authorized workspace and role. Provider calls may incur costs.\n\nSet registration_email to the real email address of the pending registration. The login username cannot receive an email.",
                 "url": {
                   "raw": "{{server_base_url}}/v1/auth/resend-confirmation",
                   "host": [
@@ -1227,7 +1236,7 @@
                 },
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"email\": \"{{server_email}}\"\n}",
+                  "raw": "{\n  \"email\": \"{{server_registration_email}}\"\n}",
                   "options": {
                     "raw": {
                       "language": "json"
@@ -1381,7 +1390,7 @@
                     "value": "application/json"
                   }
                 ],
-                "description": "Forgot\n\nExplicit action (write or provider call). Set `server_enable_write_requests=true` to send.\n\nUse your authorized workspace and role. Provider calls may incur costs.",
+                "description": "Forgot\n\nExplicit action (write or provider call). Set `server_enable_write_requests=true` to send.\n\nUse your authorized workspace and role. Provider calls may incur costs.\n\nSet account_email to the account's real email address, not its login username. The 202 response does not disclose whether that address exists.",
                 "url": {
                   "raw": "{{server_base_url}}/v1/auth/forgot-password",
                   "host": [
@@ -1398,7 +1407,7 @@
                 },
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"email\": \"{{server_email}}\"\n}",
+                  "raw": "{\n  \"email\": \"{{server_account_email}}\"\n}",
                   "options": {
                     "raw": {
                       "language": "json"
@@ -1910,6 +1919,9 @@
                       "    pm.collectionVariables.set(\"server_refresh_token\", b.refresh_token);",
                       "    const identity = JSON.stringify([String(pm.variables.get(\"server_base_url\")).replace(/\\/$/, \"\"), pm.variables.get(\"server_email\")]);",
                       "    pm.collectionVariables.set(\"server_session_identity\", identity);",
+                      "    pm.variables.set(\"server_access_token\", b.access_token);",
+                      "    pm.variables.set(\"server_refresh_token\", b.refresh_token);",
+                      "    pm.variables.set(\"server_session_identity\", identity);",
                       "    if (pm.environment.has(\"server_access_token\")) pm.environment.set(\"server_access_token\", b.access_token);",
                       "    if (pm.environment.has(\"server_refresh_token\")) pm.environment.set(\"server_refresh_token\", b.refresh_token);",
                       "    if (pm.environment.has(\"server_session_identity\")) pm.environment.set(\"server_session_identity\", identity);",
@@ -1980,6 +1992,9 @@
                       "    pm.collectionVariables.set(\"server_refresh_token\", b.refresh_token);",
                       "    const identity = JSON.stringify([String(pm.variables.get(\"server_base_url\")).replace(/\\/$/, \"\"), pm.variables.get(\"server_email\")]);",
                       "    pm.collectionVariables.set(\"server_session_identity\", identity);",
+                      "    pm.variables.set(\"server_access_token\", b.access_token);",
+                      "    pm.variables.set(\"server_refresh_token\", b.refresh_token);",
+                      "    pm.variables.set(\"server_session_identity\", identity);",
                       "    if (pm.environment.has(\"server_access_token\")) pm.environment.set(\"server_access_token\", b.access_token);",
                       "    if (pm.environment.has(\"server_refresh_token\")) pm.environment.set(\"server_refresh_token\", b.refresh_token);",
                       "    if (pm.environment.has(\"server_session_identity\")) pm.environment.set(\"server_session_identity\", identity);",
@@ -22501,7 +22516,7 @@
               "request": {
                 "method": "POST",
                 "header": [],
-                "description": "Face Group Link\n\nExplicit action (write or provider call). Set `server_enable_write_requests=true` to send.\n\nUse your authorized workspace and role. Provider calls may incur costs.",
+                "description": "Face Group Link\n\nExplicit action (write or provider call). Set `server_enable_write_requests=true` to send.\n\nUse your authorized workspace and role. Provider calls may incur costs.\n\nmarks is a JSON array serialized as a text field, with box coordinates normalized to 0–1, a #RRGGBB color and a number. Replace the example box with the actual authorized face-search result and select probe as a file.",
                 "url": {
                   "raw": "{{server_base_url}}/v1/display/face-group-links",
                   "host": [
@@ -22530,7 +22545,7 @@
                       "key": "marks",
                       "type": "text",
                       "disabled": false,
-                      "value": "example-marks"
+                      "value": "[{\"box\": {\"x\": 0.2, \"y\": 0.2, \"width\": 0.3, \"height\": 0.4}, \"color\": \"#00AAFF\", \"number\": 1}]"
                     },
                     {
                       "key": "probe",
@@ -24412,6 +24427,9 @@
                       "    pm.collectionVariables.set(\"localhost_refresh_token\", b.refresh_token);",
                       "    const identity = JSON.stringify([String(pm.variables.get(\"localhost_base_url\")).replace(/\\/$/, \"\"), pm.variables.get(\"localhost_email\")]);",
                       "    pm.collectionVariables.set(\"localhost_session_identity\", identity);",
+                      "    pm.variables.set(\"localhost_access_token\", b.access_token);",
+                      "    pm.variables.set(\"localhost_refresh_token\", b.refresh_token);",
+                      "    pm.variables.set(\"localhost_session_identity\", identity);",
                       "    if (pm.environment.has(\"localhost_access_token\")) pm.environment.set(\"localhost_access_token\", b.access_token);",
                       "    if (pm.environment.has(\"localhost_refresh_token\")) pm.environment.set(\"localhost_refresh_token\", b.refresh_token);",
                       "    if (pm.environment.has(\"localhost_session_identity\")) pm.environment.set(\"localhost_session_identity\", identity);",
@@ -25026,6 +25044,9 @@
                       "    pm.collectionVariables.set(\"localhost_refresh_token\", b.refresh_token);",
                       "    const identity = JSON.stringify([String(pm.variables.get(\"localhost_base_url\")).replace(/\\/$/, \"\"), pm.variables.get(\"localhost_email\")]);",
                       "    pm.collectionVariables.set(\"localhost_session_identity\", identity);",
+                      "    pm.variables.set(\"localhost_access_token\", b.access_token);",
+                      "    pm.variables.set(\"localhost_refresh_token\", b.refresh_token);",
+                      "    pm.variables.set(\"localhost_session_identity\", identity);",
                       "    if (pm.environment.has(\"localhost_access_token\")) pm.environment.set(\"localhost_access_token\", b.access_token);",
                       "    if (pm.environment.has(\"localhost_refresh_token\")) pm.environment.set(\"localhost_refresh_token\", b.refresh_token);",
                       "    if (pm.environment.has(\"localhost_session_identity\")) pm.environment.set(\"localhost_session_identity\", identity);",
@@ -25212,6 +25233,9 @@
                       "    pm.collectionVariables.set(\"localhost_refresh_token\", b.refresh_token);",
                       "    const identity = JSON.stringify([String(pm.variables.get(\"localhost_base_url\")).replace(/\\/$/, \"\"), pm.variables.get(\"localhost_email\")]);",
                       "    pm.collectionVariables.set(\"localhost_session_identity\", identity);",
+                      "    pm.variables.set(\"localhost_access_token\", b.access_token);",
+                      "    pm.variables.set(\"localhost_refresh_token\", b.refresh_token);",
+                      "    pm.variables.set(\"localhost_session_identity\", identity);",
                       "    if (pm.environment.has(\"localhost_access_token\")) pm.environment.set(\"localhost_access_token\", b.access_token);",
                       "    if (pm.environment.has(\"localhost_refresh_token\")) pm.environment.set(\"localhost_refresh_token\", b.refresh_token);",
                       "    if (pm.environment.has(\"localhost_session_identity\")) pm.environment.set(\"localhost_session_identity\", identity);",
@@ -25438,7 +25462,7 @@
                     "value": "application/json"
                   }
                 ],
-                "description": "Register\n\nExplicit action (write or provider call). Set `localhost_enable_write_requests=true` to send.\n\nUse your authorized workspace and role. Provider calls may incur costs.",
+                "description": "Register\n\nExplicit action (write or provider call). Set `localhost_enable_write_requests=true` to send.\n\nUse your authorized workspace and role. Provider calls may incur costs.\n\nSupply your new account's registration_* variables. Existing evaluation login credentials are separate. Registration requires a real email address, a unique username and a password of at least 12 characters; 202 requires email confirmation.",
                 "url": {
                   "raw": "{{localhost_base_url}}/v1/auth/register",
                   "host": [
@@ -25455,7 +25479,7 @@
                 },
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"username\": \"{{localhost_username}}\",\n  \"email\": \"{{localhost_email}}\",\n  \"display_name\": \"{{localhost_display_name}}\",\n  \"password\": \"{{localhost_password}}\"\n}",
+                  "raw": "{\n  \"username\": \"{{localhost_registration_username}}\",\n  \"email\": \"{{localhost_registration_email}}\",\n  \"display_name\": \"{{localhost_registration_display_name}}\",\n  \"password\": \"{{localhost_registration_password}}\"\n}",
                   "options": {
                     "raw": {
                       "language": "json"
@@ -25495,7 +25519,7 @@
                     "value": "application/json"
                   }
                 ],
-                "description": "Resend\n\nExplicit action (write or provider call). Set `localhost_enable_write_requests=true` to send.\n\nUse your authorized workspace and role. Provider calls may incur costs.",
+                "description": "Resend\n\nExplicit action (write or provider call). Set `localhost_enable_write_requests=true` to send.\n\nUse your authorized workspace and role. Provider calls may incur costs.\n\nSet registration_email to the real email address of the pending registration. The login username cannot receive an email.",
                 "url": {
                   "raw": "{{localhost_base_url}}/v1/auth/resend-confirmation",
                   "host": [
@@ -25512,7 +25536,7 @@
                 },
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"email\": \"{{localhost_email}}\"\n}",
+                  "raw": "{\n  \"email\": \"{{localhost_registration_email}}\"\n}",
                   "options": {
                     "raw": {
                       "language": "json"
@@ -25666,7 +25690,7 @@
                     "value": "application/json"
                   }
                 ],
-                "description": "Forgot\n\nExplicit action (write or provider call). Set `localhost_enable_write_requests=true` to send.\n\nUse your authorized workspace and role. Provider calls may incur costs.",
+                "description": "Forgot\n\nExplicit action (write or provider call). Set `localhost_enable_write_requests=true` to send.\n\nUse your authorized workspace and role. Provider calls may incur costs.\n\nSet account_email to the account's real email address, not its login username. The 202 response does not disclose whether that address exists.",
                 "url": {
                   "raw": "{{localhost_base_url}}/v1/auth/forgot-password",
                   "host": [
@@ -25683,7 +25707,7 @@
                 },
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"email\": \"{{localhost_email}}\"\n}",
+                  "raw": "{\n  \"email\": \"{{localhost_account_email}}\"\n}",
                   "options": {
                     "raw": {
                       "language": "json"
@@ -26195,6 +26219,9 @@
                       "    pm.collectionVariables.set(\"localhost_refresh_token\", b.refresh_token);",
                       "    const identity = JSON.stringify([String(pm.variables.get(\"localhost_base_url\")).replace(/\\/$/, \"\"), pm.variables.get(\"localhost_email\")]);",
                       "    pm.collectionVariables.set(\"localhost_session_identity\", identity);",
+                      "    pm.variables.set(\"localhost_access_token\", b.access_token);",
+                      "    pm.variables.set(\"localhost_refresh_token\", b.refresh_token);",
+                      "    pm.variables.set(\"localhost_session_identity\", identity);",
                       "    if (pm.environment.has(\"localhost_access_token\")) pm.environment.set(\"localhost_access_token\", b.access_token);",
                       "    if (pm.environment.has(\"localhost_refresh_token\")) pm.environment.set(\"localhost_refresh_token\", b.refresh_token);",
                       "    if (pm.environment.has(\"localhost_session_identity\")) pm.environment.set(\"localhost_session_identity\", identity);",
@@ -26265,6 +26292,9 @@
                       "    pm.collectionVariables.set(\"localhost_refresh_token\", b.refresh_token);",
                       "    const identity = JSON.stringify([String(pm.variables.get(\"localhost_base_url\")).replace(/\\/$/, \"\"), pm.variables.get(\"localhost_email\")]);",
                       "    pm.collectionVariables.set(\"localhost_session_identity\", identity);",
+                      "    pm.variables.set(\"localhost_access_token\", b.access_token);",
+                      "    pm.variables.set(\"localhost_refresh_token\", b.refresh_token);",
+                      "    pm.variables.set(\"localhost_session_identity\", identity);",
                       "    if (pm.environment.has(\"localhost_access_token\")) pm.environment.set(\"localhost_access_token\", b.access_token);",
                       "    if (pm.environment.has(\"localhost_refresh_token\")) pm.environment.set(\"localhost_refresh_token\", b.refresh_token);",
                       "    if (pm.environment.has(\"localhost_session_identity\")) pm.environment.set(\"localhost_session_identity\", identity);",
@@ -46786,7 +46816,7 @@
               "request": {
                 "method": "POST",
                 "header": [],
-                "description": "Face Group Link\n\nExplicit action (write or provider call). Set `localhost_enable_write_requests=true` to send.\n\nUse your authorized workspace and role. Provider calls may incur costs.",
+                "description": "Face Group Link\n\nExplicit action (write or provider call). Set `localhost_enable_write_requests=true` to send.\n\nUse your authorized workspace and role. Provider calls may incur costs.\n\nmarks is a JSON array serialized as a text field, with box coordinates normalized to 0–1, a #RRGGBB color and a number. Replace the example box with the actual authorized face-search result and select probe as a file.",
                 "url": {
                   "raw": "{{localhost_base_url}}/v1/display/face-group-links",
                   "host": [
@@ -46815,7 +46845,7 @@
                       "key": "marks",
                       "type": "text",
                       "disabled": false,
-                      "value": "example-marks"
+                      "value": "[{\"box\": {\"x\": 0.2, \"y\": 0.2, \"width\": 0.3, \"height\": 0.4}, \"color\": \"#00AAFF\", \"number\": 1}]"
                     },
                     {
                       "key": "probe",
@@ -48626,6 +48656,9 @@
                       "    pm.collectionVariables.set(\"localhost_refresh_token\", b.refresh_token);",
                       "    const identity = JSON.stringify([String(pm.variables.get(\"localhost_base_url\")).replace(/\\/$/, \"\"), pm.variables.get(\"localhost_email\")]);",
                       "    pm.collectionVariables.set(\"localhost_session_identity\", identity);",
+                      "    pm.variables.set(\"localhost_access_token\", b.access_token);",
+                      "    pm.variables.set(\"localhost_refresh_token\", b.refresh_token);",
+                      "    pm.variables.set(\"localhost_session_identity\", identity);",
                       "    if (pm.environment.has(\"localhost_access_token\")) pm.environment.set(\"localhost_access_token\", b.access_token);",
                       "    if (pm.environment.has(\"localhost_refresh_token\")) pm.environment.set(\"localhost_refresh_token\", b.refresh_token);",
                       "    if (pm.environment.has(\"localhost_session_identity\")) pm.environment.set(\"localhost_session_identity\", identity);",
@@ -48814,6 +48847,12 @@
       "value": "",
       "type": "string",
       "description": "Saved automatically after login/refresh."
+    },
+    {
+      "key": "server_account_email",
+      "value": "",
+      "type": "string",
+      "description": "Real email address for password recovery; login may use a username instead."
     },
     {
       "key": "server_audio_id",
@@ -49038,6 +49077,30 @@
       "description": "Saved and rotated automatically after login/refresh."
     },
     {
+      "key": "server_registration_display_name",
+      "value": "",
+      "type": "string",
+      "description": "Display name for the new account."
+    },
+    {
+      "key": "server_registration_email",
+      "value": "",
+      "type": "string",
+      "description": "New account's real email address; never the existing login username."
+    },
+    {
+      "key": "server_registration_password",
+      "value": "",
+      "type": "string",
+      "description": "New account's own password, at least 12 characters."
+    },
+    {
+      "key": "server_registration_username",
+      "value": "",
+      "type": "string",
+      "description": "New unique username, 3–64 characters, starting with a letter."
+    },
+    {
       "key": "server_resource_id",
       "value": "",
       "type": "string",
@@ -49120,6 +49183,12 @@
       "value": "",
       "type": "string",
       "description": "Saved automatically after login/refresh."
+    },
+    {
+      "key": "localhost_account_email",
+      "value": "",
+      "type": "string",
+      "description": "Real email address for password recovery; login may use a username instead."
     },
     {
       "key": "localhost_audio_id",
@@ -49342,6 +49411,30 @@
       "value": "",
       "type": "string",
       "description": "Saved and rotated automatically after login/refresh."
+    },
+    {
+      "key": "localhost_registration_display_name",
+      "value": "",
+      "type": "string",
+      "description": "Display name for the new account."
+    },
+    {
+      "key": "localhost_registration_email",
+      "value": "",
+      "type": "string",
+      "description": "New account's real email address; never the existing login username."
+    },
+    {
+      "key": "localhost_registration_password",
+      "value": "",
+      "type": "string",
+      "description": "New account's own password, at least 12 characters."
+    },
+    {
+      "key": "localhost_registration_username",
+      "value": "",
+      "type": "string",
+      "description": "New unique username, 3–64 characters, starting with a letter."
     },
     {
       "key": "localhost_resource_id",

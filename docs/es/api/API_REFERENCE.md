@@ -97,10 +97,10 @@ Respuestas declaradas: `200`.
 ```json
 
 {
-  "username": "{{username}}",
-  "email": "{{email}}",
-  "display_name": "{{display_name}}",
-  "password": "{{password}}"
+  "username": "{{registration_username}}",
+  "email": "{{registration_email}}",
+  "display_name": "{{registration_display_name}}",
+  "password": "{{registration_password}}"
 }
 
 ```
@@ -120,7 +120,7 @@ Respuestas declaradas: `202`, `422`.
 ```json
 
 {
-  "email": "{{email}}"
+  "email": "{{registration_email}}"
 }
 
 ```
@@ -184,7 +184,7 @@ Respuestas declaradas: `200`, `422`.
 ```json
 
 {
-  "email": "{{email}}"
+  "email": "{{account_email}}"
 }
 
 ```

@@ -144,3 +144,76 @@ def test_group_invitation_example_uses_returned_code(client, auth_headers, reque
     )
     assert response.status_code == 200, response.text
     assert response.json()["workspace_id"] == group["id"]
+
+
+def test_registration_and_mail_examples_do_not_reuse_login_credentials(requests):
+    from app.accounts.routes import Registration
+
+    own = {
+        "registration_username": "new-account",
+        "registration_email": "new.account@example.test",
+        "registration_password": "NewAccountPassword123!",
+        "registration_display_name": "New Account",
+    }
+    registered = Registration.model_validate(
+        body(requests, "POST /v1/auth/register", **own)
+    )
+    assert registered.email == own["registration_email"]
+    assert registered.password == own["registration_password"]
+    assert body(requests, "POST /v1/auth/resend-confirmation", **own) == {
+        "email": own["registration_email"]
+    }
+    assert body(
+        requests, "POST /v1/auth/forgot-password", account_email="owner@example.test"
+    ) == {"email": "owner@example.test"}
+
+
+def test_display_group_marks_are_valid_json_for_the_current_api(
+    client, auth_headers, requests
+):
+    request = requests["POST /v1/display/face-group-links"]
+    marks = next(f["value"] for f in request["body"]["formdata"] if f["key"] == "marks")
+    output = io.BytesIO()
+    Image.new("RGB", (64, 64), "white").save(output, "PNG")
+    response = client.post(
+        "/v1/display/face-group-links",
+        headers=auth_headers,
+        data={"marks": marks},
+        files={"probe": ("probe.png", output.getvalue(), "image/png")},
+    )
+    assert response.status_code == 200, response.text
+    assert client.get(response.json()["url"]).status_code == 200
+
+
+def test_json_examples_validate_against_current_request_models(client, requests):
+    from fastapi.routing import APIRoute
+
+    routes = {
+        f"{method} {route.path}": route
+        for route in client.app.routes
+        if isinstance(route, APIRoute)
+        for method in route.methods
+    }
+    for name, request in requests.items():
+        if name not in routes or request.get("body", {}).get("mode") != "raw":
+            continue
+        raw = request["body"]["raw"]
+        values = {}
+        for variable in re.findall(r"{{(?:server|localhost)_([^}]+)}}", raw):
+            if variable.endswith("_id"):
+                value = "00000000-0000-4000-8000-000000000001"
+            elif variable.endswith("email"):
+                value = "account@example.test"
+            elif variable.endswith("password"):
+                value = "OwnPasswordExample123!"
+            elif variable.endswith("token"):
+                value = "a" * 40
+            elif variable == "language":
+                value = "en"
+            else:
+                value = "example-value"
+            values[variable] = value
+        _, errors = routes[name].body_field.validate(
+            body(requests, name, **values), {}, loc=("body",)
+        )
+        assert not errors, (name, errors)

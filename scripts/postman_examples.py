@@ -1,6 +1,16 @@
 """Request examples for runtime requirements not expressed by OpenAPI required fields."""
 
+import json
+
 JSON_EXAMPLES = {
+    "POST /v1/auth/register": {
+        "username": "{{registration_username}}",
+        "email": "{{registration_email}}",
+        "display_name": "{{registration_display_name}}",
+        "password": "{{registration_password}}",
+    },
+    "POST /v1/auth/resend-confirmation": {"email": "{{registration_email}}"},
+    "POST /v1/auth/forgot-password": {"email": "{{account_email}}"},
     "POST /v1/gallery": {
         "media_id": "{{media_id}}",
         "audience": "work",
@@ -27,6 +37,24 @@ GROUP_DESTINATION = (
 )
 
 REQUEST_NOTES = {
+    "POST /v1/auth/register": (
+        "Supply your new account's registration_* variables. Existing evaluation login "
+        "credentials are separate. Registration requires a real email address, a unique "
+        "username and a password of at least 12 characters; 202 requires email confirmation."
+    ),
+    "POST /v1/auth/resend-confirmation": (
+        "Set registration_email to the real email address of the pending registration. "
+        "The login username cannot receive an email."
+    ),
+    "POST /v1/auth/forgot-password": (
+        "Set account_email to the account's real email address, not its login username. "
+        "The 202 response does not disclose whether that address exists."
+    ),
+    "POST /v1/display/face-group-links": (
+        "marks is a JSON array serialized as a text field, with box coordinates normalized "
+        "to 0–1, a #RRGGBB color and a number. Replace the example box with the actual "
+        "authorized face-search result and select probe as a file."
+    ),
     "POST /v1/gallery": GROUP_DESTINATION,
     "POST /v1/gallery/{post_id}/share": GROUP_DESTINATION,
     "POST /v1/groups/{workspace_id}/publications/import": (
@@ -73,6 +101,16 @@ REQUEST_NOTES = {
 
 def customize_form(name, fields):
     for field in fields:
+        if name == "POST /v1/display/face-group-links" and field["key"] == "marks":
+            field["value"] = json.dumps(
+                [
+                    {
+                        "box": {"x": 0.2, "y": 0.2, "width": 0.3, "height": 0.4},
+                        "color": "#00AAFF",
+                        "number": 1,
+                    }
+                ]
+            )
         if name == "POST /v1/me/publication-uploads" and field["key"] in {
             "workspace_id",
             "audience",

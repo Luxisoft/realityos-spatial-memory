@@ -72,6 +72,11 @@ VARIABLE_DESCRIPTIONS = {
     "integration_key": "Key issued for this target's integration.",
     "token": "Temporary email action or signed resource token.",
     "invite_code": "Invitation code returned by POST /v1/groups/{workspace_id}/invite.",
+    "registration_email": "New account's real email address; never the existing login username.",
+    "registration_username": "New unique username, 3–64 characters, starting with a letter.",
+    "registration_password": "New account's own password, at least 12 characters.",
+    "registration_display_name": "Display name for the new account.",
+    "account_email": "Real email address for password recovery; login may use a username instead.",
 }
 GROUPS = [
     ("auth", "Access / Acceso"),
@@ -437,6 +442,9 @@ def generate(spec, check=False):
                     '    pm.collectionVariables.set("refresh_token", b.refresh_token);',
                     '    const identity = JSON.stringify([String(pm.variables.get("base_url")).replace(/\\/$/, ""), pm.variables.get("email")]);',
                     '    pm.collectionVariables.set("session_identity", identity);',
+                    '    pm.variables.set("access_token", b.access_token);',
+                    '    pm.variables.set("refresh_token", b.refresh_token);',
+                    '    pm.variables.set("session_identity", identity);',
                     '    if (pm.environment.has("access_token")) pm.environment.set("access_token", b.access_token);',
                     '    if (pm.environment.has("refresh_token")) pm.environment.set("refresh_token", b.refresh_token);',
                     '    if (pm.environment.has("session_identity")) pm.environment.set("session_identity", identity);',

@@ -21,6 +21,10 @@ Localhost apunta a `http://localhost:8080` y usa su propia cuenta. El backend lo
 
 Las operaciones avanzadas con archivos, dispositivos e integraciones conservan sus requisitos. Cambiar las variables por datos propios es opcional para los inicios rápidos y escenarios listos.
 
+Para **crear otra cuenta**, completa las variables `registration_email`, `registration_username`, `registration_password` y `registration_display_name` con el prefijo del destino (`server_` o `localhost_`). Son independientes del acceso del jurado. Reenviar la confirmación usa `registration_email`; recuperar la contraseña usa `account_email`, siempre un correo real. Los endpoints de correo no aceptan el nombre de usuario como dirección de entrega.
+
+Login y renovación actualizan los tokens en todos los ámbitos de Postman, incluidas las variables locales de una ejecución. Si tienes una colección anterior, vuelve a importarla para incorporar esta corrección; una segunda renovación debe utilizar el token nuevo.
+
 ## Fotos de perfil y referencias
 
 En el catálogo del destino elegido, usa **Facial recognition** y **Profiles and social**. Para ejecutar escrituras, cambia `server_enable_write_requests` o `localhost_enable_write_requests` a `true` solo en el destino correspondiente.
