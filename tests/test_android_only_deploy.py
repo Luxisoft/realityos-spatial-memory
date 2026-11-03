@@ -24,9 +24,20 @@ def test_compose_has_api_ingress_without_browser_services():
     for name in ("default.conf", "local.conf"):
         config = (ROOT / "infrastructure/nginx" / name).read_text()
         assert "location /v1/" in config and "location /health/" in config
+        for path in ("/docs", "/docs/oauth2-redirect"):
+            assert f"location = {path} {{ proxy_pass http://api:8000; }}" in config
         assert "location / { return 410; }" in config
         assert "location /display/ { return 410; }" in config
         assert "http://frontend" not in config and "http://display" not in config
+
+
+def test_api_documentation_uses_the_public_contract_after_web_retirement(client):
+    response = client.get("/docs")
+    assert response.status_code == 200
+    assert "url: '/v1/openapi.json'" in response.text
+    assert "SwaggerUIBundle" in response.text
+    assert client.get("/docs/oauth2-redirect").status_code == 200
+    assert client.get("/v1/openapi.json").status_code == 200
 
 
 def test_ci_keeps_android_gateway_and_api_without_web_builds():

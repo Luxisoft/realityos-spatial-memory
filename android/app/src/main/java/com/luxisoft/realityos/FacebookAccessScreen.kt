@@ -16,30 +16,6 @@ import org.json.JSONObject
 internal fun androidDeviceId(context: Context): String =
     Settings.Secure.getString(context.contentResolver, Settings.Secure.ANDROID_ID).orEmpty().ifBlank { "unknown" }
 
-internal fun startGuestAccess(context: Context, scope: CoroutineScope, viewModel: RealityViewModel,
-                              onBusy: (Boolean) -> Unit, onError: (String) -> Unit, onSuccess: () -> Unit) {
-    onError(""); onBusy(true)
-    scope.launch {
-        try {
-            val response = withContext(Dispatchers.IO) {
-                JSONObject(SocialSession.request("auth/guest", JSONObject().put("device_id", androidDeviceId(context))))
-            }
-            SocialSession.token = response.getString("access_token")
-            val profile = withContext(Dispatchers.IO) { JSONObject(SocialSession.request("me/capture-profile", JSONObject())) }
-            SocialSession.workspaceId = profile.getString("workspace_id")
-            viewModel.useFacebookCaptureProfile(DeviceProvisioning(BuildConfig.DEFAULT_REALITYOS_API_BASE_URL,
-                profile.getString("workspace_id"), profile.getString("device_id"), profile.getString("device_key"), "Casa"))
-            SocialSession.remember(response)
-            onSuccess()
-            SocialSession.active = true
-        } catch (cancelled: kotlinx.coroutines.CancellationException) { throw cancelled }
-        catch (error: Exception) {
-            SocialSession.clear()
-            onError(context.getString(R.string.facebook_access_failed))
-        } finally { onBusy(false) }
-    }
-}
-
 internal fun startFacebookAccess(context: Context, scope: CoroutineScope, viewModel: RealityViewModel,
                                  onBusy: (Boolean) -> Unit, onError: (String) -> Unit, onSuccess: () -> Unit) {
     var base = context

@@ -87,7 +87,8 @@ WantedBy=sockets.target
         "cat",
         "/etc/nginx/conf.d/default.conf",
     )
-    if original.count("http://api:8000") != 2:
+    # API, health, Swagger and its OAuth callback must share the same upstream.
+    if original.count("http://api:8000") != 4:
         raise RuntimeError("Unrecognized proxy configuration; no cutover performed")
     nginx_path = root / ".runtime/backend-demand-nginx.conf"
     nginx_path.write_text(
