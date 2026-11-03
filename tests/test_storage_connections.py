@@ -916,3 +916,58 @@ def test_invalid_credentials_are_never_echoed_in_validation_response(
     assert response.status_code == 422
     assert "secret-that-must-not-return" not in response.text
     assert "input" not in response.json()["detail"][0]
+
+
+@pytest.mark.parametrize("disconnect", [False, True])
+def test_connection_operations_remain_available_during_analysis(
+    client, auth_headers, source, remote, monkeypatch, disconnect
+):
+    from app.models import MediaAsset
+    from app.social_features.evidence_models import PublicationUpload
+    from app.social_features.models import Publication
+    from app.storage import service
+    from sqlalchemy import func
+
+    path = BASE + "/" + source["id"]
+    process = service.process_upload
+    responses = []
+
+    def analyze(db, upload_id, meta):
+        # A second request uses an independent DB session while the provider
+        # call is in flight. The import must not hold its connection lock here.
+        if disconnect:
+            response = client.request("DELETE", path, headers=auth_headers)
+        else:
+            client.app.state.settings.enqueue_processing = True
+            try:
+                response = client.post(
+                    path + "/imports",
+                    headers=auth_headers,
+                    json={"request_key": "queued", "keys": ["photos/b.png"]},
+                )
+            finally:
+                client.app.state.settings.enqueue_processing = False
+        responses.append(response.status_code)
+        return process(db, upload_id, meta)
+
+    monkeypatch.setattr(service, "process_upload", analyze)
+    monkeypatch.setattr("app.storage.routes.dispatch", lambda *args: None)
+    result = client.post(
+        path + "/imports",
+        headers=auth_headers,
+        json={"request_key": "processing", "keys": ["photos/a.png"]},
+    )
+    assert responses == [200 if disconnect else 202]
+    assert result.status_code == 202
+    assert result.json()["items"][0]["status"] == (
+        "failed" if disconnect else "published"
+    )
+    with client.app.state.database.session_factory() as db:
+        assert db.scalar(select(func.count()).select_from(Publication)) == (
+            0 if disconnect else 1
+        )
+        assert db.scalar(select(func.count()).select_from(MediaAsset)) == (
+            0 if disconnect else 1
+        )
+        upload = db.scalar(select(PublicationUpload))
+        assert upload.status == ("failed" if disconnect else "published")

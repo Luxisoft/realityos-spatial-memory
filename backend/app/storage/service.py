@@ -180,15 +180,33 @@ def process_import(db, run_id, settings):
                     request_key,
                 )
             )
+            # Persist the candidate and release the connection lock before
+            # provider calls. Other imports, rotation and disconnect must not
+            # wait for the complete analysis. Recovery reuses this candidate.
+            db.commit()
             item.update(provenance, upload_id=str(upload.id), status="analyzing")
             if upload.status == "pending":
                 process_upload(db, upload.id, build_meta_client(settings))
+            # Publication changes are still uncommitted. Recheck the source
+            # after analysis so a concurrent disconnect rolls them back.
+            db.refresh(row, with_for_update=True)
+            destination(db, row, run.audience, run.workspace_id)
             item["status"] = upload.status
             item["error"] = (
                 "Analysis failed; retry this file." if upload.status == "failed" else None
             )
         except Exception as exc:
             db.rollback()
+            if item.get("upload_id"):
+                upload = db.get(
+                    PublicationUpload,
+                    uuid.UUID(item["upload_id"]),
+                    populate_existing=True,
+                    with_for_update=True,
+                )
+                if upload and upload.status == "pending":
+                    upload.status = "failed"
+                    upload.error = "Storage import failed; check access and retry."
             # Never persist provider responses, credentials, or signed URLs in a job error.
             item.update(
                 status="failed",

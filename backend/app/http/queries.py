@@ -53,7 +53,7 @@ async def query(
 
 
 @router.post("/queries/image", response_model=QueryResponse)
-async def image_query(
+def image_query(
     request: Request,
     workspace_id: uuid.UUID = Form(...),
     image: UploadFile = File(...),
@@ -68,7 +68,9 @@ async def image_query(
     workspace_member(workspace_id, user, db, {Role.ADMIN, Role.QUERY})
     if image.content_type not in {"image/jpeg", "image/png", "image/webp"}:
         raise HTTPException(status_code=415, detail="Only JPEG, PNG or WebP images are accepted.")
-    raw = await image.read()
+    # Provider analysis and evidence lookup are synchronous. Run this route
+    # in FastAPI's worker pool so other requests remain responsive.
+    raw = image.file.read(20 * 1024 * 1024 + 1)
     if not raw or len(raw) > 20 * 1024 * 1024:
         raise HTTPException(status_code=413, detail="Invalid image size.")
     try:
