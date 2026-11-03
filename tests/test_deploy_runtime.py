@@ -155,3 +155,41 @@ def test_runtime_upgrade_removes_obsolete_speech_configuration(tmp_path):
         installed.read_text()
         == "ELEVENLABS_MODEL_ID=eleven_flash_v2_5\nREALITYOS_BACKEND_IMAGE=next\n"
     )
+
+
+def test_demand_ingress_is_preserved_across_image_upgrades(tmp_path):
+    runtime_root = tmp_path / ".runtime"
+    runtime_root.mkdir()
+    nginx = runtime_root / "backend-demand-nginx.conf"
+    nginx.write_text("server {}\n")
+    socket_dir = tmp_path / "realityos-socket"
+    socket_dir.mkdir()
+    config = {"nginx_conf": str(nginx), "socket_dir": str(socket_dir)}
+    overlay: dict = {}
+    preserve.preserve_demand_runtime(overlay, config, runtime_root)
+    assert overlay["services"]["api"]["restart"] == "no"
+    assert overlay["services"]["proxy"]["volumes"] == [
+        f"{nginx}:/etc/nginx/conf.d/default.conf:ro",
+        f"{socket_dir}:/run/backend-demand:ro",
+    ]
+
+
+def test_demand_ingress_rejects_foreign_paths(tmp_path):
+    runtime_root = tmp_path / ".runtime"
+    runtime_root.mkdir()
+    socket_dir = tmp_path / "realityos-socket"
+    socket_dir.mkdir()
+    foreign = tmp_path / "other.conf"
+    foreign.write_text("server {}\n")
+    with pytest.raises(ValueError, match="demand ingress"):
+        preserve.preserve_demand_runtime(
+            {},
+            {"nginx_conf": str(foreign), "socket_dir": str(socket_dir)},
+            runtime_root,
+        )
+    nginx = runtime_root / "backend-demand-nginx.conf"
+    nginx.write_text("server {}\n")
+    with pytest.raises(ValueError, match="demand socket"):
+        preserve.preserve_demand_runtime(
+            {}, {"nginx_conf": str(nginx), "socket_dir": str(tmp_path)}, runtime_root
+        )

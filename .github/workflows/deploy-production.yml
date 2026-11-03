@@ -285,4 +285,19 @@ jobs:
               fi
               sleep 2
             done
+            # The demand gateway answers /health/* itself and caches the API
+            # container IP, so recreating the API would hang every /v1/ call
+            # until the gateway re-resolves. Restart it when installed, then
+            # prove the full public path with a real /v1/ document.
+            systemctl --user restart backend-demand-realityos.service 2>/dev/null || true
+            for attempt in $(seq 1 10); do
+              if curl --fail --silent --show-error --max-time 60 --resolve realityos.luxisoft.com:443:127.0.0.1 https://realityos.luxisoft.com/v1/openapi.json -o /dev/null; then
+                break
+              fi
+              if [ "$attempt" -eq 10 ]; then
+                echo "RealityOS public /v1/ path did not respond after deploy" >&2
+                exit 1
+              fi
+              sleep 6
+            done
           '
