@@ -1,7 +1,7 @@
 .DEFAULT_GOAL := help
 
 help:
-	@printf '%s\n' 'make install | lint | test | architecture-check | format-check | android-check | api | migrate | seed | compose-up | gateway-api | runtime-dirs'
+	@printf '%s\n' 'make install | lint | test | docs-check | architecture-check | format-check | android-check | api | migrate | seed | compose-up | gateway-api | runtime-dirs'
 
 install:
 	python3 -m venv .venv
@@ -36,6 +36,11 @@ runtime-dirs:
 architecture-check:
 	.venv/bin/python scripts/check_structure.py
 
+docs-check:
+	python3 scripts/check_docs.py
+	python3 scripts/build_api_docs.py --check
+	node scripts/check_postman_scripts.cjs
+
 format-check:
 	.venv/bin/ruff format --check backend/app/http backend/app/providers backend/app/processing backend/app/social_features backend/app/routes.py backend/app/meta.py backend/app/services.py backend/app/social.py tests/social tests/test_architecture_contract.py tests/conftest.py scripts/check_structure.py
 	cd android && ./gradlew :app:ktlintCheck
@@ -43,10 +48,10 @@ format-check:
 android-check:
 	cd android && ./gradlew :app:ktlintCheck :app:testDebugUnitTest :app:lintDebug :app:assembleDebug :app:assembleRelease
 
-.PHONY: architecture-check format-check android-check
+.PHONY: docs-check architecture-check format-check android-check
 
 # Windows PowerShell launchers use an independent .env.local and Docker project.
 local-help:
-	@printf '%s\n' 'See docs/LOCAL_WINDOWS.md. Windows: powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\local\Start-RealityOS.ps1'
+	@printf '%s\n' 'See docs/en/deployment/DEPLOYMENT_LOCALHOST.md. Windows: powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\local\Start-RealityOS.ps1'
 
 .PHONY: local-help

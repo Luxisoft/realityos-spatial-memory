@@ -617,11 +617,10 @@ def generate(spec, check=False):
     )
     for lang in ["en", "es"]:
         es = lang == "es"
-        suffix = ".es" if es else ""
         lines = [
             nav("API_REFERENCE", es),
             "# " + ("Referencia de operaciones" if es else "Operation reference"),
-            f"[← API](API{suffix}.md) · [Postman](postman/RealityOS.reference.postman_collection.json)",
+            "[← API](API.md) · [Postman](../../postman/RealityOS.reference.postman_collection.json)",
             (
                 "Generada del contrato. Los nombres de operaciones y campos conservan los identificadores del API. ✓ = obligatorio. Los ejemplos requieren tus identificadores y archivos; no son respuestas capturadas de producción."
                 if es
@@ -687,7 +686,7 @@ def generate(spec, check=False):
                     "",
                 ]
         write(
-            f"docs/API_REFERENCE{suffix}.md",
+            f"docs/{lang}/api/API_REFERENCE.md",
             re.sub(
                 r"(?<=\|)\n\n(?=\|)",
                 "\n",
@@ -702,7 +701,7 @@ def generate(spec, check=False):
 
 
 def nav(stem, es):
-    return f'<p align="center"><a href="{stem}.md"><img src="assets/readme/language-en{"" if es else "-active"}.svg" alt="English" height="32"></a> <a href="{stem}.es.md"><img src="assets/readme/language-es{"-active" if es else ""}.svg" alt="Español" height="32"></a></p>'
+    return f'<p align="center"><a href="../../en/api/{stem}.md"><img src="../../assets/readme/language-en{"" if es else "-active"}.svg" alt="English" height="32"></a> <a href="../../es/api/{stem}.md"><img src="../../assets/readme/language-es{"-active" if es else ""}.svg" alt="Español" height="32"></a></p>'
 
 
 if __name__ == "__main__":

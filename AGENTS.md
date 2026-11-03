@@ -1,6 +1,6 @@
 # RealityOS agent conventions
 
-Start with `docs/PROJECT_CONTEXT.md` for the repo map and current state, then
+Start with `docs/es/project/PROJECT_CONTEXT.md` for the repo map and current state, then
 consult the authoritative doc it points to for your task.
 
 ## Protected: biometric face-search module
@@ -119,4 +119,4 @@ Do not create extra APK copies named after versions, dates or individual fixes.
   PR unless it has actually run in the applicable environment.
 - Validate gateway route allowlisting, token rejection and multipart forwarding
   before changing gateway deployment behavior.
-- Update `docs/IMPLEMENTATION_STATUS.md` for incomplete external integrations.
+- Update `docs/en/project/IMPLEMENTATION_STATUS.md` for incomplete external integrations.

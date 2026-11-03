@@ -12,6 +12,12 @@ on:
     branches: [main, feat/realityos-initial-platform]
 
 jobs:
+  documentation:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: make docs-check
+
   backend:
     runs-on: ubuntu-latest
     # Match production media encoding; Ubuntu ships a different FFmpeg major.

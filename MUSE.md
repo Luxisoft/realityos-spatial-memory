@@ -1,7 +1,7 @@
 # RealityOS — Claude conventions
 
 Project conventions live in `AGENTS.md` and are binding. Start with
-`docs/PROJECT_CONTEXT.md` for the repo map and current state.
+`docs/es/project/PROJECT_CONTEXT.md` for the repo map and current state.
 
 ## Protected: biometric face-search module
 

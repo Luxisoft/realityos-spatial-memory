@@ -1,35 +1,22 @@
-<p align="center"><a href="README.md"><img src="assets/readme/language-en-active.svg" alt="English" height="32"></a> <a href="README.es.md"><img src="assets/readme/language-es.svg" alt="Español" height="32"></a></p>
-# RealityOS documentation
-[← RealityOS](../README.md) · [Android](../android/README.md) · [Postman](postman/RealityOS.postman_collection.json)
-**To try the app, start with [Start testing](../README.md#evaluate): APK, prepared account and assigned group.** [Account handoff and walkthrough](DEMO.md#access) · [API only: Postman](API.md#quick-start). Installation guides are for setting up another environment.
+# Documentación / Documentation
 
-| Guide | Open |
+| Idioma / Language | Inicio / Home | Índice / Index |
+| --- | --- | --- |
+| Español | [RealityOS](es/README.md) | [Guías por tema](es/INDEX.md) |
+| English | [RealityOS](en/README.md) | [Guides by topic](en/INDEX.md) |
+
+Cada idioma contiene las mismas carpetas temáticas. / Both languages use the same topic folders.
+
+| Carpeta / Folder | Contenido / Contents |
 | --- | --- |
-| API and Postman | [→ API](API.md) |
-| Complete REST reference | [→ API_REFERENCE](API_REFERENCE.md) |
-| Evaluator walkthroughs | [→ DEMO](DEMO.md) |
-| Installation | [→ DEPLOYMENT](DEPLOYMENT.md) |
-| Direct server | [→ DEPLOYMENT_DIRECT](DEPLOYMENT_DIRECT.md) |
-| Gateway deployment | [→ DEPLOYMENT_GATEWAY](DEPLOYMENT_GATEWAY.md) |
-| Local installation | [→ DEPLOYMENT_LOCALHOST](DEPLOYMENT_LOCALHOST.md) |
-| Windows | [→ LOCAL_WINDOWS](LOCAL_WINDOWS.md) |
-| Architecture | [→ ARCHITECTURE](ARCHITECTURE.md) |
-| Data and persistence | [→ DATABASE](DATABASE.md) |
-| Security and privacy | [→ SECURITY](SECURITY.md) |
-| Speech and transcription | [→ TTS](TTS.md) |
-| Meta integration | [→ META_INTEGRATION](META_INTEGRATION.md) |
-| Meta gateway | [→ GATEWAY](GATEWAY.md) |
-| Accounts, records and imports | [→ WORKSPACE_DATA](WORKSPACE_DATA.md) |
-| Android and Meta glasses | [→ WEARABLES](WEARABLES.md) |
-| Design and interaction | [→ UI_DESIGN](UI_DESIGN.md) |
-| Purpose and capabilities | [→ REALITYOS_MISSION](REALITYOS_MISSION.md) |
-| Plan and evolution | [→ IMPLEMENTATION_PLAN](IMPLEMENTATION_PLAN.md) |
-| Manual submission checklist + evidence | [→ IMPLEMENTATION_CHECKLIST](IMPLEMENTATION_CHECKLIST.md) |
-| Implementation status and evidence | [→ IMPLEMENTATION_STATUS](IMPLEMENTATION_STATUS.md) |
-| Test with your own photos | [→ MANUAL_PHOTO_TEST](MANUAL_PHOTO_TEST.md) |
-| Hackathon submission | [→ HACKATHON](HACKATHON.md) |
+| `guides/` | Uso, escenarios y datos / Usage, scenarios and data |
+| `testing/` | Checklist y recursos de prueba / Checklist and test resources |
+| `api/` | API, referencia generada y Postman / API, generated reference and Postman |
+| `deployment/` | Servidor y Windows local / Server and local Windows |
+| `integrations/` | Android, Meta, gafas, gateway y voz / Android, Meta, glasses, gateway and speech |
+| `architecture/` | Arquitectura, datos, seguridad y diseño / Architecture, data, security and design |
+| `project/` | Estado vigente, contexto y entrega / Current status, context and submission |
 
-[Datos sintéticos / Synthetic data](../simulator/social-directory/README.md) · [Gráficos / Graphics](assets/readme/PROMPTS.md)
-Historical references retain their original text and dates; they are not current deployment recipes. `PROJECT_CONTEXT.md` is the internal agent map, not a user guide.
+`assets/` contiene imágenes y procedencia compartidas; `postman/` contiene las descargas JSON. / `assets/` holds shared images and provenance; `postman/` holds JSON downloads.
 
-[Connect your bucket and resources](STORAGE_CONNECTIONS.md)
+[← RealityOS](../README.md)
