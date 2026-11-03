@@ -1723,3 +1723,32 @@ Builds Debug y Release finalizados correctamente. APK instalable reemplazado
 en `android/app/build/outputs/apk/debug/app-debug.apk`; SHA-256
 `c7a75fe17d97986956403d9a402afe8cc079fdf178b2e5f13b8f8e23692f8732`.
 La revisión física del teléfono y del proveedor de autofill queda pendiente.
+
+
+## Acceso inicial y Explora RealityOS — 2026-11-03
+
+Pantalla Facebook/correo renovada con ilustración 3D, cabecera coherente con
+cuentas, jerarquía de acciones, estado de carga/error y correo claramente
+disponible sin marcar el consentimiento. Se conservan literalmente el texto
+del consentimiento y sus condiciones; los métodos de autenticación no cambian.
+
+El carrusel incluye seis escenas y ejemplos de las funciones actuales: visión
+general, policía, enfermería, social, memoria visual y Android/gafas. Recursos
+WebP locales de 1024 × 683, 187 288 bytes en total, creados con image_gen
+integrado; prompts en `docs/assets/entry/PROMPTS.json`. Las escenas se identifican
+como ejemplos ilustrativos. No contienen datos de clientes ni se incorporan
+al registro de evidencia. Textos ES/EN, navegación manual accesible, restauración
+de página, salida y créditos. La preferencia de bienvenida permanece en el host.
+
+Validación: 206 pruebas Android sin fallos, incluidas ocho nuevas de acceso y
+exploración; formato y lint aprobados. Las regresiones comprueban consentimiento,
+correo independiente, carga, error, cierre, finalización, gesto horizontal,
+anterior y restauración. Capturas nativas Robolectric en ES/EN, 320/390/480 dp y
+texto al 200 % en `android/app/build/outputs/entry-design/`, también retenidas
+por CI. Láminas de revisión local `.runtime/entry-design-review.png` y
+`.runtime/entry-scale-review.png`. La QA física de teléfono/gafas sigue pendiente.
+Sin cambios de API, servidor o reconocimiento biométrico.
+
+Builds Debug y Release aprobados. APK instalable reconstruido en la ruta única
+`android/app/build/outputs/apk/debug/app-debug.apk`; SHA-256
+`cfc13087746d6bda4bb74d72424229e9a52956abd410d615097b78c6913fd479`.

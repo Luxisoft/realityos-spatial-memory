@@ -603,3 +603,15 @@ vectoriales locales por estado, campos con iconos/autofill y confirmación con
 destinatario, corrección y reenvío. Validación por campo y adaptación al teclado;
 se conservan los contratos y el tema global. Ver UI_DESIGN.md y los resultados
 de validación en IMPLEMENTATION_STATUS.md. Sin cambios de servidor.
+
+
+## Acceso inicial y carrusel Android — 2026-11-03
+
+La entrada Facebook/correo adopta el lenguaje visual del acceso por correo,
+con una escena 3D, acciones diferenciadas y estados de carga/error. Explora
+RealityOS presenta seis páginas actualizadas: visión general, policía,
+enfermería, social, memoria visual y Android/gafas. Las ilustraciones WebP
+locales se rotulan como ejemplos; los prompts están en
+`docs/assets/entry/PROMPTS.json`. Se conserva el consentimiento de entrada,
+la preferencia de bienvenida y el flujo de regreso. Ver UI_DESIGN.md y
+la validación en IMPLEMENTATION_STATUS.md. Sin cambios de contratos o servidor.

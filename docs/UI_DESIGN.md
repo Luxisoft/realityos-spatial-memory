@@ -68,3 +68,33 @@ tienen etiquetas y los mensajes anuncian sus cambios. Textos ES/EN.
 `android/app/build/outputs/account-design/` con renderizado nativo Robolectric.
 Incluye 320, 390 y 480 dp y texto al 200 %. Son capturas de Android en pruebas,
 no una prueba de teléfono físico.
+
+## Acceso inicial y Explora RealityOS — 2026-11-03
+
+La entrada Facebook/correo comparte los márgenes, escala tipográfica, botones
+de 56 dp y paleta del flujo de cuenta aprobado. La cabecera de marca y una
+ilustración 3D introducen «Tu mundo, con contexto». El consentimiento existente
+conserva su texto y funcionamiento; correo sigue siendo independiente. Carga
+y error tienen estados visibles, y Explora RealityOS queda como acción secundaria.
+
+El carrusel contiene seis escenas: visión general, policía, enfermería,
+conexiones sociales, memoria visual y Android/gafas. Cada una tiene una
+ilustración, una explicación breve y un ejemplo práctico. La evidencia siempre
+se describe como última observación; los expedientes y perfiles requieren
+autorización. Las escenas gráficas son ilustrativas, no datos de la aplicación.
+
+Los recursos 3D son WebP locales de 1024 × 683, generados con image_gen integrado;
+las seis imágenes suman 187 288 bytes. Los prompts y la referencia de estilo
+están en `assets/entry/PROMPTS.json`; los archivos consumidos por Android viven
+en `android/app/src/main/res/drawable-nodpi/intro_*.webp`.
+
+La navegación permanece manual: gesto horizontal, anterior y siguiente,
+indicador accesible y salida explícita. El pie permanece visible y el contenido
+se desplaza en pantallas pequeñas o con texto grande. La primera visita permite
+Saltar/Comenzar y la repetición Cerrar/Volver a la app. El host conserva la
+preferencia de bienvenida y el destino de regreso; el pager restaura su página.
+Los créditos y enlaces del autor cierran el recorrido.
+
+`EntryExperienceTest` comprueba controles y produce capturas nativas Compose en
+`android/app/build/outputs/entry-design/`, también retenidas por CI. Comparar
+ES/EN, 320/390/480 dp y texto al 200 % antes de modificar la composición.

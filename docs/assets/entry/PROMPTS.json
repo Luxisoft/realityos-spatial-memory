@@ -1,0 +1,39 @@
+{
+  "mode": "Built-in image_gen",
+  "intent": "generate",
+  "use_case": "stylized-concept",
+  "generated": "2026-11-03",
+  "optimization": "WebP, 1024px width, quality 88; no compositional edits",
+  "assets": [
+    {
+      "file": "android/app/src/main/res/drawable-nodpi/intro_overview.webp",
+      "prompt": "Create ONE landscape 3:2 editorial 3D illustration for the RealityOS Android app onboarding. Premium tactile matte clay materials, restrained graphite and slate palette, small sky-blue #62A9F8 accents, soft studio illumination, calm refined composition. Seamless flat dark graphite background #262729, no border, no text, no typography, no logo, no watermarks, no screenshots or readable UI. Scene: an angled dark smartphone in the center, connected by delicate blue curved trails to a small friendly stylized adult human bust, a closed case folder with blank cards, and a set of house keys. Abstract simple blue cards on the phone, no readable text. Show a coherent world of people, authorized records and remembered objects. Objects completely inside frame with generous breathing room. Front three-quarter isometric perspective, polished mobile product illustration, not photorealistic, not toy-like or childish. This is an illustrative scene, not real application evidence. The composition will sit on a dark UI with text rendered separately below.",
+      "reference": null
+    },
+    {
+      "file": "android/app/src/main/res/drawable-nodpi/intro_case.webp",
+      "prompt": "Create ONE NEW landscape 3:2 editorial 3D illustration, using the attached image ONLY as the visual style reference. Match its graphite #262729 background, matte clay materials, restrained slate and off-white palette, sky-blue #62A9F8 accents, soft studio illumination and front three-quarter isometric view. Keep a similar large central composition with generous breathing room and all subjects inside frame. No borders, typography, watermarks or readable UI. Scene: A fictional public-safety professional in a plain navy uniform seated at a small desk, reviewing a case folder and two evidence cards with a small flashlight nearby. No weapons, police insignia, surveillance cameras, arrest, wanted posters, warning alerts or readable text. Respectful neutral scene of authorized case review. This is an illustrative onboarding scene for RealityOS; polished and adult, not a toy-like cartoon. Text will be rendered separately by the app.",
+      "reference": "intro_overview.webp"
+    },
+    {
+      "file": "android/app/src/main/res/drawable-nodpi/intro_care.webp",
+      "prompt": "Create ONE NEW landscape 3:2 editorial 3D illustration, using the attached image ONLY as the visual style reference. Match its graphite #262729 background, matte clay materials, restrained slate and off-white palette, sky-blue #62A9F8 accents, soft studio illumination and front three-quarter isometric view. Keep a similar large central composition with generous breathing room and all subjects inside frame. No borders, typography, watermarks or readable UI. Scene: A fictional adult nurse in muted blue scrubs reviewing a blank patient record on a tablet while an adult patient sits calmly nearby. Include a simple closed medical folder. No pills, doses, diagnostic imagery, readable text, crosses or medical recommendations. Emphasize attentive human care and authorized context. This is an illustrative onboarding scene for RealityOS; polished and adult, not a toy-like cartoon. Text will be rendered separately by the app.",
+      "reference": "intro_overview.webp"
+    },
+    {
+      "file": "android/app/src/main/res/drawable-nodpi/intro_social.webp",
+      "prompt": "Create ONE NEW landscape 3:2 editorial 3D illustration, using the attached image ONLY as the visual style reference. Match its graphite #262729 background, matte clay materials, restrained slate and off-white palette, sky-blue #62A9F8 accents, soft studio illumination and front three-quarter isometric view. Keep a similar large central composition with generous breathing room and all subjects inside frame. No borders, typography, watermarks or readable UI. Scene: Two friendly fictional adults conversing, connected by a delicate blue curved trail to two floating profile cards with abstract avatar shapes and tiny image tiles. Include a small subtle lock symbol on a card to signify shared information with permissions. No readable text or real social logos. This is an illustrative onboarding scene for RealityOS; polished and adult, not a toy-like cartoon. Text will be rendered separately by the app.",
+      "reference": "intro_overview.webp"
+    },
+    {
+      "file": "android/app/src/main/res/drawable-nodpi/intro_memory.webp",
+      "prompt": "Create ONE NEW landscape 3:2 editorial 3D illustration, using the attached image ONLY as the visual style reference. Match its graphite #262729 background, matte clay materials, restrained slate and off-white palette, sky-blue #62A9F8 accents, soft studio illumination and front three-quarter isometric view. Keep a similar large central composition with generous breathing room and all subjects inside frame. No borders, typography, watermarks or readable UI. Scene: A carefully arranged home desk with a document folder, a passport-like unmarked booklet, and keys, connected to a floating photo frame showing the same folder and a simple small clock symbol. Depict remembered visual evidence and a previous observation, not GPS live tracking. No readable text, flags, seals or personal information. This is an illustrative onboarding scene for RealityOS; polished and adult, not a toy-like cartoon. Text will be rendered separately by the app.",
+      "reference": "intro_overview.webp"
+    },
+    {
+      "file": "android/app/src/main/res/drawable-nodpi/intro_devices.webp",
+      "prompt": "Create ONE NEW landscape 3:2 editorial 3D illustration, using the attached image ONLY as the visual style reference. Match its graphite #262729 background, matte clay materials, restrained slate and off-white palette, sky-blue #62A9F8 accents, soft studio illumination and front three-quarter isometric view. Keep a similar large central composition with generous breathing room and all subjects inside frame. No borders, typography, watermarks or readable UI. Scene: A dark Android-style smartphone and a pair of sleek dark camera-enabled eyeglasses, with a small camera symbol, a simple voice waveform and a photo card linked by delicate blue trails. No logos, readable text or screen screenshots. Emphasize user-controlled capture and voice, not surveillance. This is an illustrative onboarding scene for RealityOS; polished and adult, not a toy-like cartoon. Text will be rendered separately by the app.",
+      "reference": "intro_overview.webp"
+    }
+  ]
+}

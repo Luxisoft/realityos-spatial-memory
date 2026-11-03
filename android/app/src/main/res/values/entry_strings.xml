@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="access_title">Your world, in context.</string>
+    <string name="access_description">Connect people, records and visual memories in your workspaces.</string>
+    <string name="explore_open">Explore RealityOS</string>
+    <string name="explore_illustration">Illustrative example</string>
+    <string name="explore_example">In practice</string>
+    <string name="explore_page_position">Page %1$d of %2$d</string>
+    <string name="explore_previous">Previous page</string>
+    <string name="explore_next">Next</string>
+    <string name="explore_begin">Get started</string>
+    <string name="explore_return">Back to the app</string>
+    <string name="explore_overview_label">YOUR REALITY, CONNECTED</string>
+    <string name="explore_overview_title">More context.\nWithin reach.</string>
+    <string name="explore_overview_body">Connect people, authorized records and visual evidence. From Android, with compatible glasses when you need them.</string>
+    <string name="explore_overview_example">Review a case, find shared information or recall where an object was last seen.</string>
+    <string name="explore_case_label">PUBLIC SAFETY</string>
+    <string name="explore_case_title">Context for each case</string>
+    <string name="explore_case_body">Consult authorized case files, notes and evidence in your workspace. For people already enrolled, review possible matches and confirm their identity.</string>
+    <string name="explore_case_example">Open a case and review its notes and attachments in one place.</string>
+    <string name="explore_care_label">NURSING</string>
+    <string name="explore_care_title">Information to support care</string>
+    <string name="explore_care_body">Review authorized patient records, history and prescriptions. Confirm the person and encounter before reviewing their information.</string>
+    <string name="explore_care_example">Open the patient record and compare medication details with the prescription.</string>
+    <string name="explore_social_label">SOCIAL CONNECTIONS</string>
+    <string name="explore_social_title">Remember the connections</string>
+    <string name="explore_social_body">Explore profiles, shared photos and posts you have permission to see. Keep the context of the people you connect with.</string>
+    <string name="explore_social_example">Find a shared photo and open the profile of the person who posted it.</string>
+    <string name="explore_memory_label">VISUAL MEMORY</string>
+    <string name="explore_memory_title">Find the last evidence</string>
+    <string name="explore_memory_body">Retrieve saved photos and frames, with their date and location. See where an object was last observed.</string>
+    <string name="explore_memory_example">“Where were my documents last seen?” Ask and review the saved evidence.</string>
+    <string name="explore_devices_label">ANDROID + GLASSES</string>
+    <string name="explore_devices_title">Start with your phone</string>
+    <string name="explore_devices_body">Capture when you choose. Search by text or voice. Connect compatible glasses to bring RealityOS into your day.</string>
+    <string name="explore_devices_example">Save a photo from your phone. Later, ask about what you captured.</string>
+</resources>
