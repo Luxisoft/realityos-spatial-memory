@@ -7,6 +7,9 @@
 
 # RealityOS for Android and glasses
 
+[API / Postman](../docs/API.md) · [All guides](../docs/README.md)
+
+
 **Facial recognition, person records, social context and visual memory in one Android app.**
 The phone and native Meta Display connect a face to authorized context, open workspace records and retrieve dated visual evidence.
 

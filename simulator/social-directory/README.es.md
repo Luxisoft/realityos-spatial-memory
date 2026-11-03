@@ -5,9 +5,12 @@
 
 # Directorio social sintético
 
+[API / Postman](../../docs/API.es.md) · [Todas las guías](../../docs/README.es.md)
+
+
 **Identidades ficticias para evaluar el sistema, procesadas mediante el flujo real autorizado.**
 
-[← Proyecto](../../README.es.md) · [Escenarios de evaluación](../../README.es.md#evaluate) · [Estado de implementación](../../docs/IMPLEMENTATION_STATUS.md)
+[← Proyecto](../../README.es.md) · [Escenarios de evaluación](../../README.es.md#evaluate) · [Estado de implementación](../../docs/IMPLEMENTATION_STATUS.es.md)
 
 ```mermaid
 flowchart LR
@@ -27,4 +30,4 @@ flowchart LR
 
 El escenario «Mechanic Workshop» tiene cinco miembros con turnos diurnos y nocturnos. Todas las identidades son ficticias y deben seguir identificadas como simuladas. La pertenencia al espacio, la autorización y los permisos biométricos continúan vigentes; los datos sintéticos no los omiten.
 
-[English →](README.md)
+[English →](README.es.md)

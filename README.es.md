@@ -7,6 +7,9 @@
 
 # RealityOS
 
+[API / Postman](docs/API.es.md) · [Todas las guías](docs/README.es.md)
+
+
 **Una plataforma de reconocimiento facial, contexto autorizado y memoria visual para Android y gafas Meta.**
 Permite encontrar personas y objetos, consultar información relacionada y recuperar evidencia por foto, video, texto o voz. Sus capacidades se aplican a distintos entornos, según los datos y permisos de cada espacio.
 
@@ -60,7 +63,7 @@ Las miniaturas y los videos enlazados son conceptuales. [Pruebas disponibles y a
 
 El enrolamiento se realiza antes, de forma explícita. La búsqueda usa InsightFace y devuelve `matches` para usuarios y `matches_records` para expedientes. La sonda subida es efímera; los resultados se limitan al espacio y a la autorización vigente.
 
-La similitud no es probabilidad de identidad: el profesional confirma al candidato. La biometría permanece separada del procesamiento de objetos. [Contrato facial y permisos →](docs/API.md)
+La similitud no es probabilidad de identidad: el profesional confirma al candidato. La biometría permanece separada del procesamiento de objetos. [Contrato facial y permisos →](docs/API.es.md)
 
 <a id="architecture"></a>
 
@@ -81,15 +84,15 @@ flowchart LR
 
 | Tecnología | Aporte al producto | Implementación |
 | --- | --- | --- |
-| **Muse Spark 1.3** | Interpreta imágenes y preguntas, estructura hechos visibles, prepara respuestas y textos EN/ES con contexto autorizado. | [Proveedores](backend/app/providers/) · [contratos Meta](docs/META_INTEGRATION.md) |
+| **Muse Spark 1.3** | Interpreta imágenes y preguntas, estructura hechos visibles, prepara respuestas y textos EN/ES con contexto autorizado. | [Proveedores](backend/app/providers/) · [contratos Meta](docs/META_INTEGRATION.es.md) |
 | **SAM 3.1** | Localiza y segmenta objetos; conserva geometría y evidencia de fotogramas durante procesamiento explícito. | [Procesamiento](backend/app/processing/) |
-| **Muse Voice Transcribe** | Convierte consultas de voz en texto. | [Integración Meta](docs/META_INTEGRATION.md) |
+| **Muse Voice Transcribe** | Convierte consultas de voz en texto. | [Integración Meta](docs/META_INTEGRATION.es.md) |
 | **Meta Wearables DAT** | Conecta cámara, voz y Display nativo de las gafas con Android. | [Android y gafas](android/README.es.md) |
-| **InsightFace / ElevenLabs** | Reconocimiento facial local / respuestas habladas desde el servidor. Son componentes independientes de los modelos Meta. | [API facial](docs/API.md) · [TTS](docs/TTS.md) |
+| **InsightFace / ElevenLabs** | Reconocimiento facial local / respuestas habladas desde el servidor. Son componentes independientes de los modelos Meta. | [API facial](docs/API.es.md) · [TTS](docs/TTS.es.md) |
 
 El worker procesa capturas/publicaciones explícitas; consultar evidencia no lo activa.
 
-La API de expedientes importa personas, casos, atenciones, objetos, prescripciones, alergias y administraciones mediante lotes versionados, relaciones y adjuntos. Los conectores HTTPS usan un contrato explícito. [Integración de datos →](docs/WORKSPACE_DATA.md)
+La API de expedientes importa personas, casos, atenciones, objetos, prescripciones, alergias y administraciones mediante lotes versionados, relaciones y adjuntos. Los conectores HTTPS usan un contrato explícito. [Integración de datos →](docs/WORKSPACE_DATA.es.md)
 
 **Decisiones de ingeniería:** originales en PostgreSQL BYTEA; permisos por espacio en cada recurso; consentimiento biométrico; consultas de evidencia sin iniciar captura; claves de proveedores solo en servidor; fallos Live visibles y mock rotulado. El gateway Meta restringido es un respaldo de conexión. Android es la única app; el panel del navegador y la web Display están retirados.
 
@@ -113,7 +116,7 @@ El conjunto contiene **47 registros, 27 adjuntos y seis retratos de personas enr
 
 [▶ Policial](demo-video/policial_case.mp4) · [▶ Enfermería](demo-video/nurse_case.mp4) · [▶ Personas / social](demo-video/profile_found.mp4) · [▶ Memoria](demo-video/memory.mp4)
 
-Estos videos y la portada son representaciones conceptuales; no sustituyen una grabación de la app funcionando. Los videos existentes contienen texto en inglés. La prueba HTTP de reconocimiento sobre Ana Solis está documentada; la validación física de teléfono/gafas, las fuentes institucionales reales y la demo final grabada siguen pendientes. [Estado verificado →](docs/IMPLEMENTATION_STATUS.md)
+Estos videos y la portada son representaciones conceptuales; no sustituyen una grabación de la app funcionando. Los videos existentes contienen texto en inglés. La prueba HTTP de reconocimiento sobre Ana Solis está documentada; la validación física de teléfono/gafas, las fuentes institucionales reales y la demo final grabada siguen pendientes. [Estado verificado →](docs/IMPLEMENTATION_STATUS.es.md)
 
 <a id="install"></a>
 
@@ -159,6 +162,6 @@ La guía exige repositorio público y una **demo accesible de tres minutos** cen
 
 <a id="docs"></a>
 
-[Arquitectura](docs/ARCHITECTURE.md) · [API](docs/API.md) · [Base de datos](docs/DATABASE.md) · [Seguridad](docs/SECURITY.md) · [Gafas](docs/WEARABLES.md)
+[Arquitectura](docs/ARCHITECTURE.es.md) · [API](docs/API.es.md) · [Base de datos](docs/DATABASE.es.md) · [Seguridad](docs/SECURITY.es.md) · [Gafas](docs/WEARABLES.es.md)
 
 [Recursos y prompts](docs/assets/readme/PROMPTS.md) · [Referencia de formato: awesome-readme](https://github.com/matiassingers/awesome-readme) · [Apache 2.0](LICENSE) · [↑ Volver arriba](#top)

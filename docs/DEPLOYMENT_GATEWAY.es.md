@@ -72,6 +72,6 @@ Apunta `meta.luxisoft.com` al host autorizado del gateway. El [workflow producti
 
 Son nombres de ajustes, no valores para publicar. `GATEWAY_ALLOWED_CIDRS` debe incluir la dirección de salida de RealityOS. Si usas Cloudflare, confía únicamente en sus rangos publicados y utiliza **Full (strict)** cuando exista el certificado del origen.
 
-Comprueba las rutas permitidas, el rechazo de tokens y el reenvío multipart antes de cambiar el despliegue del gateway. La reversión selecciona un `release_tag` inmutable existente; no recupera datos. Consulta el [contrato completo del gateway](GATEWAY.md) y la [guía operativa](DEPLOYMENT.md).
+Comprueba las rutas permitidas, el rechazo de tokens y el reenvío multipart antes de cambiar el despliegue del gateway. La reversión selecciona un `release_tag` inmutable existente; no recupera datos. Consulta el [contrato completo del gateway](GATEWAY.es.md) y la [guía operativa](DEPLOYMENT.es.md).
 
-[← Proyecto](../README.es.md) · [English](DEPLOYMENT_GATEWAY.md)
+[← Proyecto](../README.es.md) · [English](DEPLOYMENT_GATEWAY.es.md)

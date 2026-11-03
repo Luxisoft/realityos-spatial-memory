@@ -5,6 +5,9 @@
 
 # Synthetic social directory
 
+[API / Postman](../../docs/API.md) · [All guides](../../docs/README.md)
+
+
 **Fictional identities for evaluation, processed through the real authorized pipeline.**
 
 [← Project](../../README.md) · [Evaluation scenarios](../../README.md#evaluate) · [Implementation status](../../docs/IMPLEMENTATION_STATUS.md)

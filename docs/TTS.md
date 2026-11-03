@@ -1,59 +1,42 @@
-# Voz por ElevenLabs y transcripción por Meta
+<p align="center"><a href="TTS.md"><img src="assets/readme/language-en-active.svg" alt="English" height="32"></a> <a href="TTS.es.md"><img src="assets/readme/language-es.svg" alt="Español" height="32"></a></p>
 
-Producción conserva Muse Voice Transcribe para audio → texto, Muse Spark para
-interpretación/respuestas y SAM 3.1 para segmentación. Solo texto → voz pasa a
-ElevenLabs, sin pesos de síntesis residentes en este servidor.
+# Speech and transcription
 
-## Contrato y configuración
+[← Documentation](README.md) · [API / Postman](API.md)
 
-Android, panel y Display conservan `POST /v1/tts` autenticado por usuario o
-dispositivo: `{text, language}` (`en`/`es`) devuelve WAV PCM mono a 24 kHz.
-La síntesis no crea capturas, evidencia, mensajes, cachés de audio ni medios
-persistidos. La alternativa de voz de Android/navegador permanece disponible
-ante indisponibilidad del proveedor.
+## Reading guide
 
-```dotenv
-ELEVENLABS_VOICE_ID=JBFqnCBsd6RMkjVDRZzb
-ELEVENLABS_MODEL_ID=eleven_flash_v2_5
-TTS_TIMEOUT_SECONDS=30
+| Topic | What to know |
+| --- | --- |
+| **Input** | Muse Voice Transcribe turns audio into text; Muse Spark interprets context. |
+| **Output** | `POST /v1/tts`, `{text, language}` with `en`/`es`, returns 24 kHz mono PCM WAV. Authenticated user or device. |
+| **Provider** | ElevenLabs exclusively for synthesis on server and Windows. No local speech model or weights. |
+| **Configuration** | Private `ELEVENLABS_API_KEY`; selection through `ELEVENLABS_VOICE_ID`, `ELEVENLABS_MODEL_ID`, `TTS_TIMEOUT_SECONDS`. |
+| **Limits** | Two concurrent generations per process; 30 s HTTP budget, up to 300 s audio and 16 MiB WAV. |
+| **Persistence** | Synthesis stores no captures, messages or caches. No automatic ambiguous retries; distinct from routes that store chat audio. |
+
+```mermaid
+flowchart LR
+    N0["Audio"] --> N1["Meta STT"] --> N2["Text"]
+    N2["Text"] --> N3["ElevenLabs"] --> N4["WAV"]
 ```
 
-La credencial `ELEVENLABS_API_KEY` vive únicamente en `.env.elevenlabs`, archivo
-privado modo 0600 inyectado en el API mediante Compose de producción. No se
-versiona ni se envía a clientes o al gateway. Se reutiliza la cuenta de Luxisoft
-por instrucción del propietario. CI preserva ese archivo y toma la selección
-del proveedor de `.env`.
+## Procedures and evidence
 
-Cada solicitud autorizada llama directamente a
-`https://api.elevenlabs.io/v1/text-to-speech/{voice_id}?output_format=pcm_24000`,
-con `xi-api-key`, texto, idioma y modelo. La biblioteca estándar añade la
-cabecera WAV; no se cargan modelos, PyTorch ni conversores locales para voz.
-Esta selección no depende de `META_CONNECTION_MODE` ni altera el respaldo Meta.
+The original reference preserves technical details, examples and dated checks in their source language. Retired-component instructions are historical; use the current installation guides to operate.
+[↗ Complete original reference](reference/TTS.legacy.md)
+[API ](API.md) · [META INTEGRATION ](META_INTEGRATION.md) · [DEPLOYMENT LOCALHOST ](DEPLOYMENT_LOCALHOST.md)
 
-Se permiten dos generaciones simultáneas por proceso, sin cola de espera,
-un presupuesto HTTP total de 30 segundos, hasta 300 segundos de audio y una
-respuesta WAV de hasta 16 MiB. No hay reintentos automáticos de generación,
-incluidos los fallos ambiguos, para evitar cobros duplicados. Los errores se
-traducen a indisponibilidad sin exponer texto, secretos o respuestas internas.
-Los logs incluyen proveedor, tiempo, identificador y character-cost disponible.
+<details>
+<summary>Historical sections</summary>
 
-Nginx limita `/v1/tts` a 30 peticiones/minuto por IP con ráfaga de cuatro.
-El antiguo `/tts/synthesize` con token de servicio se retira con HTTP 410;
-producción ya no depende de 8091 ni del circuito de voz por FRONTEND que
-regresaba al mismo motor local. El gateway Meta para visión/STT se conserva.
+<a id="voz-por-elevenlabs-y-transcripción-por-meta"></a>
+[↗ voz-por-elevenlabs-y-transcripción-por-meta](reference/TTS.legacy.md#voz-por-elevenlabs-y-transcripción-por-meta)
 
-## Ejecución
+<a id="contrato-y-configuración"></a>
+[↗ contrato-y-configuración](reference/TTS.legacy.md#contrato-y-configuración)
 
-La síntesis usa exclusivamente ElevenLabs tanto en producción como en la
-instalación Windows. Esta última solicita una clave propia en `.env.local`;
-no copia credenciales del servidor. No hay contenedor, pesos, dependencias de
-inferencia, perfil Compose ni compilaciones de un modelo de voz local.
+<a id="ejecución"></a>
+[↗ ejecución](reference/TTS.legacy.md#ejecución)
 
-El 2026-11-02 el propietario solicitó eliminar por completo Seamless después
-de verificar ElevenLabs y Muse Voice Transcribe. Se retiraron el código,
-contenedor, imagen y volumen de pesos, además de los trabajos de CI y opciones
-locales. Las menciones antiguas en el historial de implementación describen
-releases retirados y no son instrucciones vigentes.
-
-Referencias: [ElevenLabs Create speech](https://elevenlabs.io/docs/api-reference/text-to-speech/convert)
-y [Meta Model API](https://dev.meta.ai/docs/overview).
+</details>

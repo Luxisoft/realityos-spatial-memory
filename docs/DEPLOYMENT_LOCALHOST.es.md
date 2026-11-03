@@ -100,4 +100,4 @@ Los fallos de proveedores se muestran explícitamente. Una compilación correcta
 
 </details>
 
-[← Proyecto](../README.es.md) · [English](DEPLOYMENT_LOCALHOST.md) · [Referencia detallada de Windows](LOCAL_WINDOWS.md)
+[← Proyecto](../README.es.md) · [English](DEPLOYMENT_LOCALHOST.es.md) · [Referencia detallada de Windows](LOCAL_WINDOWS.es.md)

@@ -50,7 +50,7 @@ curl -sf http://127.0.0.1:8080/v1/openapi.json -o /dev/null
 docker compose --env-file .env -f infrastructure/docker-compose.yml exec -T api alembic current
 ```
 
-Si está instalado el ingreso bajo demanda, comprueba `/v1/openapi.json` además de salud: el ingreso puede responder salud por sí mismo. Tras reemplazar la API, sigue las instrucciones de reinicio del ingreso en [operación](DEPLOYMENT.md).
+Si está instalado el ingreso bajo demanda, comprueba `/v1/openapi.json` además de salud: el ingreso puede responder salud por sí mismo. Tras reemplazar la API, sigue las instrucciones de reinicio del ingreso en [operación](DEPLOYMENT.es.md).
 
 | Ajuste | Uso |
 | --- | --- |
@@ -72,8 +72,8 @@ Apunta el registro DNS del dominio al servidor correcto. Si Cloudflare Workers/P
 
 El workflow configura Nginx del host y Let's Encrypt; mantén privado el puerto interno de la API. Un 404 de otro sitio en `/.well-known/acme-challenge/` indica que la validación del certificado llega al origen equivocado.
 
-Para revertir código, ejecuta manualmente **Deploy production** con un `release_tag` inmutable existente (SHA del commit). Selecciona imágenes ya construidas; no revierte migraciones ni recupera datos eliminados. Sigue el procedimiento aprobado de copias y migraciones en [operación](DEPLOYMENT.md).
+Para revertir código, ejecuta manualmente **Deploy production** con un `release_tag` inmutable existente (SHA del commit). Selecciona imágenes ya construidas; no revierte migraciones ni recupera datos eliminados. Sigue el procedimiento aprobado de copias y migraciones en [operación](DEPLOYMENT.es.md).
 
 </details>
 
-[← Proyecto](../README.es.md) · [English](DEPLOYMENT_DIRECT.md) · [Referencia operativa](DEPLOYMENT.md)
+[← Proyecto](../README.es.md) · [English](DEPLOYMENT_DIRECT.es.md) · [Referencia operativa](DEPLOYMENT.es.md)

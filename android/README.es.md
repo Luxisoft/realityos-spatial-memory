@@ -7,6 +7,9 @@
 
 # RealityOS para Android y gafas
 
+[API / Postman](../docs/API.es.md) · [Todas las guías](../docs/README.es.md)
+
+
 **Reconocimiento facial, expedientes, contexto social y memoria visual en una app Android.**
 El teléfono y el Display nativo de Meta conectan un rostro con su contexto autorizado, abren expedientes y recuperan evidencia visual fechada.
 
@@ -110,7 +113,7 @@ Buscar y Capturar mantienen disponible la navegación de la app. Cerrar el visor
 2. Empareja unas Meta Ray-Ban Display compatibles, habilita Meta AI Developer Mode y concede los permisos DAT.
 3. Registra con Meta AI y conecta Display para usar sus pantallas nativas de captura, consulta y evidencia.
 
-Las gafas físicas usan las capacidades de cámara y voz de DAT; la vista previa Debug usa sensores del teléfono. Las respuestas habladas usan el flujo autenticado de voz del servidor y se reproducen en la salida activa del teléfono o Bluetooth. Consulta la [guía de gafas](../docs/WEARABLES.md) para conocer el comportamiento completo y la validación física pendiente.
+Las gafas físicas usan las capacidades de cámara y voz de DAT; la vista previa Debug usa sensores del teléfono. Las respuestas habladas usan el flujo autenticado de voz del servidor y se reproducen en la salida activa del teléfono o Bluetooth. Consulta la [guía de gafas](../docs/WEARABLES.es.md) para conocer el comportamiento completo y la validación física pendiente.
 
 <details>
 <summary><strong>Navegación, visor de evidencia e idiomas</strong></summary>
@@ -138,10 +141,10 @@ Con un emulador o dispositivo adecuado conectado, desde `android/`:
 ./gradlew :app:testDebugUnitTest --tests com.luxisoft.realityos.PhoneCaptureTouchTest
 ```
 
-Mock Device Kit y las pruebas Compose/Robolectric no reemplazan la validación física de cámara, micrófono, Bluetooth o gafas. Las comprobaciones realizadas constan en el [estado de implementación](../docs/IMPLEMENTATION_STATUS.md).
+Mock Device Kit y las pruebas Compose/Robolectric no reemplazan la validación física de cámara, micrófono, Bluetooth o gafas. Las comprobaciones realizadas constan en el [estado de implementación](../docs/IMPLEMENTATION_STATUS.es.md).
 
 ## Instalación Windows independiente
 
 Utiliza [Windows + Docker Desktop](../docs/DEPLOYMENT_LOCALHOST.es.md). La variante local usa `-PlocalDevelopment=true`, HTTP de loopback y el identificador independiente `com.luxisoft.realityos.local`. Exige que el backend confirme su entorno local y permite entrar con contraseña local. Las cuentas locales y productivas permanecen separadas; las funciones faciales conservan su autorización propia.
 
-[← Proyecto](../README.es.md) · [English](README.md) · [↑ Volver arriba](#top)
+[← Proyecto](../README.es.md) · [English](README.es.md) · [↑ Volver arriba](#top)

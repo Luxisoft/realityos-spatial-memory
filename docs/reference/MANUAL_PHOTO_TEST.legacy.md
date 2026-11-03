@@ -1,0 +1,60 @@
+> Historical source / Fuente histórica — preserved 2026-11-03. [Current guide](../MANUAL_PHOTO_TEST.md) · [Guía actual](../MANUAL_PHOTO_TEST.es.md). Earlier deployment instructions may be retired.
+
+# Manual photo test
+
+This test is deliberately opt-in. Staging a photo does not register it, start a
+capture session, send it to Meta, or make it visible in RealityOS.
+
+## Stage photos
+
+On the RealityOS server, use the private, Git-ignored directory inside the
+deployed project. Create it once with `make runtime-dirs`:
+
+```text
+/var/www/realityos-spatial-memory/.runtime/manual-captures/incoming/
+```
+
+Upload only original photos you are authorized to use. Do not stage photos that
+show people, credentials, customer data, or unrelated private material. The API
+accepts JPEG, PNG and WebP up to 10 MiB each, and MP4, MOV or WebM clips.
+There is no fixed application or proxy cap for video by default; PostgreSQL
+BYTEA and the server's available disk/RAM are the real capacity boundary.
+Long clips are split logically into configured time segments for representative
+frame extraction. It never processes a clip without an explicit `--process`
+invocation.
+
+```bash
+scp ./taladro-amarillo.jpg \
+  jmarin@backend.com:/var/www/realityos-spatial-memory/.runtime/manual-captures/incoming/
+```
+
+## Register and process deliberately
+
+Run this on the RealityOS server after confirming capture consent. It prompts
+for the RealityOS account password and never writes it to disk. `--process`
+starts Muse Spark analysis; SAM is intentionally deferred until an authorized
+user explicitly requests refinement for one verified observation. Omit it to
+store capture evidence only.
+The importer permits a 30-minute wait by default for an explicitly requested
+long-video job; use `--wait-seconds` to select another positive duration.
+
+```bash
+cd /var/www/realityos-spatial-memory
+.venv/bin/python scripts/import_manual_photos.py \
+  --confirm-consent --process --wait \
+  --workspace "RealityOS Workshop" --zone "Storage A" \
+  /var/www/realityos-spatial-memory/.runtime/manual-captures/incoming/yellow-drill.jpg
+```
+
+Use a second photo in a distinct zone for an explicit “last seen” history test.
+The importer opens and closes one capture session, uses the regular authorized
+API, and prints capture/job IDs. It never scans the staging directory or starts
+capture automatically.
+
+## Verify
+
+Use the Web panel or `POST /v1/queries` with “Where is the yellow drill?”. A
+query can be supplied in another language; its terms are mapped only to the
+authorized workspace vocabulary. The response must identify evidence as “last
+seen”, return a highlighted BYTEA-backed image, and never claim that the object
+is currently present.

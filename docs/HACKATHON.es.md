@@ -5,7 +5,7 @@
 
 # Entrega y revisión de requisitos
 
-[← Proyecto](../README.es.md) · [Guion de demo](DEMO.es.md) · [Estado técnico](IMPLEMENTATION_STATUS.md)
+[← Proyecto](../README.es.md) · [Guion de demo](DEMO.es.md) · [Estado técnico](IMPLEMENTATION_STATUS.es.md)
 
 **Fuente:** guía completa de participantes aportada por el propietario el 3 de noviembre de 2026, publicada en [Event Details](https://cerebralvalley.ai/e/meta-ai-developer-hackathon/details), y [bases oficiales](https://cerebralvalley.ai/e/meta-ai-developer-hackathon/waiver). La guía no prescribe una plantilla de README. Esta revisión organiza las evidencias que necesita el jurado y distingue requisitos de participación, entrega y documentación.
 
@@ -14,7 +14,7 @@
 | Requisito de la guía | Evidencia / estado |
 | --- | --- |
 | Resolver uno de los problemas propuestos | **Encaje documentado:** Build for Your World, mediante capacidades reutilizables de reconocimiento, contexto y memoria. Los cuatro escenarios son ejemplos independientes. La categoría inscrita debe confirmarse. |
-| Incorporar modelos Meta | **Implementado:** Muse Spark 1.3, SAM 3.1 y Muse Voice Transcribe, con [contratos](META_INTEGRATION.md) y [proveedores](../backend/app/providers/). DAT es la interfaz de gafas; InsightFace y ElevenLabs son componentes distintos. No se exige usar todos los modelos enumerados en la guía. |
+| Incorporar modelos Meta | **Implementado:** Muse Spark 1.3, SAM 3.1 y Muse Voice Transcribe, con [contratos](META_INTEGRATION.es.md) y [proveedores](../backend/app/providers/). DAT es la interfaz de gafas; InsightFace y ElevenLabs son componentes distintos. No se exige usar todos los modelos enumerados en la guía. |
 | Repositorio público / open source | **Verificado:** GitHub informa `PUBLIC` y licencia [Apache 2.0](../LICENSE). Las dependencias conservan sus propias condiciones. |
 | Trabajo nuevo y aportaciones identificables | **Desglose disponible abajo.** Hay una base anterior al período de construcción indicado; no se presenta todo el repositorio como nuevo. |
 | Video accesible de tres minutos | **Pendiente:** enlace a una grabación real centrada en aportaciones del evento. Los videos conceptuales no satisfacen por sí solos esta evidencia. [Guion de 180 segundos](DEMO.es.md#video). |
@@ -24,7 +24,7 @@
 | Enviar antes del 4 de noviembre, 21:00 EST | **Pendiente de comprobante:** [portal CV](https://cerebralvalley.ai/e/meta-ai-developer-hackathon/hackathon/submit). Equivale a las 21:00 de Bogotá. Publicar en GitHub no envía la candidatura. |
 | Derechos de uso y cumplimiento de políticas | **Revisión abierta:** ver exclusiones y licencias abajo. No se declara cumplimiento integral. |
 
-La guía distingue una primera fase de viabilidad y uso de Meta, una evaluación de 0–10 y una final con cinco proyectos por track. El texto recibido omite la tabla de puntuaciones; los pesos previamente publicados en las bases son impacto 30 %, herramientas Meta 25 %, profundidad técnica 20 % y demo 25 %. Las evidencias están en [capacidades y modelos](../README.es.md#architecture), [pruebas](../tests/) y [validaciones fechadas](IMPLEMENTATION_STATUS.md).
+La guía distingue una primera fase de viabilidad y uso de Meta, una evaluación de 0–10 y una final con cinco proyectos por track. El texto recibido omite la tabla de puntuaciones; los pesos previamente publicados en las bases son impacto 30 %, herramientas Meta 25 %, profundidad técnica 20 % y demo 25 %. Las evidencias están en [capacidades y modelos](../README.es.md#architecture), [pruebas](../tests/) y [validaciones fechadas](IMPLEMENTATION_STATUS.es.md).
 
 <a id="contributions"></a>
 
@@ -60,8 +60,8 @@ La guía sitúa el kickoff el **26 de octubre** y la construcción del **27 de o
 - **Código del proyecto:** [Apache 2.0](../LICENSE). Modelos y SDK de terceros no son aportaciones originales del equipo.
 - **InsightFace:** el código es MIT, pero los pesos descargados tienen condiciones separadas para investigación no comercial. El [Dockerfile](../backend/Dockerfile) incorpora `buffalo_l`; no se encontró constancia de una licencia adicional en la documentación revisada. Confirmar derechos para la entrega y el despliegue, sin asumir que Apache/MIT los cubre. [Fuente del proveedor](https://github.com/deepinsight/insightface#license).
 - **DAT:** su [licencia](https://github.com/meta/meta-wearables-dat-android/blob/main/LICENSE) remite a términos de desarrollador y uso aceptable. La [política](https://wearables.developer.meta.com/acceptable-use-policy) exige sesión en esta revisión; falta contrastarla con la cuenta del proyecto.
-- **Gráficos y datos:** [prompts y procedencia](assets/readme/PROMPTS.md), [directorio sintético](../simulator/social-directory/README.es.md) y [fixtures por espacio](WORKSPACE_DATA.md). Los gráficos son conceptuales y no contienen pacientes ni expedientes reales. La procedencia de generación no equivale a autorización general de marcas o de recursos de terceros; verificar también los videos antes de la entrega.
+- **Gráficos y datos:** [prompts y procedencia](assets/readme/PROMPTS.md), [directorio sintético](../simulator/social-directory/README.es.md) y [fixtures por espacio](WORKSPACE_DATA.es.md). Los gráficos son conceptuales y no contienen pacientes ni expedientes reales. La procedencia de generación no equivale a autorización general de marcas o de recursos de terceros; verificar también los videos antes de la entrega.
 
 **Pendientes de cierre:** video de tres minutos, equipo/track, revisión de salidas de la demo, derechos de modelos y términos aplicables, y comprobante de envío. La documentación queda preparada para revisar esos puntos; no se declara aprobación ni elegibilidad completa.
 
-[← Proyecto](../README.es.md) · [English](HACKATHON.md)
+[← Proyecto](../README.es.md) · [English](HACKATHON.es.md)

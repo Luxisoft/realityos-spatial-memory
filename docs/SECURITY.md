@@ -1,24 +1,37 @@
+<p align="center"><a href="SECURITY.md"><img src="assets/readme/language-en-active.svg" alt="English" height="32"></a> <a href="SECURITY.es.md"><img src="assets/readme/language-es.svg" alt="Español" height="32"></a></p>
+
 # Security and privacy
 
-- Passwords use salted scrypt; access tokens expire and refresh tokens rotate
-  with server-side revocation records.
-- Every workspace route checks membership and role. Media bytes receive the same
-  check.
-- Original bytes are in PostgreSQL, avoiding accidental public object links.
-  Hashes provide integrity/deduplication, not encryption at rest.
-- Capture requires consent and open session. Query cannot write evidence.
-- Secrets are environment variables. .env, keystores and local media are ignored
-  by Git. Do not log MODEL_API_KEY, JWT secrets or user media.
-- Production needs TLS, a rotated JWT_SECRET, constrained CORS, tested backups
-  and hosting-provider encryption at rest.
-- Device ingestion does not require a human account. An administrator enrolls a
-  public device ID and receives a high-entropy companion key once; the server
-  stores only a `DEVICE_CREDENTIAL_PEPPER`-derived hash. Rotation and revocation
-  are audited. Never reuse `MODEL_API_KEY` as a device credential.
-- Device/operator labels and inventory analytics are restricted to workspace
-  administrators. These records describe device assignment and evidence provenance.
-- Live SAM Video calls use temporary Files API uploads and become `uncertain`
-  rather than being automatically replayed after an ambiguous provider failure.
+[← Documentation](README.md) · [API / Postman](API.md)
 
-There is no deletion workflow yet; retention, export and erasure require product
-policy and implementation before customer data.
+## Reading guide
+
+| Topic | What to know |
+| --- | --- |
+| **Sessions** | Salted scrypt passwords; access tokens expire and refresh tokens rotate with persisted revocation. |
+| **Authorization** | Check membership and role when serving media too. Signed links have limited scope and lifetime. |
+| **Secrets** | Meta/ElevenLabs, JWT, SMTP and DB secrets stay in private server runtime. Postman exports contain no credentials. |
+| **Devices** | Public ID and independent key; server stores only a peppered hash. Enrollment, rotation and revocation are audited. |
+| **Biometrics** | Consent and workspace authorization; revocation deletes user enrollments. Candidates require confirmation. |
+| **Retention** | Resource removal and CV/consent deletion exist; these do not constitute a complete customer retention, export and erasure policy. |
+| **Operations** | TLS, constrained CORS, rotated keys and verified private backups. SHA-256 provides integrity, not encryption at rest. |
+
+```mermaid
+flowchart LR
+    N0["User"] --> N1["Membership"] --> N2["Resource"]
+    N3["Device"] --> N4["Credential"] --> N2["Resource"]
+```
+
+## Procedures and evidence
+
+The original reference preserves technical details, examples and dated checks in their source language. Retired-component instructions are historical; use the current installation guides to operate.
+[↗ Complete original reference](reference/SECURITY.legacy.md)
+[API ](API.md) · [WORKSPACE DATA ](WORKSPACE_DATA.md) · [HACKATHON ](HACKATHON.md)
+
+<details>
+<summary>Historical sections</summary>
+
+<a id="security-and-privacy"></a>
+[↗ security-and-privacy](reference/SECURITY.legacy.md#security-and-privacy)
+
+</details>

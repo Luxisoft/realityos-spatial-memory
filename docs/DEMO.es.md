@@ -89,6 +89,6 @@ Ensaya el recorrido antes de grabar. Elige un espacio con datos preparados y ocu
 | Importaciones HTTP, consultas contextuales, búsquedas de objetos y pruebas de permisos. | Fuente institucional real y recorridos completos con teléfono/gafas físicos. |
 | Imágenes sintéticas y MP4 de escenas estáticas. | Grabación final del producto accesible al jurado. |
 
-[Estado de implementación](IMPLEMENTATION_STATUS.md) contiene las verificaciones fechadas. Este documento describe el guion; no declara una ejecución nueva de esos recorridos.
+[Estado de implementación](IMPLEMENTATION_STATUS.es.md) contiene las verificaciones fechadas. Este documento describe el guion; no declara una ejecución nueva de esos recorridos.
 
-[← Proyecto](../README.es.md) · [English](DEMO.md)
+[← Proyecto](../README.es.md) · [English](DEMO.es.md)
