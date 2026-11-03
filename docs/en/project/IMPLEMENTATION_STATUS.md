@@ -26,7 +26,7 @@ Updated **November 3, 2026**. This page consolidates the current state; earlier 
 - The verified release rollback is preserved at `.runtime/storage-followup-20261103-ci-rollback.json`. Code rollback does not automatically reverse migrations or data; follow the [operations guide](../deployment/DEPLOYMENT.md).
 - November 3 cleanup: removed uncalled indexers, unused Android screens and controls, 93 obsolete strings per language, superseded scripts, the uncalled legacy guest-access function and historical baseline replay in CI. Current regression tests remain. Also removed 2.42 GB of duplicate caches and retired web artifacts from the server.
 - Second proxy review: restored forwarding for Swagger at `/docs` and its callback. **27 local checks with real Nginx** passed across production, localhost and socket-activated configurations: documentation and API routes remain reachable, while retired web routes return `410`. Added a regression for Swagger's public contract URL. Post-deployment checks confirmed `/docs` and its callback return `200`, while `/` and `/display` return `410`.
-- GitHub still contains the retired `realityos-tts` package; current execution and deployment do not use it. Deletion returned `403`: the available token needs `read:packages` and `delete:packages`. No cleanup automation was added.
+- Deleted the retired `realityos-tts` GitHub package after authorizing `read:packages` and `delete:packages`. A subsequent request returns `404`; `realityos-backend` and `realityos-meta-gateway` remain accessible. The access review confirmed repository administration and Actions read permissions; the previous GitHub blocker is resolved.
 
 ## Available evaluation data
 
@@ -50,5 +50,7 @@ Postman retains **Server requests** and **Localhost requests**, **393 total requ
 | Phone and external providers | Complete camera, permissions, audio, real email, real Facebook and Live demo walkthroughs. Unit tests do not approve these runs. |
 | Hardware and Windows | Physical glasses and a complete Windows/Docker installation require their own evidence. Simulated Display and Windows script tests have a different scope. |
 | Hackathon | Confirm team/track and requirements, review rights and demo outputs, record an accessible video and retain the portal receipt. [Submission guide](HACKATHON.md). |
+
+**Access and authorizations:** the live checks linked above supersede earlier pending R2 credentials. Authenticated DAT terms and the evidence described in [Third parties](THIRD_PARTY.md) are still missing; authorization to use `buffalo_l` is separate from technical permissions. The additional Docker image/container review was not performed in this session: [AGENTS.md](../../../AGENTS.md#deploy-standing-rule) requires authorization for those commands. This does not leave the verified production deployment or Seamless removal pending; the private removal receipt confirms deletion of its container, volume and image.
 
 A 100% pass claim is limited to the checklist scope after every case has evidence and no failures, pending items or blockers remain. Credentials, private responses and personal captures are not published here.
