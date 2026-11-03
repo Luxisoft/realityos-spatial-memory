@@ -2,7 +2,7 @@
 
 # Operation reference
 
-[← API](API.md) · [Postman](postman/RealityOS.postman_collection.json)
+[← API](API.md) · [Postman](postman/RealityOS.reference.postman_collection.json)
 
 Generated from the contract. Operation and field names preserve API identifiers. ✓ = required. Examples need your own identifiers and files; they are not captured production responses.
 

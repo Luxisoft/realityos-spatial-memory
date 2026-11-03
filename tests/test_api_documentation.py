@@ -15,7 +15,7 @@ CONTRACT = Path(
 
 def collection():
     return json.loads(
-        (ROOT / "docs/postman/RealityOS.postman_collection.json").read_text()
+        (ROOT / "docs/postman/RealityOS.reference.postman_collection.json").read_text()
     )
 
 
@@ -75,7 +75,7 @@ def test_all_variables_are_declared_and_isolated_with_only_public_demo_credentia
     for target, prefix, filename, origin in zip(
         c["item"],
         ["server", "localhost"],
-        ["public", "local"],
+        ["reference", "local"],
         ["https://realityos.luxisoft.com", "http://localhost:8080"],
         strict=True,
     ):
@@ -186,3 +186,59 @@ def test_auth_bodies_keep_existing_and_replacement_credentials_separate():
         }
         reset = json.loads(requests["POST /v1/auth/reset-password"]["body"]["raw"])
         assert reset["password"] == "{{" + prefix + "_new_password}}"
+
+
+def test_jury_download_has_all_inputs_for_existing_server_scenarios():
+    public = json.loads(
+        (ROOT / "docs/postman/RealityOS.postman_collection.json").read_text()
+    )
+    fixture = json.loads((ROOT / "simulator/postman/jury.json").read_text())
+    variables = {v["key"]: v["value"] for v in public["variable"]}
+    environment = json.loads(
+        (ROOT / "docs/postman/RealityOS.public.postman_environment.json").read_text()
+    )
+    assert {v["key"]: v["value"] for v in environment["values"]} == variables
+    assert len(public["item"]) == 3
+    for target, scenario in zip(public["item"], fixture["scenarios"], strict=True):
+        prefix = scenario["prefix"] + "_"
+        assert set(scenario["values"]) == {
+            "email",
+            "username",
+            "password",
+            "display_name",
+            "user_id",
+            "workspace_id",
+            "record_id",
+            "post_id",
+            "query",
+            "record_question",
+        }
+        assert target["name"] == scenario["name"]
+        assert len(target["item"]) == 13
+        assert variables[prefix + "base_url"] == "https://realityos.luxisoft.com"
+        for key, value in scenario["values"].items():
+            assert variables[prefix + key] == value
+            assert value
+        for key in ("access_token", "refresh_token", "session_identity"):
+            assert variables[prefix + key] == ""
+        for item in target["item"]:
+            request = item["request"]
+            assert request["method"] == "GET" or item["name"] in {
+                "POST /v1/auth/login",
+                "POST /v1/auth/refresh",
+                "POST /v1/workspaces/{workspace_id}/records/search",
+                "POST /v1/queries",
+            }
+            assert request.get("body", {}).get("mode") != "formdata"
+            for ref in re.findall(r"{{([^}]+)}}", json.dumps(request)):
+                assert ref.startswith(prefix)
+                assert ref in variables
+                assert variables[ref] or ref in {
+                    prefix + "access_token",
+                    prefix + "refresh_token",
+                }
+            assert not item["response"]
+        assert not any(
+            key.startswith(prefix) and key.endswith(("integration_key", "device_key"))
+            for key in variables
+        )

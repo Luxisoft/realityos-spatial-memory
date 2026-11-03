@@ -42,7 +42,7 @@ Find people and objects, query related information and retrieve evidence through
 | Police | `alex-rivera` | Pacific Ridge Police Department | Test case 1 and shift evidence. |
 | Memory | `noah-brooks` | Sonoran Neurological Institute | Luis Moreno's record and reminder. |
 
-**The password comes with the APK in the [access card](docs/DEMO.md#handoff).** Use that account's password, not your email password or the public Postman account. The organizer prepares and checks the data; the evaluator signs in and uses it.
+**The three primary accounts and their passwords are public:** see the [access table](docs/API.md#quick-start). Choose the account for the scenario you want to evaluate.
 
 [Step-by-step walkthrough and all nine accounts →](docs/DEMO.md#access)
 
@@ -51,7 +51,7 @@ The three scenarios contain **47 records, 27 attachments and six enrolled person
 <details>
 <summary><strong>I only want to try the API with Postman</strong></summary>
 
-Import [the collection](https://raw.githubusercontent.com/Luxisoft/realityos-spatial-memory/main/docs/postman/RealityOS.postman_collection.json) and run **Server requests → 00 Quick start**. It includes the public account `postman-demo@realityos.example.test` and password `RealityOS-Postman-Demo-2026!`. Its workspace is query-only and empty; the scenarios in the table use the accounts assigned above. [Short Postman guide →](docs/API.md#quick-start)
+Import [the public collection](https://raw.githubusercontent.com/Luxisoft/realityos-spatial-memory/main/docs/postman/RealityOS.postman_collection.json), open **01 Police**, **02 Nursing** or **03 Memory**, and click **Send**. All 39 requests include existing accounts, passwords, workspace IDs, resource IDs and questions. Login and renewal are automatic; requests use the current server data. [Guide and public accounts →](docs/API.md#quick-start)
 
 </details>
 

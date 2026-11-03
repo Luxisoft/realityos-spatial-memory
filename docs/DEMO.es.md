@@ -5,6 +5,8 @@
 
 # Recorridos de evaluación
 
+**[Checklist operativo de aceptación](IMPLEMENTATION_CHECKLIST.es.md)** · [Láminas listas para cámara](QA_VISUAL_FIXTURES.es.md). Registra pruebas manuales y evidencia técnica por versión antes de cerrar la entrega.
+
 Estos recorridos son ejemplos independientes de las capacidades de RealityOS. No forman una secuencia entre organizaciones ni agotan sus usos posibles. Cada prueba usa los datos y permisos de su propio espacio.
 
 [← Proyecto](../README.es.md) · [Entrega de hackathon](HACKATHON.es.md) · [Android](../android/README.es.md)
@@ -15,8 +17,8 @@ Estos recorridos son ejemplos independientes de las capacidades de RealityOS. No
 
 **Las nueve cuentas tienen foto de perfil, publicaciones y un grupo de trabajo asignado.** Los retratos de Ana, Luis y las demás personas forman parte de sus expedientes. El evaluador no tiene que descargar imágenes, importar JSON, subir fotos ni crear grupos para empezar.
 
-1. Recibe **app-debug.apk**, **usuario**, **contraseña** y **grupo** en una sola [ficha de acceso](#handoff). Si te falta la contraseña, el responsable completa la ficha antes de entregar la prueba.
-2. Instala el APK habitual del servidor ([descarga e instalación](../README.es.md#evaluate)). Abre **Continuar con correo → Iniciar sesión**. Escribe el usuario en **Usuario o correo** y la contraseña de la ficha. Estas cuentas ya están confirmadas.
+1. Descarga **app-debug.apk** y usa una de las tres [cuentas públicas incluidas](API.es.md#quick-start). Para Postman basta con importar la colección y pulsar **Send**.
+2. Instala el APK habitual del servidor ([descarga e instalación](../README.es.md#evaluate)). Abre **Continuar con correo → Iniciar sesión**. Escribe el usuario en **Usuario o correo** y su contraseña de la tabla pública. Estas cuentas ya están confirmadas.
 3. En **Perfil**, comprueba tu foto y abre una de tus publicaciones.
 4. En **Trabajo**, selecciona el grupo indicado abajo y pulsa **Registros del espacio**. Abre el expediente inicial para ver su contenido y adjuntos dentro de la app.
 
@@ -26,7 +28,7 @@ Estos recorridos son ejemplos independientes de las capacidades de RealityOS. No
 | Policial / Pacific Ridge Police Department | `alex-rivera`, `maya-johnson`, `daniel-kim` | Caso de prueba 1, notas y evidencia del turno. |
 | Memoria / Sonoran Neurological Institute | `noah-brooks`, `lucia-vega`, `owen-patel` | Luis Moreno: expediente, retrato y recordatorio. |
 
-Cada cuenta pertenece a su grupo de trabajo y tiene su espacio personal. El servidor contiene **47 registros, 27 adjuntos y seis retratos enrolados**. Las cuentas de la tabla usan contraseñas entregadas de forma privada. La cuenta pública de Postman tiene un espacio vacío independiente; Windows local también empieza vacío.
+Cada cuenta pertenece a su grupo de trabajo y tiene su espacio personal. El servidor contiene **47 registros, 27 adjuntos y seis retratos enrolados**. Las tres cuentas principales y sus contraseñas están [publicadas para el jurado](API.es.md#quick-start), por autorización del propietario. Postman las utiliza automáticamente sobre estos mismos datos.
 
 Comprobación HTTP del 3 de noviembre de 2026: las nueve cuentas acceden, sus avatares responden correctamente, cada una tiene dos o tres publicaciones propias y cada grupo tiene siete publicaciones. Se verificaron los seis retratos adjuntos y el rechazo de acceso entre grupos. Esta comprobación no sustituye una prueba física de Android o gafas.
 
@@ -35,29 +37,17 @@ Comprobación HTTP del 3 de noviembre de 2026: las nueve cuentas acceden, sus av
 | Situación | Qué hacer |
 | --- | --- |
 | No sé dónde entrar | Usa la app Android y **Continuar con correo → Iniciar sesión**. La dirección del servidor en el navegador no abre una app web. |
-| El acceso no funciona | Copia usuario y contraseña de la misma ficha. Estas cuentas no se registran de nuevo; sus direcciones `example.test` no reciben correos de recuperación. El responsable comprueba el acceso. |
-| Solo veo Postman Demo o un espacio vacío | Esa es la cuenta técnica de API. Cierra sesión y usa la cuenta de escenario de la ficha. |
+| El acceso no funciona | Usa usuario y contraseña de la misma fila de la tabla pública. Estas cuentas ya están confirmadas y sus direcciones `example.test` no reciben correos de recuperación. |
+| Solo veo Postman Demo o un espacio vacío | Importa la colección pública actual y abre Police, Nursing o Memory; las tres cuentas y espacios ya están configurados. |
 | No aparece mi foto, publicaciones o grupo | El responsable debe completar la cuenta antes de la prueba; el evaluador no tiene que preparar los datos. |
 
 <a id="handoff"></a>
 
-## Entregar una prueba lista (responsable)
+## Acceso público del jurado
 
-Entrega el APK y **una ficha por cuenta**, con todos los valores completos, en el mismo mensaje privado. Ejemplo para el recorrido de enfermería:
+Las [tres cuentas y contraseñas](API.es.md#quick-start) están incluidas en la colección pública. El propietario autorizó su publicación el 3 de noviembre de 2026. Se conservan sus roles y espacios actuales; no se crea otro servidor ni se duplican los datos.
 
-```text
-RealityOS — acceso de prueba
-APK: app-debug.apk adjunto
-Entrada: Continuar con correo → Iniciar sesión
-Usuario: elena-marquez
-Contraseña: [completar con la contraseña de esta cuenta]
-Grupo: California Valley Medical Center
-Primer paso: Perfil → ver foto y publicaciones.
-Después: Trabajo → California Valley Medical Center → Registros del espacio → Ana Solis.
-Datos: ya cargados; retrato, notas, registros relacionados y publicaciones.
-```
-
-Antes de enviarla, comprueba el inicio de sesión, el avatar, al menos una publicación propia, la pertenencia al grupo y la apertura del expediente y sus adjuntos. La preparación de cuentas y datos corresponde al responsable. Las credenciales existentes están en `.runtime/jury-workspace-credentials.json` (nueve cuentas); `.runtime/jury-access.json` conserva las tres principales. Son archivos privados del servidor, no archivos que deba buscar el evaluador ni publicar en GitHub.
+Para Postman, importa la colección y pulsa Send. Para Android, instala el APK y usa una de esas cuentas. Las otras seis cuentas de trabajadores y las claves de proveedores, integraciones e infraestructura no se publican con esta entrega.
 
 Los manifiestos [policial](../simulator/workspaces/security.json), [enfermería](../simulator/workspaces/hospital.json) y [memoria](../simulator/workspaces/memory.json) son material de mantenimiento. Los escenarios del servidor ya están importados. Para preparar otra instalación, el responsable sigue [datos e importaciones](WORKSPACE_DATA.es.md).
 

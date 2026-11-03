@@ -8,55 +8,30 @@
 
 <a id="quick-start"></a>
 
-## First test: import and run
+## Test existing server data: Import → Send
 
-**Use Postman desktop and the existing server.** The public account checks access and queries in an empty workspace. For prepared photos, posts and records in Android, use the [scenario account guide](DEMO.md#access).
+**The public collection contains 39 ready requests against the current server and its three workspaces.** Usernames, passwords, workspace IDs, record IDs, publication IDs and questions are already configured. No data entry, token copying, file selection or initial login request is needed.
 
-1. In Postman, open **Import** (in recent versions, **Use resources or import → Import**) and paste this link:
+1. In Postman, click **Import** and paste this link:
 
    ```text
    https://raw.githubusercontent.com/Luxisoft/realityos-spatial-memory/main/docs/postman/RealityOS.postman_collection.json
    ```
 
-2. Confirm the import and leave the environment selector on **No environment**. The collection already contains the username, password and workspace.
-3. Open **Server requests → 00 Quick start** and click **Send** on a request. Protected requests sign in automatically using the included credentials and renew expired tokens. To run all five requests together, click **Run**, then **Start run** if prompted.
-4. Check the responses:
+2. Leave **No environment** selected. Open **01 Police**, **02 Nursing** or **03 Memory**.
+3. Open any request and click **Send**. Sign-in and renewal run automatically. Use **Run** to execute an entire scenario folder.
 
-If an older collection shows **Consultas servidor / Consultas localhost**, these are the same folders; **00 Quick start / Inicio rápido** is the same quick start.
+| Folder | Included username | Included password | Existing workspace |
+| --- | --- | --- | --- |
+| 01 Police | `alex-rivera` | `liMPaFG6f8KPbzSRcNFFpdu74dHmVxU5` | Pacific Ridge Police Department |
+| 02 Nursing | `elena-marquez` | `GS112vlwNHjj4tVuaxDZrOpTs0s7lomj` | California Valley Medical Center |
+| 03 Memory | `noah-brooks` | `FqgO_9etDGlTkZDJj_MxYGekwFatXNMB` | Sonoran Neurological Institute |
 
-| Request | Expected result |
-| --- | --- |
-| `GET /health/live` | `200`: server available. |
-| `POST /v1/auth/login` | `200`: signed in; tokens saved automatically. |
-| `GET /v1/auth/me` | `200`: authenticated test account. |
-| `GET /v1/workspaces` | `200`: **Postman Demo - public test workspace** appears. |
-| `POST /v1/queries` | `200`: no matches because this workspace is empty. |
+These three evaluation accounts and passwords are public with the owner's authorization of November 3, 2026. They retain their existing administrator role in their workspace. The evaluation collection reads existing data. The server and providers are live; the prepared fictional people and scenes retain their recorded provenance.
 
-**Included access:** `postman-demo@realityos.example.test` / `RealityOS-Postman-Demo-2026!`. This shared account has query permission in its workspace, without administration or capture. It is already confirmed; its `example.test` address does not receive email. The official [import instructions](https://learning.postman.com/docs/getting-started/importing-and-exporting/importing-data/) and [folder run instructions](https://learning.postman.com/docs/tests-and-scripts/running-collections/intro-to-collection-runs/) describe Postman's controls.
+Each folder covers the current session, login, refresh, workspaces, record lists and details, revisions, gallery posts, image download, profiles and AI queries. Police opens case 1; Nursing opens Ana Solis; Memory opens Luis Moreno. The server contains 47 records and 21 group publications. Responses are fetched from the server when the request is sent.
 
-### Query a scenario with prepared data
-
-In **Collection → Variables**, set `server_email` to the username from your access card and `server_password` to its password. Clear `server_access_token` and `server_refresh_token`. Run **login**, then **GET /v1/workspaces**; copy the assigned group's ID into `server_workspace_id` before running the query. That group's photos and records are already loaded; the public account cannot access them.
-
-<details>
-<summary><strong>Optional: test your localhost installation</strong></summary>
-
-Complete the [Windows setup](DEPLOYMENT_LOCALHOST.md) first. Then run this once from the repository root:
-
-```powershell
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\local\Enable-PostmanDemo.ps1
-```
-
-Run **Localhost requests → 00 Quick start**. This folder uses the included `http://localhost:8080`, `postman-local@realityos.example.test` and `RealityOS-Postman-Local-2026!`. Setup creates an independent local query account and empty workspace. It does not copy server scenarios or credentials.
-
-</details>
-
-<details>
-<summary><strong>Optional: environments and your own account</strong></summary>
-
-Downloadable environments contain the same demo variables and are optional. An active environment overrides the collection: edit its values or return to **No environment** to avoid mixing accounts. Tokens are saved after login; they are not published on GitHub. A new personal account requires confirmation through a real email address. [Postman variable scopes](https://learning.postman.com/docs/sending-requests/variables/variables/).
-
-</details>
+The [public environment](postman/RealityOS.public.postman_environment.json) is optional and contains the same values. Replacing them with your own account is entirely optional. [Use these accounts in Android](DEMO.md#access).
 
 ## Choose an operation
 
@@ -79,31 +54,15 @@ Downloadable environments contain the same demo variables and are optional. An a
 
 ## Variables and authentication
 
-Every variable starts with `server_` or `localhost_`. Each folder exclusively references its prefix, including tokens, IDs and write controls. Additional local routes only appear under **Localhost requests → Local installation only**.
+The `security_`, `hospital_` and `memory_` prefixes keep accounts, sessions and resource IDs separate. All required values are included. Only tokens and `session_identity` start empty: scripts obtain them automatically before sending a protected request. Authentication failure stops the request. Changing the account or API origin starts a new session.
 
-| Variable (add the prefix) | Value or purpose |
-| --- | --- |
-| `base_url` | Preconfigured origin without `/v1`. If you change `LOCAL_HTTP_PORT`, update `localhost_base_url`. |
-| `email`, `username`, `password`, `display_name` | Preconfigured demo account; replace with your own account if needed. |
-| `access_token`, `refresh_token` | Obtained and renewed automatically on Send, even without an active environment. |
-| `session_identity` | Managed automatically to keep sessions tied to their configured API and account. |
-| `user_id`, `workspace_id` | Demo account and workspace IDs; independent per target. |
-| `query`, `language` | Editable example question and language (`en` or `es`). |
-| `new_email`, `new_password` | New address/password for correcting or recovering your own account; distinct from current credentials. |
-| Other IDs | Declared and described; fill from authorized responses. No invented IDs for nonexistent media or records. |
-| `device_id`, `device_key`, `integration_key`, `facebook_access_token`, `token` | Issued by device/integration provisioning, Facebook login or an action link; not demo credentials. |
-| `enable_write_requests` | Initially `false`; independent per target. |
+`query` is the visual question and `record_question` searches records; `language=en` requests English AI answers. Observations report when something was last seen. A response without matches does not fabricate evidence.
 
-[Prepare the Windows installation](DEPLOYMENT_LOCALHOST.md). The collection does not install the local backend.
+## Complete reference for integrators
 
-## Files, examples and execution
+The [reference collection](postman/RealityOS.reference.postman_collection.json) preserves all 324 server and localhost requests, including writes, devices and integrations. Those templates need each operation's own permissions, files and credentials. Its optional environments are [server](postman/RealityOS.reference.postman_environment.json) and [localhost](postman/RealityOS.local.postman_environment.json). They are not needed to run the public jury collection.
 
-- In **Body → form-data**, choose your file in the File field. Enable it if it is optional and disabled. Postman supplies the multipart `Content-Type` and boundary.
-- Image queries: JPEG/PNG/WebP; audio queries: WAV. Captures accept images and video according to the contract. CV uploads accept PDF/DOCX.
-- Included bodies are synthetic templates: complete fields and replace IDs before sending. For face search, choose an authorized photo/video or existing media; reusing an enrollment photo tests integration only.
-- Writes are skipped while `server_enable_write_requests=false` / `localhost_enable_write_requests=false`. Explicitly enable it for capture, enrollment or administration tests. Start with individual requests; running the entire collection includes creation, revocation and deletion operations.
-- AI queries, transcription and speech can use provider credits even when they do not create evidence. Importing the collection sends no requests.
-- A 200 may contain `found=false`, partial results or `simulated`. Inspect the body, source and date. Facial similarity is not identity probability.
+Reference writes retain `enable_write_requests=false`. The [Windows installation](DEPLOYMENT_LOCALHOST.md) remains optional and is not needed to evaluate the existing server data.
 
 ## Troubleshooting
 

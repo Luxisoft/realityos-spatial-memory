@@ -5,6 +5,8 @@
 
 # Evaluation walkthroughs
 
+**[Operational acceptance checklist](IMPLEMENTATION_CHECKLIST.md)** · [Camera-ready visual cards](QA_VISUAL_FIXTURES.md). Record manual tests and technical evidence per release before closing the submission.
+
 These walkthroughs are independent examples of RealityOS capabilities. They are not a sequence across organizations or an exhaustive list of uses. Each test uses its own workspace's data and permissions.
 
 [← Project](../README.md) · [Hackathon delivery](HACKATHON.md) · [Android](../android/README.md)
@@ -15,8 +17,8 @@ These walkthroughs are independent examples of RealityOS capabilities. They are 
 
 **All nine accounts have a profile photo, posts and an assigned work group.** Ana's, Luis's and the other people's portraits are part of their records. Evaluators do not need to download images, import JSON, upload photos or create groups to get started.
 
-1. Receive **app-debug.apk**, **username**, **password** and **group** in one [access card](#handoff). If the password is missing, the organizer completes the card before handing over the test.
-2. Install the regular server APK ([download and installation](../README.md#evaluate)). Open **Continue with email → Sign in**. Enter the username in **Username or email** and the password from the card. These accounts are already confirmed.
+1. Download **app-debug.apk** and use one of the three [included public accounts](API.md#quick-start). For Postman, import the collection and click **Send**.
+2. Install the regular server APK ([download and installation](../README.md#evaluate)). Open **Continue with email → Sign in**. Enter the username in **Username or email** and its password from the public table. These accounts are already confirmed.
 3. In **Profile**, check your photo and open one of your posts.
 4. In **Work**, select the group below and tap **Workspace records**. Open the first record to see its content and attachments inside the app.
 
@@ -26,7 +28,7 @@ These walkthroughs are independent examples of RealityOS capabilities. They are 
 | Police / Pacific Ridge Police Department | `alex-rivera`, `maya-johnson`, `daniel-kim` | Test case 1, notes and shift evidence. |
 | Memory / Sonoran Neurological Institute | `noah-brooks`, `lucia-vega`, `owen-patel` | Luis Moreno: record, portrait and reminder. |
 
-Each account belongs to its work group and has a personal workspace. The server contains **47 records, 27 attachments and six enrolled portraits**. Accounts in the table use privately supplied passwords. The public Postman account has a separate empty workspace; Windows local also starts empty.
+Each account belongs to its work group and has a personal workspace. The server contains **47 records, 27 attachments and six enrolled portraits**. The three primary accounts and their passwords are [published for judges](API.md#quick-start), with the owner's authorization. Postman uses these accounts automatically against the same existing data.
 
 HTTP check on November 3, 2026: all nine accounts sign in, their avatars respond successfully, each account has two or three own posts and each group has seven posts. All six attached portraits and rejection of access across groups were checked. This does not replace physical Android or glasses testing.
 
@@ -35,29 +37,17 @@ HTTP check on November 3, 2026: all nine accounts sign in, their avatars respond
 | Situation | What to do |
 | --- | --- |
 | I do not know where to sign in | Use the Android app and **Continue with email → Sign in**. Opening the server address in a browser does not launch a web app. |
-| Sign-in fails | Copy the username and password from the same card. These accounts do not need to register again; their `example.test` addresses cannot receive recovery email. The organizer checks access. |
-| I only see Postman Demo or an empty workspace | That is the technical API account. Sign out and use the scenario account from the card. |
+| Sign-in fails | Use the username and password from the same row of the public table. These accounts are already confirmed; their `example.test` addresses cannot receive recovery email. |
+| I only see Postman Demo or an empty workspace | Import the current public collection and open Police, Nursing or Memory; all three accounts and workspaces are already configured. |
 | My photo, posts or group are missing | The organizer must complete the account before the test; evaluators do not prepare the data. |
 
 <a id="handoff"></a>
 
-## Hand over a ready test (organizer)
+## Public jury access
 
-Send the APK and **one completed card per account** in the same private message. Example for the nursing walkthrough:
+The [three accounts and passwords](API.md#quick-start) are included in the public collection. The owner authorized their release on November 3, 2026. They retain their current roles and workspaces; the existing server and data are used directly.
 
-```text
-RealityOS — test access
-APK: app-debug.apk attached
-Entry: Continue with email → Sign in
-Username: elena-marquez
-Password: [fill in this account's password]
-Group: California Valley Medical Center
-First: Profile → view photo and posts.
-Then: Work → California Valley Medical Center → Workspace records → Ana Solis.
-Data: already loaded; portrait, notes, related records and posts.
-```
-
-Before sending it, check sign-in, the avatar, at least one own post, group membership, and access to the record and its attachments. Account and data preparation belongs to the organizer. Existing credentials are in `.runtime/jury-workspace-credentials.json` (nine accounts); `.runtime/jury-access.json` holds the three primary accounts. These are private server files, not files for evaluators to find or publish on GitHub.
+For Postman, import the collection and click Send. For Android, install the APK and use one of these accounts. The other six worker accounts and provider, integration and infrastructure keys are not published in this release.
 
 The [police](../simulator/workspaces/security.json), [nursing](../simulator/workspaces/hospital.json) and [memory](../simulator/workspaces/memory.json) manifests are maintenance material. Server scenarios are already imported. To prepare another installation, the organizer follows [data imports](WORKSPACE_DATA.md).
 

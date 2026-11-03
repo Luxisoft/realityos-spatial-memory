@@ -8,55 +8,30 @@
 
 <a id="quick-start"></a>
 
-## Primera prueba: importar y ejecutar
+## Probar los datos existentes: Import → Send
 
-**Usa Postman de escritorio y el servidor ya instalado.** La cuenta pública comprueba acceso y consultas en un espacio vacío. Para ver fotos, publicaciones y expedientes preparados en Android, usa la [guía de cuentas de escenario](DEMO.es.md#access).
+**La colección pública incluye 39 solicitudes listas contra el servidor actual y sus tres espacios.** Usuario, contraseña, workspace, expediente, publicación y preguntas ya están configurados. No hace falta escribir datos, copiar tokens, seleccionar archivos ni ejecutar un login previo.
 
-1. En Postman, abre **Import** (en versiones recientes, **Use resources or import → Import**) y pega este enlace:
+1. En Postman, pulsa **Import** y pega este enlace:
 
    ```text
    https://raw.githubusercontent.com/Luxisoft/realityos-spatial-memory/main/docs/postman/RealityOS.postman_collection.json
    ```
 
-2. Confirma la importación y deja el selector de entorno en **No environment**. Usuario, contraseña y espacio ya vienen en la colección.
-3. Abre **Server requests → 00 Quick start** y pulsa **Send** en una solicitud. Las peticiones protegidas inician sesión con las credenciales incluidas y renuevan los tokens caducados automáticamente. Para ejecutar las cinco juntas, pulsa **Run** y después **Start run** si aparece.
-4. Comprueba las respuestas:
+2. Deja seleccionado **No environment**. Abre **01 Police**, **02 Nursing** o **03 Memory**.
+3. Abre cualquier petición y pulsa **Send**. El acceso y la renovación son automáticos. Puedes usar **Run** para ejecutar una carpeta completa.
 
-Si tu colección anterior muestra **Consultas servidor / Consultas localhost**, son las mismas carpetas; **00 Quick start / Inicio rápido** es el mismo inicio rápido.
+| Carpeta | Usuario incluido | Contraseña incluida | Espacio existente |
+| --- | --- | --- | --- |
+| 01 Police | `alex-rivera` | `liMPaFG6f8KPbzSRcNFFpdu74dHmVxU5` | Pacific Ridge Police Department |
+| 02 Nursing | `elena-marquez` | `GS112vlwNHjj4tVuaxDZrOpTs0s7lomj` | California Valley Medical Center |
+| 03 Memory | `noah-brooks` | `FqgO_9etDGlTkZDJj_MxYGekwFatXNMB` | Sonoran Neurological Institute |
 
-| Solicitud | Resultado esperado |
-| --- | --- |
-| `GET /health/live` | `200`: servidor disponible. |
-| `POST /v1/auth/login` | `200`: inicio de sesión; guarda los tokens automáticamente. |
-| `GET /v1/auth/me` | `200`: cuenta de prueba autenticada. |
-| `GET /v1/workspaces` | `200`: aparece **Postman Demo - public test workspace**. |
-| `POST /v1/queries` | `200`: consulta sin coincidencias porque este espacio está vacío. |
+Estas tres cuentas de evaluación y sus contraseñas son públicas por autorización del propietario del 3 de noviembre de 2026. Conservan su rol actual de administrador en su espacio. La colección de evaluación consulta datos existentes. Los proveedores y el servidor son reales; las personas y escenas preparadas conservan su procedencia ficticia.
 
-**Acceso incluido:** `postman-demo@realityos.example.test` / `RealityOS-Postman-Demo-2026!`. Es una cuenta compartida con permiso de consulta en su espacio, sin administración ni captura. Ya está confirmada; su dirección `example.test` no recibe correo. Los [pasos oficiales de importación](https://learning.postman.com/docs/getting-started/importing-and-exporting/importing-data/) y [ejecución de carpetas](https://learning.postman.com/docs/tests-and-scripts/running-collections/intro-to-collection-runs/) detallan los controles de Postman.
+Cada carpeta permite probar sesión, login, renovación, espacios, listado y detalle de expedientes, revisiones, publicaciones, descarga de una imagen, perfiles y consultas de IA. Policía abre el caso 1; Enfermería abre Ana Solis; Memoria abre Luis Moreno. El servidor contiene 47 expedientes y 21 publicaciones de grupo. Las respuestas se obtienen del servidor al enviar la petición.
 
-### Consultar un escenario con datos preparados
-
-En **Collection → Variables**, pon el usuario de tu ficha en `server_email` y su contraseña en `server_password`. Vacía `server_access_token` y `server_refresh_token`. Ejecuta **login** y después **GET /v1/workspaces**; copia el ID del grupo asignado a `server_workspace_id` antes de ejecutar la consulta. Las fotos y expedientes de ese grupo ya están cargados; la cuenta pública no tiene acceso a ellos.
-
-<details>
-<summary><strong>Opcional: probar tu instalación localhost</strong></summary>
-
-Primero completa la [instalación Windows](DEPLOYMENT_LOCALHOST.es.md). Después, desde la raíz del repositorio, ejecuta una sola vez:
-
-```powershell
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\local\Enable-PostmanDemo.ps1
-```
-
-Ejecuta **Localhost requests → 00 Quick start**. Esta carpeta usa `http://localhost:8080`, `postman-local@realityos.example.test` y `RealityOS-Postman-Local-2026!`, ya incluidos. Crea una cuenta local de consulta y un espacio vacío independiente. No copia los escenarios ni las credenciales del servidor.
-
-</details>
-
-<details>
-<summary><strong>Opcional: entornos y cuenta propia</strong></summary>
-
-Los archivos de entorno descargables contienen las mismas variables demo y son opcionales. Un entorno activo prevalece sobre la colección: edita sus valores o vuelve a **No environment** para evitar mezclar cuentas. Los tokens se guardan tras el login; no se publican en GitHub. Una cuenta propia nueva requiere confirmar un correo real. [Alcance de variables de Postman](https://learning.postman.com/docs/sending-requests/variables/variables/).
-
-</details>
+El [entorno público](postman/RealityOS.public.postman_environment.json) es opcional y contiene los mismos valores. Para usar otra cuenta, cambia sus variables; hacerlo es completamente opcional. [Acceso Android con estas cuentas](DEMO.es.md#access).
 
 ## Qué operación necesito
 
@@ -79,31 +54,15 @@ Los archivos de entorno descargables contienen las mismas variables demo y son o
 
 ## Variables y autenticación
 
-Todas las variables llevan `server_` o `localhost_`. Cada carpeta referencia exclusivamente su prefijo, incluidos tokens, IDs y controles de escritura. Las rutas locales adicionales solo aparecen dentro de **Localhost requests → Local installation only**.
+Los prefijos `security_`, `hospital_` y `memory_` mantienen separadas las cuentas, sesiones e IDs. Todos los valores necesarios están incluidos. Solo los tokens y `session_identity` empiezan vacíos: el script los obtiene automáticamente antes de enviar una petición protegida. Un fallo de autenticación detiene la petición. Cambiar la cuenta o URL inicia otra sesión.
 
-| Variable (añadir el prefijo) | Valor o uso |
-| --- | --- |
-| `base_url` | URL preconfigurada, sin `/v1`. Si cambias `LOCAL_HTTP_PORT`, actualiza `localhost_base_url`. |
-| `email`, `username`, `password`, `display_name` | Cuenta demo preconfigurada; sustituibles por tu cuenta. |
-| `access_token`, `refresh_token` | Se obtienen y renuevan automáticamente al pulsar Send, incluso sin entorno activo. |
-| `session_identity` | Se gestiona automáticamente para asociar cada sesión a su API y cuenta configuradas. |
-| `user_id`, `workspace_id` | IDs de la cuenta y espacio demo; se mantienen separados por destino. |
-| `query`, `language` | Pregunta de ejemplo e idioma (`en` o `es`), editables. |
-| `new_email`, `new_password` | Destino nuevo o contraseña nueva para corregir/recuperar una cuenta propia; no reemplazan las credenciales actuales. |
-| Otros IDs | Declarados y descritos; completar con respuestas autorizadas. No hay IDs ficticios de medios o expedientes inexistentes. |
-| `device_id`, `device_key`, `integration_key`, `facebook_access_token`, `token` | Se obtienen al provisionar el dispositivo/integración, iniciar Facebook o recibir un enlace; no son credenciales de la demo. |
-| `enable_write_requests` | `false` inicialmente; el control es independiente por destino. |
+`query` es la pregunta visual y `record_question` consulta expedientes; `language=en` solicita respuestas de IA en inglés. Las observaciones indican «visto por última vez». Una respuesta sin coincidencias no inventa evidencia.
 
-[Preparar la instalación Windows](DEPLOYMENT_LOCALHOST.es.md). La colección no instala el backend local.
+## Referencia completa para integradores
 
-## Archivos, ejemplos y ejecución
+La [colección de referencia](postman/RealityOS.reference.postman_collection.json) conserva las 324 solicitudes de servidor y localhost del contrato, incluidas operaciones de escritura, dispositivos e integraciones. Esas plantillas requieren los permisos, archivos y credenciales propios de cada operación. Sus entornos opcionales son [servidor](postman/RealityOS.reference.postman_environment.json) y [localhost](postman/RealityOS.local.postman_environment.json). No hacen falta para ejecutar la colección pública del jurado.
 
-- En **Body → form-data**, selecciona tu archivo en el campo de tipo File. Activa el campo si es opcional y desactivado. Postman añade el `Content-Type` multipart y su boundary.
-- Consulta por imagen: JPEG/PNG/WebP; consulta de voz: WAV. Capturas admiten imagen y video conforme al contrato. Los CV aceptan PDF/DOCX.
-- Los cuerpos incluidos son plantillas sintéticas: completa los campos y sustituye IDs antes de enviar. Para un rostro, selecciona una foto/video autorizado o un medio existente; una imagen de enrolamiento repetida solo prueba integración.
-- Las escrituras se omiten mientras `server_enable_write_requests=false` / `localhost_enable_write_requests=false`. Actívalo explícitamente para una prueba de captura, enrolamiento o administración. Ejecuta primero una solicitud individual; ejecutar toda la colección incluye operaciones de alta, revocación y borrado.
-- Consultas con IA, transcripción y voz pueden consumir proveedores aunque no creen evidencia. La colección no hace llamadas por el mero hecho de importarla.
-- Un 200 puede contener `found=false`, resultados parciales o `simulated`. Revisa el cuerpo, la fuente y la fecha. La similitud facial no es probabilidad de identidad.
+Las escrituras de la referencia conservan `enable_write_requests=false`. La [instalación Windows](DEPLOYMENT_LOCALHOST.es.md) sigue siendo opcional y no se necesita para evaluar los datos del servidor.
 
 ## Resolver problemas
 

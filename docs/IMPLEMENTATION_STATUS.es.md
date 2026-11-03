@@ -284,6 +284,25 @@ autenticación detiene la petición; se conservan permisos y controles de escrit
 Pasaron 11 pruebas de documentación/permisos demo, 324 comprobaciones de scripts,
 166 controles de escritura, regeneración, formato/lint y arquitectura. Newman
 verificó consulta directa con login automático, usuario, refresh y espacios contra
-el servidor real: cinco aserciones y cero fallos. La colección sobre los espacios
-existentes está preparada de forma privada; publicar ese acceso queda pendiente
-de la elección del propietario sobre los permisos de la cuenta pública.
+el servidor real: cinco aserciones y cero fallos. El propietario autorizó posteriormente publicar la colección de los espacios existentes; ver la actualización siguiente.
+
+
+## Colección pública del jurado con datos existentes — 2026-11-03
+
+La descarga principal contiene 39 solicitudes en Police, Nursing y Memory, con
+45 variables: las tres cuentas existentes y sus contraseñas, espacios, expedientes,
+publicaciones y preguntas precargados. El propietario autorizó expresamente su
+publicación. No se crearon cuentas, espacios, datos ni servidores. Conservan sus
+roles de administrador; proveedores, JWT, DB, integraciones y las otras seis
+contraseñas de trabajadores permanecen privados.
+
+Basta importar y pulsar Send; login y renovación son automáticos. La referencia
+completa conserva las 324 plantillas API y la configuración servidor/localhost.
+Pasaron 12 pruebas de documentación/permisos, resolución offline de las 39
+solicitudes, 324 scripts, 166 controles de escritura, esquema Postman, regeneración,
+formato/lint y arquitectura. Newman comprobó usuarios, expedientes, aislamiento de
+espacios y publicaciones: 38 peticiones pasaron de inmediato; Memoria recibió un
+503 temporal y respondió 200 con cuatro coincidencias de galería al repetirla
+(50,5 segundos). Se ejercitaron correctamente las 39; no se afirma que el proveedor
+IA esté libre de fallos. Evidencia en `.runtime/postman-public-verification.json`
+y `.runtime/postman-memory-retry.json`. Sin cambios de contrato backend/Android.

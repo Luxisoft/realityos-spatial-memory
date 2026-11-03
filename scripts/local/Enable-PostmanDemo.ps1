@@ -11,4 +11,4 @@ foreach ($file in @('demo.json', 'provision.py')) {
     Invoke-LocalCompose $root @('cp', (Join-Path $root ('simulator/postman/' + $file)), ('api:/tmp/realityos-postman/' + $file))
 }
 Invoke-LocalCompose $root @('exec', '-T', 'api', 'python', '/tmp/realityos-postman/provision.py', '--realm', 'localhost', '--apply')
-Write-Host 'Local Postman account ready. Import the collection and run Localhost requests / 00 Quick start.'
+Write-Host 'Local Postman account ready. Import RealityOS.reference.postman_collection.json and run Localhost requests / 00 Quick start.'

@@ -42,7 +42,7 @@ Permite encontrar personas y objetos, consultar información relacionada y recup
 | Policial | `alex-rivera` | Pacific Ridge Police Department | Caso de prueba 1 y evidencia del turno. |
 | Memoria | `noah-brooks` | Sonoran Neurological Institute | Expediente de Luis Moreno y su recordatorio. |
 
-**La contraseña llega junto al APK en la [ficha de acceso](docs/DEMO.es.md#handoff).** Es la contraseña de esa cuenta, no la de tu correo ni la cuenta pública de Postman. El responsable prepara y verifica los datos; quien prueba entra y los usa.
+**Las tres cuentas principales y sus contraseñas son públicas:** consulta la [tabla de acceso](docs/API.es.md#quick-start). Usa la cuenta del escenario que quieras evaluar.
 
 [Recorrido paso a paso y las nueve cuentas →](docs/DEMO.es.md#access)
 
@@ -51,7 +51,7 @@ Los tres escenarios contienen **47 registros, 27 adjuntos y seis retratos de per
 <details>
 <summary><strong>Solo quiero probar la API con Postman</strong></summary>
 
-Importa [la colección](https://raw.githubusercontent.com/Luxisoft/realityos-spatial-memory/main/docs/postman/RealityOS.postman_collection.json) y ejecuta **Server requests → 00 Quick start**. Ya incluye la cuenta pública `postman-demo@realityos.example.test` y la contraseña `RealityOS-Postman-Demo-2026!`. Su espacio es de consulta y está vacío; los escenarios de la tabla usan las cuentas asignadas arriba. [Guía breve de Postman →](docs/API.es.md#quick-start)
+Importa [la colección pública](https://raw.githubusercontent.com/Luxisoft/realityos-spatial-memory/main/docs/postman/RealityOS.postman_collection.json), abre **01 Police**, **02 Nursing** o **03 Memory** y pulsa **Send**. Las 39 peticiones incluyen las tres cuentas existentes, contraseñas, workspace, IDs y preguntas. Login y renovación son automáticos; se consultan los datos actuales del servidor. [Guía y cuentas públicas →](docs/API.es.md#quick-start)
 
 </details>
 

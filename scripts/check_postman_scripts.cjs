@@ -2,8 +2,9 @@
 const fs = require('node:fs');
 const vm = require('node:vm');
 const assert = require('node:assert/strict');
-const c = JSON.parse(fs.readFileSync('docs/postman/RealityOS.postman_collection.json'));
-const defaults = Object.fromEntries(c.variable.map(v => [v.key, v.value]));
+const c = JSON.parse(fs.readFileSync('docs/postman/RealityOS.reference.postman_collection.json'));
+const jury = JSON.parse(fs.readFileSync('docs/postman/RealityOS.postman_collection.json'));
+const defaults = Object.fromEntries([...c.variable, ...jury.variable].map(v => [v.key, v.value]));
 const walk = items => items.flatMap(i => i.item ? walk(i.item) : [i]);
 function execute(item, listen, values = {}, environment = {}, code = 200, body = {}, replies = []) {
   let skipped = false;
@@ -124,4 +125,23 @@ for (const [index, target] of c.item.entries()) {
   }
   assert.throws(() => execute(query, 'prerequest', cached, {}, 200, {}, [{ code: 503 }]), /Session validation failed/);
 }
-console.log(`PASS: ${walk(c.item).length} request scripts; ${guards} write guards; automatic login/refresh on Send; account/origin changes and failures; isolated sessions and workspace IDs. No HTTP requests.`);
+for (const [index, target] of jury.item.entries()) {
+  const prefix = ['security_', 'hospital_', 'memory_'][index];
+  for (const item of target.item) {
+    const result = execute(item, 'prerequest');
+    assert(!result.skipped);
+    const values = { ...defaults, ...result.collection, ...result.local };
+    const resolve = text => text.replace(/{{([^}]+)}}/g, (_, key) => {
+      assert(values[key], 'Unfilled input: ' + key);
+      assert(key.startsWith(prefix), 'Cross-scenario input: ' + key);
+      return values[key];
+    });
+    const request = JSON.parse(resolve(JSON.stringify(item.request)));
+    assert(request.url.raw.startsWith('https://realityos.luxisoft.com/'));
+    if (request.auth.type === 'bearer') assert.equal(request.auth.bearer[0].value, 'auto-access');
+    if (request.body?.mode === 'raw') JSON.parse(request.body.raw);
+    assert(!request.body?.formdata, 'Jury request requires a file selection');
+    for (const call of result.calls) assert.equal(call.url, 'https://realityos.luxisoft.com/v1/auth/login');
+  }
+}
+console.log(`PASS: ${walk(jury.item).length} jury requests resolve on Send with no manual inputs; ${walk(c.item).length} reference scripts; ${guards} write guards; automatic login/refresh; isolated scenario sessions. No HTTP requests.`);

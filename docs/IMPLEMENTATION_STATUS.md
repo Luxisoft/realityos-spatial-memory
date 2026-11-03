@@ -311,5 +311,29 @@ Validation: 11 documentation/demo permission tests, 324 offline script checks,
 166 write guards, generation checks, formatting/lint and architecture checks passed.
 Newman verified query-first automatic login, current user, explicit refresh and
 workspace listing against the real server: five assertions, zero failures.
-The existing-workspace collection is prepared privately; publishing access to
-those records remains pending the owner's choice of public account permissions.
+The owner subsequently authorized public release of the existing-workspace collection; see the update below.
+
+
+## Public jury collection on existing data — 2026-11-03
+
+The main public Postman download now contains 39 prepared requests in Police,
+Nursing and Memory folders. Its 45 variables include the three existing account
+passwords and real workspace, record and publication IDs, as explicitly authorized
+by the owner. No new account, workspace, dataset or server was created. Accounts
+retain their existing administrator roles. Meta/ElevenLabs, JWT, database,
+integration credentials and the other six worker passwords remain private.
+
+Import the collection and click Send on any request; no manual login, token,
+file or ID entry is needed. Responses come from the existing server. The optional
+public environment mirrors those values. The separate reference collection keeps
+all 324 API templates and the existing server/localhost configuration.
+
+Validation: 12 documentation/demo permission tests, offline resolution of all
+39 jury requests, 324 reference scripts, 166 write guards, Postman v2.1 schema,
+reproducible generation, lint/format and architecture checks passed. Live Newman
+checked the selected users, records, workspace boundaries and publications: 38
+requests passed immediately; the Memory AI query returned a transient 503, then
+200 with four gallery matches on a targeted retry (50.5 seconds). All 39 prepared
+requests were exercised successfully, without claiming external AI is error-free.
+Evidence is in `.runtime/postman-public-verification.json` and
+`.runtime/postman-memory-retry.json`. No backend/Android contract changed.

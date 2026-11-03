@@ -1,17 +1,21 @@
 <p align="center"><a href="README.md"><img src="../assets/readme/language-en-active.svg" alt="English" height="32"></a> <a href="README.es.md"><img src="../assets/readme/language-es.svg" alt="Español" height="32"></a></p>
 
-# Postman: import and test
+# Postman: existing data, ready to Send
 
-[API / steps](../API.md) · [Documentation index](../README.md)
+[API and included accounts](../API.md#quick-start) · [Documentation](../README.md)
+
+1. [Download and import the public collection](https://raw.githubusercontent.com/Luxisoft/realityos-spatial-memory/main/docs/postman/RealityOS.postman_collection.json).
+2. Select **No environment** and open **01 Police**, **02 Nursing** or **03 Memory**.
+3. Open any request and click **Send**. All 39 requests have their inputs included; login and renewal are automatic.
+
+The collection uses the three existing accounts authorized for publication and the server's current records, profiles and publications. No other installation or data preparation is needed.
 
 | Download | Usage |
 | --- | --- |
-| [↓ RealityOS.postman_collection.json](https://raw.githubusercontent.com/Luxisoft/realityos-spatial-memory/main/docs/postman/RealityOS.postman_collection.json) | Full collection and quick start |
-| [↓ RealityOS.public.postman_environment.json](https://raw.githubusercontent.com/Luxisoft/realityos-spatial-memory/main/docs/postman/RealityOS.public.postman_environment.json) | Optional: server with included public demo account |
-| [↓ RealityOS.local.postman_environment.json](https://raw.githubusercontent.com/Luxisoft/realityos-spatial-memory/main/docs/postman/RealityOS.local.postman_environment.json) | Optional: localhost with included demo account; requires local setup |
+| [Public collection](RealityOS.postman_collection.json) | All 39 prepared evaluation requests. |
+| [Optional public environment](RealityOS.public.postman_environment.json) | The same prefilled values; importing it is optional. |
+| [Complete API reference](RealityOS.reference.postman_collection.json) | 324 templates for integrators, including writes and devices. |
+| [Reference server environment](RealityOS.reference.postman_environment.json) | Only for the reference collection. |
+| [Reference localhost environment](RealityOS.local.postman_environment.json) | Only for an already prepared local installation. |
 
-**To start, import only the collection and select No environment.** Open **Server requests → 00 Quick start** and click **Send** on a request. The account, password and IDs are already included; sign-in and token renewal run automatically. Use **Run** to execute the whole subfolder.
-
-[Buttons and expected results →](../API.md#quick-start). The public account uses an empty workspace; to try the app with prepared photos, posts and groups, use [scenario accounts](../DEMO.md#access).
-
-The environments in the table are optional. For your own account, change its variables and sign in again. Writes require `server_enable_write_requests=true` or `localhost_enable_write_requests=true` and account permissions. Response examples are synthetic.
+Replacing variables with your own data is optional. [Android evaluation accounts](../DEMO.md#access).

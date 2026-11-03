@@ -69,6 +69,14 @@ or reuse production credentials automatically for this setup.
 
 ## Git delivery
 
+Owner authorization (2026-11-03): publish the three existing jury evaluation
+accounts listed in `simulator/postman/jury.json`, including their passwords,
+in the public Postman collection so judges can click Send against the existing
+server data. This is an explicit exception for those three test accounts only.
+Do not replace their preconfigured access with an empty workspace or require a
+private credential handoff. Provider, integration, database, JWT and other account
+credentials remain private; session tokens are obtained at request time.
+
 Owner preference (2026-11-01): commit and push project changes directly to
 `main`. Do not create feature branches or draft PRs unless the owner explicitly
 requests them. Run the relevant checks before pushing; `main` triggers CI and

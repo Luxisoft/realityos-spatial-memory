@@ -688,5 +688,15 @@ la ejecución del instalador demo en Windows físico sigue pendiente.
 Postman en inglés y Send automático (2026-11-03): colección y entornos con
 98 variables, acceso y renovación automáticos por destino; 11 pruebas de
 documentación/permisos y 324 scripts aprobados. Flujo real de consulta sin token
-previo verificado con Newman. Preparada colección privada sobre los tres espacios
-existentes; pendiente decidir el acceso público antes de publicar sus credenciales.
+previo verificado con Newman. El propietario autorizó publicar la colección sobre los tres espacios existentes; ver la actualización siguiente.
+
+
+Postman público para jurados (2026-11-03): el propietario autorizó publicar las
+tres cuentas existentes de evaluación y sus contraseñas. La colección principal
+usa los datos actuales del servidor: 39 peticiones, 45 variables, Send con acceso
+automático, expedientes/perfiles/publicaciones seleccionados. Fixture autorizado:
+`simulator/postman/jury.json`. La referencia completa de 324 peticiones vive en
+`RealityOS.reference.postman_collection.json`. Sin cambios de backend, permisos,
+datos o Android. Las 39 peticiones se verificaron; una consulta IA tuvo 503
+temporal y respondió 200 con cuatro coincidencias al reintentar. Doce pruebas
+Python y comprobaciones de scripts, esquema, regeneración y lint aprobadas.

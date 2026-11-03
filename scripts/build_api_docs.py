@@ -1,6 +1,7 @@
 """Generate public API reference and Postman examples from the checked-in contract.
 
-No requests, credentials, database connections or runtime configuration are used.
+Uses owner-approved public evaluation fixtures without network requests,
+database connections or private runtime configuration.
 """
 
 import argparse
@@ -8,6 +9,8 @@ import copy
 import json
 import re
 from pathlib import Path
+
+from build_jury_postman import publish
 
 ROOT = Path(__file__).resolve().parents[1]
 METHODS = {"get", "post", "put", "patch", "delete", "head", "options"}
@@ -603,12 +606,12 @@ def generate(spec, check=False):
             "_postman_variable_scope": "environment",
         }
         write(
-            f"docs/postman/RealityOS.{realm}.postman_environment.json",
+            f"docs/postman/RealityOS.{'reference' if realm == 'public' else realm}.postman_environment.json",
             json.dumps(env, indent=2, ensure_ascii=False) + "\n",
             check,
         )
     write(
-        "docs/postman/RealityOS.postman_collection.json",
+        "docs/postman/RealityOS.reference.postman_collection.json",
         json.dumps(collection, indent=2, ensure_ascii=False) + "\n",
         check,
     )
@@ -618,7 +621,7 @@ def generate(spec, check=False):
         lines = [
             nav("API_REFERENCE", es),
             "# " + ("Referencia de operaciones" if es else "Operation reference"),
-            f"[← API](API{suffix}.md) · [Postman](postman/RealityOS.postman_collection.json)",
+            f"[← API](API{suffix}.md) · [Postman](postman/RealityOS.reference.postman_collection.json)",
             (
                 "Generada del contrato. Los nombres de operaciones y campos conservan los identificadores del API. ✓ = obligatorio. Los ejemplos requieren tus identificadores y archivos; no son respuestas capturadas de producción."
                 if es
@@ -693,7 +696,7 @@ def generate(spec, check=False):
             + "\n",
             check,
         )
-    return collection
+    return publish(folders, ROOT, write, target_item, variable_description, check)
 
 
 def nav(stem, es):

@@ -2,7 +2,7 @@
 
 # Referencia de operaciones
 
-[← API](API.es.md) · [Postman](postman/RealityOS.postman_collection.json)
+[← API](API.es.md) · [Postman](postman/RealityOS.reference.postman_collection.json)
 
 Generada del contrato. Los nombres de operaciones y campos conservan los identificadores del API. ✓ = obligatorio. Los ejemplos requieren tus identificadores y archivos; no son respuestas capturadas de producción.
 
