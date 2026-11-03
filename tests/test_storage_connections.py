@@ -520,9 +520,17 @@ def test_failed_download_is_retryable_without_extra_publication(
     assert r.json()["items"][0]["status"] == "published"
 
 
-def test_sync_continuation_and_unchanged_page(
-    client, auth_headers, source, remote, monkeypatch
+@pytest.mark.parametrize("queued", [False, True])
+def test_sync_processes_and_reuses_unchanged_page(
+    client, auth_headers, source, remote, monkeypatch, queued
 ):
+    from app.storage.service import process_import
+
+    client.app.state.settings.enqueue_processing = queued
+    dispatched = []
+    monkeypatch.setattr(
+        "app.storage.service.dispatch", lambda run, settings: dispatched.append(run.id)
+    )
     monkeypatch.setattr(
         BucketClient,
         "objects",
@@ -545,10 +553,133 @@ def test_sync_continuation_and_unchanged_page(
     first = client.post(
         path + "/syncs/" + rule["id"] + "/run", headers=auth_headers
     ).json()
+    if queued:
+        assert (
+            client.get(path + "/imports", headers=auth_headers).json()[0]["status"]
+            == "pending"
+        )
+        assert not remote
+        with client.app.state.database.session_factory() as db:
+            process_import(db, uuid.UUID(first["import_id"]), client.app.state.settings)
+    completed = client.get(path + "/imports", headers=auth_headers).json()[0]
+    assert completed["id"] == first["import_id"]
+    assert completed["status"] == "completed"
+    assert completed["items"][0]["status"] == "published"
     second = client.post(
         path + "/syncs/" + rule["id"] + "/run", headers=auth_headers
     ).json()
     assert first["import_id"] == second["import_id"]
+    assert len(remote) == 1
+    assert dispatched == [uuid.UUID(first["import_id"])] * 2
+
+
+def test_import_retry_uses_current_upload_status(
+    client, auth_headers, source, remote, monkeypatch
+):
+    path = BASE + "/" + source["id"] + "/imports"
+    client.post(
+        path,
+        headers=auth_headers,
+        json={"request_key": "original", "keys": ["photos/a.png"]},
+    )
+    run = client.post(
+        path,
+        headers=auth_headers,
+        json={"request_key": "duplicate", "keys": ["photos/b.png"]},
+    ).json()
+    item = run["items"][0]
+    assert item["status"] == "duplicate"
+
+    def fail_analysis(db, upload_id, meta):
+        from app.social_features.evidence_models import PublicationUpload
+
+        upload = db.get(PublicationUpload, upload_id)
+        upload.status = "failed"
+        upload.error = "Temporary analysis failure"
+
+    # Retrying the duplicate from the upload dialog can fail independently of
+    # the stored import snapshot. The import retry must recover that failure.
+    with monkeypatch.context() as patch:
+        patch.setattr("app.social_features.uploads.process_upload", fail_analysis)
+        response = client.post(
+            "/v1/me/publication-uploads/" + item["upload_id"] + "/retry",
+            headers=auth_headers,
+        )
+    assert response.status_code == 200
+    assert response.json()["status"] == "failed"
+    refreshed = next(
+        row
+        for row in client.get(path, headers=auth_headers).json()
+        if row["id"] == run["id"]
+    )
+    assert refreshed["items"][0]["status"] == "failed"
+    attempts = len(remote)
+    response = client.post(path + "/" + run["id"] + "/retry", headers=auth_headers)
+    assert response.status_code == 200
+    assert response.json()["items"][0]["status"] == "duplicate"
+    assert len(remote) == attempts + 1
+
+
+def test_sync_continues_pages_and_skips_documents(
+    client, auth_headers, source, remote, monkeypatch
+):
+    seen = []
+
+    def page(bucket, prefix, cursor, recursive):
+        seen.append((prefix, cursor, recursive))
+        keys = ["photos/a.png", "photos/cv.pdf"] if cursor is None else ["photos/b.png"]
+        return {
+            "items": [
+                {"key": key, "etag": key, "size": 12, "modified_at": "today"}
+                for key in keys
+            ],
+            "next_cursor": "page-two" if cursor is None else None,
+        }
+
+    monkeypatch.setattr(BucketClient, "objects", page)
+    path = BASE + "/" + source["id"]
+    rule = client.post(path + "/syncs", headers=auth_headers, json={}).json()
+    first = client.post(path + "/syncs/" + rule["id"] + "/run", headers=auth_headers)
+    second = client.post(path + "/syncs/" + rule["id"] + "/run", headers=auth_headers)
+    assert first.status_code == second.status_code == 202
+    assert first.json()["has_more"] and not second.json()["has_more"]
+    assert first.json()["import_id"] != second.json()["import_id"]
+    assert remote == ["photos/a.png", "photos/b.png"]
+    assert seen == [("photos/", None, True), ("photos/", "page-two", True)]
+    stored = client.get(path + "/syncs", headers=auth_headers).json()[0]
+    assert stored["cursor"] is None
+    assert not stored["enabled"]
+
+
+def test_sync_rechecks_membership_before_listing(
+    client, auth_headers, source, remote, monkeypatch
+):
+    from app.models import WorkspaceMember
+    from sqlalchemy import delete
+
+    workspace = client.post(
+        "/v1/workspaces", headers=auth_headers, json={"name": "Temporary sync group"}
+    ).json()["id"]
+    path = BASE + "/" + source["id"]
+    rule = client.post(
+        path + "/syncs",
+        headers=auth_headers,
+        json={"audience": "work", "workspace_id": workspace},
+    ).json()
+    with client.app.state.database.session_factory() as db:
+        db.execute(
+            delete(WorkspaceMember).where(
+                WorkspaceMember.workspace_id == uuid.UUID(workspace)
+            )
+        )
+        db.commit()
+    monkeypatch.setattr(
+        BucketClient, "objects", lambda *a, **kw: pytest.fail("Revoked group listed")
+    )
+    response = client.post(path + "/syncs/" + rule["id"] + "/run", headers=auth_headers)
+    assert response.status_code == 403
+    assert not remote
+    assert client.get(path + "/imports", headers=auth_headers).json() == []
 
 
 def test_membership_removed_after_download_prevents_publication(

@@ -245,4 +245,6 @@ def sync_page(db, rule, settings):
     db.commit()
     if run_id:
         dispatch(db.get(StorageImport, run_id), settings)
+        if not settings.enqueue_processing:
+            process_import(db, run_id, settings)
     return run_id

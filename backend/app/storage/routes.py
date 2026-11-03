@@ -291,7 +291,7 @@ def retry(
     if run.status not in {"attention", "completed"}:
         raise HTTPException(409, "Import is still running.")
     items = []
-    for value in run.items:
+    for value in import_json(db, run)["items"]:
         item = dict(value)
         if item["status"] == "failed":
             if item.get("upload_id"):
