@@ -1,17 +1,17 @@
 {
-  "verified_at": "2026-11-03T17:20:32.800808+00:00",
-  "backend_commit": "94e23775fbb57247fcf77851195ed3c2928df0ff",
-  "production_deployment_run": 41680084711,
+  "verified_at": "2026-11-03T17:41:58.041278+00:00",
+  "backend_commit": "0090bdfcb8d8f298da73ece3c8d6e57e6b5448b6",
+  "production_deployment_run": 41684655293,
   "alembic_revision": "20261103_0035",
   "readiness_http_status": 200,
   "openapi_exact_match": true,
-  "backend_gateway_tests": 491,
+  "backend_gateway_tests": 492,
   "connector_tests": 35,
   "image_query_concurrency_tests": 2,
   "android_tests": 224,
   "android_lint_errors": 0,
   "debug_and_release_built": true,
-  "debug_apk_sha256": "f678d640c34ce294ac7337f13bda3900fe46fac5674aa05c71c83f97c00326f9",
+  "debug_apk_sha256": "56b9a60ca9ec07ceb9e9338ad4b34143969fb6b42c68e3c47891851e5f872965",
   "android_image_query_timeout_seconds": 180,
   "live_api_checks": {
     "test": "connected",
@@ -47,5 +47,16 @@
   "latency_measurement_origin": "Production host over the public HTTPS endpoint",
   "temporary_connections_disconnected": true,
   "physical_android_or_glasses_tested": false,
-  "scheduled_sync_scope": "A real scheduler cycle on an empty prefix, pause and manual run; no remote files were changed."
+  "scheduled_sync_scope": "A real scheduler cycle on an empty prefix, pause and manual run; no remote files were changed.",
+  "live_api_checks_verified_at": "2026-11-03T17:20:32.800808+00:00",
+  "live_api_checks_commit": "94e23775fbb57247fcf77851195ed3c2928df0ff",
+  "android_commit": "0090bdfcb8d8f298da73ece3c8d6e57e6b5448b6",
+  "backend_app_unchanged_since_live_checks": true,
+  "nginx_configuration_checks": 27,
+  "public_ingress_http_status": {
+    "/docs": 200,
+    "/docs/oauth2-redirect": 200,
+    "/": 410,
+    "/display": 410
+  }
 }
