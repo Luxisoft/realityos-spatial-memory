@@ -190,7 +190,7 @@ def prepare(db, root, apply=False):
                     audience="work",
                     source=SOURCE,
                     source_ref=reference,
-                    caption="[Demo] " + item["label"],
+                    caption=item["label"],
                     published_at=datetime.now(UTC),
                 )
                 db.add(post)

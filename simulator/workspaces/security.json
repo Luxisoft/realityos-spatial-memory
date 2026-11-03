@@ -11,9 +11,9 @@
       {
         "external_id": "security-case-1",
         "kind": "case",
-        "title": "Pacific Ridge Police Department — Caso de prueba 1",
+        "title": "Pacific Ridge Police Department — Caso 1",
         "data": {
-          "description": "Expediente ficticio para evaluación del software.",
+          "description": "Expediente de seguimiento con observaciones y registros relacionados.",
           "reference": "security-case-1",
           "status": "open"
         },
@@ -60,9 +60,9 @@
       {
         "external_id": "security-case-2",
         "kind": "case",
-        "title": "Pacific Ridge Police Department — Caso de prueba 2",
+        "title": "Pacific Ridge Police Department — Caso 2",
         "data": {
-          "description": "Expediente ficticio para evaluación del software.",
+          "description": "Expediente de seguimiento con observaciones y registros relacionados.",
           "reference": "security-case-2",
           "status": "open"
         },
@@ -109,9 +109,9 @@
       {
         "external_id": "security-case-3",
         "kind": "case",
-        "title": "Pacific Ridge Police Department — Caso de prueba 3",
+        "title": "Pacific Ridge Police Department — Caso 3",
         "data": {
-          "description": "Expediente ficticio para evaluación del software.",
+          "description": "Expediente de seguimiento con observaciones y registros relacionados.",
           "reference": "security-case-3",
           "status": "open"
         },

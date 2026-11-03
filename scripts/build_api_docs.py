@@ -52,17 +52,17 @@ DEFAULT_VARIABLES = {
 }
 VARIABLE_DESCRIPTIONS = {
     "base_url": "API origin, without /v1.",
-    "email": "Public demo email prefilled. Replace locally to use your own account.",
-    "username": "Demo username prefilled; use an existing username or email for correction.",
-    "display_name": "Demo display name prefilled.",
-    "password": "Public demo password prefilled. Replace locally to use your own account.",
+    "email": "Account email prefilled. Replace locally to use your own account.",
+    "username": "Account username prefilled; use an existing username or email for correction.",
+    "display_name": "Account display name prefilled.",
+    "password": "Account password prefilled. Replace locally to use your own account.",
     "new_email": "Replacement email for a pending account.",
     "new_password": "New password for recovery, at least 12 characters.",
     "access_token": "Saved automatically after login/refresh.",
     "refresh_token": "Saved and rotated automatically after login/refresh.",
     "session_identity": "Managed automatically to keep sessions tied to the configured account and API.",
-    "workspace_id": "Demo workspace preselected. For your own account, copy an ID from GET /v1/workspaces.",
-    "user_id": "Demo user ID prefilled. For your own account, copy id from GET /v1/auth/me.",
+    "workspace_id": "Workspace preselected. For your own account, copy an ID from GET /v1/workspaces.",
+    "user_id": "User ID prefilled. For your own account, copy id from GET /v1/auth/me.",
     "language": "Response language: en or es.",
     "query": "Question for evidence/record searches.",
     "enable_write_requests": "Set true to enable explicit write operations for this target.",
@@ -542,7 +542,7 @@ def generate(spec, check=False):
         "info": {
             "name": "RealityOS API",
             "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-            "description": "Two independent folders: Server requests (https://realityos.luxisoft.com) and Localhost requests (http://localhost:8080). All variables, public demo credentials and demo workspace IDs are included; environments are optional. Click Send on a protected request: sign-in and token renewal run automatically. Run 00 Quick start to check the full access sequence. The demo role is query-only in an empty test workspace; use your own authorized account for writes and real data. Enable the local demo once with scripts/local/Enable-PostmanDemo.ps1. Session tokens are never included in the published file.",
+            "description": "Two independent folders: Server requests (https://realityos.luxisoft.com) and Localhost requests (http://localhost:8080). All variables, preconfigured credentials and workspace IDs are included; environments are optional. Click Send on a protected request: sign-in and token renewal run automatically. Run 00 Quick start to check the full access sequence. The included role is query-only in an empty test workspace; use your own authorized account for writes and real data. Enable the local account once with scripts/local/Enable-PostmanDemo.ps1. Session tokens are never included in the published file.",
         },
         "item": [],
         "variable": [],
@@ -552,7 +552,7 @@ def generate(spec, check=False):
         target_folders = [
             {
                 "name": "00 Quick start",
-                "description": "Run this subfolder: health, login, current user, workspaces and query. Demo credentials and workspace are already configured; session tokens are saved automatically.",
+                "description": "Run this subfolder: health, login, current user, workspaces and query. Credentials and workspace are already configured; session tokens are saved automatically.",
                 "item": target_quick,
             }
         ]

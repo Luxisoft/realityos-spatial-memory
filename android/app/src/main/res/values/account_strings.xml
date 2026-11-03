@@ -12,7 +12,7 @@
     <string name="records_title">Workspace records</string>
     <string name="records_search">Search records</string>
     <string name="records_empty">No records found</string>
-    <string name="records_simulated">Synthetic test data</string>
+    <string name="records_simulated">Workspace record</string>
     <string name="records_related">Related records</string>
     <string name="records_timeline">Timeline</string>
     <string name="records_note">Add note</string>

@@ -11,7 +11,7 @@
       "item": [
         {
           "name": "00 Quick start",
-          "description": "Run this subfolder: health, login, current user, workspaces and query. Demo credentials and workspace are already configured; session tokens are saved automatically.",
+          "description": "Run this subfolder: health, login, current user, workspaces and query. Credentials and workspace are already configured; session tokens are saved automatically.",
           "item": [
             {
               "name": "GET /health/live",
@@ -29114,7 +29114,7 @@
       "item": [
         {
           "name": "00 Quick start",
-          "description": "Run this subfolder: health, login, current user, workspaces and query. Demo credentials and workspace are already configured; session tokens are saved automatically.",
+          "description": "Run this subfolder: health, login, current user, workspaces and query. Credentials and workspace are already configured; session tokens are saved automatically.",
           "item": [
             {
               "name": "GET /health/live",
@@ -53685,13 +53685,13 @@
       "key": "server_display_name",
       "value": "Noah Brooks",
       "type": "string",
-      "description": "Demo display name prefilled."
+      "description": "Account display name prefilled."
     },
     {
       "key": "server_email",
       "value": "noah-brooks",
       "type": "string",
-      "description": "Public demo email prefilled. Replace locally to use your own account."
+      "description": "Account email prefilled. Replace locally to use your own account."
     },
     {
       "key": "server_enable_write_requests",
@@ -53805,7 +53805,7 @@
       "key": "server_password",
       "value": "FqgO_9etDGlTkZDJj_MxYGekwFatXNMB",
       "type": "string",
-      "description": "Public demo password prefilled. Replace locally to use your own account."
+      "description": "Account password prefilled. Replace locally to use your own account."
     },
     {
       "key": "server_person_id",
@@ -53907,19 +53907,19 @@
       "key": "server_user_id",
       "value": "91c67285-773c-4e3b-afc2-2cfda771b3b2",
       "type": "string",
-      "description": "Demo user ID prefilled. For your own account, copy id from GET /v1/auth/me."
+      "description": "User ID prefilled. For your own account, copy id from GET /v1/auth/me."
     },
     {
       "key": "server_username",
       "value": "noah-brooks",
       "type": "string",
-      "description": "Demo username prefilled; use an existing username or email for correction."
+      "description": "Account username prefilled; use an existing username or email for correction."
     },
     {
       "key": "server_workspace_id",
       "value": "d6a6b4ba-7e5c-4f0b-b7d8-106a5da18d17",
       "type": "string",
-      "description": "Demo workspace preselected. For your own account, copy an ID from GET /v1/workspaces."
+      "description": "Workspace preselected. For your own account, copy an ID from GET /v1/workspaces."
     },
     {
       "key": "server_zone_id",
@@ -53985,13 +53985,13 @@
       "key": "localhost_display_name",
       "value": "Postman Local (test account)",
       "type": "string",
-      "description": "Demo display name prefilled."
+      "description": "Account display name prefilled."
     },
     {
       "key": "localhost_email",
       "value": "postman-local@realityos.example.test",
       "type": "string",
-      "description": "Public demo email prefilled. Replace locally to use your own account."
+      "description": "Account email prefilled. Replace locally to use your own account."
     },
     {
       "key": "localhost_enable_write_requests",
@@ -54105,7 +54105,7 @@
       "key": "localhost_password",
       "value": "RealityOS-Postman-Local-2026!",
       "type": "string",
-      "description": "Public demo password prefilled. Replace locally to use your own account."
+      "description": "Account password prefilled. Replace locally to use your own account."
     },
     {
       "key": "localhost_person_id",
@@ -54207,19 +54207,19 @@
       "key": "localhost_user_id",
       "value": "77195af3-fe47-5a89-8475-23ffc3c05d3c",
       "type": "string",
-      "description": "Demo user ID prefilled. For your own account, copy id from GET /v1/auth/me."
+      "description": "User ID prefilled. For your own account, copy id from GET /v1/auth/me."
     },
     {
       "key": "localhost_username",
       "value": "postman_local",
       "type": "string",
-      "description": "Demo username prefilled; use an existing username or email for correction."
+      "description": "Account username prefilled; use an existing username or email for correction."
     },
     {
       "key": "localhost_workspace_id",
       "value": "14c0ecd6-14d0-5c0b-9095-1de45e926543",
       "type": "string",
-      "description": "Demo workspace preselected. For your own account, copy an ID from GET /v1/workspaces."
+      "description": "Workspace preselected. For your own account, copy an ID from GET /v1/workspaces."
     },
     {
       "key": "localhost_zone_id",
@@ -54243,13 +54243,13 @@
       "key": "security_display_name",
       "value": "Alex Rivera",
       "type": "string",
-      "description": "Preconfigured evaluation value. Demo display name prefilled."
+      "description": "Preconfigured evaluation value. Account display name prefilled."
     },
     {
       "key": "security_email",
       "value": "alex-rivera",
       "type": "string",
-      "description": "Preconfigured evaluation value. Public demo email prefilled. Replace locally to use your own account."
+      "description": "Preconfigured evaluation value. Account email prefilled. Replace locally to use your own account."
     },
     {
       "key": "security_language",
@@ -54261,7 +54261,7 @@
       "key": "security_password",
       "value": "liMPaFG6f8KPbzSRcNFFpdu74dHmVxU5",
       "type": "string",
-      "description": "Preconfigured evaluation value. Public demo password prefilled. Replace locally to use your own account."
+      "description": "Preconfigured evaluation value. Account password prefilled. Replace locally to use your own account."
     },
     {
       "key": "security_post_id",
@@ -54303,19 +54303,19 @@
       "key": "security_user_id",
       "value": "b1d68b12-ab26-4bea-a8a8-2417b2ddf972",
       "type": "string",
-      "description": "Preconfigured evaluation value. Demo user ID prefilled. For your own account, copy id from GET /v1/auth/me."
+      "description": "Preconfigured evaluation value. User ID prefilled. For your own account, copy id from GET /v1/auth/me."
     },
     {
       "key": "security_username",
       "value": "alex-rivera",
       "type": "string",
-      "description": "Preconfigured evaluation value. Demo username prefilled; use an existing username or email for correction."
+      "description": "Preconfigured evaluation value. Account username prefilled; use an existing username or email for correction."
     },
     {
       "key": "security_workspace_id",
       "value": "352a54b3-7b98-4ff9-95bd-688eec110ad6",
       "type": "string",
-      "description": "Preconfigured evaluation value. Demo workspace preselected. For your own account, copy an ID from GET /v1/workspaces."
+      "description": "Preconfigured evaluation value. Workspace preselected. For your own account, copy an ID from GET /v1/workspaces."
     },
     {
       "key": "hospital_access_token",
@@ -54333,13 +54333,13 @@
       "key": "hospital_display_name",
       "value": "Elena Marquez",
       "type": "string",
-      "description": "Preconfigured evaluation value. Demo display name prefilled."
+      "description": "Preconfigured evaluation value. Account display name prefilled."
     },
     {
       "key": "hospital_email",
       "value": "elena-marquez",
       "type": "string",
-      "description": "Preconfigured evaluation value. Public demo email prefilled. Replace locally to use your own account."
+      "description": "Preconfigured evaluation value. Account email prefilled. Replace locally to use your own account."
     },
     {
       "key": "hospital_language",
@@ -54351,7 +54351,7 @@
       "key": "hospital_password",
       "value": "GS112vlwNHjj4tVuaxDZrOpTs0s7lomj",
       "type": "string",
-      "description": "Preconfigured evaluation value. Public demo password prefilled. Replace locally to use your own account."
+      "description": "Preconfigured evaluation value. Account password prefilled. Replace locally to use your own account."
     },
     {
       "key": "hospital_post_id",
@@ -54393,19 +54393,19 @@
       "key": "hospital_user_id",
       "value": "a3b26a20-22e2-4e95-80bf-af568dc50d9a",
       "type": "string",
-      "description": "Preconfigured evaluation value. Demo user ID prefilled. For your own account, copy id from GET /v1/auth/me."
+      "description": "Preconfigured evaluation value. User ID prefilled. For your own account, copy id from GET /v1/auth/me."
     },
     {
       "key": "hospital_username",
       "value": "elena-marquez",
       "type": "string",
-      "description": "Preconfigured evaluation value. Demo username prefilled; use an existing username or email for correction."
+      "description": "Preconfigured evaluation value. Account username prefilled; use an existing username or email for correction."
     },
     {
       "key": "hospital_workspace_id",
       "value": "21a7f930-3d28-4e6a-9ac0-904654f0033a",
       "type": "string",
-      "description": "Preconfigured evaluation value. Demo workspace preselected. For your own account, copy an ID from GET /v1/workspaces."
+      "description": "Preconfigured evaluation value. Workspace preselected. For your own account, copy an ID from GET /v1/workspaces."
     },
     {
       "key": "memory_access_token",
@@ -54423,13 +54423,13 @@
       "key": "memory_display_name",
       "value": "Noah Brooks",
       "type": "string",
-      "description": "Preconfigured evaluation value. Demo display name prefilled."
+      "description": "Preconfigured evaluation value. Account display name prefilled."
     },
     {
       "key": "memory_email",
       "value": "noah-brooks",
       "type": "string",
-      "description": "Preconfigured evaluation value. Public demo email prefilled. Replace locally to use your own account."
+      "description": "Preconfigured evaluation value. Account email prefilled. Replace locally to use your own account."
     },
     {
       "key": "memory_language",
@@ -54441,7 +54441,7 @@
       "key": "memory_password",
       "value": "FqgO_9etDGlTkZDJj_MxYGekwFatXNMB",
       "type": "string",
-      "description": "Preconfigured evaluation value. Public demo password prefilled. Replace locally to use your own account."
+      "description": "Preconfigured evaluation value. Account password prefilled. Replace locally to use your own account."
     },
     {
       "key": "memory_post_id",
@@ -54483,19 +54483,19 @@
       "key": "memory_user_id",
       "value": "91c67285-773c-4e3b-afc2-2cfda771b3b2",
       "type": "string",
-      "description": "Preconfigured evaluation value. Demo user ID prefilled. For your own account, copy id from GET /v1/auth/me."
+      "description": "Preconfigured evaluation value. User ID prefilled. For your own account, copy id from GET /v1/auth/me."
     },
     {
       "key": "memory_username",
       "value": "noah-brooks",
       "type": "string",
-      "description": "Preconfigured evaluation value. Demo username prefilled; use an existing username or email for correction."
+      "description": "Preconfigured evaluation value. Account username prefilled; use an existing username or email for correction."
     },
     {
       "key": "memory_workspace_id",
       "value": "d6a6b4ba-7e5c-4f0b-b7d8-106a5da18d17",
       "type": "string",
-      "description": "Preconfigured evaluation value. Demo workspace preselected. For your own account, copy an ID from GET /v1/workspaces."
+      "description": "Preconfigured evaluation value. Workspace preselected. For your own account, copy an ID from GET /v1/workspaces."
     }
   ]
 }

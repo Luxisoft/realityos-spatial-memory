@@ -55,7 +55,7 @@ def main() -> None:
         if user is None:
             user = User(
                 email=email,
-                display_name="RealityOS Demo Admin",
+                display_name="RealityOS Admin",
                 password_hash=hash_password(password),
             )
             db.add(user)

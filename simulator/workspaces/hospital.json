@@ -11,9 +11,9 @@
       {
         "external_id": "hospital-case-1",
         "kind": "case",
-        "title": "California Valley Medical Center — Caso de prueba 1",
+        "title": "California Valley Medical Center — Caso 1",
         "data": {
-          "description": "Expediente ficticio para evaluación del software.",
+          "description": "Expediente de seguimiento con observaciones y registros relacionados.",
           "reference": "hospital-case-1",
           "status": "open"
         },
@@ -29,7 +29,7 @@
         "kind": "event",
         "title": "Observación de turno 1",
         "data": {
-          "note": "Carro de preparación revisado; envase de prueba y hoja de verificación.",
+          "note": "Carro de preparación revisado; envase de medicación y hoja de verificación.",
           "last_seen_location": "medicine-cart"
         },
         "related_ids": [
@@ -60,9 +60,9 @@
       {
         "external_id": "hospital-case-2",
         "kind": "case",
-        "title": "California Valley Medical Center — Caso de prueba 2",
+        "title": "California Valley Medical Center — Caso 2",
         "data": {
-          "description": "Expediente ficticio para evaluación del software.",
+          "description": "Expediente de seguimiento con observaciones y registros relacionados.",
           "reference": "hospital-case-2",
           "status": "open"
         },
@@ -78,7 +78,7 @@
         "kind": "event",
         "title": "Observación de turno 2",
         "data": {
-          "note": "Carro de preparación revisado; envase de prueba y hoja de verificación.",
+          "note": "Carro de preparación revisado; envase de medicación y hoja de verificación.",
           "last_seen_location": "medicine-cart"
         },
         "related_ids": [
@@ -109,9 +109,9 @@
       {
         "external_id": "hospital-case-3",
         "kind": "case",
-        "title": "California Valley Medical Center — Caso de prueba 3",
+        "title": "California Valley Medical Center — Caso 3",
         "data": {
-          "description": "Expediente ficticio para evaluación del software.",
+          "description": "Expediente de seguimiento con observaciones y registros relacionados.",
           "reference": "hospital-case-3",
           "status": "open"
         },
@@ -127,7 +127,7 @@
         "kind": "event",
         "title": "Observación de turno 3",
         "data": {
-          "note": "Carro de preparación revisado; envase de prueba y hoja de verificación.",
+          "note": "Carro de preparación revisado; envase de medicación y hoja de verificación.",
           "last_seen_location": "medicine-cart"
         },
         "related_ids": [
@@ -160,9 +160,9 @@
         "kind": "person",
         "title": "Ana Solis",
         "data": {
-          "identifier": "TEST-HOSPITAL-001",
+          "identifier": "HOSPITAL-001",
           "birth_date": "1960-03-14",
-          "description": "Persona ficticia, no cuenta de acceso.",
+          "description": "Información personal y registros de atención relacionados.",
           "allergies_reviewed_at": "2026-11-02T08:00:00-05:00"
         },
         "related_ids": [
@@ -181,7 +181,7 @@
         "kind": "encounter",
         "title": "Atención de Ana Solis",
         "data": {
-          "note": "Sesión de prueba de revisión contextual y seguimiento, sin decisiones clínicas reales."
+          "note": "Sesión de revisión contextual y seguimiento."
         },
         "related_ids": [
           "hospital-person-1",
@@ -196,14 +196,13 @@
       {
         "external_id": "hospital-rx-1",
         "kind": "prescription",
-        "title": "Prescripción ficticia 1",
+        "title": "Prescripción 1",
         "data": {
-          "ingredient": "DEMO MEDICINE",
+          "ingredient": "Medicamento registrado",
           "concentration": "10 mg",
           "state": "active",
           "valid_from": "2026-11-01T00:00:00Z",
-          "valid_until": "2026-11-30T23:59:59Z",
-          "warning": "NO ES UNA PRESCRIPCIÓN REAL"
+          "valid_until": "2026-11-30T23:59:59Z"
         },
         "related_ids": [
           "hospital-person-1"
@@ -219,9 +218,9 @@
         "kind": "person",
         "title": "Robert Lane",
         "data": {
-          "identifier": "TEST-HOSPITAL-002",
+          "identifier": "HOSPITAL-002",
           "birth_date": "1969-03-14",
-          "description": "Persona ficticia, no cuenta de acceso.",
+          "description": "Información personal y registros de atención relacionados.",
           "allergies_reviewed_at": "2026-11-02T08:00:00-05:00"
         },
         "related_ids": [
@@ -240,7 +239,7 @@
         "kind": "encounter",
         "title": "Atención de Robert Lane",
         "data": {
-          "note": "Sesión de prueba de revisión contextual y seguimiento, sin decisiones clínicas reales."
+          "note": "Sesión de revisión contextual y seguimiento."
         },
         "related_ids": [
           "hospital-person-2",
@@ -255,14 +254,13 @@
       {
         "external_id": "hospital-rx-2",
         "kind": "prescription",
-        "title": "Prescripción ficticia 2",
+        "title": "Prescripción 2",
         "data": {
-          "ingredient": "DEMO MEDICINE",
+          "ingredient": "Medicamento registrado",
           "concentration": "10 mg",
           "state": "active",
           "valid_from": "2026-11-01T00:00:00Z",
-          "valid_until": "2026-11-30T23:59:59Z",
-          "warning": "NO ES UNA PRESCRIPCIÓN REAL"
+          "valid_until": "2026-11-30T23:59:59Z"
         },
         "related_ids": [
           "hospital-person-2"
@@ -276,9 +274,9 @@
       {
         "external_id": "hospital-allergy-2",
         "kind": "allergy",
-        "title": "Alerta ficticia de alergia",
+        "title": "Alerta de alergia",
         "data": {
-          "substance": "DEMO MEDICINE"
+          "substance": "Medicamento registrado"
         },
         "related_ids": [
           "hospital-person-2"
@@ -294,9 +292,9 @@
         "kind": "person",
         "title": "Fatima Nasser",
         "data": {
-          "identifier": "TEST-HOSPITAL-003",
+          "identifier": "HOSPITAL-003",
           "birth_date": "1978-03-14",
-          "description": "Persona ficticia, no cuenta de acceso.",
+          "description": "Información personal y registros de atención relacionados.",
           "allergies_reviewed_at": "2026-11-02T08:00:00-05:00"
         },
         "related_ids": [
@@ -315,7 +313,7 @@
         "kind": "encounter",
         "title": "Atención de Fatima Nasser",
         "data": {
-          "note": "Sesión de prueba de revisión contextual y seguimiento, sin decisiones clínicas reales."
+          "note": "Sesión de revisión contextual y seguimiento."
         },
         "related_ids": [
           "hospital-person-3",
@@ -330,14 +328,13 @@
       {
         "external_id": "hospital-rx-3",
         "kind": "prescription",
-        "title": "Prescripción ficticia 3",
+        "title": "Prescripción 3",
         "data": {
-          "ingredient": "DEMO MEDICINE",
+          "ingredient": "Medicamento registrado",
           "concentration": "10 mg",
           "state": "active",
           "valid_from": "2026-11-01T00:00:00Z",
-          "valid_until": "2026-11-30T23:59:59Z",
-          "warning": "NO ES UNA PRESCRIPCIÓN REAL"
+          "valid_until": "2026-11-30T23:59:59Z"
         },
         "related_ids": [
           "hospital-person-3"
@@ -351,9 +348,9 @@
       {
         "external_id": "hospital-admin-3",
         "kind": "administration",
-        "title": "Administración ficticia previamente registrada",
+        "title": "Administración previamente registrada",
         "data": {
-          "ingredient": "DEMO MEDICINE",
+          "ingredient": "Medicamento registrado",
           "concentration": "10 mg"
         },
         "related_ids": [

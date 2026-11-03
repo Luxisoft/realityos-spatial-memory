@@ -105,7 +105,7 @@ async def upload(
             media_id=asset.id,
             audience="work",
             workspace_id=source.workspace_id,
-            caption=("[Simulated] " if record.simulated else "") + record.title,
+            caption=record.title,
             source="workspace-import",
             source_ref=str(uuid.uuid4()),
             published_at=record.occurred_at,

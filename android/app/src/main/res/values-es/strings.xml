@@ -526,7 +526,7 @@
     </plurals>
     <string name="profile_choose_media">Elegir foto o video</string>
     <string name="profile_play_video">Reproducir video</string>
-    <string name="profile_simulated_media">Simulado</string>
+    <string name="profile_simulated_media">Archivo</string>
     <string name="notice_error">Error</string>
     <string name="notice_warning">Advertencia</string>
     <string name="notice_success">Listo</string>

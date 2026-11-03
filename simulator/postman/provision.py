@@ -100,7 +100,7 @@ def provision(db, settings, realm, fixture):
         Workspace(
             id=workspace_id,
             name=data["workspace_name"],
-            description="Public Postman demo. Empty test workspace; no private data or media.",
+            description="Espacio de trabajo de Postman.",
             created_by_id=user_id,
         )
     )

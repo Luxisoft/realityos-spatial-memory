@@ -6,8 +6,8 @@
     "email": "postman-demo@realityos.example.test",
     "username": "postman_demo",
     "password": "RealityOS-Postman-Demo-2026!",
-    "display_name": "Postman Demo (public test account)",
-    "workspace_name": "Postman Demo - public test workspace"
+    "display_name": "Postman",
+    "workspace_name": "Postman"
   },
   "localhost": {
     "user_id": "77195af3-fe47-5a89-8475-23ffc3c05d3c",

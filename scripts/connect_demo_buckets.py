@@ -62,7 +62,12 @@ def prepare(db, settings, credentials=None):
         )
         if credentials:
             payload = ConnectionInput(
-                name=f"Demo {group}",
+                name={
+                    "police": "Archivo policial",
+                    "nursing": "Archivo de enfermería",
+                    "memory": "Archivo de seguimiento",
+                    "qa": "Archivo del equipo",
+                }[group],
                 provider="r2",
                 prefix=prefix,
                 endpoint=credentials["endpoint"],

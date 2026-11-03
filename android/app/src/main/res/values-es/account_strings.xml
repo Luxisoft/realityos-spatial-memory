@@ -12,7 +12,7 @@
     <string name="records_title">Registros del espacio</string>
     <string name="records_search">Buscar registros</string>
     <string name="records_empty">No se encontraron registros</string>
-    <string name="records_simulated">Datos ficticios de prueba</string>
+    <string name="records_simulated">Registro del espacio</string>
     <string name="records_related">Registros relacionados</string>
     <string name="records_timeline">Cronología</string>
     <string name="records_note">Añadir nota</string>

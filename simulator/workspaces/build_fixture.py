@@ -68,9 +68,9 @@ def main():
                 entry(
                     case,
                     "case",
-                    f"{name} — Caso de prueba {i + 1}",
+                    f"{name} — Caso {i + 1}",
                     {
-                        "description": "Expediente ficticio para evaluación del software.",
+                        "description": "Expediente de seguimiento con observaciones y registros relacionados.",
                         "reference": case,
                         "status": "open",
                     },
@@ -85,7 +85,7 @@ def main():
                     {
                         "note": {
                             "security": "Linterna amarilla y destornillador rojo vistos en mesa de evidencias.",
-                            "hospital": "Carro de preparación revisado; envase de prueba y hoja de verificación.",
+                            "hospital": "Carro de preparación revisado; envase de medicación y hoja de verificación.",
                             "memory": "Documentos rojos y llaves vistos sobre el escritorio.",
                         }[slug],
                         "last_seen_location": scene,
@@ -147,9 +147,9 @@ def main():
                     "person",
                     person_name,
                     {
-                        "identifier": f"TEST-{slug.upper()}-{i + 1:03}",
+                        "identifier": f"{slug.upper()}-{i + 1:03}",
                         "birth_date": f"{1960 + i * 9}-03-14",
-                        "description": "Persona ficticia, no cuenta de acceso.",
+                        "description": "Información personal y registros de atención relacionados.",
                         "allergies_reviewed_at": "2026-11-02T08:00:00-05:00",
                     },
                     [f"{slug}-case-{i + 1}"],
@@ -171,7 +171,7 @@ def main():
                     "encounter",
                     f"Atención de {person_name}",
                     {
-                        "note": "Sesión de prueba de revisión contextual y seguimiento, sin decisiones clínicas reales."
+                        "note": "Sesión de revisión contextual y seguimiento."
                     },
                     [person, f"{slug}-case-{i + 1}"],
                 )
@@ -182,14 +182,13 @@ def main():
                     entry(
                         rx,
                         "prescription",
-                        f"Prescripción ficticia {i + 1}",
+                        f"Prescripción {i + 1}",
                         {
-                            "ingredient": "DEMO MEDICINE",
+                            "ingredient": "Medicamento registrado",
                             "concentration": "10 mg",
                             "state": "active",
                             "valid_from": "2026-11-01T00:00:00Z",
                             "valid_until": "2026-11-30T23:59:59Z",
-                            "warning": "NO ES UNA PRESCRIPCIÓN REAL",
                         },
                         [person],
                     )
@@ -199,8 +198,8 @@ def main():
                         entry(
                             "hospital-allergy-2",
                             "allergy",
-                            "Alerta ficticia de alergia",
-                            {"substance": "DEMO MEDICINE"},
+                            "Alerta de alergia",
+                            {"substance": "Medicamento registrado"},
                             [person],
                         )
                     )
@@ -209,8 +208,8 @@ def main():
                         entry(
                             "hospital-admin-3",
                             "administration",
-                            "Administración ficticia previamente registrada",
-                            {"ingredient": "DEMO MEDICINE", "concentration": "10 mg"},
+                            "Administración previamente registrada",
+                            {"ingredient": "Medicamento registrado", "concentration": "10 mg"},
                             [person, rx],
                             hour=10,
                         )

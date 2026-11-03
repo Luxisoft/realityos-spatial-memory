@@ -25,7 +25,7 @@ Estos recorridos son ejemplos independientes de las capacidades de RealityOS. No
 | Escenario / grupo | Cuentas ya preparadas | Primer contenido |
 | --- | --- | --- |
 | Enfermería / California Valley Medical Center | `elena-marquez`, `mateo-rios`, `sarah-chen` | Ana Solis: expediente, retrato y registros relacionados. |
-| Policial / Pacific Ridge Police Department | `alex-rivera`, `maya-johnson`, `daniel-kim` | Caso de prueba 1, notas y evidencia del turno. |
+| Policial / Pacific Ridge Police Department | `alex-rivera`, `maya-johnson`, `daniel-kim` | Caso 1, notas y evidencia del turno. |
 | Memoria / Sonoran Neurological Institute | `noah-brooks`, `lucia-vega`, `owen-patel` | Luis Moreno: expediente, retrato y recordatorio. |
 
 Cada cuenta pertenece a su grupo de trabajo y tiene su espacio personal. El servidor contiene **47 registros, 27 adjuntos y seis retratos enrolados**. Las tres cuentas principales y sus contraseñas están [publicadas para el jurado](../api/API.md#quick-start), por autorización del propietario. Postman las utiliza automáticamente sobre estos mismos datos.
@@ -38,7 +38,7 @@ Renovación vigente: cada uno de los tres grupos existentes tiene 12 fotos con l
 | --- | --- |
 | No sé dónde entrar | Usa la app Android y **Continuar con correo → Iniciar sesión**. La dirección del servidor en el navegador no abre una app web. |
 | El acceso no funciona | Usa usuario y contraseña de la misma fila de la tabla pública. Estas cuentas ya están confirmadas y sus direcciones `example.test` no reciben correos de recuperación. |
-| Solo veo Postman Demo o un espacio vacío | Importa la colección pública actual y abre Server requests → 00 Live scenarios → Police, Nursing o Memory; las tres cuentas y espacios ya están configurados. |
+| Solo veo Postman o un espacio vacío | Importa la colección pública actual y abre Server requests → 00 Live scenarios → Police, Nursing o Memory; las tres cuentas y espacios ya están configurados. |
 | No aparece mi foto, publicaciones o grupo | El responsable debe completar la cuenta antes de la prueba; el evaluador no tiene que preparar los datos. |
 
 <a id="handoff"></a>
@@ -55,7 +55,7 @@ Los manifiestos [policial](../../../simulator/workspaces/security.json), [enferm
 
 | Paso | Acción | Resultado esperado |
 | --- | --- | --- |
-| 1 | En Trabajo, selecciona Pacific Ridge → Registros del espacio → caso de prueba 1. | Fuente, versión, evento relacionado y adjuntos. |
+| 1 | En Trabajo, selecciona Pacific Ridge → Registros del espacio → caso 1. | Fuente, versión, evento relacionado y adjuntos. |
 | 2 | Lee las notas del turno y abre la imagen de evidencia. | Original y contexto del espacio seleccionado. |
 | 3 | Busca la linterna amarilla o el destornillador rojo. | Evidencia señalada, fuente y fecha de última observación. |
 | 4 | Abre una publicación del turno y revisa su autor y grupo. | Publicación ya cargada y vinculada al espacio policial. |

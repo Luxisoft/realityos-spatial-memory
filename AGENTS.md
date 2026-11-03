@@ -149,3 +149,9 @@ selected folder every 15 minutes and prune missing objects only after a complete
 successful scan. Keep immutable provenance for superseded upload attempts.
 
 Owner correction (2026-11-03): only the existing groups are in scope. Workshop and other retired groups were discarded and removed; never recreate their groups, memberships or publications during demo refresh.
+
+Owner correction (2026-11-03): prepared account/group/record/publication copy must
+use natural operational descriptions without `[Demo]`, simulated, fictional or
+test-data labels. Preserve internal provenance, licensing, mock-provider flags,
+credentials, consent and immutable history. Do not reintroduce these labels in
+fixture-generated captions or the stored-content UI.

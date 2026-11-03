@@ -26,3 +26,11 @@ flowchart LR
 [API ](../api/API.md) · [DEMO ](DEMO.md) · [DATABASE ](../architecture/DATABASE.md)
 
 To bring photos, videos or a CV from R2/S3, use [My connections](STORAGE_CONNECTIONS.md). That media connection belongs to the account; the record integrations described above import structured records into a workspace. Both retain their permission checks.
+
+Prepared data uses natural titles and descriptions, without “Demo” prefixes or
+test labels in record and publication views. Internal provenance is preserved.
+`scripts/normalize_scenario_text.py` previews pending corrections without writing;
+`--apply --journal <private-path.json>` saves previous values and applies the copy
+correction. `--rollback --journal <private-path.json>` restores only fields that
+have not changed since. It does not create groups, modify originals, or change
+evidence versions or biometric authorizations.

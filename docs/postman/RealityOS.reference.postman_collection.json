@@ -2,7 +2,7 @@
   "info": {
     "name": "RealityOS API",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-    "description": "Two independent folders: Server requests (https://realityos.luxisoft.com) and Localhost requests (http://localhost:8080). All variables, public demo credentials and demo workspace IDs are included; environments are optional. Click Send on a protected request: sign-in and token renewal run automatically. Run 00 Quick start to check the full access sequence. The demo role is query-only in an empty test workspace; use your own authorized account for writes and real data. Enable the local demo once with scripts/local/Enable-PostmanDemo.ps1. Session tokens are never included in the published file."
+    "description": "Two independent folders: Server requests (https://realityos.luxisoft.com) and Localhost requests (http://localhost:8080). All variables, preconfigured credentials and workspace IDs are included; environments are optional. Click Send on a protected request: sign-in and token renewal run automatically. Run 00 Quick start to check the full access sequence. The included role is query-only in an empty test workspace; use your own authorized account for writes and real data. Enable the local account once with scripts/local/Enable-PostmanDemo.ps1. Session tokens are never included in the published file."
   },
   "item": [
     {
@@ -11,7 +11,7 @@
       "item": [
         {
           "name": "00 Quick start",
-          "description": "Run this subfolder: health, login, current user, workspaces and query. Demo credentials and workspace are already configured; session tokens are saved automatically.",
+          "description": "Run this subfolder: health, login, current user, workspaces and query. Credentials and workspace are already configured; session tokens are saved automatically.",
           "item": [
             {
               "name": "GET /health/live",
@@ -24296,7 +24296,7 @@
       "item": [
         {
           "name": "00 Quick start",
-          "description": "Run this subfolder: health, login, current user, workspaces and query. Demo credentials and workspace are already configured; session tokens are saved automatically.",
+          "description": "Run this subfolder: health, login, current user, workspaces and query. Credentials and workspace are already configured; session tokens are saved automatically.",
           "item": [
             {
               "name": "GET /health/live",
@@ -48865,15 +48865,15 @@
     },
     {
       "key": "server_display_name",
-      "value": "Postman Demo (public test account)",
+      "value": "Postman",
       "type": "string",
-      "description": "Demo display name prefilled."
+      "description": "Account display name prefilled."
     },
     {
       "key": "server_email",
       "value": "postman-demo@realityos.example.test",
       "type": "string",
-      "description": "Public demo email prefilled. Replace locally to use your own account."
+      "description": "Account email prefilled. Replace locally to use your own account."
     },
     {
       "key": "server_enable_write_requests",
@@ -48987,7 +48987,7 @@
       "key": "server_password",
       "value": "RealityOS-Postman-Demo-2026!",
       "type": "string",
-      "description": "Public demo password prefilled. Replace locally to use your own account."
+      "description": "Account password prefilled. Replace locally to use your own account."
     },
     {
       "key": "server_person_id",
@@ -49089,19 +49089,19 @@
       "key": "server_user_id",
       "value": "183cdf56-5dbd-582c-9dba-f93c3636e2c5",
       "type": "string",
-      "description": "Demo user ID prefilled. For your own account, copy id from GET /v1/auth/me."
+      "description": "User ID prefilled. For your own account, copy id from GET /v1/auth/me."
     },
     {
       "key": "server_username",
       "value": "postman_demo",
       "type": "string",
-      "description": "Demo username prefilled; use an existing username or email for correction."
+      "description": "Account username prefilled; use an existing username or email for correction."
     },
     {
       "key": "server_workspace_id",
       "value": "4c9d6093-ba49-57b6-8043-381d9a519f0f",
       "type": "string",
-      "description": "Demo workspace preselected. For your own account, copy an ID from GET /v1/workspaces."
+      "description": "Workspace preselected. For your own account, copy an ID from GET /v1/workspaces."
     },
     {
       "key": "server_zone_id",
@@ -49167,13 +49167,13 @@
       "key": "localhost_display_name",
       "value": "Postman Local (test account)",
       "type": "string",
-      "description": "Demo display name prefilled."
+      "description": "Account display name prefilled."
     },
     {
       "key": "localhost_email",
       "value": "postman-local@realityos.example.test",
       "type": "string",
-      "description": "Public demo email prefilled. Replace locally to use your own account."
+      "description": "Account email prefilled. Replace locally to use your own account."
     },
     {
       "key": "localhost_enable_write_requests",
@@ -49287,7 +49287,7 @@
       "key": "localhost_password",
       "value": "RealityOS-Postman-Local-2026!",
       "type": "string",
-      "description": "Public demo password prefilled. Replace locally to use your own account."
+      "description": "Account password prefilled. Replace locally to use your own account."
     },
     {
       "key": "localhost_person_id",
@@ -49389,19 +49389,19 @@
       "key": "localhost_user_id",
       "value": "77195af3-fe47-5a89-8475-23ffc3c05d3c",
       "type": "string",
-      "description": "Demo user ID prefilled. For your own account, copy id from GET /v1/auth/me."
+      "description": "User ID prefilled. For your own account, copy id from GET /v1/auth/me."
     },
     {
       "key": "localhost_username",
       "value": "postman_local",
       "type": "string",
-      "description": "Demo username prefilled; use an existing username or email for correction."
+      "description": "Account username prefilled; use an existing username or email for correction."
     },
     {
       "key": "localhost_workspace_id",
       "value": "14c0ecd6-14d0-5c0b-9095-1de45e926543",
       "type": "string",
-      "description": "Demo workspace preselected. For your own account, copy an ID from GET /v1/workspaces."
+      "description": "Workspace preselected. For your own account, copy an ID from GET /v1/workspaces."
     },
     {
       "key": "localhost_zone_id",

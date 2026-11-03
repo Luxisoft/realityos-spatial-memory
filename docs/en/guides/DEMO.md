@@ -25,7 +25,7 @@ These walkthroughs are independent examples of RealityOS capabilities. They are 
 | Scenario / group | Prepared accounts | First content |
 | --- | --- | --- |
 | Nursing / California Valley Medical Center | `elena-marquez`, `mateo-rios`, `sarah-chen` | Ana Solis: record, portrait and related records. |
-| Police / Pacific Ridge Police Department | `alex-rivera`, `maya-johnson`, `daniel-kim` | Test case 1, notes and shift evidence. |
+| Police / Pacific Ridge Police Department | `alex-rivera`, `maya-johnson`, `daniel-kim` | Case 1, notes and shift evidence. |
 | Memory / Sonoran Neurological Institute | `noah-brooks`, `lucia-vega`, `owen-patel` | Luis Moreno: record, portrait and reminder. |
 
 Each account belongs to its work group and has a personal workspace. The server contains **47 records, 27 attachments and six enrolled portraits**. The three primary accounts and their passwords are [published for judges](../api/API.md#quick-start), with the owner's authorization. Postman uses these accounts automatically against the same existing data.
@@ -55,7 +55,7 @@ The [police](../../../simulator/workspaces/security.json), [nursing](../../../si
 
 | Step | Action | Expected result |
 | --- | --- | --- |
-| 1 | In Work, select Pacific Ridge → Workspace records → test case 1. | Source, version, related event and attachments. |
+| 1 | In Work, select Pacific Ridge → Workspace records → case 1. | Source, version, related event and attachments. |
 | 2 | Read shift notes and open the evidence image. | Original media and context in the selected workspace. |
 | 3 | Search for the yellow flashlight or red screwdriver. | Highlighted evidence, source and last-observed date. |
 | 4 | Open a shift post and check its author and group. | An existing post linked to the police workspace. |
