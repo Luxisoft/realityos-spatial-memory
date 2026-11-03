@@ -559,3 +559,20 @@ Rollback backend: `.runtime/workspace-audit-20261102-rollback.json`; web:
 Pendientes externos: recepción de correo en destinatario autorizado, fuente
 institucional real y QA física de teléfono/gafas. No se declara validación
 completa de esos recorridos.
+
+
+## Tercera revisión de espacios — 2026-11-02
+
+Se corrigieron cancelación/navegación de expedientes Android, comparaciones
+web obsoletas después de editar campos y bajas que dejaban registros clínicos
+activos sin paciente. Ingredientes mal tipados y alergias incompletas ya no
+producen coincidencia de campos. No se modificó el módulo biométrico.
+
+391 pruebas Python/gateway y 184 Android aprobadas, ktlint/lint y APK Debug
+reconstruido. Web publicada por CI `41557418406`; acceso y expediente con
+retrato autenticado comprobados en el sitio público. API/worker:
+`realityos-backend:workspace-review3-20261102-r2`. Salud, OpenAPI y Alembic
+`20261102_0031` verificados, sin migración nueva ni dump.
+Rollback: `.runtime/workspace-review3-20261102-rollback.json`; web:
+`.runtime/web-cc254575d71f36a95811ad71d1d8d91007f60a0a/rollback.json`.
+Se mantienen los pendientes externos y límites descritos en WORKSPACE_DATA.md.

@@ -1562,3 +1562,47 @@ real, pero falta un origen institucional. QA física de teléfono/gafas pendient
 La comparación de medicación continúa siendo manual de campos; no hay OCR de
 envases. Los nuevos registros de personas no están enlazados automáticamente
 al buscador facial existente. Los seis videos son escenas estáticas simuladas.
+
+
+## Tercera revisión integral — 2026-11-02
+
+Se reprodujeron y corrigieron seis fallos con pruebas: baja de persona con
+registros clínicos activos, medicamento importado con ingrediente numérico,
+alergia sin sustancia válida, comparación web conservada después de editar
+campos y dos recorridos Android al volver atrás durante carga/guardado.
+La importación valida el estado final de todos los registros de su fuente,
+y devuelve 422 de forma atómica si quedan relaciones clínicas inválidas.
+El comparador informa evidencia insuficiente ante datos incompletos, sin
+registrar administraciones. Android cancela el trabajo de interfaz y descarta
+respuestas anteriores; esto no revierte notas ya recibidas por el servidor.
+
+Validación final: 391 pruebas Python/gateway en el checkout, 184 Android,
+ruff/arquitectura, ktlint/lint y APK Debug reconstruido. La prueba Chromium
+incorpora edición e invalidación del resultado de medicación y bloqueo de
+campos durante la consulta. CI `41557418406` aprobó pruebas y publicó la web.
+En producción se verificaron registro visual, acceso real, expediente y foto
+autenticada, nueve accesos y avatares distintos, un grupo por trabajador y
+18 rechazos entre espacios. Una comparación real de paciente ficticio devolvió
+200 sin escrituras y un campo vacío devolvió 422. No hay dispositivos ADB
+conectados; no se afirma prueba física.
+
+API/worker: `realityos-backend:workspace-review3-20261102-r2`. Web:
+`realityos-frontend:workspace-cc254575d71f`. Salud 200, OpenAPI idéntico y
+Alembic `20261102_0031`; entorno, proveedores y límites conservados. Continúan
+tres grupos con tres miembros, 47 registros, 27 adjuntos, nueve notas y 21
+publicaciones indexadas. Los nueve trabajadores tienen publicaciones. Biometría
+intacta: 136 enrolamientos, 22 consentimientos y mismo hash de faces.py.
+No hubo migración ni nuevo dump en esta revisión.
+
+Rollback backend: `.runtime/workspace-review3-20261102-rollback.json`; web:
+`.runtime/web-cc254575d71f36a95811ad71d1d8d91007f60a0a/rollback.json`.
+Comprobantes: `.runtime/workspace-review3-final-verification.json`,
+`.runtime/workspace-review3-live.json`, `.runtime/workspace-review3-clinical-live.json`
+y `.runtime/workspace-review3-ui-verification.json`.
+
+Siguen pendientes recepción real de correo (se solicitó un destinatario, sin
+respuesta), una fuente institucional real y QA física de teléfono/gafas. No se
+añadió OCR de envases ni enlace automático entre registros de personas y el
+buscador facial. Los videos del jurado siguen siendo escenas estáticas
+sintéticas. Estos límites impiden afirmar validación integral de los tres
+casos de uso con hardware y sistemas institucionales.
