@@ -1635,3 +1635,26 @@ devuelve su expediente con similitud 1.0, `simulated=false`. Rollback:
 `workspace-review3-20261102-r2`) + downgrade a `20261102_0031`; comprobante en
 `.runtime/face-records-20261103-verification.json`. Siguen fuera de alcance OCR
 de envases, alerta policial automática, FHIR/MCP y QA física.
+
+
+## Revisión enlace facial r2 — 2026-11-03
+
+Correcciones tras revisar `99a83e0`: migración `20261103_0032` duplicaba un
+índice de `face_record_enrollments`; `20261103_0033` deja solo los dos índices
+con nombre ORM. Display (`MetaDisplayScreens`) ignoraba `matches_records`: ahora
+los decodifica con kind `face_record_enrollment`, insignia `face_badge_record`
+y candidato posicional; `GalleryThumb.faceDisplayKind` fija el kind por
+miniatura (pruebas en `FaceMatchDisplayTest`/`ChatEvidenceTest`). Voz persona ya
+consultaba `records/search`; sin cambios.
+
+Incidente CI: el deploy de producción de `99a83e0` recreó el proxy sin los
+volúmenes de demanda (el hook de preservación no estaba commiteado) y falló con
+conflicto de nombres, dejando 502. Se restauró proxy/frontend/display con el
+overlay de demanda y se commiteó el hook mínimo en
+`scripts/deploy/preserve_backend_runtime.py` (no-op sin
+`.runtime/backend-demand.json`). Lección: el gateway responde `/health/*` él
+mismo y cachea la IP del API; tras recrear el API hay que reiniciarlo
+(`systemctl --user restart backend-demand-realityos.service`) y verificar un
+`/v1/` real. Producción: `realityos-backend:face-records-20261103-r2`,
+Alembic `20261103_0033`, 6 enrolamientos intactos, sonda Ana Solis 1.0 en vivo.
+Rollback: `.runtime/face-records-r2-rollback.json` (+ downgrade a `0032`).

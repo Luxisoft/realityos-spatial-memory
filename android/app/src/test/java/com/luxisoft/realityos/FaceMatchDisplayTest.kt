@@ -52,6 +52,7 @@ class FaceMatchDisplayTest {
         assertEquals("media-1", thumb.mediaId)
         assertEquals(true, thumb.simulated)
         assertEquals(listOf("record_candidate"), thumb.matchedLabels)
+        assertEquals("face_record_enrollment", thumb.faceDisplayKind)
         assertEquals(true, keepHistoryThumb(thumb))
     }
 

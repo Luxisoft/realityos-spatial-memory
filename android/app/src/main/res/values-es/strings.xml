@@ -273,6 +273,7 @@
     <string name="face_capture_no_camera">Se requiere permiso de cámara, o elige de la galería.</string>
     <string name="face_badge_direct">Directo</string>
     <string name="face_badge_knows">Posiblemente conoce</string>
+    <string name="face_badge_record">Expediente candidato</string>
     <string name="face_stage">Filtro %1$d de 3</string>
     <string name="face_verifying">Verificando identidad…</string>
     <string name="face_verify_pending">Tus fotos aún se están preparando. Inténtalo de nuevo en unos segundos.</string>

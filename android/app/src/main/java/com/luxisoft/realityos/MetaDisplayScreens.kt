@@ -271,17 +271,25 @@ internal fun RealityViewModel.executeFaceQuery(photo: ByteArray) {
                 )
             }
             if (!acceptsDisplayImage(revision, screen)) return@launch
-            metaController.matches = orderedEvidence(
-                raw.optJSONArray("matches")?.let { array ->
-                    (0 until array.length()).mapNotNull {
-                        val match = array.optJSONObject(it) ?: return@mapNotNull null
-                        decodeFaceThumb(match)?.copy(
-                            faceEnrollmentId = faceMatchEnrollmentId(match),
-                            probeBox = faceMatchProbeBox(match)
-                        )
-                    }
-                }.orEmpty()
-            )
+            val userMatches = raw.optJSONArray("matches")?.let { array ->
+                (0 until array.length()).mapNotNull {
+                    val match = array.optJSONObject(it) ?: return@mapNotNull null
+                    decodeFaceThumb(match)?.copy(
+                        faceEnrollmentId = faceMatchEnrollmentId(match),
+                        probeBox = faceMatchProbeBox(match)
+                    )
+                }
+            }.orEmpty()
+            val recordMatches = raw.optJSONArray("matches_records")?.let { array ->
+                (0 until array.length()).mapNotNull {
+                    val match = array.optJSONObject(it) ?: return@mapNotNull null
+                    decodeRecordFaceThumb(match)?.copy(
+                        faceEnrollmentId = faceMatchEnrollmentId(match),
+                        probeBox = faceMatchProbeBox(match)
+                    )
+                }
+            }.orEmpty()
+            metaController.matches = orderedEvidence(userMatches + recordMatches)
             val names = metaController.matches.joinToString { faceMatchLabel(it.caption, it.confidence) }
             val answerText = if (metaController.matches.isEmpty()) {
                 copy(R.string.chat_face_none)
@@ -399,7 +407,7 @@ internal fun RealityViewModel.renderFaceResult(index: Int): Unit = launchDisplay
 private suspend fun RealityViewModel.loadFaceResult(index: Int, revision: Long) {
     val item = metaController.matches.getOrNull(index) ?: return
     val screen = renderRevision
-    val bitmap = displayResultImages.match(MetaDisplayPolicy.faceDisplayKind(), item.faceEnrollmentId)
+    val bitmap = displayResultImages.match(item.faceDisplayKind, item.faceEnrollmentId)
     if (!acceptsDisplayImage(revision, screen)) return
     mutableUiState.value = state.value.copy(meta = state.value.meta.copy(resultIndex = index))
     val language = RealityExperienceStore(app).language.value.languageTag
@@ -408,7 +416,9 @@ private suspend fun RealityViewModel.loadFaceResult(index: Int, revision: Long) 
             text(copy(R.string.meta_person_position, index + 1, metaController.matches.size), style = TextStyle.META)
             image(bitmap = bitmap, sizePreset = ImageSize.FILL)
             text(item.caption.take(120), style = TextStyle.HEADING)
-            val badge = if (item.matchedLabels.contains("possible_acquaintance")) {
+            val badge = if (item.matchedLabels.contains("record_candidate")) {
+                copy(R.string.face_badge_record)
+            } else if (item.matchedLabels.contains("possible_acquaintance")) {
                 copy(R.string.face_badge_knows)
             } else {
                 copy(R.string.face_badge_direct)

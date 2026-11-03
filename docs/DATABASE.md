@@ -42,7 +42,9 @@ adds `face_record_enrollments` (record, workspace, media, optional record-media
 link, embedding, box, quality, `record-portrait`/`record-frame` source and
 authorizing worker) plus explicit `biometric_authorized/basis/by/at` columns on
 `workspace_records`; only active person rows with authorization are searchable,
-and enrollments are explicit, never automatic.
+and enrollments are explicit, never automatic. Revision `20261103_0033` keeps
+only the ORM-named indexes on that table (0032 had duplicated one workspace
+index because Alembic also honors `index=True`).
 
 `facebook_profiles` stores one synced row per user (email, birthday, age
 range, gender, hometown, location, link, picture, friends/likes/photos/videos

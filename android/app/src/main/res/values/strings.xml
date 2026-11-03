@@ -276,6 +276,7 @@
     <string name="face_capture_no_camera">Camera permission is required, or choose from gallery.</string>
     <string name="face_badge_direct">Direct</string>
     <string name="face_badge_knows">Possibly knows</string>
+    <string name="face_badge_record">Record candidate</string>
     <string name="face_stage">Filter %1$d of 3</string>
     <string name="face_verifying">Verifying identity…</string>
     <string name="face_verify_pending">Your photos are still being prepared. Try again in a few seconds.</string>

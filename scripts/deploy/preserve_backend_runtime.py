@@ -65,6 +65,33 @@ def runtime_overlays(inspect):
     return {"services": preserved}, {"services": rollback}
 
 
+def preserve_demand_runtime(overlay, config, runtime_root):
+    """Keep an explicitly installed demand ingress across image-only upgrades.
+
+    No-op unless .runtime/backend-demand.json exists and points at the
+    expected socket files. Keeps the API socket-activated (restart=no) and
+    the proxy routed through the demand nginx config plus socket mount.
+    """
+
+    nginx = Path(config["nginx_conf"]).resolve()
+    expected = (runtime_root / "backend-demand-nginx.conf").resolve()
+    if nginx != expected or not nginx.is_file():
+        raise ValueError("Invalid installed demand ingress configuration")
+    socket_dir = Path(config["socket_dir"])
+    if (
+        not socket_dir.is_absolute()
+        or socket_dir.name != "realityos-socket"
+        or not socket_dir.is_dir()
+    ):
+        raise ValueError("Invalid installed demand socket directory")
+    services = overlay.setdefault("services", {})
+    services.setdefault("api", {}).update(restart="no")
+    services.setdefault("proxy", {})["volumes"] = [
+        f"{nginx}:/etc/nginx/conf.d/default.conf:ro",
+        f"{socket_dir}:/run/backend-demand:ro",
+    ]
+
+
 def docker_inspect(name):
     result = subprocess.run(
         ["docker", "inspect", name], capture_output=True, text=True, check=True
@@ -88,6 +115,12 @@ if __name__ == "__main__":
     parser.add_argument("--rollback", type=Path, required=True)
     args = parser.parse_args()
     preserved, rollback = runtime_overlays(docker_inspect)
+    runtime_root = Path(__file__).resolve().parents[2] / ".runtime"
+    demand_path = runtime_root / "backend-demand.json"
+    if demand_path.is_file():
+        demand = json.loads(demand_path.read_text())
+        preserve_demand_runtime(preserved, demand, runtime_root)
+        preserve_demand_runtime(rollback, demand, runtime_root)
     save(args.output, preserved)
     save(args.rollback, rollback)
     print(

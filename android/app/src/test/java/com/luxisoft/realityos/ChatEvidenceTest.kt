@@ -74,4 +74,8 @@ class ChatEvidenceTest {
         assertEquals("large-marked", thumb.viewerUrl)
         assertEquals("family", thumb.matchKind)
     }
+
+    @Test fun `display thumbnails default to user enrollment kind`() {
+        assertEquals("face_enrollment", GalleryThumb("t", "m").faceDisplayKind)
+    }
 }

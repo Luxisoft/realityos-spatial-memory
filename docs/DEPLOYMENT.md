@@ -83,3 +83,15 @@ La síntesis usa ElevenLabs desde el API, con `ELEVENLABS_API_KEY` en el archivo
 privado `.env.elevenlabs` (0600), inyectado únicamente en el API. Muse Voice
 Transcribe continúa usando Meta. No hay imágenes ni servicios de síntesis local
 que construir o activar. Ver [TTS](TTS.md).
+
+
+## Ingress bajo demanda
+
+Cuando `.runtime/backend-demand.json` existe, el proxy enruta `/v1/` y
+`/health/` por el socket `backend-demand` y `preserve_backend_runtime.py`
+conserva esos volúmenes más `restart=no` del API en los overlays, también en
+CI. El gateway responde `/health/live` y `/health/ready` él mismo: un 200 ahí
+no prueba `/v1/`. Además cachea la IP del contenedor API: tras recrear el API
+hay que reiniciar el gateway (`systemctl --user restart
+backend-demand-realityos.service`) o todo `/v1/` se cuelga con 000. Verificar
+siempre un endpoint `/v1/` real (p. ej. `openapi.json`) tras cada despliegue.

@@ -72,7 +72,8 @@ internal fun decodeRecordFaceThumb(match: JSONObject?): GalleryThumb? {
         recordId = match.optText("record_id").orEmpty(),
         matchedLabels = listOf("record_candidate"),
         confidence = if (match.isNull("similarity")) null else match.optDouble("similarity"),
-        simulated = match.optBoolean("simulated")
+        simulated = match.optBoolean("simulated"),
+        faceDisplayKind = "face_record_enrollment"
     )
 }
 
