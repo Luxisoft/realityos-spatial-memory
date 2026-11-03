@@ -222,11 +222,12 @@ internal object SocialSession {
     private fun requestMultipartOnce(path: String, fields: Map<String, String>, fileBytes: ByteArray, filename: String, mimeType: String, requestedFieldName: String?, mayRefresh: Boolean): String {
         val boundary = "RealityOS-${java.util.UUID.randomUUID()}"
         val fieldName = requestedFieldName ?: if (path == "faces/search" || path == "display/face-group-links") "probe" else "file"
-        val connection = URL("${BuildConfig.DEFAULT_REALITYOS_API_BASE_URL}/$path").openConnection() as HttpURLConnection
+        val connection = openJsonConnection(path)
         connection.requestMethod = "POST"
         connection.setRequestProperty("X-Client-Version", BuildConfig.VERSION_NAME)
         connection.connectTimeout = 15000
-        connection.readTimeout = 60000
+        // Image identification and evidence matching can require several provider calls.
+        connection.readTimeout = if (path == "queries/image") 180000 else 60000
         connection.doOutput = true
         connection.setRequestProperty("Content-Type", "multipart/form-data; boundary=$boundary")
         token?.let { connection.setRequestProperty("Authorization", "Bearer $it") }

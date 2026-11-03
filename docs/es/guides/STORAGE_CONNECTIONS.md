@@ -16,6 +16,8 @@ Fotos: JPEG, PNG y WebP. Video: MP4, hasta 120 segundos en publicaciones. La des
 
 Para consultar, selecciona un archivo y usa **Buscar objeto** (imagen) o **Buscar persona** (imagen/video). La búsqueda se realiza en el espacio elegido. Biometría conserva consentimiento, calidad y enrolamientos previos; importar retratos nunca enrola todas sus caras automáticamente. Los resultados enlazan con evidencia, perfiles o expedientes autorizados.
 
+La búsqueda de objetos por imagen puede superar un minuto; Android espera hasta tres minutos por el resultado.
+
 ## Actualización y privacidad
 
 Configura sincronización manual o actívala cada 15 minutos, cada hora o diariamente. Se recorre la carpeta seleccionada y sus subcarpetas, por páginas. **Actualizar ahora** procesa la siguiente página; la sincronización automática continúa cada minuto mientras queden páginas.

@@ -1,7 +1,11 @@
 package com.luxisoft.realityos
 
 import android.app.Application
+import java.io.ByteArrayInputStream
+import java.io.ByteArrayOutputStream
 import java.net.HttpURLConnection
+import java.net.SocketTimeoutException
+import java.net.URL
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
 import org.json.JSONObject
@@ -14,6 +18,45 @@ import org.robolectric.annotation.Config
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [35], application = Application::class)
 class AccountTransportTest {
+    @Test fun imageQueryWaitsForLongAnalysisWhileOrdinaryUploadsKeepTheirLimit() {
+        class DelayedConnection : HttpURLConnection(URL("https://example.test/v1/query")) {
+            val body = ByteArrayOutputStream()
+            var disconnected = false
+            override fun connect() { }
+            override fun disconnect() {
+                disconnected = true
+            }
+            override fun usingProxy() = false
+            override fun getOutputStream() = body
+            override fun getResponseCode(): Int {
+                // Simulate a provider response after 90 seconds without sleeping
+                // or allowing a unit test to contact the production server.
+                if (readTimeout < 90000) throw SocketTimeoutException("Analysis still running")
+                return 200
+            }
+            override fun getInputStream() = ByteArrayInputStream("{}".toByteArray())
+        }
+        val original = SocialSession.openJsonConnection
+        val connections = mutableListOf<DelayedConnection>()
+        try {
+            SocialSession.clear()
+            SocialSession.token = "synthetic-session"
+            SocialSession.openJsonConnection = { DelayedConnection().also { connections.add(it) } }
+            val response = SocialSession.requestMultipart("queries/image", mapOf("workspace_id" to "qa"), byteArrayOf(1, 2, 3), "probe.png", "image/png", "image")
+            assertEquals("{}", response)
+            assertEquals("Bearer synthetic-session", connections[0].getRequestProperty("Authorization"))
+            assertTrue(connections[0].body.toString("UTF-8").contains("name=\"image\"; filename=\"probe.png\""))
+            assertTrue(connections[0].disconnected)
+            assertThrows(SocketTimeoutException::class.java) {
+                SocialSession.requestMultipart("me/publication-uploads", emptyMap(), byteArrayOf(1), "upload.png", "image/png")
+            }
+            assertTrue(connections[1].disconnected)
+        } finally {
+            SocialSession.openJsonConnection = original
+            SocialSession.clear()
+        }
+    }
+
     @Test fun duplicateRegistrationRetainsFieldErrorsAndCorrectionUsesChosenLanguage() {
         val original = SocialSession.openJsonConnection
         val language = AccountRequestLanguage.value

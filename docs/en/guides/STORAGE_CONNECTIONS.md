@@ -14,6 +14,8 @@ Supported publication formats: JPEG, PNG, WebP, MP4 (up to 120 seconds). Remote 
 
 Use an image for object search, or an image/video for face search in the selected workspace. Facial consent, enrollment and quality rules still apply; imports do not automatically enroll faces. Authorized results open evidence, profiles or records.
 
+Image-based object search can take more than a minute; Android waits up to three minutes for the result.
+
 ## Synchronization
 
 Configure manual synchronization or enable 15-minute, hourly or daily runs. The selected folder and subfolders are scanned in pages; Update now processes the next page. Automatic scans continue every minute while pages remain. Changed files enter the existing duplicate review. Unchanged source/content/destination combinations do not create another publication while the original remains published. If it was deleted or replaced, you can import the bucket original again. Remote deletions or listing failures never delete imported copies.
