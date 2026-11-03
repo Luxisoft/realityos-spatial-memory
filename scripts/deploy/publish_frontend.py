@@ -74,6 +74,13 @@ def main():
             "frontend",
         ]
         subprocess.run(command, cwd=root, check=True)
+        fetch = ["docker", "exec", "infrastructure-frontend-1", "wget", "-q", "-O", "-"]
+        html = subprocess.check_output(fetch + ["http://127.0.0.1/"]).decode()
+        assets = re.findall(r'(?:src|href)="(/assets/[^\"]+)"', html)
+        if not assets:
+            raise RuntimeError("Published page has no compiled assets")
+        for asset in assets:
+            subprocess.check_output(fetch + [f"http://127.0.0.1{asset}"])
         (stage / "receipt.json").write_text(
             json.dumps({"image": image, "rollback": str(rollback), "commit": sha})
         )
