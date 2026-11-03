@@ -102,8 +102,8 @@ await new Promise((done) => server.listen(0, "127.0.0.1", done));
 const executablePath =
   process.env.CHROMIUM_BIN ||
   [
-    "/usr/bin/chromium",
     "/usr/bin/google-chrome",
+    "/usr/bin/chromium",
     "/usr/bin/chromium-browser",
   ].find(existsSync);
 assert.ok(
@@ -113,6 +113,7 @@ assert.ok(
 const browser = await puppeteer.launch({
   executablePath,
   headless: true,
+  dumpio: Boolean(process.env.CI),
   args: ["--no-sandbox", "--disable-dev-shm-usage"],
 });
 const page = await browser.newPage();
