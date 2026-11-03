@@ -20,6 +20,7 @@ from app.faces import (
     _usable_enrollment,
     cosine_similarity,
     require_biometric_consent,
+    validate_account_reference,
 )
 from app.models import MediaAsset, MediaKind
 
@@ -117,6 +118,8 @@ async def add_reference(
     if len(detected) != 1:
         raise HTTPException(422, "Each reference photo must show exactly one face.")
     face = detected[0]
+    if not engine.simulated:
+        validate_account_reference(face, settings)
     if not engine.simulated and (
         primary.embedding_model != engine.name
         or cosine_similarity(primary.embedding, face.embedding) < settings.face_identity_threshold
@@ -133,14 +136,8 @@ async def add_reference(
     )
     db.add(asset)
     db.flush()
-    created = _enroll_images(
-        db,
-        user,
-        [asset],
-        REFERENCE_SOURCE,
-        engine,
-        None if engine.simulated else settings.face_spoof_max_risk,
-    )
+    # These are explicitly selected reference photos, not live-login captures.
+    created = _enroll_images(db, user, [asset], REFERENCE_SOURCE, engine)
     if not created or (
         not engine.simulated
         and not _usable_enrollment(

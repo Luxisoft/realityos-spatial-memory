@@ -38,8 +38,11 @@ error recuperable y envío tienen estados explícitos, sin habilitar acciones an
 del consentimiento ni completar el registro automáticamente.
 
 Las fotos de perfil y las referencias elegidas en Android aplican las ocho
-orientaciones EXIF antes de enviarse como JPEG de hasta 1600 px. El control de
-nitidez utiliza la misma escala para evitar rechazar retratos por su resolución.
+orientaciones EXIF antes de enviarse como JPEG de hasta 1600 px. La configuración
+por correo valida un rostro reconocible y referencias de la misma persona; no
+aplica a esas fotos guardadas el filtro de textura de las capturas en vivo.
+Esas referencias tampoco sirven como prueba de acceso por Facebook. Las capturas
+de ese acceso conservan su validación y normalización de escala.
 Las publicaciones conservan sus bytes originales; sus miniaturas, vistas previas
 y recuadros respetan la orientación de la foto. Los errores de subida explican
 si falta un grupo, si el formato/tamaño no se admite o si el rostro no se valida,

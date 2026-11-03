@@ -37,8 +37,11 @@ Loading, recoverable errors and submissions have explicit states, without
 enabling actions before consent or completing registration automatically.
 
 Profile and reference photos selected on Android apply all eight EXIF
-orientations before upload as JPEGs bounded to 1600 px. Sharpness validation uses
-the same scale so resolution alone does not reject a portrait. Publications keep
+orientations before upload as JPEGs bounded to 1600 px. Email-account setup
+validates a recognizable face and references of the same person; saved photos
+are not subject to the live-capture texture heuristic. Those references cannot
+serve as Facebook login proof. Facebook captures retain their validation and
+scale normalization. Publications keep
 their original bytes; thumbnails, previews and overlays honor photo orientation.
 Upload errors explain missing groups, unsupported formats/sizes or failed face
 validation instead of showing only an HTTP code.

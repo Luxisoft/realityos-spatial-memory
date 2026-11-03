@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import hashlib
 import io
+import logging
 import math
 import shutil
 import struct
@@ -67,6 +68,7 @@ from app.models import (
 )
 
 router = APIRouter(tags=["faces"])
+logger = logging.getLogger(__name__)
 
 _IMAGE_MIMES = {"image/jpeg", "image/png", "image/webp"}
 _VIDEO_MIMES = {"video/mp4", "video/quicktime", "video/webm"}
@@ -327,6 +329,24 @@ def _usable_probe_face(
     if not face.embedding:
         return None
     return DetectedFace(bounding_box=box, embedding=face.embedding, quality=face.quality)
+
+
+def validate_account_reference(face: DetectedFace, settings: Settings) -> None:
+    """A saved reference needs a usable face, not evidence of a live capture.
+
+    Texture/moire heuristics are not a quality measurement for gallery photos.
+    Use the same detector confidence, geometry and embedding requirements as
+    recognition; consent, single-face and identity checks remain with callers.
+    """
+
+    if (
+        _usable_probe_face(
+            face, min_quality=settings.face_min_quality, min_area=settings.face_min_box_area
+        )
+        is None
+    ):
+        logger.warning("Account reference rejected: unusable_face")
+        raise HTTPException(422, "The face is too small or unclear. Choose a sharper photo.")
 
 
 def _usable_enrollment(enrollment: FaceEnrollment, *, min_quality: float, min_area: float) -> bool:
@@ -817,6 +837,9 @@ def _enroll_images(
             for face in faces:
                 assessment = assess_spoof_risk(image.original_bytes, face.bounding_box)
                 if assessment.risk > spoof_max_risk:
+                    logger.warning(
+                        "Face enrollment rejected: source=%s reasons=%s", source, assessment.reasons
+                    )
                     raise HTTPException(
                         status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
                         detail=(
@@ -1126,15 +1149,20 @@ def verify_identity(
     if len(failures) >= settings.face_max_attempts:
         return locked_response(failures)
 
-    captures = list(
-        db.scalars(
-            select(FaceEnrollment.embedding).where(
+    captures = [
+        embedding
+        for embedding, metadata in db.execute(
+            select(FaceEnrollment.embedding, MediaAsset.extra_metadata)
+            .join(MediaAsset, MediaAsset.id == FaceEnrollment.media_asset_id)
+            .where(
                 FaceEnrollment.user_id == user.id,
                 FaceEnrollment.source == _SELF_MATCH_SOURCE,
                 FaceEnrollment.embedding_model == engine.name,
             )
         )
-    )
+        # A gallery reference for an email account is never a live-login capture.
+        if not (metadata or {}).get("account_reference")
+    ]
     if not captures:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
@@ -1254,11 +1282,20 @@ async def upload_profile_photo(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(exc)
         ) from exc
     if len(pre_faces) != 1:
+        logger.warning("Profile photo rejected: face_count=%d", len(pre_faces))
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
             detail="Profile photos must show exactly one face.",
         )
+    from app.accounts.models import PasswordAccount
     from app.face_setup import BiometricSetup
+    from app.social import FacebookProfile
+
+    account_reference = (
+        db.get(PasswordAccount, user.id) is not None and db.get(FacebookProfile, user.id) is None
+    )
+    if account_reference and not engine.simulated:
+        validate_account_reference(pre_faces[0], settings)
 
     setup = db.get(BiometricSetup, user.id)
     if setup:
@@ -1286,13 +1323,17 @@ async def upload_profile_photo(
         width=width,
         height=height,
         captured_at=datetime.now(UTC),
-        extra_metadata={"filename": file.filename or "profile-photo", "face_profile": True},
+        extra_metadata={
+            "filename": file.filename or "profile-photo",
+            "face_profile": True,
+            "account_reference": account_reference,
+        },
     )
     db.add(asset)
     session.status = CaptureStatus.CLOSED
     session.closed_at = datetime.now(UTC)
     db.flush()
-    spoof_max_risk = None if engine.simulated else settings.face_spoof_max_risk
+    spoof_max_risk = None if engine.simulated or account_reference else settings.face_spoof_max_risk
     created = _enroll_images(db, user, [asset], "profile", engine, spoof_max_risk)
     db.flush()
     return EnrollResponse(
