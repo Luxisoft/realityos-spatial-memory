@@ -27,6 +27,14 @@ android/.idea/
 *.tsbuildinfo
 *.keystore
 *.jks
+*.key
+*.pem
+*.p12
+*.pfx
+id_rsa
+id_ecdsa
+id_ed25519
+*.dump
 pgdata/
 redisdata/
 uploads/

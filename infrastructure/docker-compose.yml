@@ -63,7 +63,11 @@ services:
     environment:
       DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-realityos}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-realityos}
       REDIS_URL: redis://redis:6379/0
-    command: ["celery", "-A", "app.tasks.celery_app", "worker", "--loglevel=INFO"]
+    command: ["celery", "-A", "app.tasks.celery_app", "worker", "--loglevel=INFO", "--autoscale=1,0", "--max-tasks-per-child=1", "--prefetch-multiplier=1"]
+    mem_limit: 1536m
+    memswap_limit: 1536m
+    cpus: 2
+    pids_limit: 128
     depends_on:
       api:
         condition: service_healthy
