@@ -159,22 +159,14 @@ Estos videos y la portada son representaciones conceptuales; no sustituyen una g
 
 ## Desplegar en producción con un solo prompt
 
-**Elige un agente, copia su bloque completo y pégalo en una sesión con terminal o SSH en tu servidor.** Muse es la opción principal. Cada bloque contiene la tarea completa; no necesitas combinar prompts.
+**Abre el prompt de Muse, copia el bloque completo y pégalo en una sesión con terminal o SSH en tu servidor.** Contiene toda la tarea de despliegue.
 
 Necesitas tu servidor Ubuntu, dominio y cuentas de proveedores. El agente solicitará los datos que falten y preparará API, base de datos, worker, scheduler, HTTPS y el APK para tu dominio. Facebook, Wearables, buckets y firma Release utilizan tus propias credenciales cuando los habilites.
 
-Selecciona el agente y despliega su sección para copiar el prompt. Muse aparece abierto por defecto.
-
-<p align="center">
-  <a href="#deploy-muse"><img src="../assets/readme/agent-muse.svg" alt="Muse" height="36"></a>
-  <a href="#deploy-codex"><img src="../assets/readme/agent-codex.svg" alt="Codex" height="36"></a>
-  <a href="#deploy-claude"><img src="../assets/readme/agent-claude.svg" alt="Claude" height="36"></a>
-</p>
-
 <a id="deploy-muse"></a>
 
-<details open>
-<summary><strong>Muse · Principal</strong></summary>
+<details>
+<summary><strong>Muse · Prompt de despliegue</strong></summary>
 
 ```text
 Eres Muse, mi agente de ingeniería de despliegue con acceso a este servidor. Usa las
@@ -261,188 +253,7 @@ credenciales, DNS, pruebas o servicios necesarios.
 
 </details>
 
-<a id="deploy-codex"></a>
-
-<details>
-<summary><strong>Codex</strong></summary>
-
-```text
-Eres Codex, mi agente de ingeniería de despliegue con acceso a este servidor. Usa las
-herramientas de terminal de Codex y verifica cada etapa con su resultado real.
-
-Instala y despliega todo el proyecto RealityOS en producción en este servidor. Ejecuta
-el trabajo hasta verificarlo y entregarlo, respetando los permisos de esta sesión del
-agente.
-
-Repositorio: https://github.com/Luxisoft/realityos-spatial-memory
-
-1. Inspecciona el sistema operativo, CPU/RAM/disco disponibles, puertos, Docker,
-servicios existentes y estado de Git. Usa un servidor Ubuntu compatible. Clona main en
-un directorio apropiado o reutiliza el checkout previsto sin sobrescribir cambios
-locales. Registra el commit exacto. Limita las operaciones a mi instalación; los
-dominios y cuentas Luxisoft de los ejemplos no son mis destinos de despliegue.
-
-2. Lee AGENTS.md, MUSE.md y docs/es/project/PROJECT_CONTEXT.md. Después lee
-docs/es/deployment/DEPLOYMENT.md, DEPLOYMENT_DIRECT.md y DEPLOYMENT_GATEWAY.md en ese
-directorio, además de docs/es/integrations/ANDROID.md, META_INTEGRATION.md y TTS.md.
-Inspecciona Makefile, los archivos Compose, .env.example y backend/app/config.py antes
-de elegir comandos. Respeta las reglas del repositorio; conserva el módulo biométrico
-aislado, los consentimientos, permisos por espacio y medios originales.
-
-3. Pide juntos solo los datos del operador que falten: dominio de la API, correo para el
-certificado y rutas de archivos privados con mi MODEL_API_KEY de Meta, clave ElevenLabs
-y configuración SMTP. Determina también si dispongo de Facebook Login, Meta Wearables,
-R2/S3, un servidor gateway y credenciales de firma Android Release. No inventes
-credenciales ni copies las cuentas públicas de evaluación del proyecto. Avanza con la
-preparación independiente mientras se aportan los datos necesarios.
-
-4. Instala las dependencias del sistema, Git, Docker Engine/Compose v2 y herramientas de
-compilación según instrucciones oficiales. Crea un proyecto Compose propio, volúmenes
-persistentes y archivos privados de configuración con permisos restrictivos. Genera
-secretos únicos de base de datos, JWT, dispositivos y cifrado. Configura
-ENVIRONMENT=production, META_MODE=live, claves reales, SMTP funcional y
-AUTH_PUBLIC_URL=https://<mi-dominio>. Mantén secretos fuera de Git, la salida de
-terminal y el APK. Al actualizar, conserva secretos y volúmenes existentes.
-
-5. Construye una imagen inmutable del backend desde el commit elegido y despliega
-PostgreSQL, Redis, API, worker, scheduler y proxy. Aplica las migraciones Alembic. Usa
-Meta directo por defecto y desactiva explícitamente el fallback si mi gateway no está
-configurado. ElevenLabs es el único proveedor de síntesis. Si elijo gateway, despliega
-el servicio restringido del repositorio con token independiente, allowlist de IP de
-origen y TLS; valida rutas permitidas, rechazo de tokens y reenvío multipart. Conserva
-las credenciales del modelo privadas en ambos servidores.
-
-6. Configura Nginx del host y Let's Encrypt para mi dominio, usando las plantillas del
-repositorio y el puerto real del proxy en loopback. Verifica DNS, HTTPS, renovación de
-certificados y reinicios. Mantén PostgreSQL/Redis y los puertos internos de la API
-privados. Android es la aplicación; conserva las páginas de acciones de correo del
-backend y no despliegues el panel web ni Display web retirados. Configura integraciones
-opcionales solo con mis credenciales y permisos; informa qué aprobaciones externas
-faltan. Una instalación nueva comienza sin cuentas ni medios importados.
-
-7. Instala Java 21 y Android SDK 36, acepta las licencias necesarias con mi autorización
-y compila la app Android habitual para https://<mi-dominio>/v1 mediante
-REALITYOS_API_BASE_URL. Ejecuta las comprobaciones Android documentadas. Conserva el
-único APK Debug instalable en android/app/build/outputs/apk/debug/app-debug.apk. Compila
-Release y fírmalo solo con mi configuración privada; identifica correctamente un archivo
-sin firma. Conserva los requisitos productivos de acceso y enrolamiento; no uses la
-excepción aislada de localhost.
-
-8. Ejecuta las comprobaciones pertinentes del Makefile. Verifica /health/ready público,
-todo /v1/openapi.json frente a tests/contracts/openapi.json, Alembic head y la operación
-del worker/scheduler. Con mi cuenta autorizada y entradas pequeñas permitidas, verifica
-autenticación, acciones de correo, aislamiento entre espacios, procesamiento de medios y
-las rutas reales Meta/ElevenLabs. No sustituyas resultados por mock. Documenta el
-registro del primer propietario y los pasos de consentimiento, cámara, teléfono o gafas
-que requieran mi intervención.
-
-9. Antes de reemplazar una versión existente, guarda su rollback de imagen/configuración
-y revisa la reversibilidad de las migraciones. Conserva servicios y datos ajenos; no
-crees un dump rutinario de la base de datos. Usa solo mi destino privado aprobado para
-copias. Retira únicamente artefactos de compilación sin uso después de verificar,
-conservando la imagen de rollback. Mantén los cambios de despliegue locales salvo que yo
-pida publicarlos.
-
-10. Entrega commit/imagen desplegados, URLs, ruta y hash del APK, comprobaciones
-realmente ejecutadas, primeros pasos, comandos exactos de reversión y bloqueos externos
-pendientes. Completa todo lo que sea posible; no declares producción lista si faltan
-credenciales, DNS, pruebas o servicios necesarios.
-```
-
-</details>
-
-<a id="deploy-claude"></a>
-
-<details>
-<summary><strong>Claude</strong></summary>
-
-```text
-Eres Claude, mi agente de ingeniería de despliegue con acceso a este servidor. Trabaja
-en Claude Code con acceso al servidor y lee AGENTS.md explícitamente como instrucciones
-del proyecto.
-
-Instala y despliega todo el proyecto RealityOS en producción en este servidor. Ejecuta
-el trabajo hasta verificarlo y entregarlo, respetando los permisos de esta sesión del
-agente.
-
-Repositorio: https://github.com/Luxisoft/realityos-spatial-memory
-
-1. Inspecciona el sistema operativo, CPU/RAM/disco disponibles, puertos, Docker,
-servicios existentes y estado de Git. Usa un servidor Ubuntu compatible. Clona main en
-un directorio apropiado o reutiliza el checkout previsto sin sobrescribir cambios
-locales. Registra el commit exacto. Limita las operaciones a mi instalación; los
-dominios y cuentas Luxisoft de los ejemplos no son mis destinos de despliegue.
-
-2. Lee AGENTS.md, MUSE.md y docs/es/project/PROJECT_CONTEXT.md. Después lee
-docs/es/deployment/DEPLOYMENT.md, DEPLOYMENT_DIRECT.md y DEPLOYMENT_GATEWAY.md en ese
-directorio, además de docs/es/integrations/ANDROID.md, META_INTEGRATION.md y TTS.md.
-Inspecciona Makefile, los archivos Compose, .env.example y backend/app/config.py antes
-de elegir comandos. Respeta las reglas del repositorio; conserva el módulo biométrico
-aislado, los consentimientos, permisos por espacio y medios originales.
-
-3. Pide juntos solo los datos del operador que falten: dominio de la API, correo para el
-certificado y rutas de archivos privados con mi MODEL_API_KEY de Meta, clave ElevenLabs
-y configuración SMTP. Determina también si dispongo de Facebook Login, Meta Wearables,
-R2/S3, un servidor gateway y credenciales de firma Android Release. No inventes
-credenciales ni copies las cuentas públicas de evaluación del proyecto. Avanza con la
-preparación independiente mientras se aportan los datos necesarios.
-
-4. Instala las dependencias del sistema, Git, Docker Engine/Compose v2 y herramientas de
-compilación según instrucciones oficiales. Crea un proyecto Compose propio, volúmenes
-persistentes y archivos privados de configuración con permisos restrictivos. Genera
-secretos únicos de base de datos, JWT, dispositivos y cifrado. Configura
-ENVIRONMENT=production, META_MODE=live, claves reales, SMTP funcional y
-AUTH_PUBLIC_URL=https://<mi-dominio>. Mantén secretos fuera de Git, la salida de
-terminal y el APK. Al actualizar, conserva secretos y volúmenes existentes.
-
-5. Construye una imagen inmutable del backend desde el commit elegido y despliega
-PostgreSQL, Redis, API, worker, scheduler y proxy. Aplica las migraciones Alembic. Usa
-Meta directo por defecto y desactiva explícitamente el fallback si mi gateway no está
-configurado. ElevenLabs es el único proveedor de síntesis. Si elijo gateway, despliega
-el servicio restringido del repositorio con token independiente, allowlist de IP de
-origen y TLS; valida rutas permitidas, rechazo de tokens y reenvío multipart. Conserva
-las credenciales del modelo privadas en ambos servidores.
-
-6. Configura Nginx del host y Let's Encrypt para mi dominio, usando las plantillas del
-repositorio y el puerto real del proxy en loopback. Verifica DNS, HTTPS, renovación de
-certificados y reinicios. Mantén PostgreSQL/Redis y los puertos internos de la API
-privados. Android es la aplicación; conserva las páginas de acciones de correo del
-backend y no despliegues el panel web ni Display web retirados. Configura integraciones
-opcionales solo con mis credenciales y permisos; informa qué aprobaciones externas
-faltan. Una instalación nueva comienza sin cuentas ni medios importados.
-
-7. Instala Java 21 y Android SDK 36, acepta las licencias necesarias con mi autorización
-y compila la app Android habitual para https://<mi-dominio>/v1 mediante
-REALITYOS_API_BASE_URL. Ejecuta las comprobaciones Android documentadas. Conserva el
-único APK Debug instalable en android/app/build/outputs/apk/debug/app-debug.apk. Compila
-Release y fírmalo solo con mi configuración privada; identifica correctamente un archivo
-sin firma. Conserva los requisitos productivos de acceso y enrolamiento; no uses la
-excepción aislada de localhost.
-
-8. Ejecuta las comprobaciones pertinentes del Makefile. Verifica /health/ready público,
-todo /v1/openapi.json frente a tests/contracts/openapi.json, Alembic head y la operación
-del worker/scheduler. Con mi cuenta autorizada y entradas pequeñas permitidas, verifica
-autenticación, acciones de correo, aislamiento entre espacios, procesamiento de medios y
-las rutas reales Meta/ElevenLabs. No sustituyas resultados por mock. Documenta el
-registro del primer propietario y los pasos de consentimiento, cámara, teléfono o gafas
-que requieran mi intervención.
-
-9. Antes de reemplazar una versión existente, guarda su rollback de imagen/configuración
-y revisa la reversibilidad de las migraciones. Conserva servicios y datos ajenos; no
-crees un dump rutinario de la base de datos. Usa solo mi destino privado aprobado para
-copias. Retira únicamente artefactos de compilación sin uso después de verificar,
-conservando la imagen de rollback. Mantén los cambios de despliegue locales salvo que yo
-pida publicarlos.
-
-10. Entrega commit/imagen desplegados, URLs, ruta y hash del APK, comprobaciones
-realmente ejecutadas, primeros pasos, comandos exactos de reversión y bloqueos externos
-pendientes. Completa todo lo que sea posible; no declares producción lista si faltan
-credenciales, DNS, pruebas o servicios necesarios.
-```
-
-</details>
-
-Guías de uso de agentes: [instrucciones del proyecto](../../MUSE.md) · [prompts para Codex](https://learn.chatgpt.com/docs/prompting) · [Claude Code](https://code.claude.com/docs/en/best-practices).
+[Instrucciones del proyecto](../../MUSE.md)
 
 <a id="install"></a>
 

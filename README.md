@@ -161,22 +161,14 @@ These videos and the header are conceptual representations; they do not replace 
 
 ## Deploy to production with one prompt
 
-**Choose an agent, copy its entire block and paste it into a session with terminal or SSH access to your server.** Muse is the primary option. Every block contains the full task; there is no need to combine prompts.
+**Expand the Muse prompt below, copy the entire block and paste it into a session with terminal or SSH access to your server.** It contains the full deployment task.
 
 Bring your Ubuntu server, domain and provider accounts. The agent will request missing inputs and prepare the API, database, worker, scheduler, HTTPS and an APK for your domain. Facebook, Wearables, buckets and Release signing use your own credentials when enabled.
 
-Choose an agent and expand its section to copy the prompt. Muse is open by default.
-
-<p align="center">
-  <a href="#deploy-muse"><img src="docs/assets/readme/agent-muse.svg" alt="Muse" height="36"></a>
-  <a href="#deploy-codex"><img src="docs/assets/readme/agent-codex.svg" alt="Codex" height="36"></a>
-  <a href="#deploy-claude"><img src="docs/assets/readme/agent-claude.svg" alt="Claude" height="36"></a>
-</p>
-
 <a id="deploy-muse"></a>
 
-<details open>
-<summary><strong>Muse · Primary</strong></summary>
+<details>
+<summary><strong>Muse · Deployment prompt</strong></summary>
 
 ```text
 You are Muse, my deployment engineering agent with access to this server. Use the
@@ -261,183 +253,7 @@ credentials, DNS, tests or services remain unresolved.
 
 </details>
 
-<a id="deploy-codex"></a>
-
-<details>
-<summary><strong>Codex</strong></summary>
-
-```text
-You are Codex, my deployment engineering agent with access to this server. Use Codex
-terminal tools and verify each stage against its actual output.
-
-Install and deploy the complete RealityOS project in production on this server. Execute
-the work through verification and handoff, following the permissions of this agent
-session.
-
-Repository: https://github.com/Luxisoft/realityos-spatial-memory
-
-1. Inspect the OS, available CPU/RAM/disk, ports, Docker, existing services and Git
-state. Use a supported Ubuntu host. Clone main into an appropriate directory, or reuse
-the intended checkout without overwriting local changes. Record the exact commit. Scope
-all operations to my installation; example Luxisoft domains and accounts are not my
-deployment targets.
-
-2. Read AGENTS.md, MUSE.md and docs/en/project/PROJECT_CONTEXT.md. Then read
-docs/en/deployment/DEPLOYMENT.md, DEPLOYMENT_DIRECT.md and DEPLOYMENT_GATEWAY.md in that
-directory, plus docs/en/integrations/ANDROID.md, META_INTEGRATION.md and TTS.md. Inspect
-the Makefile, Compose files, .env.example and backend/app/config.py before choosing
-commands. Follow repository constraints; preserve the isolated biometric module,
-consent, workspace permissions and original media.
-
-3. Ask together for only the missing operator inputs: API domain, certificate email, and
-private file locations for my Meta MODEL_API_KEY, ElevenLabs key and SMTP configuration.
-Also establish whether I have Facebook Login, Meta Wearables, R2/S3, a gateway host and
-Android release-signing credentials. Never invent credentials or copy the project's
-published evaluation accounts. Continue independent preparation while required inputs
-are supplied.
-
-4. Install the required system dependencies, Git, Docker Engine/Compose v2 and build
-tools using official instructions. Create a dedicated Compose project, persistent
-volumes and private runtime files with restrictive permissions. Generate unique
-database, JWT, device and encryption secrets. Configure ENVIRONMENT=production,
-META_MODE=live, real provider keys, working SMTP and
-AUTH_PUBLIC_URL=https://<my-domain>. Keep secrets out of Git, terminal output and the
-APK. Preserve existing secrets and volumes when upgrading.
-
-5. Build an immutable backend image from the selected commit and deploy PostgreSQL,
-Redis, API, worker, scheduler and proxy. Apply Alembic migrations. Use direct Meta
-access by default and explicitly disable gateway fallback unless my gateway is
-configured. ElevenLabs is the only synthesis provider. If I select a gateway, deploy the
-repository's restricted service with its own token, source-IP allowlist and TLS; verify
-route restrictions, token rejection and multipart forwarding. Keep model credentials
-private on both hosts.
-
-6. Configure host Nginx and Let's Encrypt for my domain, using the repository's
-templates and actual loopback proxy port. Verify DNS, HTTPS, certificate renewal and
-restart behavior. Keep PostgreSQL/Redis and internal API ports private. Android is the
-application; retain backend email-action pages and do not deploy the retired browser
-panel or web Display. Configure optional integrations only with my supplied credentials
-and permissions; report any external approvals still needed. A new installation starts
-with no imported accounts or media.
-
-7. Install Java 21 and Android SDK 36, accept the required licenses with my
-authorization, and build the regular Android app for https://<my-domain>/v1 using
-REALITYOS_API_BASE_URL. Run the documented Android checks. Keep the installable Debug
-APK at android/app/build/outputs/apk/debug/app-debug.apk. Build Release and sign it only
-with my private signing configuration; identify an unsigned build accurately. Preserve
-production login and enrollment requirements; do not use the isolated localhost
-exception.
-
-8. Run the relevant Makefile checks. Verify public /health/ready, the complete
-/v1/openapi.json against tests/contracts/openapi.json, Alembic head and worker/scheduler
-operation. With my authorized account and small permitted inputs, verify authentication,
-email actions, workspace isolation, media processing and the real Meta/ElevenLabs
-routes. Do not substitute mock results. Document first-owner registration and any
-consent, camera, phone or glasses steps that require me.
-
-9. Before replacing an existing release, save its image/runtime rollback and review
-migration reversibility. Preserve unrelated services and data; do not create a routine
-database dump. Use only my approved private backup destination. Remove only unused build
-artifacts after verification, retaining the rollback image. Keep deployment changes
-local unless I request publication.
-
-10. Deliver the deployed commit/image, service URLs, APK path and hash, checks actually
-run, first-use steps, exact rollback commands and any remaining external blockers.
-Complete every available step; do not declare production ready while required
-credentials, DNS, tests or services remain unresolved.
-```
-
-</details>
-
-<a id="deploy-claude"></a>
-
-<details>
-<summary><strong>Claude</strong></summary>
-
-```text
-You are Claude, my deployment engineering agent with access to this server. Work in
-Claude Code with server access and explicitly read AGENTS.md as project instructions.
-
-Install and deploy the complete RealityOS project in production on this server. Execute
-the work through verification and handoff, following the permissions of this agent
-session.
-
-Repository: https://github.com/Luxisoft/realityos-spatial-memory
-
-1. Inspect the OS, available CPU/RAM/disk, ports, Docker, existing services and Git
-state. Use a supported Ubuntu host. Clone main into an appropriate directory, or reuse
-the intended checkout without overwriting local changes. Record the exact commit. Scope
-all operations to my installation; example Luxisoft domains and accounts are not my
-deployment targets.
-
-2. Read AGENTS.md, MUSE.md and docs/en/project/PROJECT_CONTEXT.md. Then read
-docs/en/deployment/DEPLOYMENT.md, DEPLOYMENT_DIRECT.md and DEPLOYMENT_GATEWAY.md in that
-directory, plus docs/en/integrations/ANDROID.md, META_INTEGRATION.md and TTS.md. Inspect
-the Makefile, Compose files, .env.example and backend/app/config.py before choosing
-commands. Follow repository constraints; preserve the isolated biometric module,
-consent, workspace permissions and original media.
-
-3. Ask together for only the missing operator inputs: API domain, certificate email, and
-private file locations for my Meta MODEL_API_KEY, ElevenLabs key and SMTP configuration.
-Also establish whether I have Facebook Login, Meta Wearables, R2/S3, a gateway host and
-Android release-signing credentials. Never invent credentials or copy the project's
-published evaluation accounts. Continue independent preparation while required inputs
-are supplied.
-
-4. Install the required system dependencies, Git, Docker Engine/Compose v2 and build
-tools using official instructions. Create a dedicated Compose project, persistent
-volumes and private runtime files with restrictive permissions. Generate unique
-database, JWT, device and encryption secrets. Configure ENVIRONMENT=production,
-META_MODE=live, real provider keys, working SMTP and
-AUTH_PUBLIC_URL=https://<my-domain>. Keep secrets out of Git, terminal output and the
-APK. Preserve existing secrets and volumes when upgrading.
-
-5. Build an immutable backend image from the selected commit and deploy PostgreSQL,
-Redis, API, worker, scheduler and proxy. Apply Alembic migrations. Use direct Meta
-access by default and explicitly disable gateway fallback unless my gateway is
-configured. ElevenLabs is the only synthesis provider. If I select a gateway, deploy the
-repository's restricted service with its own token, source-IP allowlist and TLS; verify
-route restrictions, token rejection and multipart forwarding. Keep model credentials
-private on both hosts.
-
-6. Configure host Nginx and Let's Encrypt for my domain, using the repository's
-templates and actual loopback proxy port. Verify DNS, HTTPS, certificate renewal and
-restart behavior. Keep PostgreSQL/Redis and internal API ports private. Android is the
-application; retain backend email-action pages and do not deploy the retired browser
-panel or web Display. Configure optional integrations only with my supplied credentials
-and permissions; report any external approvals still needed. A new installation starts
-with no imported accounts or media.
-
-7. Install Java 21 and Android SDK 36, accept the required licenses with my
-authorization, and build the regular Android app for https://<my-domain>/v1 using
-REALITYOS_API_BASE_URL. Run the documented Android checks. Keep the installable Debug
-APK at android/app/build/outputs/apk/debug/app-debug.apk. Build Release and sign it only
-with my private signing configuration; identify an unsigned build accurately. Preserve
-production login and enrollment requirements; do not use the isolated localhost
-exception.
-
-8. Run the relevant Makefile checks. Verify public /health/ready, the complete
-/v1/openapi.json against tests/contracts/openapi.json, Alembic head and worker/scheduler
-operation. With my authorized account and small permitted inputs, verify authentication,
-email actions, workspace isolation, media processing and the real Meta/ElevenLabs
-routes. Do not substitute mock results. Document first-owner registration and any
-consent, camera, phone or glasses steps that require me.
-
-9. Before replacing an existing release, save its image/runtime rollback and review
-migration reversibility. Preserve unrelated services and data; do not create a routine
-database dump. Use only my approved private backup destination. Remove only unused build
-artifacts after verification, retaining the rollback image. Keep deployment changes
-local unless I request publication.
-
-10. Deliver the deployed commit/image, service URLs, APK path and hash, checks actually
-run, first-use steps, exact rollback commands and any remaining external blockers.
-Complete every available step; do not declare production ready while required
-credentials, DNS, tests or services remain unresolved.
-```
-
-</details>
-
-Agent guidance: [project instructions](MUSE.md) · [Codex prompting](https://learn.chatgpt.com/docs/prompting) · [Claude Code](https://code.claude.com/docs/en/best-practices).
+[Project instructions](MUSE.md)
 
 <a id="install"></a>
 
