@@ -143,6 +143,8 @@ dependencies {
 }
 
 val refactoredKotlin = files(
+    "src/main/java/com/luxisoft/realityos/AccountConflict.kt",
+    "src/test/java/com/luxisoft/realityos/AccountTransportTest.kt",
     "src/main/java/com/luxisoft/realityos/EntryAccessScreen.kt",
     "src/main/java/com/luxisoft/realityos/EntryVisuals.kt",
     "src/main/java/com/luxisoft/realityos/ExploreRealityScreen.kt",

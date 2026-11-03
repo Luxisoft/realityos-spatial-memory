@@ -100,6 +100,12 @@ class AccountEntryTest {
         tap("account-submit")
         tap("account-resend")
         capture("resend-$prefix")
+        tap("account-correct-email")
+        capture("correct-email-$prefix")
+        compose.onNodeWithTag("account-email").performScrollTo().assertIsDisplayed()
+        compose.onNodeWithTag("account-password").performScrollTo().assertIsDisplayed()
+        compose.onNodeWithTag("account-back").performClick()
+        tap("account-resend")
         // All actions remain reachable at large font sizes and narrow widths.
         tap("account-submit")
         compose.onNodeWithTag("account-title").assertExists()
@@ -174,5 +180,106 @@ class AccountEntryTest {
         }
         compose.onNodeWithTag("account-submit").performScrollTo().assertIsDisplayed()
         capture("keyboard-en-390")
+    }
+
+    private fun fillRegistration() {
+        tap("account-register")
+        compose.onNodeWithTag("account-name").performTextInput("Ana Solis")
+        compose.onNodeWithTag("account-username").performTextInput("ana.solis")
+        compose.onNodeWithTag("account-email").performTextInput("initial@example.test")
+        compose.onNodeWithTag("account-password").performTextInput("SecurePassword123!")
+    }
+
+    @Test fun changingEmailReplacesRegistrationAndResendsOnlyToTheNewAddress() {
+        val actions = mutableListOf<Pair<String, String>>()
+        compose.setContent {
+            RealityOsTheme {
+                AccountForm(onBack = {}) { mode, payload ->
+                    actions.add(mode to payload.getString("email"))
+                    if (mode == "change-pending-email") {
+                        assertEquals("ana.solis", payload.getString("username"))
+                        assertEquals("SecurePassword123!", payload.getString("password"))
+                    }
+                }
+            }
+        }
+        fillRegistration()
+        tap("account-submit")
+        tap("account-edit-email")
+        compose.onNodeWithTag("account-title").assertTextEquals("Change your registration email")
+        compose.onNodeWithTag("account-username").assertTextContains("ana.solis")
+        compose.onNodeWithTag("account-password").assert(SemanticsMatcher.expectValue(androidx.compose.ui.semantics.SemanticsProperties.EditableText, androidx.compose.ui.text.AnnotatedString("")))
+        compose.onNodeWithTag("account-email").performTextReplacement("corrected@example.test")
+        compose.onNodeWithTag("account-password").performTextInput("SecurePassword123!")
+        tap("account-submit")
+        compose.onNodeWithTag("account-recipient").assertTextEquals("corrected@example.test")
+        tap("account-send-again")
+        compose.runOnIdle {
+            assertEquals(listOf("register" to "initial@example.test", "change-pending-email" to "corrected@example.test", "resend-confirmation" to "corrected@example.test"), actions)
+        }
+    }
+
+    @Test fun duplicateEmailOffersRecoveryAndKeepsTheRegisteredAddress() {
+        val actions = mutableListOf<String>()
+        compose.setContent {
+            RealityOsTheme {
+                AccountForm(onBack = {}) { mode, payload ->
+                    actions.add(mode)
+                    if (mode == "register") throw AccountConflict(setOf("email"))
+                    assertEquals("initial@example.test", payload.getString("email"))
+                }
+            }
+        }
+        fillRegistration()
+        tap("account-submit")
+        compose.onNodeWithTag("account-email-help", useUnmergedTree = true).assertTextEquals("This email is already registered.")
+        compose.onNodeWithTag("account-submit").assertIsNotEnabled()
+        compose.onNodeWithTag("account-conflict").performScrollTo()
+        capture("duplicate-email-en-390")
+        tap("account-conflict-recover")
+        compose.onNodeWithTag("account-title").assertTextEquals("Recover your access")
+        tap("account-submit")
+        compose.runOnIdle { assertEquals(listOf("register", "forgot-password"), actions) }
+    }
+
+    @Test fun duplicateUsernameCanBeReplacedBeforeAnotherRegistrationAttempt() {
+        var requests = 0
+        compose.setContent {
+            RealityOsTheme {
+                AccountForm(onBack = {}) { _, payload ->
+                    requests++
+                    if (payload.getString("username") == "ana.solis") throw AccountConflict(setOf("username"))
+                    assertEquals("ana.other", payload.getString("username"))
+                }
+            }
+        }
+        fillRegistration()
+        tap("account-submit")
+        compose.onNodeWithTag("account-submit").assertIsNotEnabled()
+        compose.runOnIdle { assertEquals(1, requests) }
+        tap("account-conflict-edit")
+        compose.onNodeWithTag("account-email").assertTextContains("initial@example.test")
+        compose.onNodeWithTag("account-username").performTextInput("ana.other")
+        tap("account-submit")
+        compose.onNodeWithTag("account-title").assertTextEquals("Check your email")
+        compose.runOnIdle { assertEquals(2, requests) }
+    }
+
+    @Test fun duplicatePendingAccountCanRequestConfirmationInsteadOfRegisteringAgain() {
+        val actions = mutableListOf<String>()
+        compose.setContent {
+            RealityOsTheme {
+                AccountForm(onBack = {}) { mode, _ ->
+                    actions.add(mode)
+                    if (mode == "register") throw AccountConflict(setOf("email", "username"))
+                }
+            }
+        }
+        fillRegistration()
+        tap("account-submit")
+        tap("account-conflict-resend")
+        compose.onNodeWithTag("account-title").assertTextEquals("Confirm your email")
+        tap("account-submit")
+        compose.runOnIdle { assertEquals(listOf("register", "resend-confirmation"), actions) }
     }
 }

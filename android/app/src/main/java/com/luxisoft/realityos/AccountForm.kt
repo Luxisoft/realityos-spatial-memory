@@ -34,7 +34,8 @@ internal enum class AccountStep(val endpoint: String, val title: Int, val descri
     Login("login", R.string.account_login, R.string.account_login_description, R.string.account_login),
     Register("register", R.string.account_register_title, R.string.account_register_description, R.string.account_register),
     Recover("forgot-password", R.string.account_recover_title, R.string.account_recover_description, R.string.account_send_link),
-    Resend("resend-confirmation", R.string.account_confirm_title, R.string.account_resend_description, R.string.account_resend)
+    Resend("resend-confirmation", R.string.account_confirm_title, R.string.account_resend_description, R.string.account_resend),
+    CorrectEmail("change-pending-email", R.string.account_correct_title, R.string.account_correct_description, R.string.account_correct_submit)
 }
 
 @Composable
@@ -49,6 +50,7 @@ internal fun AccountForm(onBack: () -> Unit, submit: suspend (String, JSONObject
     var failed by remember { mutableStateOf(false) }
     var sentAgain by remember { mutableStateOf(false) }
     var attempted by remember { mutableStateOf(false) }
+    var conflicts by remember { mutableStateOf(emptySet<String>()) }
     val touched = remember(step, sent) { mutableStateMapOf<String, Boolean>() }
     val focus = remember { listOf("name", "username", "email", "password").associateWith { FocusRequester() } }
     val scope = rememberCoroutineScope()
@@ -67,6 +69,7 @@ internal fun AccountForm(onBack: () -> Unit, submit: suspend (String, JSONObject
         failed = false
         attempted = false
         sentAgain = false
+        conflicts = emptySet()
         scope.launch { scroll.scrollTo(0) }
     }
     fun back() {
@@ -75,21 +78,26 @@ internal fun AccountForm(onBack: () -> Unit, submit: suspend (String, JSONObject
     BackHandler { if (!busy) back() }
     val fields = when (step) {
         AccountStep.Register -> listOf("name", "username", "email", "password")
+        AccountStep.CorrectEmail -> listOf("username", "email", "password")
         AccountStep.Login -> listOf("email", "password")
         else -> listOf("email")
     }
-    fun errorFor(field: String): Int? = when (field) {
-        "name" -> if (name.trim().length !in 1..160) R.string.account_name_error else null
-        "username" -> if (!username.trim().matches(Regex("[a-zA-Z][a-zA-Z0-9_.-]{2,63}"))) R.string.account_username_hint else null
-        "email" -> if (email.isBlank() || email.trim().length > 320 || (step != AccountStep.Login && !android.util.Patterns.EMAIL_ADDRESS.matcher(email.trim()).matches())) {
-            if (step == AccountStep.Login) R.string.account_identifier_error else R.string.account_email_error
-        } else {
-            null
-        }
-        else -> if (password.length !in (if (step == AccountStep.Register) 12 else 1)..512) {
-            if (step == AccountStep.Register) R.string.account_password_hint else R.string.account_password_error
-        } else {
-            null
+    fun errorFor(field: String): Int? = if (field in conflicts) {
+        if (field == "email") R.string.account_email_in_use else R.string.account_username_in_use
+    } else {
+        when (field) {
+            "name" -> if (name.trim().length !in 1..160) R.string.account_name_error else null
+            "username" -> if (!username.trim().matches(Regex("[a-zA-Z][a-zA-Z0-9_.-]{2,63}"))) R.string.account_username_hint else null
+            "email" -> if (email.isBlank() || email.trim().length > 320 || (step != AccountStep.Login && !android.util.Patterns.EMAIL_ADDRESS.matcher(email.trim()).matches())) {
+                if (step == AccountStep.Login) R.string.account_identifier_error else R.string.account_email_error
+            } else {
+                null
+            }
+            else -> if (password.length !in (if (step == AccountStep.Register) 12 else 1)..512) {
+                if (step == AccountStep.Register) R.string.account_password_hint else R.string.account_password_error
+            } else {
+                null
+            }
         }
     }
     fun send() {
@@ -105,8 +113,9 @@ internal fun AccountForm(onBack: () -> Unit, submit: suspend (String, JSONObject
         failed = false
         val action = step
         val payload = JSONObject().put("email", email.trim())
-        if (action == AccountStep.Login || action == AccountStep.Register) payload.put("password", password)
+        if (action == AccountStep.Login || action == AccountStep.Register || action == AccountStep.CorrectEmail) payload.put("password", password)
         if (action == AccountStep.Register) payload.put("username", username.trim()).put("display_name", name.trim())
+        if (action == AccountStep.CorrectEmail) payload.put("username", username.trim())
         AccountRequestLanguage.value = RealityExperienceStore(context).selectedLanguage().languageTag
         scope.launch {
             try {
@@ -117,6 +126,8 @@ internal fun AccountForm(onBack: () -> Unit, submit: suspend (String, JSONObject
                 scroll.animateScrollTo(0)
             } catch (cancelled: CancellationException) {
                 throw cancelled
+            } catch (conflict: AccountConflict) {
+                conflicts = conflict.fields
             } catch (_: Exception) {
                 failed = true
             } finally {
@@ -129,7 +140,7 @@ internal fun AccountForm(onBack: () -> Unit, submit: suspend (String, JSONObject
         busy = true
         failed = false
         AccountRequestLanguage.value = RealityExperienceStore(context).selectedLanguage().languageTag
-        val action = if (step == AccountStep.Register) AccountStep.Resend else step
+        val action = if (step == AccountStep.Register || step == AccountStep.CorrectEmail) AccountStep.Resend else step
         scope.launch {
             try {
                 submit(action.endpoint, JSONObject().put("email", email.trim()))
@@ -157,7 +168,7 @@ internal fun AccountForm(onBack: () -> Unit, submit: suspend (String, JSONObject
             Column(Modifier.weight(1f).widthIn(max = 528.dp).fillMaxWidth().verticalScroll(scroll).padding(horizontal = 24.dp).padding(bottom = 24.dp)) {
                 AnimatedContent(targetState = Triple(step, sent, keyboardOpen), transitionSpec = { fadeIn(tween(180)) togetherWith fadeOut(tween(100)) }, label = "account-art") { (artStep, isSent, ime) ->
                     if (!ime) {
-                        AccountArtwork(artStep, isSent, compact = artStep == AccountStep.Register && !isSent)
+                        AccountArtwork(artStep, isSent, compact = (artStep == AccountStep.Register || artStep == AccountStep.CorrectEmail) && !isSent)
                     } else {
                         Spacer(Modifier.height(4.dp))
                     }
@@ -192,8 +203,8 @@ internal fun AccountForm(onBack: () -> Unit, submit: suspend (String, JSONObject
                     }
                     Spacer(Modifier.height(28.dp))
                     AccountPrimary(R.string.account_back_login, busy, onClick = { navigate(AccountStep.Login) })
-                    TextButton(onClick = { navigate(if (step == AccountStep.Register) AccountStep.Resend else step) }, enabled = !busy, modifier = Modifier.align(Alignment.CenterHorizontally).testTag("account-edit-email")) {
-                        Text(stringResource(R.string.account_edit_email))
+                    TextButton(onClick = { navigate(if (step == AccountStep.Recover) AccountStep.Recover else AccountStep.CorrectEmail) }, enabled = !busy, modifier = Modifier.align(Alignment.CenterHorizontally).testTag("account-edit-email")) {
+                        Text(stringResource(if (step == AccountStep.Recover) R.string.account_use_another_email else R.string.account_edit_email))
                     }
                     TextButton(onClick = { resend() }, enabled = !busy, modifier = Modifier.align(Alignment.CenterHorizontally).testTag("account-send-again")) {
                         Icon(Icons.Outlined.Refresh, null, Modifier.size(18.dp))
@@ -212,6 +223,7 @@ internal fun AccountForm(onBack: () -> Unit, submit: suspend (String, JSONObject
                                     else -> password
                                 },
                                 onValue = {
+                                    conflicts = conflicts - field
                                     when (field) {
                                         "name" -> name = it
                                         "username" -> username = it
@@ -240,7 +252,50 @@ internal fun AccountForm(onBack: () -> Unit, submit: suspend (String, JSONObject
                         }
                         Spacer(Modifier.height(16.dp))
                     }
-                    AccountPrimary(step.action, busy, onClick = { send() })
+                    if (conflicts.isNotEmpty()) {
+                        Surface(
+                            color = AccountFieldSurface,
+                            shape = MaterialTheme.shapes.medium,
+                            modifier = Modifier.fillMaxWidth().testTag("account-conflict").semantics { liveRegion = LiveRegionMode.Polite }
+                        ) {
+                            Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                                Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                                    Icon(Icons.Outlined.PersonOutline, null, tint = AccountBlue, modifier = Modifier.size(22.dp))
+                                    Text(stringResource(R.string.account_conflict_title), style = MaterialTheme.typography.titleMedium)
+                                }
+                                Text(stringResource(R.string.account_conflict_description), style = MaterialTheme.typography.bodyMedium, color = AccountMuted)
+                                TextButton(onClick = {
+                                    if ("email" !in conflicts) email = ""
+                                    navigate(AccountStep.Recover)
+                                }, modifier = Modifier.fillMaxWidth().testTag("account-conflict-recover")) {
+                                    Text(stringResource(R.string.account_recover_existing))
+                                }
+                                TextButton(onClick = {
+                                    if ("email" !in conflicts) email = ""
+                                    navigate(AccountStep.Resend)
+                                }, modifier = Modifier.fillMaxWidth().testTag("account-conflict-resend")) {
+                                    Text(stringResource(R.string.account_resend))
+                                }
+                                TextButton(onClick = {
+                                    val field = fields.first { it in conflicts }
+                                    conflicts.forEach {
+                                        if (it == "email") {
+                                            email = ""
+                                        } else if (it == "username") {
+                                            username = ""
+                                        }
+                                    }
+                                    conflicts = emptySet()
+                                    attempted = false
+                                    focus.getValue(field).requestFocus()
+                                }, modifier = Modifier.fillMaxWidth().testTag("account-conflict-edit")) {
+                                    Text(stringResource(R.string.account_use_other_details))
+                                }
+                            }
+                        }
+                        Spacer(Modifier.height(16.dp))
+                    }
+                    AccountPrimary(step.action, busy, enabled = conflicts.isEmpty(), onClick = { send() })
                     Spacer(Modifier.height(20.dp))
                     if (step == AccountStep.Login) {
                         HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
@@ -254,6 +309,11 @@ internal fun AccountForm(onBack: () -> Unit, submit: suspend (String, JSONObject
                             Text(stringResource(R.string.account_unconfirmed), style = MaterialTheme.typography.bodySmall, color = AccountMuted)
                         }
                     } else {
+                        if (step == AccountStep.Resend) {
+                            TextButton(onClick = { navigate(AccountStep.CorrectEmail) }, enabled = !busy, modifier = Modifier.align(Alignment.CenterHorizontally).testTag("account-correct-email")) {
+                                Text(stringResource(R.string.account_wrong_registration_email))
+                            }
+                        }
                         TextButton(onClick = { navigate(AccountStep.Login) }, enabled = !busy, modifier = Modifier.align(Alignment.CenterHorizontally)) { Text(stringResource(R.string.account_back_login)) }
                     }
                 }
@@ -263,10 +323,10 @@ internal fun AccountForm(onBack: () -> Unit, submit: suspend (String, JSONObject
 }
 
 @Composable
-private fun AccountPrimary(label: Int, busy: Boolean, onClick: () -> Unit) {
+private fun AccountPrimary(label: Int, busy: Boolean, enabled: Boolean = true, onClick: () -> Unit) {
     Button(
         onClick = onClick,
-        enabled = !busy,
+        enabled = !busy && enabled,
         shape = MaterialTheme.shapes.medium,
         colors = ButtonDefaults.buttonColors(contentColor = androidx.compose.ui.graphics.Color(0xFF17211F)),
         modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp).testTag("account-submit"),

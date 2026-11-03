@@ -14,7 +14,7 @@ from app.accounts.service import challenge, consume, throttle
 from app.dependencies import get_current_user, get_db
 from app.device_profiles import issue_capture_profile
 from app.models import RefreshToken, User
-from app.security import hash_password
+from app.security import hash_password, verify_password
 
 router = APIRouter(tags=["accounts"])
 
@@ -38,6 +38,17 @@ class EmailRequest(BaseModel):
     email: str = Field(min_length=3, max_length=320)
 
 
+class PendingEmailChange(BaseModel):
+    username: str = Field(pattern=r"^[a-zA-Z][a-zA-Z0-9_.-]{2,63}$")
+    email: str = Field(min_length=5, max_length=320)
+    password: str = Field(min_length=1, max_length=512)
+
+    @field_validator("email")
+    @classmethod
+    def valid_email(cls, value):
+        return Registration.valid_email(value)
+
+
 class ChallengeRequest(BaseModel):
     token: str = Field(min_length=32, max_length=128)
 
@@ -46,14 +57,22 @@ class ResetRequest(ChallengeRequest):
     password: str = Field(min_length=12, max_length=512)
 
 
+def registration_conflicts(db, email, username):
+    fields = []
+    if db.scalar(select(User.id).where(User.email == email)):
+        fields.append("email")
+    if db.scalar(select(PasswordAccount.user_id).where(PasswordAccount.username == username)):
+        fields.append("username")
+    return fields
+
+
 @router.post("/auth/register", status_code=202)
 async def register(payload: Registration, request: Request, db: Session = Depends(get_db)):
     throttle(db, request, payload.email, "register")
     username = payload.username.casefold()
-    if db.scalar(select(User).where(User.email == payload.email)) or db.scalar(
-        select(PasswordAccount).where(PasswordAccount.username == username)
-    ):
-        raise HTTPException(409, "This email or username cannot be registered.")
+    conflicts = registration_conflicts(db, payload.email, username)
+    if conflicts:
+        raise HTTPException(409, {"code": "registration_conflict", "fields": conflicts})
     user = User(
         email=payload.email,
         display_name=payload.display_name.strip(),
@@ -67,7 +86,14 @@ async def register(payload: Registration, request: Request, db: Session = Depend
         db.commit()  # Retain pending account if SMTP is temporarily unavailable.
     except IntegrityError:
         db.rollback()
-        raise HTTPException(409, "This email or username cannot be registered.")
+        raise HTTPException(
+            409,
+            {
+                "code": "registration_conflict",
+                "fields": registration_conflicts(db, payload.email, username)
+                or ["email", "username"],
+            },
+        )
     await challenge(
         db, request.app.state.settings, user, "verify", request.headers.get("accept-language")
     )
@@ -77,13 +103,48 @@ async def register(payload: Registration, request: Request, db: Session = Depend
 @router.post("/auth/resend-confirmation", status_code=202)
 async def resend(payload: EmailRequest, request: Request, db: Session = Depends(get_db)):
     throttle(db, request, payload.email, "mail")
-    user = db.scalar(select(User).where(User.email == payload.email.strip().casefold()))
+    user = db.scalar(
+        select(User).where(User.email == payload.email.strip().casefold()).with_for_update()
+    )
     account = db.get(PasswordAccount, user.id) if user else None
     if account and not account.verified_at:
         await challenge(
             db, request.app.state.settings, user, "verify", request.headers.get("accept-language")
         )
     return {"status": "If eligible, a confirmation email has been sent."}
+
+
+@router.post("/auth/change-pending-email", status_code=202)
+async def change_pending_email(
+    payload: PendingEmailChange, request: Request, db: Session = Depends(get_db)
+):
+    username = payload.username.casefold()
+    throttle(db, request, username, "change-email")
+    user = db.scalar(
+        select(User)
+        .join(PasswordAccount, PasswordAccount.user_id == User.id)
+        .where(PasswordAccount.username == username)
+        .with_for_update(of=User)
+    )
+    if not user or not verify_password(payload.password, user.password_hash):
+        raise HTTPException(401, "Invalid account credentials.")
+    account = db.get(PasswordAccount, user.id)
+    if account.verified_at or account.provisioned_by or user.is_active:
+        raise HTTPException(409, "Only an unconfirmed registration can change its email here.")
+    if db.scalar(select(User.id).where(User.email == payload.email, User.id != user.id)):
+        raise HTTPException(409, {"code": "registration_conflict", "fields": ["email"]})
+    try:
+        user.email = payload.email
+        db.flush()
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(409, {"code": "registration_conflict", "fields": ["email"]})
+    # One transaction: SMTP failure preserves both the old address and its link.
+    # Successful delivery invalidates the old links and keeps the same account.
+    await challenge(
+        db, request.app.state.settings, user, "verify", request.headers.get("accept-language")
+    )
+    return {"status": "confirmation_sent"}
 
 
 @router.post("/auth/confirm-email")
@@ -98,7 +159,9 @@ async def confirm(payload: ChallengeRequest, db: Session = Depends(get_db)):
 @router.post("/auth/forgot-password", status_code=202)
 async def forgot(payload: EmailRequest, request: Request, db: Session = Depends(get_db)):
     throttle(db, request, payload.email, "mail")
-    user = db.scalar(select(User).where(User.email == payload.email.strip().casefold()))
+    user = db.scalar(
+        select(User).where(User.email == payload.email.strip().casefold()).with_for_update()
+    )
     account = db.get(PasswordAccount, user.id) if user else None
     if account and account.verified_at and user.is_active:
         await challenge(

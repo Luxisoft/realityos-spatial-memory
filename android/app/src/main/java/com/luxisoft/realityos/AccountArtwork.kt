@@ -71,6 +71,7 @@ internal fun AccountArtwork(step: AccountStep, sent: Boolean, compact: Boolean) 
                     step == AccountStep.Register -> Icons.Outlined.Add
                     step == AccountStep.Recover -> Icons.Outlined.LockReset
                     step == AccountStep.Resend -> Icons.Outlined.Refresh
+                    step == AccountStep.CorrectEmail -> Icons.Outlined.Edit
                     else -> Icons.AutoMirrored.Outlined.Login
                 },
                 null,

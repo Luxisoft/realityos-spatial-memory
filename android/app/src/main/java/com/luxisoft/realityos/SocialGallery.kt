@@ -145,7 +145,7 @@ internal object SocialSession {
     }
     private fun requestOnce(path: String, method: String, payload: JSONObject?, mayRefresh: Boolean, timeoutMillis: Int = 30000): String {
         val connection = openJsonConnection(path)
-        if (path in setOf("auth/register", "auth/resend-confirmation", "auth/forgot-password")) connection.setRequestProperty("Accept-Language", AccountRequestLanguage.value)
+        if (path in setOf("auth/register", "auth/resend-confirmation", "auth/forgot-password", "auth/change-pending-email")) connection.setRequestProperty("Accept-Language", AccountRequestLanguage.value)
         connection.setRequestProperty("X-Client-Version", BuildConfig.VERSION_NAME)
         connection.connectTimeout = minOf(15000, timeoutMillis)
         connection.readTimeout = timeoutMillis
@@ -158,6 +158,10 @@ internal object SocialSession {
                 connection.outputStream.bufferedWriter().use { it.write(payload.toString()) }
             }
             val authenticatedAccountRoute = path in setOf("auth/account-session", "auth/account-capture-profile")
+            if (connection.responseCode == 409 && path in setOf("auth/register", "auth/change-pending-email")) {
+                val body = connection.errorStream?.bufferedReader()?.use { it.readText() }.orEmpty()
+                accountConflict(path, 409, body)?.let { throw it }
+            }
             if (connection.responseCode == 401 && mayRefresh && refreshToken != null && (!path.startsWith("auth/") || authenticatedAccountRoute)) {
                 val refreshed = JSONObject(requestOnce("auth/refresh", "POST", JSONObject().put("refresh_token", refreshToken), false, timeoutMillis))
                 remember(refreshed)

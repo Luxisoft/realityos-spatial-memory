@@ -45,7 +45,7 @@
     <string name="account_recover_title">Recover your access</string>
     <string name="account_recover_description">Enter your email to request a link to reset your password.</string>
     <string name="account_confirm_title">Confirm your email</string>
-    <string name="account_resend_description">One more step to get started. Request a new confirmation link.</string>
+    <string name="account_resend_description">Request a new link at the email you registered with. To replace that address, choose “Correct registration email”.</string>
     <string name="account_send_link">Send reset link</string>
     <string name="account_check_inbox">Check your email</string>
     <string name="account_sent_description">If your account is eligible, a link will arrive at this address.</string>
@@ -60,4 +60,16 @@
     <string name="account_email_error">Enter a valid email address.</string>
     <string name="account_password_error">Enter your password (up to 512 characters).</string>
     <string name="account_resent_notice">Another link has been requested. Check your email.</string>
+    <string name="account_correct_title">Change your registration email</string>
+    <string name="account_correct_description">Use your registration username and password to replace the email on your unconfirmed account. We will send a confirmation link to the new address.</string>
+    <string name="account_correct_submit">Change email and send link</string>
+    <string name="account_new_email">New email address</string>
+    <string name="account_use_another_email">Use another email address</string>
+    <string name="account_wrong_registration_email">Correct registration email</string>
+    <string name="account_email_in_use">This email is already registered.</string>
+    <string name="account_username_in_use">This username is already registered.</string>
+    <string name="account_conflict_title">An account already exists</string>
+    <string name="account_conflict_description">If it is yours, recover access or request the pending confirmation. To create another account, use different details.</string>
+    <string name="account_recover_existing">Recover my account</string>
+    <string name="account_use_other_details">Use different details</string>
 </resources>

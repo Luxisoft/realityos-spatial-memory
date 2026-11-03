@@ -16,6 +16,7 @@ from sqlalchemy import update
 
 from app.accounts.models import AccountAttempt, AccountChallenge
 from app.accounts.presentation import language, mail_content
+from app.models import User
 
 
 def utc(value):
@@ -84,6 +85,8 @@ def send_mail(settings, recipient, purpose, lang, token):
 
 
 async def challenge(db, settings, user, purpose, accept_language=None):
+    # Serialize email replacement, confirmation and resends for the same account.
+    db.refresh(user, with_for_update=True)
     token = secrets.token_urlsafe(32)
     now = datetime.now(UTC)
     db.execute(
@@ -114,7 +117,12 @@ async def challenge(db, settings, user, purpose, accept_language=None):
 
 
 def consume(db, token, purpose):
-    row = db.get(AccountChallenge, hashlib.sha256(token.encode()).hexdigest(), with_for_update=True)
+    digest = hashlib.sha256(token.encode()).hexdigest()
+    row = db.get(AccountChallenge, digest)
+    if row is not None:
+        # Use the same lock order as email changes: account, then challenge.
+        db.get(User, row.user_id, with_for_update=True, populate_existing=True)
+        row = db.get(AccountChallenge, digest, with_for_update=True, populate_existing=True)
     if (
         row is None
         or row.purpose != purpose

@@ -45,12 +45,12 @@
     <string name="account_recover_title">Recupera tu acceso</string>
     <string name="account_recover_description">Escribe tu correo para solicitar un enlace y restablecer tu contraseña.</string>
     <string name="account_confirm_title">Confirma tu correo</string>
-    <string name="account_resend_description">Un paso más para comenzar. Solicita un nuevo enlace de confirmación.</string>
+    <string name="account_resend_description">Solicita un enlace al correo con el que te registraste. Para reemplazar esa dirección, elige «Corregir correo del registro».</string>
     <string name="account_send_link">Enviar enlace</string>
     <string name="account_check_inbox">Revisa tu correo</string>
     <string name="account_sent_description">Si tu cuenta cumple los requisitos, recibirás un enlace en esta dirección.</string>
     <string name="account_inbox_hint">Revisa tu bandeja de entrada y spam. El enlace es válido durante 30 minutos.</string>
-    <string name="account_edit_email">Corregir correo</string>
+    <string name="account_edit_email">Cambiar correo</string>
     <string name="account_send_again">Solicitar otro enlace</string>
     <string name="account_new_here">¿Aún no tienes cuenta?</string>
     <string name="account_unconfirmed">¿No has confirmado tu correo?</string>
@@ -60,4 +60,16 @@
     <string name="account_email_error">Escribe un correo válido.</string>
     <string name="account_password_error">Escribe tu contraseña (máximo 512 caracteres).</string>
     <string name="account_resent_notice">Solicitamos otro enlace. Revisa tu correo.</string>
+    <string name="account_correct_title">Cambia el correo del registro</string>
+    <string name="account_correct_description">Usa el usuario y la contraseña del registro para reemplazar el correo de tu cuenta sin confirmar. Enviaremos un enlace de confirmación a la nueva dirección.</string>
+    <string name="account_correct_submit">Cambiar correo y enviar enlace</string>
+    <string name="account_new_email">Nuevo correo electrónico</string>
+    <string name="account_use_another_email">Usar otra dirección de correo</string>
+    <string name="account_wrong_registration_email">Corregir correo del registro</string>
+    <string name="account_email_in_use">Este correo ya está registrado.</string>
+    <string name="account_username_in_use">Este usuario ya está registrado.</string>
+    <string name="account_conflict_title">Ya existe una cuenta</string>
+    <string name="account_conflict_description">Si es tu cuenta, recupera el acceso o solicita la confirmación pendiente. Para crear otra cuenta, usa datos diferentes.</string>
+    <string name="account_recover_existing">Recuperar mi cuenta</string>
+    <string name="account_use_other_details">Usar otros datos</string>
 </resources>

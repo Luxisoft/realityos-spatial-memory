@@ -3317,6 +3317,45 @@
         }
       }
     },
+    "/v1/auth/change-pending-email": {
+      "post": {
+        "tags": [
+          "accounts"
+        ],
+        "summary": "Change Pending Email",
+        "operationId": "change_pending_email_v1_auth_change_pending_email_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PendingEmailChange"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "202": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/auth/confirm-email": {
       "post": {
         "tags": [
@@ -9801,6 +9840,34 @@
           "thumbnail_url"
         ],
         "title": "OwnRecordEnrollmentResponse"
+      },
+      "PendingEmailChange": {
+        "properties": {
+          "username": {
+            "type": "string",
+            "pattern": "^[a-zA-Z][a-zA-Z0-9_.-]{2,63}$",
+            "title": "Username"
+          },
+          "email": {
+            "type": "string",
+            "maxLength": 320,
+            "minLength": 5,
+            "title": "Email"
+          },
+          "password": {
+            "type": "string",
+            "maxLength": 512,
+            "minLength": 1,
+            "title": "Password"
+          }
+        },
+        "type": "object",
+        "required": [
+          "username",
+          "email",
+          "password"
+        ],
+        "title": "PendingEmailChange"
       },
       "PinJoin": {
         "properties": {

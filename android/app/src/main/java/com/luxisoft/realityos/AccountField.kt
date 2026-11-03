@@ -32,16 +32,20 @@ internal fun AccountField(field: String, value: String, onValue: (String) -> Uni
         "name" -> R.string.account_name
         "username" -> R.string.account_username
         "password" -> R.string.local_account_password
-        else -> if (step == AccountStep.Login) R.string.account_identifier else R.string.local_account_email
+        else -> when (step) {
+            AccountStep.Login -> R.string.account_identifier
+            AccountStep.CorrectEmail -> R.string.account_new_email
+            else -> R.string.local_account_email
+        }
     }
     val hint = when {
-        field == "username" -> R.string.account_username_hint
+        field == "username" && registration -> R.string.account_username_hint
         password && registration -> R.string.account_password_hint
         else -> null
     }
     val autofillType = when (field) {
         "name" -> ContentType.PersonFullName
-        "username" -> ContentType.NewUsername
+        "username" -> if (registration) ContentType.NewUsername else ContentType.Username
         "password" -> if (registration) ContentType.NewPassword else ContentType.Password
         else -> if (step == AccountStep.Login) ContentType.Username + ContentType.EmailAddress else ContentType.EmailAddress
     }

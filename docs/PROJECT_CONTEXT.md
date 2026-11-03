@@ -622,3 +622,22 @@ y conserva solo el buzón de `SMTP_FROM`, evitando aliases heredados de otras
 apps. API/worker `realityos-backend:mail-sender-20261103`, salud/contrato/head
 verificados, 15 pruebas de cuentas aprobadas. Rollback:
 `.runtime/mail-sender-20261103-rollback.json`. Sin migración ni contrato nuevo.
+
+Corrección real de correo y cuentas duplicadas (2026-11-03):
+`POST /v1/auth/change-pending-email` reemplaza el correo de la misma cuenta
+pendiente tras comprobar usuario/contraseña; invalida enlaces anteriores y
+envía al nuevo destino. Fallo SMTP revierte el cambio. El registro devuelve
+los campos ocupados antes de crear una cuenta; Android ofrece recuperar,
+reenviar confirmación o editar datos. No modifica cuentas activas ni
+provisionadas. La app anterior requiere instalar el APK reconstruido para usar
+el flujo nuevo. No se cambió manualmente la cuenta del propietario.
+
+API/worker: `realityos-backend:email-correction-20261103`. Salud, contrato
+OpenAPI local/público, rechazo de credenciales inválidas, remitente y Alembic
+`20261103_0033` verificados. Runtime y gateway preservados, sin migración.
+419 pruebas backend/gateway (27 de cuentas), 212 Android, lint/formato y builds
+Debug/Release aprobados. APK único SHA-256
+`ddc472c9620a8fc64d2a6960abf135e3957b5612928ee1f1cbed632b718c748f`.
+QA física y recepción real después de la corrección pendientes; no se enviaron
+correos de prueba. Rollback `.runtime/email-correction-20261103-rollback.json`;
+recibo `.runtime/email-correction-20261103/verified.json`.
