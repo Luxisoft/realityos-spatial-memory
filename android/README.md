@@ -7,12 +7,30 @@
 
 # RealityOS for Android and glasses
 
-**One Android app, with a native Meta Display experience.**
-Capture intentionally, explore workspace records and retrieve the last verified evidence.
+**Facial recognition, person records, social context and visual memory in one Android app.**
+The phone and native Meta Display connect a face to authorized context, open workspace records and retrieve dated visual evidence.
 
 [← Project](../README.md) · [Build](#build) · [Phone preview](#preview) · [Real glasses](#glasses) · [Local Windows](../docs/DEPLOYMENT_LOCALHOST.md)
 
-![Explicit capture, workspace evidence and read-only queries, illustrated with a phone and a flashlight. Concept illustration, not an app screenshot.](../docs/assets/readme/flow-en.png)
+```mermaid
+flowchart LR
+    A[Phone / native DAT Display] --> B[Photo · video · text · voice]
+    B --> F[Face search]
+    B --> O[Object evidence]
+    B --> R[Context questions]
+    F --> P[Candidate profile / person record]
+    R --> P
+    O --> E[Highlighted evidence · source · last seen]
+```
+
+| Capability | Where it leads |
+| --- | --- |
+| **Biometric face search** | Choose a workspace and photo/video; inspect candidate evidence and open a profile or authorized person record. |
+| **Work records** | Cases, people, encounters, notes and attachments; explicit comparison of medication fields. |
+| **Social profiles** | Authorized profile information, posts and group context; the CV has separate privacy rules. |
+| **Visual memory** | Ask by text or voice and inspect a stored photo/frame with its source and last-seen date. |
+
+[Police, nursing, social and memory walkthroughs →](../docs/DEMO.md). Face search uses the isolated InsightFace service; user matches and person-record matches remain distinct, and both require human confirmation.
 
 ## Choose an experience
 

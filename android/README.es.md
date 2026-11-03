@@ -7,12 +7,30 @@
 
 # RealityOS para Android y gafas
 
-**Una app Android, con una experiencia nativa para Meta Display.**
-Captura de forma intencional, explora expedientes del espacio y recupera la última evidencia verificada.
+**Reconocimiento facial, expedientes, contexto social y memoria visual en una app Android.**
+El teléfono y el Display nativo de Meta conectan un rostro con su contexto autorizado, abren expedientes y recuperan evidencia visual fechada.
 
 [← Proyecto](../README.es.md) · [Compilar](#build) · [Vista previa](#preview) · [Gafas físicas](#glasses) · [Windows local](../docs/DEPLOYMENT_LOCALHOST.es.md)
 
-![Captura explícita, evidencia por espacio y consultas de solo lectura, ilustradas con un teléfono y una linterna. Ilustración conceptual, no captura de la app.](../docs/assets/readme/flow-es.png)
+```mermaid
+flowchart LR
+    A[Teléfono / Display nativo DAT] --> B[Foto · video · texto · voz]
+    B --> F[Búsqueda facial]
+    B --> O[Evidencia de objetos]
+    B --> R[Preguntas de contexto]
+    F --> P[Perfil candidato / expediente persona]
+    R --> P
+    O --> E[Evidencia señalada · fuente · última observación]
+```
+
+| Capacidad | Qué permite abrir |
+| --- | --- |
+| **Búsqueda facial biométrica** | Elegir espacio y foto/video; revisar la evidencia del candidato y abrir su perfil o expediente autorizado. |
+| **Expedientes de Trabajo** | Casos, personas, atenciones, notas y adjuntos; comparación explícita de campos de medicación. |
+| **Perfiles sociales** | Información autorizada del perfil, publicaciones y contexto del grupo; el CV tiene privacidad independiente. |
+| **Memoria visual** | Preguntar por texto o voz y revisar una foto/fotograma guardado con su fuente y fecha de última observación. |
+
+[Recorridos policial, enfermería, social y memoria →](../docs/DEMO.es.md). La búsqueda facial usa el servicio aislado InsightFace; separa las coincidencias de usuarios y expedientes, ambas sujetas a confirmación humana.
 
 ## Elige una experiencia
 

@@ -1,0 +1,66 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="500" viewBox="0 0 1120 500" role="img" aria-labelledby="title desc">
+<title id="title">Cuatro casos, capacidades conectadas</title><desc id="desc">Entrada, procesamiento y resultado por caso de uso.</desc>
+<defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#64748b"/></marker></defs>
+<rect width="1120" height="500" rx="12" fill="#f8fafc"/>
+<text x="24" y="35" font-family="Arial, Helvetica, sans-serif" font-size="25" font-weight="700" fill="#172554">Cuatro casos, capacidades conectadas</text>
+<text x="24" y="69" font-family="Arial, Helvetica, sans-serif" font-size="13" font-weight="700" fill="#475569">CONTEXTO / ENTRADA</text>
+<text x="400" y="69" font-family="Arial, Helvetica, sans-serif" font-size="13" font-weight="700" fill="#475569">CAPACIDADES</text>
+<text x="776" y="69" font-family="Arial, Helvetica, sans-serif" font-size="13" font-weight="700" fill="#475569">RESULTADO</text>
+<rect x="24" y="84" width="320" height="86" rx="6" fill="#fff" stroke="#cbd5e1"/><rect x="24" y="84" width="4" height="86" rx="2" fill="#2563eb"/>
+<text x="42" y="112" font-family="Arial, Helvetica, sans-serif" font-size="19" font-weight="700" fill="#2563eb">01  Policial</text>
+<text x="42" y="137" font-family="Arial, Helvetica, sans-serif" font-size="17" font-weight="400" fill="#334155">Persona autorizada o evidencia</text>
+<text x="42" y="160" font-family="Arial, Helvetica, sans-serif" font-size="17" font-weight="400" fill="#334155">vinculada a un caso</text>
+<rect x="400" y="84" width="320" height="86" rx="6" fill="#fff" stroke="#cbd5e1"/><rect x="400" y="84" width="4" height="86" rx="2" fill="#0f766e"/>
+<text x="418" y="112" font-family="Arial, Helvetica, sans-serif" font-size="19" font-weight="700" fill="#0f766e">Biometría + expedientes</text>
+<text x="418" y="137" font-family="Arial, Helvetica, sans-serif" font-size="17" font-weight="400" fill="#334155">Retrato enrolado / búsqueda</text>
+<text x="418" y="160" font-family="Arial, Helvetica, sans-serif" font-size="17" font-weight="400" fill="#334155">Casos, eventos y adjuntos</text>
+<rect x="776" y="84" width="320" height="86" rx="6" fill="#fff" stroke="#cbd5e1"/><rect x="776" y="84" width="4" height="86" rx="2" fill="#6d28d9"/>
+<text x="794" y="112" font-family="Arial, Helvetica, sans-serif" font-size="19" font-weight="700" fill="#6d28d9">Contexto del caso</text>
+<text x="794" y="137" font-family="Arial, Helvetica, sans-serif" font-size="17" font-weight="400" fill="#334155">Candidato a confirmar</text>
+<text x="794" y="160" font-family="Arial, Helvetica, sans-serif" font-size="17" font-weight="400" fill="#334155">Fuente, historial y evidencia</text>
+<path d="M350 127 L394 127" fill="none" stroke="#64748b" stroke-width="2" marker-end="url(#arrow)"/>
+<path d="M726 127 L770 127" fill="none" stroke="#64748b" stroke-width="2" marker-end="url(#arrow)"/>
+<rect x="24" y="183" width="320" height="86" rx="6" fill="#fff" stroke="#cbd5e1"/><rect x="24" y="183" width="4" height="86" rx="2" fill="#2563eb"/>
+<text x="42" y="211" font-family="Arial, Helvetica, sans-serif" font-size="19" font-weight="700" fill="#2563eb">02  Enfermería</text>
+<text x="42" y="236" font-family="Arial, Helvetica, sans-serif" font-size="17" font-weight="400" fill="#334155">Retrato del paciente</text>
+<text x="42" y="259" font-family="Arial, Helvetica, sans-serif" font-size="17" font-weight="400" fill="#334155">y datos observados</text>
+<rect x="400" y="183" width="320" height="86" rx="6" fill="#fff" stroke="#cbd5e1"/><rect x="400" y="183" width="4" height="86" rx="2" fill="#0f766e"/>
+<text x="418" y="211" font-family="Arial, Helvetica, sans-serif" font-size="19" font-weight="700" fill="#0f766e">Biometría + comparación</text>
+<text x="418" y="236" font-family="Arial, Helvetica, sans-serif" font-size="17" font-weight="400" fill="#334155">Expediente y prescripción</text>
+<text x="418" y="259" font-family="Arial, Helvetica, sans-serif" font-size="17" font-weight="400" fill="#334155">Comparación explícita de campos</text>
+<rect x="776" y="183" width="320" height="86" rx="6" fill="#fff" stroke="#cbd5e1"/><rect x="776" y="183" width="4" height="86" rx="2" fill="#6d28d9"/>
+<text x="794" y="211" font-family="Arial, Helvetica, sans-serif" font-size="19" font-weight="700" fill="#6d28d9">Revisión profesional</text>
+<text x="794" y="236" font-family="Arial, Helvetica, sans-serif" font-size="17" font-weight="400" fill="#334155">Identidad candidata + historial</text>
+<text x="794" y="259" font-family="Arial, Helvetica, sans-serif" font-size="17" font-weight="400" fill="#334155">Discrepancias y datos faltantes</text>
+<path d="M350 226 L394 226" fill="none" stroke="#64748b" stroke-width="2" marker-end="url(#arrow)"/>
+<path d="M726 226 L770 226" fill="none" stroke="#64748b" stroke-width="2" marker-end="url(#arrow)"/>
+<rect x="24" y="282" width="320" height="86" rx="6" fill="#fff" stroke="#cbd5e1"/><rect x="24" y="282" width="4" height="86" rx="2" fill="#2563eb"/>
+<text x="42" y="310" font-family="Arial, Helvetica, sans-serif" font-size="19" font-weight="700" fill="#2563eb">03  Social</text>
+<text x="42" y="335" font-family="Arial, Helvetica, sans-serif" font-size="17" font-weight="400" fill="#334155">Foto o pregunta</text>
+<text x="42" y="358" font-family="Arial, Helvetica, sans-serif" font-size="17" font-weight="400" fill="#334155">sobre un perfil autorizado</text>
+<rect x="400" y="282" width="320" height="86" rx="6" fill="#fff" stroke="#cbd5e1"/><rect x="400" y="282" width="4" height="86" rx="2" fill="#0f766e"/>
+<text x="418" y="310" font-family="Arial, Helvetica, sans-serif" font-size="19" font-weight="700" fill="#0f766e">Perfiles + búsqueda</text>
+<text x="418" y="335" font-family="Arial, Helvetica, sans-serif" font-size="17" font-weight="400" fill="#334155">Reconocimiento facial</text>
+<text x="418" y="358" font-family="Arial, Helvetica, sans-serif" font-size="17" font-weight="400" fill="#334155">Perfil y medios autorizados</text>
+<rect x="776" y="282" width="320" height="86" rx="6" fill="#fff" stroke="#cbd5e1"/><rect x="776" y="282" width="4" height="86" rx="2" fill="#6d28d9"/>
+<text x="794" y="310" font-family="Arial, Helvetica, sans-serif" font-size="19" font-weight="700" fill="#6d28d9">Contexto de la persona</text>
+<text x="794" y="335" font-family="Arial, Helvetica, sans-serif" font-size="17" font-weight="400" fill="#334155">Perfil, publicaciones y relaciones</text>
+<text x="794" y="358" font-family="Arial, Helvetica, sans-serif" font-size="17" font-weight="400" fill="#334155">Visibilidad según permisos</text>
+<path d="M350 325 L394 325" fill="none" stroke="#64748b" stroke-width="2" marker-end="url(#arrow)"/>
+<path d="M726 325 L770 325" fill="none" stroke="#64748b" stroke-width="2" marker-end="url(#arrow)"/>
+<rect x="24" y="381" width="320" height="86" rx="6" fill="#fff" stroke="#cbd5e1"/><rect x="24" y="381" width="4" height="86" rx="2" fill="#2563eb"/>
+<text x="42" y="409" font-family="Arial, Helvetica, sans-serif" font-size="19" font-weight="700" fill="#2563eb">04  Memoria</text>
+<text x="42" y="434" font-family="Arial, Helvetica, sans-serif" font-size="17" font-weight="400" fill="#334155">Pregunta por un objeto</text>
+<text x="42" y="457" font-family="Arial, Helvetica, sans-serif" font-size="17" font-weight="400" fill="#334155">o un recuerdo registrado</text>
+<rect x="400" y="381" width="320" height="86" rx="6" fill="#fff" stroke="#cbd5e1"/><rect x="400" y="381" width="4" height="86" rx="2" fill="#0f766e"/>
+<text x="418" y="409" font-family="Arial, Helvetica, sans-serif" font-size="19" font-weight="700" fill="#0f766e">Muse Spark + SAM</text>
+<text x="418" y="434" font-family="Arial, Helvetica, sans-serif" font-size="17" font-weight="400" fill="#334155">Recuperación de evidencia</text>
+<text x="418" y="457" font-family="Arial, Helvetica, sans-serif" font-size="17" font-weight="400" fill="#334155">Consulta por texto o voz</text>
+<rect x="776" y="381" width="320" height="86" rx="6" fill="#fff" stroke="#cbd5e1"/><rect x="776" y="381" width="4" height="86" rx="2" fill="#6d28d9"/>
+<text x="794" y="409" font-family="Arial, Helvetica, sans-serif" font-size="19" font-weight="700" fill="#6d28d9">Última observación</text>
+<text x="794" y="434" font-family="Arial, Helvetica, sans-serif" font-size="17" font-weight="400" fill="#334155">Foto o fotograma señalado</text>
+<text x="794" y="457" font-family="Arial, Helvetica, sans-serif" font-size="17" font-weight="400" fill="#334155">Fuente, fecha y ubicación</text>
+<path d="M350 424 L394 424" fill="none" stroke="#64748b" stroke-width="2" marker-end="url(#arrow)"/>
+<path d="M726 424 L770 424" fill="none" stroke="#64748b" stroke-width="2" marker-end="url(#arrow)"/>
+<text x="24" y="488" font-family="Arial, Helvetica, sans-serif" font-size="13" font-weight="400" fill="#475569">Alcance de los datos de prueba y funciones pendientes: guía de demo.</text>
+</svg>

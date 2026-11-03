@@ -7,140 +7,157 @@
 
 # RealityOS
 
-**Encuentra la última evidencia verificada de un objeto, con foto, fuente y fecha.**
-Una app Android para memoria espacial, expedientes por espacio de trabajo y experiencias con gafas Meta.
-
-![RealityOS: Registra. Recuerda. Encuentra. Una ilustración conceptual conecta una linterna en un estante con su evidencia fotográfica en un teléfono Android y unas gafas inteligentes.](docs/assets/readme/hero-es.png)
+**Reconocimiento facial, expedientes conectados y memoria visual en Android y gafas Meta Ray-Ban.**
+Relaciona una persona con su perfil o expediente autorizado, consulta su contexto y recupera evidencia de objetos y eventos por foto, video, texto o voz.
 
 <p align="center">
-  <a href="#evaluate"><strong>Probar la demo</strong></a> ·
-  <a href="#watch"><strong>Ver los conceptos</strong></a> ·
-  <a href="#install"><strong>Instalar</strong></a> ·
-  <a href="#docs"><strong>Explorar las guías</strong></a>
+  <img src="docs/assets/readme/banner-es.png" width="896" alt="Logo de RealityOS; una mujer con gafas Ray-Ban utiliza un teléfono para una búsqueda facial biométrica de otra persona. Demostración simulada.">
 </p>
 
 <p align="center">
-  <a href="https://github.com/Luxisoft/realityos-spatial-memory/actions/workflows/ci.yml"><img src="https://github.com/Luxisoft/realityos-spatial-memory/actions/workflows/ci.yml/badge.svg?branch=main" alt="Estado actual de las pruebas automáticas"></a>
+  <a href="#cases"><strong>Casos de uso</strong></a> · <a href="#biometrics"><strong>Reconocimiento facial</strong></a> · <a href="#evaluate"><strong>Probar</strong></a> · <a href="#architecture"><strong>Arquitectura</strong></a> · <a href="#hackathon"><strong>Hackathon</strong></a>
+</p>
+
+<p align="center">
+  <a href="https://github.com/Luxisoft/realityos-spatial-memory/actions/workflows/ci.yml"><img src="https://github.com/Luxisoft/realityos-spatial-memory/actions/workflows/ci.yml/badge.svg?branch=main" alt="Estado de las pruebas automáticas"></a>
   · <a href="LICENSE">Apache 2.0</a> · <a href="README.md">English</a>
 </p>
 
-## Así funciona
+<a id="cases"></a>
 
-![Registrar mediante una captura explícita, organizar la evidencia dentro de un espacio y consultar dónde se vio por última vez. Consultar no inicia grabaciones.](docs/assets/readme/flow-es.png)
+## Qué resuelve
 
-| Tú haces | RealityOS devuelve |
+En un encuentro presencial, la imagen de una persona, su expediente y los hechos observados suelen estar separados. RealityOS conecta esos contextos: **quién podría ser, qué información autorizada existe y qué evidencia respalda la respuesta**. Mantiene el reconocimiento facial, los expedientes y la búsqueda de objetos como módulos distintos dentro de la misma experiencia.
+
+![Diagrama de los casos policial, enfermería, social y memoria: entrada, capacidades utilizadas y resultado.](docs/assets/readme/use-cases-es.svg)
+
+| Caso | Recorrido concreto | Resultado y alcance actual |
+| --- | --- | --- |
+| **Policial** | Consultar una persona previamente enrolada y abrir su contexto autorizado; relacionar casos, eventos, notas y evidencia del turno. | Candidatos faciales y expedientes consultables. El conjunto policial actual prueba casos y objetos; los retratos enrolados de evaluación están en los espacios clínico y de memoria. Las alertas policiales automáticas siguen pendientes. |
+| **Enfermería** | Buscar por retrato a **Ana Solis**, confirmar identidad, abrir atención y prescripción; comparar la etiqueta ficticia de **20 mg** con la prescripción de **10 mg**. | Expediente e historial relacionados, discrepancias de campos, vigencia, alergias y administraciones previas. Los campos observados se introducen explícitamente; no hay OCR de envases ni prescripción automática. |
+| **Social** | Buscar una cara autorizada, abrir su perfil y preguntar qué información o publicaciones ha compartido. | Perfil, contexto y medios visibles según permisos; grupos, comentarios y relaciones disponibles en la app. Las referencias importadas de Facebook tienen visibilidad restringida. |
+| **Memoria** | Abrir el expediente de **Luis Moreno** o preguntar «¿Dónde se vieron mis documentos por última vez?». | Recordatorios y eventos relacionados; foto o fotograma señalado, fuente, fecha y ubicación observada. No afirma que el objeto siga allí. |
+
+[Pasos de prueba y resultados esperados por caso →](docs/DEMO.es.md)
+
+<a id="biometrics"></a>
+
+## Reconocimiento facial y acceso al contexto
+
+**InsightFace compara una foto o video de consulta con enrolamientos autorizados del espacio.** Devuelve candidatos ordenados por similitud, con evidencia facial, y permite abrir el perfil de usuario o el expediente de persona correspondiente.
+
+![Diagrama técnico: autorización y retrato → embedding InsightFace → índice del espacio; consulta por foto o video → calidad → similitud coseno → candidatos y contexto.](docs/assets/readme/biometric-flow-es.svg)
+
+| Contrato | Función |
 | --- | --- |
-| Registras una foto o un video de forma intencional | El medio original y observaciones trazables dentro de tu espacio. |
-| Preguntas dónde se vio un objeto por última vez | Evidencia existente, fecha, fuente y confianza visual. |
-| Abres un expediente del espacio | Notas, relaciones y adjuntos autorizados. |
-| Utilizas gafas compatibles | La experiencia nativa de captura y consulta mediante Android y DAT. |
+| `POST /v1/faces/consent` · `/faces/enroll` | Consentimiento versionado y enrolamiento de medios propios. |
+| `POST /v1/faces/record-enroll` | Enrolar explícitamente un retrato de un expediente autorizado, con base trazable. |
+| `POST /v1/faces/search` | Buscar con foto, video o medio autorizado; la sonda subida es efímera. |
+| `matches` · `matches_records` | Resultados separados para usuarios y expedientes; evidencias y enlaces sujetos a permisos. |
 
-**Capturar requiere consentimiento. Consultar lee evidencia existente. «Visto por última vez» nunca significa «sigue allí».**
-La búsqueda facial es una función separada, con autorización explícita; sus candidatos requieren confirmación humana.
+La similitud **no es una probabilidad de identidad**: el profesional confirma al candidato. Una persona importada no se convierte en cuenta ni se enrola automáticamente. Este módulo permanece separado del registro y consulta de objetos. [Contrato y filtros →](docs/API.md)
+
+<a id="architecture"></a>
+
+## Arquitectura y uso de Meta AI
+
+```mermaid
+flowchart TB
+    A[Android · Kotlin / Compose] --> API[FastAPI · autenticación y permisos por espacio]
+    G[Gafas Meta Ray-Ban · DAT nativo] --> A
+    API --> F[Biometría · InsightFace]
+    API --> R[Expedientes · perfiles · social]
+    API --> Q[Consultas de evidencia]
+    F --> DB[(PostgreSQL · originales BYTEA + metadatos)]
+    R --> DB
+    Q --> DB
+    API --> W[Registro / publicación explícitos · Redis + Celery]
+    W --> M[Muse Spark + SAM]
+    M --> DB
+    API --> V[Muse Voice Transcribe / ElevenLabs]
+```
+
+| Tecnología | Aporte al producto | Implementación |
+| --- | --- | --- |
+| **Muse Spark 1.3** | Interpreta imágenes y preguntas, estructura hechos visibles, prepara respuestas y textos EN/ES con contexto autorizado. | [Proveedores](backend/app/providers/) · [contratos Meta](docs/META_INTEGRATION.md) |
+| **SAM 3.1** | Localiza y segmenta objetos; conserva geometría y evidencia de fotogramas durante procesamiento explícito. | [Procesamiento](backend/app/processing/) |
+| **Muse Voice Transcribe** | Convierte consultas de voz en texto. | [Integración Meta](docs/META_INTEGRATION.md) |
+| **Meta Wearables DAT** | Conecta cámara, voz y Display nativo de las gafas con Android. | [Android y gafas](android/README.es.md) |
+| **InsightFace / ElevenLabs** | Reconocimiento facial local / respuestas habladas desde el servidor. Son componentes independientes de los modelos Meta. | [API facial](docs/API.md) · [TTS](docs/TTS.md) |
+
+La API de expedientes importa personas, casos, atenciones, objetos, prescripciones, alergias y administraciones mediante lotes versionados, relaciones y adjuntos. Los conectores HTTPS usan un contrato explícito. [Integración de datos →](docs/WORKSPACE_DATA.md)
+
+**Decisiones de ingeniería:** originales en PostgreSQL BYTEA; permisos por espacio en cada recurso; consentimiento biométrico; consultas de evidencia sin iniciar captura; claves de proveedores solo en servidor; fallos Live visibles y mock rotulado. El gateway Meta restringido es un respaldo de conexión. Android es la única app; el panel del navegador y la web Display están retirados.
 
 <a id="evaluate"></a>
 
-## Pruébalo como jurado
+## Probar como jurado
 
-| ① Instala | ② Inicia sesión | ③ Explora |
+1. Descarga `realityos-android-debug-apk` de una [ejecución aprobada](https://github.com/Luxisoft/realityos-spatial-memory/actions/workflows/ci.yml), descomprime e instala. GitHub puede pedir iniciar sesión. El APK habitual usa `https://realityos.luxisoft.com/v1`.
+2. Elige **Continuar con correo** e inicia sesión con una cuenta de evaluación y la contraseña demo de tu invitación.
+3. Selecciona el espacio y sigue el [guion de pruebas](docs/DEMO.es.md): búsqueda facial, apertura de expediente, contexto y evidencia visual.
+
+| Espacio ficticio | Cuenta | Prueba inicial |
 | --- | --- | --- |
-| Abre una [ejecución de CI aprobada](https://github.com/Luxisoft/realityos-spatial-memory/actions/workflows/ci.yml), descarga `realityos-android-debug-apk`, descomprime e instala el APK. GitHub puede pedir que inicies sesión. | Elige **Continuar con correo** y utiliza una cuenta de evaluación de la tabla. | Selecciona un espacio, abre un expediente o busca evidencia fotográfica. |
+| Pacific Ridge Police Department | `alex-rivera` | Caso de prueba 1, notas y evidencia del turno. |
+| California Valley Medical Center | `elena-marquez` | Retrato de Ana Solis → expediente → comparación de medicación. |
+| Sonoran Neurological Institute | `noah-brooks` | Luis Moreno → recordatorio → última evidencia de documentos. |
 
-El APK habitual apunta a `https://realityos.luxisoft.com/v1`. La dirección del servidor se elige **al compilar**. Para localhost, utiliza la [guía independiente de Windows](docs/DEPLOYMENT_LOCALHOST.es.md).
-
-| Espacio ficticio | Cuenta de evaluación | Prueba esto |
-| --- | --- | --- |
-| Pacific Ridge Police Department | `alex-rivera` | Encuentra la linterna amarilla o el destornillador rojo. |
-| California Valley Medical Center | `elena-marquez` | Abre el expediente de Ana Solis; compara la etiqueta ficticia de 20 mg con la prescripción de 10 mg. |
-| Sonoran Neurological Institute | `noah-brooks` | Pregunta dónde se vieron por última vez los documentos de Luis Moreno. |
-
-Utiliza las contraseñas demo entregadas con la invitación de evaluación. Los operadores pueden recuperarlas del archivo privado `.runtime/jury-access.json`; las claves de servicios siguen siendo privadas. Las direcciones `@jury.example.test` no reciben correo.
-
-<details>
-<summary><strong>Más cuentas y cómo interpretar la demo</strong></summary>
-
-| Espacio | Otras cuentas |
-| --- | --- |
-| Pacific Ridge | `maya-johnson`, `daniel-kim` |
-| California Valley | `mateo-rios`, `sarah-chen` |
-| Sonoran | `lucia-vega`, `owen-patel` |
-
-Las personas, los retratos y los escenarios son ficticios y están rotulados como `simulated`. Las personas importadas son expedientes, no cuentas de acceso. El almacenamiento, la autorización y el procesamiento usan el sistema real. El ejemplo de medicación compara campos; no prescribe ni registra una administración. Buscar un expediente por foto requiere un retrato enrolado con autorización y los permisos biométricos de la función.
-
-</details>
+El conjunto contiene **47 registros, 27 adjuntos y seis retratos de personas enrolados**. Las personas y escenas son ficticias; la API, el almacenamiento y los proveedores Live son reales. Los MP4 sintéticos son escenas estáticas. El operador conserva las contraseñas demo en el archivo privado `.runtime/jury-access.json`; `@jury.example.test` no recibe correo. [Directorio social de pruebas →](simulator/social-directory/README.es.md)
 
 <a id="watch"></a>
 
-## Mira los conceptos
+[▶ Policial](demo-video/policial_case.mp4) · [▶ Enfermería](demo-video/nurse_case.mp4) · [▶ Personas / social](demo-video/profile_found.mp4) · [▶ Memoria](demo-video/memory.mp4)
 
-| Memoria espacial | Consulta de personas | Escenario clínico | Gestión de casos |
-| :---: | :---: | :---: | :---: |
-| [▶ Ver video](demo-video/memory.mp4) | [▶ Ver video](demo-video/profile_found.mp4) | [▶ Ver video](demo-video/nurse_case.mp4) | [▶ Ver video](demo-video/policial_case.mp4) |
+Estos videos y la portada son representaciones conceptuales; no sustituyen una grabación de la app funcionando. Los videos existentes contienen texto en inglés. La prueba HTTP de reconocimiento sobre Ana Solis está documentada; la validación física de teléfono/gafas, las fuentes institucionales reales y la demo final grabada siguen pendientes. [Estado verificado →](docs/IMPLEMENTATION_STATUS.md)
 
-Las ilustraciones y los videos son conceptuales: no son capturas de la app ni pruebas de validación del hardware. Los videos existentes contienen texto en inglés. Consulta el [estado de implementación verificado](docs/IMPLEMENTATION_STATUS.md).
+<a id="hackathon"></a>
+
+## Meta Global AI Developer Hackathon
+
+El proyecto se presenta como **memoria contextual asistida por visión**, con casos del mundo real y uso combinado de modelos Meta. Su encaje propuesto es *Build for Your World*; la selección de track y los datos del equipo deben coincidir con la inscripción.
+
+| Criterio oficial | Evidencia en RealityOS |
+| --- | --- |
+| Impacto · 30 % | Cuatro recorridos concretos que conectan personas, información y evidencia. |
+| Herramientas Meta · 25 % | Muse Spark + SAM + transcripción, con responsabilidades distintas y DAT como interfaz. |
+| Profundidad técnica · 20 % | API, procesamiento, biometría aislada, permisos, trazabilidad y pruebas automatizadas. |
+| Demo · 25 % | APK instalable, cuentas y guion reproducible; falta enlazar la grabación final del producto. |
+
+Fuentes: [evento](https://cerebralvalley.ai/e/meta-ai-developer-hackathon) y [bases oficiales](https://cerebralvalley.ai/e/meta-ai-developer-hackathon/waiver), consultadas el 3 de noviembre de 2026. [Requisitos, evidencias y pendientes de entrega →](docs/HACKATHON.es.md)
 
 <a id="install"></a>
 
-## Elige tu instalación
+## Instalar y desarrollar
 
-| Usar la app alojada | Montar tu servidor | Ejecutar en Windows |
+| Android | Servidor | Windows independiente |
 | --- | --- | --- |
-| [Android y gafas →](android/README.es.md) | [Conexión directa a Meta →](docs/DEPLOYMENT_DIRECT.es.md) | [Docker Desktop + Android local →](docs/DEPLOYMENT_LOCALHOST.es.md) |
-| Instala el APK Debug y usa las cuentas de evaluación. | [Respaldo mediante gateway restringido →](docs/DEPLOYMENT_GATEWAY.es.md) | Cuentas, datos y claves de proveedores independientes. |
-
-**Android es la única app.** El antiguo panel del navegador y la web Display están retirados; `/` y `/display/` responden HTTP 410. Los enlaces de confirmación y recuperación de correo siguen disponibles. El Display nativo de las gafas forma parte de Android.
-
-## Qué lo hace funcionar
-
-| Componente | Función |
-| --- | --- |
-| Meta Muse Spark | Comprende imágenes y prepara información estructurada en ambos idiomas. |
-| Meta SAM | Segmenta y sigue objetos durante el procesamiento o refinamiento explícito. |
-| Meta Muse Voice Transcribe | Transcribe la voz a texto. |
-| ElevenLabs | Genera respuestas habladas en solicitudes autenticadas. |
-| InsightFace local | Compara enrolamientos faciales autorizados explícitamente. |
-| PostgreSQL + Redis/Celery | Conservan originales en BYTEA y procesan trabajos en segundo plano. |
-
-Las claves de proveedores permanecen en el servidor. `META_MODE=mock` es determinista y se identifica como simulado; un fallo en Live no se convierte silenciosamente en un resultado ficticio. [Contratos de modelos y detalles de procesamiento →](docs/META_INTEGRATION.md)
+| [Compilar e instalar APK](android/README.es.md#build) | [Conexión directa](docs/DEPLOYMENT_DIRECT.es.md) · [gateway](docs/DEPLOYMENT_GATEWAY.es.md) | [Docker Desktop + app local](docs/DEPLOYMENT_LOCALHOST.es.md) |
 
 <details>
-<summary><strong>Arquitectura, mapa del repositorio y comprobaciones</strong></summary>
+<summary><strong>Mapa del repositorio y comprobaciones</strong></summary>
 
-```mermaid
-flowchart LR
-    A[Android + Display nativo] --> B[API autenticada]
-    B --> C[Expedientes + medios BYTEA]
-    B --> D[Redis + Celery]
-    D --> E[Modelos Meta]
-    B --> F[Voz ElevenLabs]
-```
-
-| Directorio | Contenido |
+| Ruta | Responsabilidad |
 | --- | --- |
-| [`backend/`](backend/) | API, worker, migraciones y contratos de proveedores. |
-| [`android/`](android/README.es.md) | App del teléfono, gafas nativas y compilación Debug. |
-| [`meta-gateway/`](meta-gateway/) | Salida restringida hacia Meta. |
-| [`simulator/`](simulator/social-directory/README.es.md) | Datos sintéticos de evaluación. |
-| [`infrastructure/`](infrastructure/) | Configuración de Compose y Nginx. |
+| `backend/` | API, contratos, procesamiento, migraciones y biometría. |
+| `android/` | App Kotlin/Compose y Display nativo DAT. |
+| `meta-gateway/` | Egress permitido a Meta. |
+| `simulator/` | Fixtures sintéticos y cargadores de prueba. |
+| `tests/` · `gateway-tests/` | Regresiones, aislamiento y contrato OpenAPI. |
 
-Después de instalar las dependencias de desarrollo con `make install`:
+Después de `make install`:
 
 ```bash
 make lint
 make test
 make architecture-check
+make android-check
 ```
-
-Las instrucciones de compilación y la ruta única del APK Debug están en el [README de Android](android/README.es.md#build).
 
 </details>
 
 <a id="docs"></a>
 
-## Más información
+[Arquitectura](docs/ARCHITECTURE.md) · [API](docs/API.md) · [Base de datos](docs/DATABASE.md) · [Seguridad](docs/SECURITY.md) · [Gafas](docs/WEARABLES.md)
 
-[Arquitectura](docs/ARCHITECTURE.md) · [API REST](docs/API.md) · [Base de datos](docs/DATABASE.md) · [Expedientes por espacio](docs/WORKSPACE_DATA.md) · [Gafas](docs/WEARABLES.md) · [Seguridad](docs/SECURITY.md) · [Estado de validación](docs/IMPLEMENTATION_STATUS.md)
-
-Los documentos técnicos conservan su idioma propio. El README principal, el de Android, el de datos de prueba y las guías de instalación permiten cambiar entre español e inglés.
-
-Diseño inspirado en [awesome-readme](https://github.com/matiassingers/awesome-readme). [Imágenes e instrucciones de generación](docs/assets/readme/PROMPTS.md) · [Licencia Apache 2.0](LICENSE) · [↑ Volver arriba](#top)
+[Recursos y prompts](docs/assets/readme/PROMPTS.md) · [Referencia de formato: awesome-readme](https://github.com/matiassingers/awesome-readme) · [Apache 2.0](LICENSE) · [↑ Volver arriba](#top)
