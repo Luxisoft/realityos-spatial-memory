@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Literal
 
-from pydantic import AwareDatetime, BaseModel, Field, model_validator
+from pydantic import AwareDatetime, BaseModel, Field, field_validator, model_validator
 
 
 class ConnectionCreate(BaseModel):
@@ -57,3 +57,11 @@ class MedicationCheck(BaseModel):
     observed_concentration: str = Field(min_length=1, max_length=80)
     patient_confirmed: bool = False
     checked_at: datetime
+
+    @field_validator("observed_ingredient", "observed_concentration")
+    @classmethod
+    def nonblank_observation(cls, value):
+        value = value.strip()
+        if not value:
+            raise ValueError("Observed medication fields must not be blank")
+        return value

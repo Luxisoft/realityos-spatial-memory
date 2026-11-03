@@ -24,10 +24,14 @@ export function MedicationCheck({
     } | null>(null),
     [error, setError] = useState(""),
     [busy, setBusy] = useState(false);
+  function invalidate() {
+    setResult(null);
+    setError("");
+  }
   async function check(e: FormEvent) {
     e.preventDefault();
     setBusy(true);
-    setError("");
+    invalidate();
     try {
       setResult(
         await request(`${base}/records/${personId}/medication-check`, token, {
@@ -55,7 +59,11 @@ export function MedicationCheck({
           {t("Recorded prescription")}
           <select
             value={prescription}
-            onChange={(e) => setPrescription(e.target.value)}
+            disabled={busy}
+            onChange={(e) => {
+              setPrescription(e.target.value);
+              invalidate();
+            }}
             required
           >
             <option value="">{t("Select")}</option>
@@ -73,7 +81,11 @@ export function MedicationCheck({
           <input
             required
             value={ingredient}
-            onChange={(e) => setIngredient(e.target.value)}
+            disabled={busy}
+            onChange={(e) => {
+              setIngredient(e.target.value);
+              invalidate();
+            }}
           />
         </label>
         <label>
@@ -81,14 +93,22 @@ export function MedicationCheck({
           <input
             required
             value={concentration}
-            onChange={(e) => setConcentration(e.target.value)}
+            disabled={busy}
+            onChange={(e) => {
+              setConcentration(e.target.value);
+              invalidate();
+            }}
           />
         </label>
         <label>
           <input
             type="checkbox"
             checked={confirmed}
-            onChange={(e) => setConfirmed(e.target.checked)}
+            disabled={busy}
+            onChange={(e) => {
+              setConfirmed(e.target.checked);
+              invalidate();
+            }}
           />
           {t("I confirmed the patient identity")}
         </label>

@@ -53,9 +53,9 @@ async def medication_check(
         (payload.observed_concentration, "concentration"),
     ):
         expected = prescription.data.get(field)
-        if not expected:
+        if not isinstance(expected, str) or not expected.strip():
             missing.append(field)
-        elif str(expected).strip().casefold() != observed.strip().casefold():
+        elif expected.strip().casefold() != observed.strip().casefold():
             issues.append(field + "_mismatch")
     now = payload.checked_at
     if now.tzinfo is None:

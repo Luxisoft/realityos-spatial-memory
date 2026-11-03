@@ -106,11 +106,17 @@ con `text` y `occurred_at`; no modifica datos importados. Las revisiones son de
 lectura administrativa y las notas son anexos, no reemplazos del historial externo.
 
 Cada prescripción, alergia o administración activa importada debe relacionarse
-con exactamente una persona activa de la misma fuente.
+con exactamente una persona activa de la misma fuente. Esta condición se comprueba
+sobre el estado final completo de la fuente, incluyendo registros que no vienen
+en el lote. Para retirar una persona, hay que retirar o reasignar en el mismo lote
+sus registros clínicos activos; si no, toda la importación devuelve 422 sin cambios.
 La comparación clínica recibe prescripción, ingrediente y concentración observados,
 confirmación profesional de identidad y fecha. Compara campos exactos, vigencia,
 alergias y antecedentes de administración. No convierte unidades ni calcula dosis,
-no prescribe y no registra administraciones automáticamente. Los formularios no
+no prescribe y no registra administraciones automáticamente. Los campos observados
+no admiten texto vacío o espacios; los campos importados vacíos o que no sean texto
+se informan como datos insuficientes. Editar el formulario invalida la comparación
+anterior y los campos quedan bloqueados mientras llega la respuesta. Los formularios no
 sustituyen una verificación clínica. La extracción automática del envase completo
 no forma parte de este comparador de campos.
 
@@ -180,3 +186,11 @@ el módulo biométrico existente permanece sin cambios por indicación del propi
 | Historial de personas y casos | Registros relacionados y notas disponibles en los expedientes y en la búsqueda contextual; respuestas con Meta real verificadas. |
 | Medicación | Comparación manual de campos y validación de relaciones/fechas; sin OCR de envases ni autorización automática. |
 | Memoria | Búsqueda de observaciones autorizadas y referencia a última ubicación observada; dataset sintético, sin prueba de captura física continua. |
+
+
+La tercera revisión añadió regresiones de baja de personas con historial clínico
+activo y comparación de campos mal tipados. En Android se verificó volver atrás
+durante la carga o el guardado de un expediente: las respuestas obsoletas no
+reabren el paciente anterior ni modifican el borrador del siguiente. Salir de la
+pantalla no revierte una nota que el servidor ya haya recibido. Estas pruebas
+usan respuestas controladas y no sustituyen QA física de captura con las gafas.

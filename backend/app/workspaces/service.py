@@ -54,12 +54,6 @@ def import_batch(db, connection, payload):
     for entry in payload.records:
         if set(entry.related_ids) - available:
             raise HTTPException(422, f"Unresolved relationships for {entry.external_id}.")
-        if entry.status == "active" and entry.kind in {"prescription", "allergy", "administration"}:
-            patients = [targets[key] for key in entry.related_ids if targets[key].kind == "person"]
-            if len(patients) != 1 or patients[0].status != "active":
-                raise HTTPException(
-                    422, f"Clinical record requires one active person: {entry.external_id}."
-                )
         previous_row = existing.get(entry.external_id)
         if previous_row and (
             entry.kind != previous_row.kind or entry.version <= previous_row.version
@@ -67,6 +61,15 @@ def import_batch(db, connection, payload):
             raise HTTPException(
                 409, f"Version must increase and kind must stay unchanged: {entry.external_id}."
             )
+    # Validate the resulting graph, including unchanged clinical history. A
+    # person withdrawal must not leave active prescriptions or allergies orphaned.
+    for entry in targets.values():
+        if entry.status == "active" and entry.kind in {"prescription", "allergy", "administration"}:
+            patients = [targets[key] for key in entry.related_ids if targets[key].kind == "person"]
+            if len(patients) != 1 or patients[0].status != "active":
+                raise HTTPException(
+                    422, f"Clinical record requires one active person: {entry.external_id}."
+                )
     rows = []
     now = datetime.now(UTC)
     for entry in payload.records:

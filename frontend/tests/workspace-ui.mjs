@@ -22,7 +22,9 @@ const rows = Array.from({ length: 51 }, (_, i) => ({
 }));
 let role = "query",
   heldPhoto = null,
-  heldNote = null;
+  heldNote = null,
+  heldCheck = null,
+  holdCheck = false;
 const apiCalls = [];
 const server = createServer(async (req, res) => {
   try {
@@ -54,12 +56,21 @@ const server = createServer(async (req, res) => {
         heldNote = res;
         return;
       }
+      if (url.pathname.endsWith("/medication-check")) {
+        if (holdCheck) {
+          heldCheck = res;
+          return;
+        }
+        return send({ status: "fields_match", issues: [], missing: [] });
+      }
       const id = url.pathname.split("/").at(-1);
       const record = rows.find((r) => r.id === id);
       if (record)
         return send({
           ...record,
-          related: [],
+          related: [
+            { id: "rx", title: "Synthetic prescription", kind: "prescription" },
+          ],
           notes: [],
           media:
             id === "test-0"
@@ -244,6 +255,54 @@ try {
     "Draft for second patient",
     "Saving a previous patient's note must preserve current patient and draft",
   );
+  await page.click("article details summary");
+  await page.select("article details select", "rx");
+  const fields = await page.$$("article details input:not([type=checkbox])");
+  await fields[0].type("Synthetic ingredient");
+  await fields[1].type("10 mg");
+  await page.click("article details input[type=checkbox]");
+  await click("Compare");
+  await page.waitForFunction(() =>
+    document
+      .querySelector("article details [role=status]")
+      ?.textContent.includes("fields_match"),
+  );
+  await fields[1].type(" changed");
+  assert.equal(
+    await page.$$("article details [role=status]").then((v) => v.length),
+    0,
+    "Editing medication fields must invalidate the previous comparison",
+  );
+  holdCheck = true;
+  await click("Compare");
+  for (let i = 0; !heldCheck && i < 50; i++)
+    await new Promise((r) => setTimeout(r, 20));
+  assert.ok(heldCheck);
+  assert.ok(
+    await page.$$eval(
+      "article details input, article details select",
+      (nodes) => nodes.every((n) => n.matches(":disabled")),
+    ),
+    "Fields must not change while comparison is pending",
+  );
+  const checked = page.waitForResponse((r) =>
+    r.url().endsWith("/medication-check"),
+  );
+  heldCheck.writeHead(200, { "Content-Type": "application/json" });
+  heldCheck.end(
+    JSON.stringify({
+      status: "discrepancy",
+      issues: ["concentration_mismatch"],
+      missing: [],
+    }),
+  );
+  heldCheck = null;
+  await checked;
+  await page.waitForFunction(() =>
+    document
+      .querySelector("article details [role=status]")
+      ?.textContent.includes("discrepancy"),
+  );
   await page.setViewport({ width: 390, height: 844 });
   assert.ok(
     await page.evaluate(
@@ -253,11 +312,12 @@ try {
   );
   assert.deepEqual(errors, []);
   console.log(
-    "PASS: 51-record pagination, role-aware notes, stale patient photo/note rejection, mobile layout. Synthetic API only.",
+    "PASS: 51-record pagination, role-aware notes, stale patient photo/note rejection, medication result invalidation, mobile layout. Synthetic API only.",
   );
 } finally {
   if (heldPhoto) heldPhoto.end();
   if (heldNote) heldNote.end();
+  if (heldCheck) heldCheck.end();
   await browser.close();
   server.closeAllConnections();
   await new Promise((done) => server.close(done));
