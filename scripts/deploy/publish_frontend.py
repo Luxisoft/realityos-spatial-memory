@@ -58,6 +58,8 @@ def main():
             "infrastructure",
             "--env-file",
             str(root / ".env"),
+            "--env-file",
+            "/opt/realityos/runtime.env",
             "-f",
             str(root / "infrastructure/docker-compose.yml"),
             "-f",
