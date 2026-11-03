@@ -633,9 +633,6 @@ def main():
         elif args.phase == "stage":
             journal = inventory(db, args.root)
             save(args.journal, journal)
-        elif args.phase == "verify-sync":
-            result = verify_sync(db, journal, settings)
-            save(args.journal.parent / "synchronization.json", result)
         else:
             raise ValueError("Stage and persist the rollback journal first")
         if args.phase == "stage":
@@ -666,7 +663,10 @@ def main():
             activate(db, journal)
             db.commit()
             journal["phase"] = "active"
-        else:
+        elif args.phase == "verify-sync":
+            result = verify_sync(db, journal, settings)
+            save(args.journal.parent / "synchronization.json", result)
+        elif args.phase == "rollback":
             rollback(db, journal)
             db.commit()
             journal["phase"] = "rolled_back"

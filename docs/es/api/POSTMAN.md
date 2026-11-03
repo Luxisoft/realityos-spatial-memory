@@ -10,6 +10,8 @@
 
 **Server requests → 00 Live scenarios** conserva Police, Nursing y Memory con consultas sobre datos existentes. Cada destino contiene las 176 operaciones del servidor; localhost añade sus dos operaciones exclusivas. Los inicios rápidos y escenarios reutilizan esas operaciones.
 
+Los escenarios incluyen **48 consultas de video en español e inglés** con comprobaciones de publicación, instante y evidencia real. Consulta la [matriz de videos y resultados](../testing/VIDEO_EVALUATION.md) para ver qué objeto buscar en cada grabación.
+
 Localhost apunta a `http://localhost:8080` y usa su propia cuenta. El backend local debe estar iniciado; si falta la cuenta Postman, ejecuta una vez `scripts/local/Enable-PostmanDemo.ps1`. No se copian datos ni credenciales del servidor.
 
 | Descarga | Uso |

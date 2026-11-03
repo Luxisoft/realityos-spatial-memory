@@ -10,6 +10,8 @@
 
 **Server requests → 00 Live scenarios** retains Police, Nursing and Memory with queries against existing data. Each destination contains the 176 server operations; localhost adds its two exclusive operations. Quick starts and scenarios reuse those operations.
 
+The live scenarios include **48 video queries in Spanish and English** with checks for the expected publication, timestamp and real evidence. See the [video matrix and results](../testing/VIDEO_EVALUATION.md) for the objects to find in each recording.
+
 Localhost points to `http://localhost:8080` and uses its own account. The local backend must be running; if its Postman account is missing, run `scripts/local/Enable-PostmanDemo.ps1` once. Server data and credentials are not copied.
 
 | Download | Usage |

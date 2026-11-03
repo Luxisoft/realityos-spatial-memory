@@ -495,3 +495,29 @@ def test_rate_limited_login_preserves_receipt_and_uses_only_selected_account(
         module.main()
     assert calls == ["memory"]
     assert output.read_text() == previous
+
+
+def test_verify_sync_cli_keeps_active_release(client, tmp_path, renewal, monkeypatch):
+    journal_path = tmp_path / "journal.json"
+    journal = {"release": renewal.RELEASE, "phase": "active"}
+    journal_path.write_text(json.dumps(journal))
+    calls = []
+
+    def verify(db, current, settings):
+        calls.append(current["phase"])
+        return {"passed": True, "cycles": [1, 2]}
+
+    def unexpected_rollback(*args):
+        pytest.fail("Synchronization verification must never roll back the release")
+
+    monkeypatch.setattr(renewal, "verify_sync", verify)
+    monkeypatch.setattr(renewal, "rollback", unexpected_rollback)
+    monkeypatch.setattr(renewal, "Database", lambda _: client.app.state.database)
+    monkeypatch.setattr(
+        "sys.argv",
+        ["renew", "--phase", "verify-sync", "--journal", str(journal_path)],
+    )
+    renewal.main()
+    assert calls == ["active"]
+    assert json.loads(journal_path.read_text()) == journal
+    assert json.loads((tmp_path / "synchronization.json").read_text())["passed"]
