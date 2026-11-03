@@ -12,6 +12,8 @@
 
 ## Pruebas
 
+- [Evaluación con videos reales](testing/VIDEO_EVALUATION.md)
+
 - [Recursos sintéticos de aceptación](testing/ACCEPTANCE_FIXTURES.md)
 - [Checklist manual RealityOS — aceptación y hackathon 2026](testing/IMPLEMENTATION_CHECKLIST.md)
 - [Prueba con fotos propias](testing/MANUAL_PHOTO_TEST.md)

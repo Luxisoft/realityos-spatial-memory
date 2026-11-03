@@ -30,7 +30,7 @@ Only the **existing** groups are in scope. Workshop and other discarded scenario
 
 The **47 records, 27 attachments and six enrolled record portraits** are preserved. No group or membership was added by renewal. The current bucket inventory is 48 scene resources plus six QA probes, verified by remote read-back/SHA-256, across **13 active connections**. Author subsets differ. The obsolete social-directory browser connection is disabled; its remote objects were retained.
 
-Postman keeps exactly **Server requests** and **Localhost requests**, with **403 requests**, including the **39 existing-data walkthrough requests**. Jury publication IDs now reference the renewed media. Only the three owner-authorized jury passwords are public. Email-account users, including existing test accounts without completed setup, receive the new private biometric onboarding; no consent or completed enrollment was fabricated.
+Postman keeps exactly **Server requests** and **Localhost requests**, with **451 requests**, including the **87 existing-data walkthrough requests** (48 ES/EN video queries). Jury publication IDs now reference the renewed media. Only the three owner-authorized jury passwords are public. Email-account users, including existing test accounts without completed setup, receive the new private biometric onboarding; no consent or completed enrollment was fabricated.
 
 <a id="next-steps"></a>
 

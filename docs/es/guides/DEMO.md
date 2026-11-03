@@ -11,6 +11,8 @@ Estos recorridos son ejemplos independientes de las capacidades de RealityOS. No
 
 [← Proyecto](../README.md) · [Entrega de hackathon](../project/HACKATHON.md) · [Android](../integrations/ANDROID.md)
 
+Las nuevas pruebas de objetos usan [12 videos completos con consultas ES/EN e intervalos de evidencia](../testing/VIDEO_EVALUATION.md). La matriz indica qué buscar y qué resultado verificar.
+
 <a id="access"></a>
 
 ## Entrar y ver los datos preparados

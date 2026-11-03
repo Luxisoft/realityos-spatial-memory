@@ -3,6 +3,8 @@
 import copy
 import json
 
+from build_video_postman import video_requests
+
 REQUESTS = [
     "GET /v1/auth/me",
     "POST /v1/auth/login",
@@ -22,6 +24,9 @@ REQUESTS = [
 
 def publish(folders, root, write, namespace, describe, check, reference):
     fixture = json.loads((root / "simulator/postman/jury.json").read_text())
+    evaluation = json.loads(
+        (root / "simulator/real-scenes/video-evaluation.json").read_text()
+    )
     templates = {item["name"]: item for items in folders.values() for item in items}
     collection = {
         "info": {
@@ -46,6 +51,10 @@ def publish(folders, root, write, namespace, describe, check, reference):
             item = copy.deepcopy(templates[name])
             item["response"] = []
             request = item["request"]
+            if name == "POST /v1/queries":
+                body = json.loads(request["body"]["raw"])
+                body["search_scope"] = "gallery"
+                request["body"]["raw"] = json.dumps(body, indent=2)
             if name == "GET /v1/gallery":
                 for query in request["url"]["query"]:
                     if query["key"] == "audience":
@@ -87,6 +96,13 @@ def publish(folders, root, write, namespace, describe, check, reference):
                 "\n\nReady to send. All inputs use this scenario's existing account and stored resources. Authentication and renewal are automatic."
             )
             items.append(item)
+        group = "nursing" if scenario["prefix"] == "hospital" else scenario["prefix"]
+        items.extend(
+            video_requests(
+                templates["POST /v1/queries"],
+                [v for v in evaluation["videos"] if v["group"] == group],
+            )
+        )
         collection["item"].append(
             {
                 "name": scenario["name"],
@@ -108,7 +124,7 @@ def publish(folders, root, write, namespace, describe, check, reference):
     collection = copy.deepcopy(reference)
     collection["info"].update(
         name="RealityOS API · Server and localhost",
-        description="Two destinations: Server requests and Localhost requests. Both include account, workspace and query defaults, automatic login and token renewal, and the complete API catalog. Server requests also contains 00 Live scenarios with 39 ready requests against existing Police, Nursing and Memory data. Open a destination, then 00 Quick start or a live scenario, and click Send. No environment import is required. Localhost uses its own account at http://localhost:8080 and requires the local backend to be running; prepare that account once with scripts/local/Enable-PostmanDemo.ps1 if needed. The three published server evaluation passwords are owner-authorized. Provider credentials and session tokens are not exported. Advanced file, device and integration operations retain their own prerequisites.",
+        description="Two destinations: Server requests and Localhost requests. Both include account, workspace and query defaults, automatic login and token renewal, and the complete API catalog. Server requests also contains 00 Live scenarios with 87 ready requests, including 48 bilingual video evidence checks, against existing Police, Nursing and Memory data. Open a destination, then 00 Quick start or a live scenario, and click Send. No environment import is required. Localhost uses its own account at http://localhost:8080 and requires the local backend to be running; prepare that account once with scripts/local/Enable-PostmanDemo.ps1 if needed. The three published server evaluation passwords are owner-authorized. Provider credentials and session tokens are not exported. Advanced file, device and integration operations retain their own prerequisites.",
     )
     server, localhost = collection["item"]
     server["description"] = (

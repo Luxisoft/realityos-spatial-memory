@@ -28,12 +28,16 @@ def inventory():
     for scenario, (folder, owners) in OWNERS.items():
         rows = [item for item in manifest["items"] if item["group"] == scenario]
         for index, item in enumerate(rows):
+            owner = item.get("owner", owners[index % len(owners)])
+            if owner not in owners:
+                raise ValueError("Unknown evaluation media owner")
+            folder_prefix = f"demo/v2/{folder}/{owner}/"
+            if manifest.get("video_release"):
+                folder_prefix += manifest["video_release"] + "/"
             path = ROOT / item["path"]
             if hashlib.sha256(path.read_bytes()).hexdigest() != item["sha256"]:
                 raise ValueError(f"Modified fixture: {path.name}")
-            result.append(
-                (path, f"demo/v2/{folder}/{owners[index % len(owners)]}/{path.name}")
-            )
+            result.append((path, folder_prefix + path.name))
     # Existing acceptance probes remain isolated from ordinary publication sources.
     for path in sorted((ROOT / "simulator/acceptance").glob("*.pdf")):
         result.append((path, f"demo/v1/qa/{path.name}"))

@@ -36,10 +36,19 @@ def prepare(db, settings, credentials=None):
     from app.models import User, Workspace, WorkspaceMember
     from app.storage.client import BucketClient
     from app.storage.lifecycle import retire_connection
-    from app.storage.models import StorageConnection
+    from app.storage.models import StorageConnection, StorageSync
     from app.storage.routes import configure, enable_default_sync
     from app.storage.schemas import ConnectionInput
 
+    if credentials and db.scalar(
+        select(StorageSync.id).where(
+            StorageSync.enabled.is_(True),
+            StorageSync.prefix.like("demo/v2/%/evaluation-%/"),
+        )
+    ):
+        raise ValueError(
+            "Versioned evaluation sources are active; use renew_evaluation_videos.py"
+        )
     prepared = []
     # Validate every account before changing any connection.
     for group, usernames in PRINCIPALS.items():

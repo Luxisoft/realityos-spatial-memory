@@ -12,6 +12,8 @@
 
 ## Testing
 
+- [Evaluation with real videos](testing/VIDEO_EVALUATION.md)
+
 - [Synthetic acceptance fixtures](testing/ACCEPTANCE_FIXTURES.md)
 - [RealityOS manual checklist — acceptance and Hackathon 2026](testing/IMPLEMENTATION_CHECKLIST.md)
 - [Test with your own photos](testing/MANUAL_PHOTO_TEST.md)

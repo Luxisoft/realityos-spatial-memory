@@ -105,6 +105,10 @@ def attach_bucket_source(db, workspace, owner, item, raw, post):
 
 def prepare(db, root, apply=False):
     manifest = json.loads((root / "simulator/real-scenes/manifest.json").read_text())
+    if manifest.get("video_release"):
+        raise ValueError(
+            "Use renew_evaluation_videos.py for the versioned video release"
+        )
     if manifest.get("errors"):
         raise ValueError("Resolve media validation errors before publishing")
     targets, previous, created = [], [], []

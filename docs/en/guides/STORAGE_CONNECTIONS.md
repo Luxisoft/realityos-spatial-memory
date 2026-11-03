@@ -28,12 +28,12 @@ Keep `STORAGE_ENCRYPTION_KEY` stable in private runtime configuration, shared by
 
 ## Licensed evaluation scenes
 
-`simulator/real-scenes/catalog.json` and `manifest.json` describe **48 licensed resources**: 12 photos and four moving recordings for each of security, nursing and memory. Videos contain 10–15 seconds at 24 fps and at least 720p; frame-change checks reject still-image recordings. Accounts and roles remain fictional. Source links, licenses, hashes and validation metrics are in the manifest. Downloaded assets are ignored by Git.
+`simulator/real-scenes/catalog.json` and `manifest.json` describe 36 preserved photos and 12 complete videos: four per existing security, nursing and memory group. Recordings retain their original duration (7–29 seconds) and at least native 720p resolution. Sources, authors, licenses and hashes document provenance; downloaded files are ignored by Git.
 
-Run `scripts/prepare_real_scenes.py` to prepare and validate media. `scripts/prepare_bucket_demo.py --upload --credentials-file /private/r2.json` uploads and reads back each object to verify SHA-256. It includes 48 scenes and six separate QA probes. Credentials require endpoint, bucket, region, access_key and secret_key; never publish the file.
+The [video matrix](../testing/VIDEO_EVALUATION.md) contains ES/EN queries and expected intervals. `scripts/prepare_evaluation_videos.py` prepares only videos and reuses verified bytes. `scripts/renew_evaluation_videos.py` manages inventory, staging, real analysis, acceptance, activation and rollback with a private journal. It does not recreate accounts, groups or records.
 
-Scenario folders are `demo/v2/{scenario}/{username}/`, partitioned by author. QA probes stay under `demo/v1/qa/`. `scripts/connect_demo_buckets.py --apply --read-credentials-file /private/r2.json` configures the nine existing scenario accounts and four QA accounts, preserving accounts and memberships. It validates sources before retiring old copies. The retired social-directory browser connection is disabled; its remote files remain untouched.
+Synchronization selects `demo/v2/{scenario}/{username}/evaluation-v3/` within the nine existing connections, every 15 minutes. The sibling `evaluation-v2-rollback/` folder preserves the verified previous generation. Photos keep their identifiers; only replaced videos are hidden. External objects remain intact. QA stays under `demo/v1/qa/`.
 
-`scripts/refresh_demo_gallery.py --apply --journal /private/demo-visibility.json` replaces only identified old demo publications, preserving records and biometric portraits. The journal supports `--rollback`. Indexing uses the configured real provider; the media manifest is not fabricated detection evidence.
+Do not configure a recursive root scan through the older importers: it would include both generations. Legacy preparation tools reject the versioned renewal. `scripts/prepare_bucket_demo.py` now honors the manifest's explicit folder and owner. Read/write credentials stay in private files and are not included in Postman.
 
 Check the dated [implementation status](../project/IMPLEMENTATION_STATUS.md) for executed R2/API checks. Phone and glasses acceptance require separate device evidence.

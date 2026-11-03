@@ -175,6 +175,10 @@ def main():
     CACHE.mkdir(parents=True, exist_ok=True)
     (BASE / "assets").mkdir(exist_ok=True)
     catalog = json.loads((BASE / "catalog.json").read_text())
+    if catalog.get("video_release"):
+        raise ValueError(
+            "Use prepare_evaluation_videos.py; preserve the accepted photos and full recordings"
+        )
     completed, errors = [], []
     with concurrent.futures.ThreadPoolExecutor(max_workers=4) as executor:
         futures = {executor.submit(prepare, item): item for item in catalog["items"]}

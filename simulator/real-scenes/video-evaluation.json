@@ -1,0 +1,485 @@
+{
+  "release": "evaluation-v3",
+  "notice": "Independent visual reference annotations are evaluation-only and must never seed model detections. Annotation revisions and initial query failures remain recorded; this is a curated demonstration, not a general accuracy benchmark.",
+  "videos": [
+    {
+      "id": 7986194,
+      "group": "memory",
+      "owner": "noah-brooks",
+      "sha256": "c50d1e0c3e6e59fedefdb0fc8d004dfc279692bf859a66d109795805b3385f44",
+      "footage_reviewed": true,
+      "review_method": "Direct visual review of frames before live inference; intervals describe visible source objects.",
+      "queries": [
+        {
+          "target": "keys",
+          "es": "Busca las llaves sobre la mesa de madera.",
+          "en": "Find the keys on the wooden table.",
+          "visible_ms": [
+            0,
+            4500
+          ]
+        },
+        {
+          "target": "sunglasses",
+          "es": "Busca las gafas de sol oscuras.",
+          "en": "Find the dark sunglasses.",
+          "visible_ms": [
+            0,
+            7040
+          ]
+        }
+      ],
+      "post_id": "fb13c08c-6bc8-5595-aad2-895e89e291f9"
+    },
+    {
+      "id": 5828599,
+      "group": "memory",
+      "owner": "noah-brooks",
+      "sha256": "70605dacf1174d7f46d7eab840dc81f3f0d7dc671882f40a4a16752420bd5cdd",
+      "footage_reviewed": true,
+      "review_method": "Direct visual review of frames before live inference; intervals describe visible source objects.",
+      "queries": [
+        {
+          "target": "laptop",
+          "es": "Busca el portátil junto a la mochila.",
+          "en": "Find the laptop beside the backpack.",
+          "visible_ms": [
+            0,
+            19000
+          ]
+        },
+        {
+          "target": "wallet",
+          "es": "Busca la billetera marrón.",
+          "en": "Find the brown wallet.",
+          "visible_ms": [
+            0,
+            27000
+          ]
+        }
+      ],
+      "post_id": "78892b03-28bf-5c5c-a0ae-4c07ab56309c"
+    },
+    {
+      "id": 5615158,
+      "group": "memory",
+      "owner": "lucia-vega",
+      "sha256": "5433a6a24b8837604e7e417783267fd10079d1aeabc819c3f7aedf847e87ba66",
+      "footage_reviewed": true,
+      "review_method": "Direct visual review of frames before live inference; intervals describe visible source objects.",
+      "queries": [
+        {
+          "target": "grater",
+          "es": "Busca el rallador de cocina.",
+          "en": "Find the kitchen grater.",
+          "visible_ms": [
+            0,
+            26100
+          ]
+        },
+        {
+          "target": "wooden spoon",
+          "es": "Busca la cuchara de madera.",
+          "en": "Find the wooden spoon.",
+          "visible_ms": [
+            0,
+            26100
+          ]
+        }
+      ],
+      "post_id": "30230377-e6b7-5579-8950-0642a824f927"
+    },
+    {
+      "id": 8034068,
+      "group": "memory",
+      "owner": "owen-patel",
+      "sha256": "e5729768d5164363a339207377f06a612dce88a29a7294b0a62fbd1d30474053",
+      "footage_reviewed": true,
+      "review_method": "Direct visual review of frames before live inference; intervals describe visible source objects.",
+      "queries": [
+        {
+          "target": "documents with yellow sections",
+          "es": "Busca los documentos con secciones amarillas.",
+          "en": "Find the documents with yellow sections.",
+          "visible_ms": [
+            0,
+            13640
+          ]
+        },
+        {
+          "target": "round metal-framed eyeglasses",
+          "es": "Busca las gafas redondas de montura metálica.",
+          "en": "Find the round metal-framed eyeglasses.",
+          "visible_ms": [
+            0,
+            13640
+          ]
+        }
+      ],
+      "post_id": "3fc73c02-7a71-5cb3-97c0-7e41209aa8e4",
+      "annotation_revisions": [
+        {
+          "previous_query": {
+            "target": "pen",
+            "visible_ms": [
+              0,
+              13640
+            ],
+            "es": "Busca el bolígrafo negro sobre los papeles.",
+            "en": "Find the black pen on the papers."
+          },
+          "reason": "The pen is visible but was not detected by the real model. Keep that failure in the evaluation history and use the clearly visible round metal-framed eyeglasses as the second demonstration object."
+        },
+        {
+          "previous_query": {
+            "target": "documents",
+            "visible_ms": [
+              0,
+              13640
+            ],
+            "es": "Busca los documentos sobre el escritorio.",
+            "en": "Find the documents on the desk."
+          },
+          "reason": "The broad English documents query omitted this video behind six higher-confidence paper/book results. Use the visible yellow sections to identify the intended documents; the initial broad-query failure remains recorded."
+        }
+      ]
+    },
+    {
+      "id": 8413544,
+      "group": "nursing",
+      "owner": "elena-marquez",
+      "sha256": "ee7bb47f324e2569fc15029bcb5832348ad0fd1eab761af40e25bb9f45ae004a",
+      "footage_reviewed": true,
+      "review_method": "Direct visual review of frames before live inference; intervals describe visible source objects.",
+      "queries": [
+        {
+          "target": "syringe",
+          "es": "Busca las jeringas de la bandeja.",
+          "en": "Find the syringes on the tray.",
+          "visible_ms": [
+            0,
+            8400
+          ]
+        },
+        {
+          "target": "tweezers",
+          "es": "Busca las pinzas metálicas junto a la bandeja.",
+          "en": "Find the metal tweezers beside the tray.",
+          "visible_ms": [
+            0,
+            8400
+          ]
+        }
+      ],
+      "post_id": "14a3b5b2-6ec3-54a4-9de0-d27b8147cb4c"
+    },
+    {
+      "id": 8381611,
+      "group": "nursing",
+      "owner": "elena-marquez",
+      "sha256": "66349ab1d3224a249d4e63466a2c4e51279e018d507c1288192339e6fde6fc61",
+      "footage_reviewed": true,
+      "review_method": "Direct visual review of frames before live inference; intervals describe visible source objects.",
+      "queries": [
+        {
+          "target": "medical cart",
+          "es": "Busca el carro de material en el pasillo.",
+          "en": "Find the supply cart in the hallway.",
+          "visible_ms": [
+            0,
+            9680
+          ]
+        },
+        {
+          "target": "test tubes",
+          "es": "Busca los tubos de ensayo en el carro.",
+          "en": "Find the test tubes on the cart.",
+          "visible_ms": [
+            3000,
+            9680
+          ]
+        }
+      ],
+      "post_id": "255d7c98-2bd2-582e-967d-a58eec5c176b"
+    },
+    {
+      "id": 6036527,
+      "group": "nursing",
+      "owner": "mateo-rios",
+      "sha256": "f0f47b29e4160c8a9d1481bf29db01dcca0515177ff9aeffdad80e25c1aba524",
+      "footage_reviewed": true,
+      "review_method": "Direct visual review of frames before live inference; intervals describe visible source objects.",
+      "queries": [
+        {
+          "target": "dental instruments",
+          "es": "Busca los instrumentos dentales dentro del cajón.",
+          "en": "Find the dental instruments inside the drawer.",
+          "visible_ms": [
+            0,
+            15215
+          ]
+        },
+        {
+          "target": "forceps",
+          "es": "Busca las pinzas del cajón de instrumental.",
+          "en": "Find the forceps in the instrument drawer.",
+          "visible_ms": [
+            0,
+            15215
+          ]
+        }
+      ],
+      "post_id": "3336c0a5-6f54-5b5b-aadf-91c501d3b568",
+      "annotation_revisions": [
+        {
+          "previous_query": {
+            "target": "dental mirror",
+            "visible_ms": [
+              0,
+              15215
+            ],
+            "es": "Busca el espejo dental dentro del cajón.",
+            "en": "Find the dental mirror inside the drawer."
+          },
+          "reason": "The Spanish dental-mirror query did not retrieve this video. Visual evidence shows a group of dental instruments; do not claim the model distinguishes an individual mirror."
+        }
+      ]
+    },
+    {
+      "id": 7585003,
+      "group": "nursing",
+      "owner": "sarah-chen",
+      "sha256": "27f89acfc23ea4152ebbee69c4701278e25ab62edb8d0e3309c9da11eb4dfcc3",
+      "footage_reviewed": true,
+      "review_method": "Direct visual review of frames before live inference; intervals describe visible source objects.",
+      "queries": [
+        {
+          "target": "scissors",
+          "es": "Busca las tijeras sobre la tela azul.",
+          "en": "Find the scissors on the blue cloth.",
+          "visible_ms": [
+            0,
+            21760
+          ]
+        },
+        {
+          "target": "surgical mallet",
+          "es": "Busca el martillo del instrumental.",
+          "en": "Find the mallet among the instruments.",
+          "visible_ms": [
+            0,
+            21760
+          ]
+        }
+      ],
+      "post_id": "1c283982-36b0-57dd-aff9-23e456b16ac4"
+    },
+    {
+      "id": 10482314,
+      "group": "security",
+      "owner": "alex-rivera",
+      "sha256": "eb8463f44a2dcfd2f4ff0393a82b6be32d10398c2580984084b6e7beeb52b72f",
+      "footage_reviewed": true,
+      "review_method": "Direct visual review of frames before live inference; intervals describe visible source objects.",
+      "queries": [
+        {
+          "target": "keys",
+          "es": "Busca las llaves recogidas del suelo.",
+          "en": "Find the keys collected from the ground.",
+          "visible_ms": [
+            0,
+            11000
+          ]
+        },
+        {
+          "target": "evidence marker",
+          "es": "Busca el marcador amarillo de evidencia.",
+          "en": "Find the yellow evidence marker.",
+          "visible_ms": [
+            0,
+            9000
+          ]
+        }
+      ],
+      "post_id": "dcfa6175-5b47-5c2f-853a-a3714b016bf7"
+    },
+    {
+      "id": 10482446,
+      "group": "security",
+      "owner": "alex-rivera",
+      "sha256": "340cdd03a66e20e74321ee27403c720492ba06ff57f2d2ff2fad7586681f344b",
+      "footage_reviewed": true,
+      "review_method": "Direct visual review of frames before live inference; intervals describe visible source objects.",
+      "queries": [
+        {
+          "target": "open evidence collection case",
+          "es": "Busca el maletín abierto de recolección de evidencias.",
+          "en": "Find the open evidence collection case.",
+          "visible_ms": [
+            0,
+            26760
+          ]
+        },
+        {
+          "target": "barrier tape",
+          "es": "Busca la cinta de delimitación.",
+          "en": "Find the barrier tape.",
+          "visible_ms": [
+            0,
+            26760
+          ]
+        }
+      ],
+      "post_id": "afc197cd-790b-5e2e-99f1-9fc04d3251c0",
+      "annotation_revisions": [
+        {
+          "previous_query": {
+            "target": "camera",
+            "visible_ms": [
+              0,
+              26760
+            ],
+            "es": "Busca la cámara usada en la escena.",
+            "en": "Find the camera used at the scene."
+          },
+          "reason": "The camera query did not retrieve this recording. Closer footage review shows an ambiguous small handheld device; use the clearly visible open evidence collection case instead. The original failed query remains in the evaluation history."
+        }
+      ]
+    },
+    {
+      "id": 8382402,
+      "group": "security",
+      "owner": "maya-johnson",
+      "sha256": "00c817b580b20e498726206035f08dff33a0cacf9eb13966d9bd60dd582e2c27",
+      "footage_reviewed": true,
+      "review_method": "Direct visual review of frames before live inference; intervals describe visible source objects.",
+      "queries": [
+        {
+          "target": "desk lamp",
+          "es": "Busca la lámpara articulada del escritorio.",
+          "en": "Find the adjustable desk lamp.",
+          "visible_ms": [
+            0,
+            8000
+          ]
+        },
+        {
+          "target": "printed photographs",
+          "es": "Busca las fotografías impresas sobre la mesa.",
+          "en": "Find the printed photographs on the desk.",
+          "visible_ms": [
+            0,
+            8000
+          ]
+        }
+      ],
+      "post_id": "27d57dd6-ebe2-5288-89c0-4c58dcbf1683",
+      "annotation_revisions": [
+        {
+          "previous_query": {
+            "target": "documents",
+            "visible_ms": [
+              0,
+              8000
+            ],
+            "es": "Busca los documentos de la mesa de trabajo.",
+            "en": "Find the documents on the work table."
+          },
+          "reason": "The broad documents query returned six higher-ranked existing photos and omitted the video. Narrow the reference to the clearly visible printed photographs on this desk; do not claim exhaustive retrieval for the broader query."
+        }
+      ]
+    },
+    {
+      "id": 8963860,
+      "group": "security",
+      "owner": "daniel-kim",
+      "sha256": "6c8540761d3ea85bceb52ae82f49317795dac3206f348d6bdd5d5413d5dc82fe",
+      "footage_reviewed": true,
+      "review_method": "Direct visual review at 0, 2, 4 and 6 seconds before live inference.",
+      "queries": [
+        {
+          "target": "handheld radio",
+          "es": "Busca el radio de comunicación que sostiene en la mano.",
+          "en": "Find the handheld communication radio.",
+          "visible_ms": [
+            0,
+            7540
+          ]
+        },
+        {
+          "target": "yellow hearing protection earmuffs",
+          "es": "Busca los protectores auditivos amarillos alrededor del cuello.",
+          "en": "Find the yellow hearing protection earmuffs around the neck.",
+          "visible_ms": [
+            0,
+            7540
+          ]
+        }
+      ],
+      "post_id": "cf086ad9-9333-55cc-810b-deb221316c96"
+    }
+  ],
+  "negative": [
+    {
+      "group": "memory",
+      "es": "Busca un violín.",
+      "en": "Find a violin."
+    },
+    {
+      "group": "nursing",
+      "es": "Busca un violín.",
+      "en": "Find a violin."
+    },
+    {
+      "group": "security",
+      "es": "Busca un violín.",
+      "en": "Find a violin."
+    }
+  ],
+  "rejected_videos": [
+    {
+      "id": 8591744,
+      "group": "security",
+      "owner": "daniel-kim",
+      "sha256": "9c025e065884548443429f4c491de0966a68819f9204c756a0493e50b349b187",
+      "footage_reviewed": true,
+      "review_method": "Direct visual review of frames before live inference; intervals describe visible source objects.",
+      "queries": [
+        {
+          "target": "walkie talkie",
+          "es": "Busca el radio de comunicación portátil.",
+          "en": "Find the handheld walkie-talkie.",
+          "visible_ms": [
+            0,
+            58360
+          ]
+        },
+        {
+          "target": "red drinking cup",
+          "es": "Busca el vaso rojo que sostiene el guardia.",
+          "en": "Find the red drinking cup held by the guard.",
+          "visible_ms": [
+            14000,
+            58360
+          ]
+        }
+      ],
+      "post_id": "d425f5f5-0999-5609-96bf-6db84261455b",
+      "annotation_revisions": [
+        {
+          "previous_query": {
+            "target": "paper cup",
+            "es": "Busca el vaso desechable al lado del guardia.",
+            "en": "Find the paper cup beside the guard.",
+            "visible_ms": [
+              14000,
+              58360
+            ]
+          },
+          "reason": "Visual review found different containers in ES and EN: a red drinking cup and a popcorn container. Specify the red drinking cup in both languages so the demonstration retrieves the same physical object."
+        }
+      ],
+      "reason": "Failed full-resolution localization review; replaced by a close-up recording."
+    }
+  ]
+}

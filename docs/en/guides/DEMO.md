@@ -11,6 +11,8 @@ These walkthroughs are independent examples of RealityOS capabilities. They are 
 
 [← Project](../README.md) · [Hackathon delivery](../project/HACKATHON.md) · [Android](../integrations/ANDROID.md)
 
+The new object tests use [12 complete videos with ES/EN queries and evidence intervals](../testing/VIDEO_EVALUATION.md). The matrix states what to search for and what result to verify.
+
 <a id="access"></a>
 
 ## Sign in and see the prepared data

@@ -30,7 +30,7 @@ El alcance se limita a los grupos **existentes**. No se recrean el taller ni otr
 
 Se conservan **47 expedientes, 27 adjuntos y seis retratos de expediente enrolados**. La renovación no añadió grupos ni membresías. El inventario vigente del bucket contiene 48 escenas y seis recursos QA, verificados por lectura remota/SHA-256, con **13 conexiones activas**. Cada autor tiene un subconjunto distinto. La conexión obsoleta de exploración del directorio social quedó desactivada; sus objetos remotos se conservaron.
 
-Postman mantiene exactamente **Server requests** y **Localhost requests**, con **403 solicitudes**, incluidos los **39 recorridos sobre datos existentes**. Los IDs de publicaciones del jurado apuntan al contenido renovado. Solo las tres contraseñas autorizadas por el propietario son públicas. Las cuentas por email, incluidas las de prueba sin configuración completa, reciben el nuevo ingreso biométrico privado; no se inventó consentimiento ni enrolamiento completado.
+Postman mantiene exactamente **Server requests** y **Localhost requests**, con **451 solicitudes**, incluidos los **87 recorridos sobre datos existentes** (48 consultas ES/EN de videos). Los IDs de publicaciones del jurado apuntan al contenido renovado. Solo las tres contraseñas autorizadas por el propietario son públicas. Las cuentas por email, incluidas las de prueba sin configuración completa, reciben el nuevo ingreso biométrico privado; no se inventó consentimiento ni enrolamiento completado.
 
 <a id="next-steps"></a>
 
