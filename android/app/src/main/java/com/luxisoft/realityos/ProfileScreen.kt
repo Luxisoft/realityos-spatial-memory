@@ -55,6 +55,20 @@ internal fun ProfileScreen(
     var mediaBusy by remember(userId) { mutableStateOf(false) }
     var refreshPending by remember(userId) { mutableStateOf(false) }
     var selectedMedia by remember(userId) { mutableStateOf<JSONObject?>(null) }
+    var publishSpaces by remember { mutableStateOf(emptyList<JSONObject>()) }
+    var publishWorkspace by remember { mutableStateOf<String?>(null) }
+    var chooseWorkspace by remember { mutableStateOf(false) }
+    LaunchedEffect(ownProfile, active) {
+        if (ownProfile && active) {
+            try {
+                publishSpaces = withContext(Dispatchers.IO) { storageRows(JSONArray(SocialSession.request("workspaces"))).filter { !it.optString("name").startsWith("home:") } }
+            } catch (failure: kotlinx.coroutines.CancellationException) {
+                throw failure
+            } catch (failure: Exception) {
+                AppNotices.show(failure.message.orEmpty(), NoticeKind.ERROR)
+            }
+        }
+    }
     var publishMenuExpanded by remember { mutableStateOf(false) }
     var pendingPhoto by remember { mutableStateOf<PendingPublishPhoto?>(null) }
     var showNoteDialog by remember { mutableStateOf(false) }
@@ -102,7 +116,8 @@ internal fun ProfileScreen(
     val publicationUploader = rememberPublicationUploader(onPublished = { loadMedia(reset = true) }, onBusy = { busy = it })
     PublicationUploadDialog(publicationUploader)
     fun uploadPublication(photo: PendingPublishPhoto, noteText: String, noteSource: String) {
-        publicationUploader.submit(photo, noteText, noteSource, "home")
+        val target = publishWorkspace ?: return
+        publicationUploader.submit(photo, noteText, noteSource, "work", target)
     }
 
     fun stagePhoto(bytes: ByteArray, mime: String, name: String) {
@@ -213,8 +228,7 @@ internal fun ProfileScreen(
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 if (busy) item { LinearProgressIndicator(Modifier.fillMaxWidth()) }
-                if (error.isNotBlank()) item { Text(error, color = MaterialTheme.colorScheme.error) }
-                if (ownProfile) item { OutlinedButton(onClick = { storageOpen = true }) { Text(localizedText(R.string.storage_title)) } }
+                item { NoticeEffect(error, { error = "" }) }
                 if (current != null) {
                     if (!ownProfile) {
                         item {
@@ -259,7 +273,17 @@ internal fun ProfileScreen(
                             if (ownProfile) {
                                 Box {
                                     IconButton(
-                                        onClick = { publishMenuExpanded = true },
+                                        onClick = {
+                                            publishWorkspace = publishSpaces.firstOrNull { it.optString("id") == SocialSession.workWorkspaceId }?.getString("id")
+                                                ?: publishSpaces.singleOrNull()?.getString("id")
+                                            if (publishSpaces.isEmpty()) {
+                                                AppNotices.show(localizedText(R.string.publish_needs_group), NoticeKind.WARNING)
+                                            } else if (publishWorkspace == null) {
+                                                chooseWorkspace = true
+                                            } else {
+                                                publishMenuExpanded = true
+                                            }
+                                        },
                                         enabled = !busy
                                     ) {
                                         Icon(Icons.Default.Add, contentDescription = localizedText(R.string.ui_publish))
@@ -293,7 +317,7 @@ internal fun ProfileScreen(
                             }
                         }
                     }
-                    items(media.chunked(3)) { row ->
+                    items(media.distinctBy { it.optString("original_id").ifBlank { it.getString("id") } }.chunked(3)) { row ->
                         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(3.dp)) {
                             row.forEach { item ->
                                 Box(Modifier.weight(1f).aspectRatio(.78f).clickable { selectedMedia = item }) {
@@ -315,9 +339,32 @@ internal fun ProfileScreen(
                             LaunchedEffect(media.size, mediaCursor) { loadMedia() }
                         }
                     }
-                    if (mediaBusy || !mediaLoaded) item { SkeletonGrid() }
+                    if (!mediaLoaded) {
+                        item { SkeletonGrid() }
+                    } else if (mediaBusy) {
+                        item { CircularProgressIndicator(Modifier.size(24.dp)) }
+                    }
                 }
             }
+        }
+        if (chooseWorkspace) {
+            AlertDialog(
+                onDismissRequest = { chooseWorkspace = false },
+                title = { Text(localizedText(R.string.ui_select_workspace)) },
+                text = {
+                    Column {
+                        publishSpaces.forEach { space ->
+                            TextButton(onClick = {
+                                publishWorkspace = space.getString("id")
+                                SocialSession.workWorkspaceId = publishWorkspace
+                                chooseWorkspace = false
+                                publishMenuExpanded = true
+                            }) { Text(space.getString("name")) }
+                        }
+                    }
+                },
+                confirmButton = {}
+            )
         }
         if (showNoteDialog) {
             pendingPhoto?.let { pending ->

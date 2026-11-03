@@ -92,3 +92,7 @@ Reference writes retain `enable_write_requests=false`. The [Windows installation
 Regenerate the reference and Postman with `python scripts/build_api_docs.py`; detect drift with `python scripts/build_api_docs.py --check`. The collection uses the [official v2.1 format](https://schema.postman.com/); see Postman's [import guide](https://learning.postman.com/docs/getting-started/importing-and-exporting/importing-data/).
 
 Offline script checks: `node scripts/check_postman_scripts.cjs`.
+
+## Workspace publishing and account photos
+
+Publishing requires membership and an explicit work group. `POST /v1/groups/{workspace_id}/publications/import` copies 1–100 owned posts idempotently. Legacy unassigned posts remain owner-only until assigned. Email onboarding uses `GET /v1/faces/setup`, the existing consent/profile-photo/avatar endpoints, `POST /v1/faces/reference-photos` (3–25 distinct accepted images), optional DELETE and `POST /v1/faces/setup/complete`. Enrollment is resumable. `/v1/me/facebook-profile` no longer exposes reference-media URLs; account match thumbnails use avatars. The isolated local backend/Debug login exception remains.

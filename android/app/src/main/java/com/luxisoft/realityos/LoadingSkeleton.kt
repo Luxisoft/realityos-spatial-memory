@@ -76,7 +76,7 @@ internal fun DatabaseImage(
         contentDescription = contentDescription,
         modifier = modifier,
         contentScale = contentScale,
-        loading = { SkeletonBlock(Modifier.fillMaxSize().loadingSemantics()) },
+        loading = { Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { androidx.compose.material3.CircularProgressIndicator(Modifier.size(24.dp), strokeWidth = 2.dp) } },
         error = {
             Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 Icon(Icons.Filled.BrokenImage, localizedText(R.string.ui_image_unavailable), tint = MaterialTheme.colorScheme.onSurfaceVariant)

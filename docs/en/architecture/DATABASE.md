@@ -33,3 +33,7 @@ make migrate
 [ARCHITECTURE ](ARCHITECTURE.md) · [WORKSPACE DATA ](../guides/WORKSPACE_DATA.md) · [SECURITY ](SECURITY.md)
 
 Revision `20261103_0035` adds `storage_connections`, `storage_imports` and `storage_syncs`: private connections with encrypted keys, import provenance/status and synchronization rules. Buckets do not replace BYTEA originals. [Operations and retention](../guides/STORAGE_CONNECTIONS.md).
+
+## Workspace privacy revision
+
+Revision `20261103_0036` adds publication copy provenance (`shared_from_id`, unique per original/group), connection revisions and target group, immutable `storage_objects`, scan `seen_keys`, and `biometric_setups`. Biometric publication quarantine keeps a visibility journal for migration downgrade. Copies share original media while comments/reactions remain independent. Enrollment originals stay private; only normalized avatars are exposed.

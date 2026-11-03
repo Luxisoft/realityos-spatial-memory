@@ -25,6 +25,9 @@ def source(client, auth_headers, monkeypatch):
         lambda url: ("storage.example", "1.1.1.1"),
     )
     body = {
+        "workspace_id": client.post(
+            "/v1/groups", headers=auth_headers, json={"name": "Bucket group"}
+        ).json()["id"],
         "name": "My bucket",
         "provider": "s3",
         "endpoint": "https://storage.example",
@@ -34,7 +37,11 @@ def source(client, auth_headers, monkeypatch):
         "access_key": "private-access",
         "secret_key": "private-secret",
     }
-    response = client.post(BASE, headers=auth_headers, json=body)
+    with monkeypatch.context() as validation:
+        validation.setattr(
+            BucketClient, "objects", lambda *a, **kw: {"items": [], "next_cursor": None}
+        )
+        response = client.post(BASE, headers=auth_headers, json=body)
     assert response.status_code == 201, response.text
     result = response.json()
     assert "secret" not in response.text and "private-access" not in response.text
@@ -242,7 +249,7 @@ def test_candidate_reuse_is_scoped_to_destination(client, auth_headers, source, 
     assert len(set(ids)) == 2
 
 
-def test_reimport_restores_original_after_publication_was_replaced(
+def test_changed_remote_object_retires_previous_copy_and_reimports(
     client, auth_headers, source, monkeypatch
 ):
     from app.models import MediaAsset
@@ -282,18 +289,14 @@ def test_reimport_restores_original_after_publication_was_replaced(
     for request_key, raw in (("changed", changed), ("restored", original)):
         current[0] = raw
         item = start(request_key)
-        assert item["status"] == "duplicate"
-        assert item["upload_id"] != first["upload_id"]
-        assert (
-            client.post(
-                "/v1/me/publication-uploads/" + item["upload_id"] + "/confirm",
-                headers=auth_headers,
-            ).status_code
-            == 200
-        )
+        assert item["status"] == "published"
+        assert item["publication_id"] != first["publication_id"]
         with client.app.state.database.session_factory() as db:
-            post = db.get(Publication, uuid.UUID(first["publication_id"]))
+            old = db.get(Publication, uuid.UUID(first["publication_id"]))
+            assert old.hidden
+            post = db.get(Publication, uuid.UUID(item["publication_id"]))
             assert db.get(MediaAsset, post.media_id).original_bytes == raw
+        first = item
     again = start("unchanged")
     assert again["status"] == "published"
     assert again["publication_id"] == first["publication_id"]
@@ -456,7 +459,7 @@ def test_remote_content_ranges_are_private_and_bounded(
     )
 
 
-def test_disconnect_retains_copies_and_cancels_sync(
+def test_disconnect_retires_copies_and_cancels_sync(
     client, auth_headers, source, remote
 ):
     path = BASE + "/" + source["id"]
@@ -854,51 +857,6 @@ def test_scheduler_recovers_expired_jobs_but_respects_pause_and_live_lease(
     assert set(dispatched) == set(jobs[:2])
 
 
-def test_demo_connections_require_accounts_and_are_idempotent(
-    client, source, monkeypatch
-):
-    import importlib.util
-    from pathlib import Path
-
-    from app.accounts.models import PasswordAccount
-
-    spec = importlib.util.spec_from_file_location(
-        "connect_demo",
-        Path(__file__).resolve().parents[1] / "scripts/connect_demo_buckets.py",
-    )
-    module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
-    credentials = {
-        "endpoint": "https://demo.r2.cloudflarestorage.com",
-        "bucket": "private-demo",
-        "access_key": "read-key",
-        "secret_key": "read-secret",
-    }
-    monkeypatch.setattr(
-        BucketClient, "objects", lambda *args: {"items": [{"key": "fixture.png"}]}
-    )
-    with client.app.state.database.session_factory() as db:
-        with pytest.raises(ValueError, match="Prepare the existing demo account"):
-            module.prepare(db, client.app.state.settings, credentials)
-        for usernames in module.PRINCIPALS.values():
-            for username in usernames:
-                user = User(
-                    email=username + "@test.example",
-                    display_name=username,
-                    password_hash="unused-test-hash",
-                )
-                db.add(user)
-                db.flush()
-                db.add(PasswordAccount(user_id=user.id, username=username))
-        db.commit()
-        assert len(module.prepare(db, client.app.state.settings)) == 13
-        before = len(list(db.scalars(select(StorageConnection))))
-        module.prepare(db, client.app.state.settings, credentials)
-        db.commit()
-        module.prepare(db, client.app.state.settings, credentials)
-        db.commit()
-        assert len(list(db.scalars(select(StorageConnection)))) == before + 13
-
 
 def test_invalid_credentials_are_never_echoed_in_validation_response(
     client, auth_headers
@@ -960,7 +918,7 @@ def test_connection_operations_remain_available_during_analysis(
     assert responses == [200 if disconnect else 202]
     assert result.status_code == 202
     assert result.json()["items"][0]["status"] == (
-        "failed" if disconnect else "published"
+        "cancelled" if disconnect else "published"
     )
     with client.app.state.database.session_factory() as db:
         assert db.scalar(select(func.count()).select_from(Publication)) == (
@@ -970,4 +928,4 @@ def test_connection_operations_remain_available_during_analysis(
             0 if disconnect else 1
         )
         upload = db.scalar(select(PublicationUpload))
-        assert upload.status == ("failed" if disconnect else "published")
+        assert upload.status == ("cancelled" if disconnect else "published")

@@ -29,7 +29,10 @@ data class MetaDisplayState(
 
 internal object MetaDisplayPolicy {
     /** Glasses captures go to the account's Profile, regardless of a saved Work choice. */
-    fun profileDestination(choices: List<MetaDestination>): MetaDestination? = choices.find { it.id == "home" && it.audience == "home" }
+    fun publicationDestination(choices: List<MetaDestination>, activeId: String?): MetaDestination? {
+        val groups = choices.filter { it.audience == "work" && it.id != "home" }
+        return groups.find { it.id == activeId } ?: groups.singleOrNull()
+    }
 
     fun canChangeDestination(capturing: Boolean, pending: Boolean, busy: Boolean): Boolean = !capturing && !pending && !busy
 
@@ -44,8 +47,8 @@ internal object MetaDisplayPolicy {
         MetaPhotoSearchKind.PERSON -> R.string.meta_search_photo_person
     }
 
-    /** Face matches render their enrollment thumbnail, never the profile picture. */
-    fun faceDisplayKind(): String = "face_enrollment"
+    /** Account matches expose only the public avatar; references stay private. */
+    fun faceDisplayKind(): String = "avatar"
 
     /** Group probe palette: one color per distinct face, cycling past eight. */
     fun faceGroupPalette(): List<String> = listOf(

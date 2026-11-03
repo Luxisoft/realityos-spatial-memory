@@ -1,5 +1,6 @@
 package com.luxisoft.realityos.host
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
@@ -9,6 +10,7 @@ import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -46,6 +48,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
@@ -53,6 +56,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.zIndex
 import com.luxisoft.realityos.*
 import com.luxisoft.realityos.R
 import kotlinx.coroutines.launch
@@ -123,9 +127,10 @@ internal fun PreviewControlsOverlay(
     onDismiss: () -> Unit,
     content: @Composable ColumnScope.() -> Unit
 ) {
-    Box(Modifier.fillMaxSize()) {
+    BackHandler(enabled = visible, onBack = onDismiss)
+    Box(Modifier.fillMaxSize().zIndex(3f)) {
         AnimatedVisibility(visible = visible, enter = fadeIn(tween(140)), exit = fadeOut(tween(100))) {
-            Box(Modifier.fillMaxSize().background(Color.Black.copy(alpha = .52f)).clickable(onClick = onDismiss))
+            Box(Modifier.fillMaxSize().background(Color.Black.copy(alpha = .52f)).testTag("meta-controls-scrim").clickable(onClick = onDismiss))
         }
         AnimatedVisibility(
             visible = visible,
@@ -135,6 +140,17 @@ internal fun PreviewControlsOverlay(
         ) {
             Surface(
                 modifier = Modifier
+                    .pointerInput(visible) {
+                        var distance = 0f
+                        detectHorizontalDragGestures(
+                            onDragStart = { distance = 0f },
+                            onHorizontalDrag = { change, amount ->
+                                distance += amount
+                                change.consume()
+                            },
+                            onDragEnd = { if (distance > 64.dp.toPx()) onDismiss() }
+                        )
+                    }
                     .fillMaxHeight()
                     .fillMaxWidth(.9f)
                     .widthIn(max = 344.dp)

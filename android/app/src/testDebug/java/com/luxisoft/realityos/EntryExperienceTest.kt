@@ -46,7 +46,7 @@ class EntryExperienceTest {
         var explore = 0
         compose.setContent {
             RealityOsTheme {
-                FacebookAccessScreen(busy.value, error.value, consent.value, { consent.value = it }, { facebook++ }, { email++ }, { explore++ })
+                NoticeLayer { FacebookAccessScreen(busy.value, error.value, consent.value, { consent.value = it }, { facebook++ }, { email++ }, { explore++ }) }
             }
         }
         compose.onNodeWithTag("access-meta").assertIsNotEnabled()
@@ -73,7 +73,7 @@ class EntryExperienceTest {
             busy.value = false
             error.value = "Connection interrupted. Try again."
         }
-        compose.onNodeWithTag("access-error").performScrollTo().assertIsDisplayed()
+        compose.onNodeWithTag("app-notice").assertIsDisplayed()
         capture("access-error-en-390")
         compose.onNodeWithTag("access-meta").assertIsEnabled()
     }

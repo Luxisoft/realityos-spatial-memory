@@ -1,7 +1,7 @@
 import uuid
 from datetime import datetime
 
-from sqlalchemy import JSON, DateTime, ForeignKey, String, Text, UniqueConstraint
+from sqlalchemy import JSON, DateTime, ForeignKey, Integer, String, Text, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.db import Base
@@ -20,6 +20,8 @@ class StorageConnection(TimestampMixin, Base):
     prefix: Mapped[str] = mapped_column(String(1024), default="")
     secret: Mapped[str] = mapped_column(Text)
     active: Mapped[bool] = mapped_column(default=True)
+    revision: Mapped[int] = mapped_column(Integer, default=1, server_default="1")
+    workspace_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("workspaces.id"))
 
 
 class StorageImport(TimestampMixin, Base):
@@ -31,6 +33,7 @@ class StorageImport(TimestampMixin, Base):
     )
     request_key: Mapped[str] = mapped_column(String(128))
     payload_hash: Mapped[str] = mapped_column(String(64))
+    revision: Mapped[int] = mapped_column(Integer, default=1, server_default="1")
     audience: Mapped[str] = mapped_column(String(16))
     workspace_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("workspaces.id"))
     items: Mapped[list] = mapped_column(JSON)
@@ -52,3 +55,4 @@ class StorageSync(TimestampMixin, Base):
     next_run: Mapped[datetime] = mapped_column(DateTime(timezone=True))
     cursor: Mapped[str | None] = mapped_column(Text)
     error: Mapped[str | None] = mapped_column(String(200))
+    seen_keys: Mapped[list] = mapped_column(JSON, default=list)

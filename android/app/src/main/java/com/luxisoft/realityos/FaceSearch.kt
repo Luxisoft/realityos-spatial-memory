@@ -60,11 +60,9 @@ internal fun FaceSearch(onBack: () -> Unit, onOpenProfile: (String) -> Unit = {}
     var busy by remember { mutableStateOf(false) }
     var message by remember { mutableStateOf("") }
     var enrollments by remember { mutableStateOf(0) }
-    var tab by remember { mutableStateOf("search") }
     var fbPicture by remember { mutableStateOf<String?>(null) }
     var fbImportedPhotos by remember { mutableStateOf(0) }
     var fbImportedVideos by remember { mutableStateOf(0) }
-    var fbMedia by remember { mutableStateOf(listOf<JSONObject>()) }
     var captureUri by remember { mutableStateOf<Uri?>(null) }
 
     suspend fun refreshEnrollments() {
@@ -127,9 +125,6 @@ internal fun FaceSearch(onBack: () -> Unit, onOpenProfile: (String) -> Unit = {}
             fbPicture = profile.optString("picture_url").takeIf { it.isNotBlank() }
             fbImportedPhotos = profile.optInt("imported_photos")
             fbImportedVideos = profile.optInt("imported_videos")
-            val media = profile.optJSONArray("media") ?: JSONArray()
-            fbMedia = (0 until media.length()).map { media.getJSONObject(it) }
-                .filter { it.optString("kind") == "photo" && !it.isNull("media_id") }
         } catch (error: Exception) { message = error.message.orEmpty() }
     }
 
@@ -187,23 +182,9 @@ internal fun FaceSearch(onBack: () -> Unit, onOpenProfile: (String) -> Unit = {}
                     style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
-        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
-            TextButton(onClick = { tab = "search" }) { Text((if (tab == "search") "✓ " else "") + stringResource(R.string.face_search)) }
-            TextButton(onClick = { tab = "photos" }) { Text((if (tab == "photos") "✓ " else "") + stringResource(R.string.face_my_photos)) }
-        }
-        if (tab == "photos") {
-            if (fbMedia.isEmpty() && !busy) Text(stringResource(R.string.face_no_photos), modifier = Modifier.padding(16.dp))
-            LazyVerticalGrid(columns = GridCells.Fixed(3), modifier = Modifier.weight(1f)) {
-                items(fbMedia) { item ->
-                    coil.compose.AsyncImage(
-                        model = coil.request.ImageRequest.Builder(context)
-                            .data("${BuildConfig.DEFAULT_REALITYOS_API_BASE_URL}/media/${item.getString("media_id")}")
-                            .addHeader("Authorization", "Bearer ${SocialSession.token}").build(),
-                        contentDescription = item.optString("caption"), contentScale = ContentScale.Crop,
-                        modifier = Modifier.padding(1.dp).aspectRatio(1f))
-                }
-            }
-        } else {
+        Text(stringResource(R.string.biometric_private_references), Modifier.padding(16.dp), style = MaterialTheme.typography.bodySmall)
+        run {
+
         Column(Modifier.padding(horizontal = 16.dp)) {
             Text(stringResource(R.string.face_workspace), style = MaterialTheme.typography.labelMedium)
             Row {
@@ -231,7 +212,7 @@ internal fun FaceSearch(onBack: () -> Unit, onOpenProfile: (String) -> Unit = {}
                     Button(onClick = { search() }, enabled = !busy && probeUri != null) { Text(stringResource(R.string.face_search)) }
                 }
             }
-            if (message.isNotEmpty()) { Spacer(Modifier.height(8.dp)); Text(message, color = MaterialTheme.colorScheme.error) }
+            NoticeEffect(message, { message = "" })
             if (simulated) Text(stringResource(R.string.face_simulated), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.tertiary)
             if (searched && stage != null) Text(stringResource(R.string.face_stage, stage!!), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.tertiary)
             if (searched && probeFrames > 1) Text(stringResource(R.string.face_frames, probeFrames), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.tertiary)
@@ -239,13 +220,12 @@ internal fun FaceSearch(onBack: () -> Unit, onOpenProfile: (String) -> Unit = {}
         }
         LazyColumn(Modifier.weight(1f)) {
             items(matches) { match ->
-                val evidence = match.getJSONObject("evidence")
                 ListItem(
                     modifier = Modifier.clickable { match.optString("user_id").takeIf { it.isNotBlank() }?.let(onOpenProfile) },
                     leadingContent = {
                         coil.compose.AsyncImage(
                             model = coil.request.ImageRequest.Builder(context)
-                                .data(faceEvidenceUrl(evidence.getString("thumbnail_url")))
+                                .data(faceEvidenceUrl(match.optString("picture_url")))
                                 .addHeader("Authorization", "Bearer ${SocialSession.token}").build(),
                             contentDescription = match.optString("display_name"),
                             contentScale = ContentScale.Crop, modifier = Modifier.size(56.dp))

@@ -46,13 +46,13 @@ internal fun GalleryThumb.toJson(): JSONObject = JSONObject()
 internal fun decodeFaceThumb(match: JSONObject?): GalleryThumb? {
     match ?: return null
     val evidence = match.optJSONObject("evidence") ?: return null
-    val thumb = evidence.optText("thumbnail_url") ?: return null
+    val thumb = match.optText("picture_url") ?: return null
     val badge = if (match.optText("match_type") == "possible_acquaintance") "possible_acquaintance" else "direct"
     return GalleryThumb(
         thumbnailUrl = thumb,
         mediaUrl = thumb,
         caption = match.optText("display_name").orEmpty(),
-        mediaId = evidence.optText("media_id").orEmpty(),
+        mediaId = "",
         profileUserId = normalizedProfileId(match.optText("user_id")).orEmpty(),
         matchedLabels = listOf(badge),
         confidence = if (match.isNull("similarity")) null else match.optDouble("similarity")
@@ -82,7 +82,7 @@ internal fun decodeRecordFaceThumb(match: JSONObject?): GalleryThumb? {
  * legitimately carry no gallery evidence id (their thumbnails live under the
  * faces arm). Unanchored gallery items are still dropped.
  */
-internal fun keepHistoryThumb(thumb: GalleryThumb): Boolean = thumb.evidenceId.isNotBlank() || thumb.thumbnailUrl.contains("/v1/faces/")
+internal fun keepHistoryThumb(thumb: GalleryThumb): Boolean = thumb.evidenceId.isNotBlank() || (thumb.thumbnailUrl.contains("/v1/profiles/") && thumb.thumbnailUrl.endsWith("/avatar")) || thumb.thumbnailUrl.contains("/v1/faces/record-enrollments/")
 
 /** Inline chat label for one face match: name plus similarity percent. */
 internal fun faceMatchLabel(caption: String, confidence: Double?): String = "$caption (${((confidence ?: 0.0) * 100).toInt()}%)"

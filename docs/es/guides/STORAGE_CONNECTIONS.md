@@ -1,59 +1,39 @@
-# Conectar tu bucket y utilizar sus recursos
+# Conectar un bucket y usar sus recursos
 
 [English](../../en/guides/STORAGE_CONNECTIONS.md) · [Proyecto](../README.md) · [API](../api/API.md)
 
-RealityOS conserva sus cuentas, permisos y procesamiento. Tu bucket es una fuente privada: eliges qué importar. **Importar guarda una copia en RealityOS**; desconectar el bucket conserva las publicaciones e historial ya importados. Usar un archivo para buscar no lo publica ni lo registra como evidencia nueva.
+El bucket es una fuente privada de la cuenta. Importar copia el recurso a PostgreSQL BYTEA y lo publica en un grupo al que perteneces. No existe un destino de publicación privado. Consultar no publica la imagen de búsqueda ni enrola caras automáticamente.
 
-## Desde Android
+## Android
 
-1. Abre **Perfil → Mis conexiones → Añadir bucket**.
-2. Selecciona R2 o S3. Escribe nombre, endpoint HTTPS, bucket, región y carpeta inicial opcional. Para R2 usa el endpoint S3 de tu cuenta y región `auto`.
-3. Introduce Access Key ID y Secret Access Key con permisos de **lectura y listado**. Guarda y pulsa **Comprobar acceso**. El bucket no necesita ser público. Las claves se cifran en el servidor y no se vuelven a mostrar.
-4. Explora carpetas; abre una vista previa o selecciona archivos. Elige **Mi perfil privado** o un grupo al que pertenezcas.
-5. Pulsa **Importar selección** y confirma. Revisa cada archivo en **Importaciones recientes**. Los duplicados requieren la decisión existente de reemplazar o cancelar; los fallidos se pueden reintentar.
+Abre el menú derecho → **Conexiones**, encima de About. Añade R2 o S3, endpoint HTTPS, bucket, región, carpeta y credenciales; selecciona un grupo autorizado. R2 usa región `auto`. Se recomiendan credenciales de lectura/listado; los secretos cifrados nunca se devuelven a la app.
 
-Fotos: JPEG, PNG y WebP. Video: MP4, hasta 120 segundos en publicaciones. La descarga remota está limitada a 64 MiB y respeta además los límites existentes de imagen/video del servidor (imagen: 10 MiB por defecto). PDF/DOCX: **Usar como CV**, hasta 10 MiB, con confirmación de reemplazo. Otros formatos se muestran como incompatibles.
+El panel de conexiones sigue el diseño del buscador-chat. Cada fila tiene una miniatura a la derecha; tócala para abrir el visor de imagen/video. Selecciona recursos e impórtalos al grupo. Las importaciones recientes muestran progreso, revisión de duplicados y reintentos.
 
-Para consultar, selecciona un archivo y usa **Buscar objeto** (imagen) o **Buscar persona** (imagen/video). La búsqueda se realiza en el espacio elegido. Biometría conserva consentimiento, calidad y enrolamientos previos; importar retratos nunca enrola todas sus caras automáticamente. Los resultados enlazan con evidencia, perfiles o expedientes autorizados.
+Editar permite cambiar proveedor, endpoint, bucket, región, carpeta y grupo. El servidor valida la fuente nueva antes de guardarla; si falla, conserva la conexión anterior. Rotar únicamente credenciales conserva las copias.
 
-La búsqueda de objetos por imagen puede superar un minuto; Android espera hasta tres minutos por el resultado.
+**Cambiar la fuente o desconectarla retira sus copias importadas comprobadas y las compartidas desde ellas.** Las revisiones impiden que un worker antiguo vuelva a publicarlas. Se conservan expedientes independientes, avatares y referencias biométricas. Esta operación nunca elimina objetos del bucket remoto.
 
-## Actualización y privacidad
+## Sincronización y límites
 
-Configura sincronización manual o actívala cada 15 minutos, cada hora o diariamente. Se recorre la carpeta seleccionada y sus subcarpetas, por páginas. **Actualizar ahora** procesa la siguiente página; la sincronización automática continúa cada minuto mientras queden páginas.
+Guardar una conexión con grupo activa la sincronización inmediatamente y cada **15 minutos**. Se mantienen Actualizar ahora, pausa y otros intervalos. El listado se recorre por páginas. Solo un recorrido completo y correcto retira copias cuyas claves desaparecieron; un error o recorrido incompleto no implica eliminación. La misma fuente/contenido/destino es idempotente.
 
-Los recursos nuevos se importan y las sustituciones siguen la revisión de duplicados. Archivos idénticos en el mismo origen/destino no generan otra publicación mientras el original siga publicado. Si lo borraste o sustituiste, puedes volver a importar el original del bucket. Un borrado remoto o error de listado no elimina copias existentes. **Pausar** desactiva el horario; **Desconectar** impide nuevas descargas y conserva lo ya importado.
+JPEG, PNG, WebP y MP4 usan el análisis y revisión de duplicados existentes. Video: hasta 120 segundos. Descarga: hasta 64 MiB y los límites configurados del servidor. PDF/DOCX puede reemplazar el CV privado, hasta 10 MiB. La consulta de objetos por imagen espera hasta tres minutos. La búsqueda facial conserva consentimiento y autorización del grupo.
 
-Una conexión pertenece solo a su creador. Compartir una publicación con un grupo no entrega las claves ni acceso al resto del bucket. Los permisos del grupo se comprueban antes de descargar y publicar. Para cambiar bucket, endpoint o carpeta raíz, crea otra conexión; **Editar claves** permite rotarlas sin mostrar las anteriores.
+## Servidor y API
 
-## API y operación
+`/v1/me/storage-connections` incluye CRUD, test, objects, content, imports/retry, syncs/run y CV. Consulta el [contrato generado](../api/API_REFERENCE.md). Postman conserva **Server requests** y **Localhost requests**, con variables independientes.
 
-Familia `/v1/me/storage-connections`: CRUD privado, `/test`, `/objects`, `/content`, `/imports`, `/imports/{id}/retry`, `/syncs`, `/syncs/{id}/run` y `/cv`. Ver contrato generado en [API_REFERENCE](../api/API_REFERENCE.md). La colección Postman conserva **Server requests** y **Localhost requests**; sus nuevas operaciones requieren configurar una conexión propia y habilitar explícitamente las escrituras.
+Mantén estable `STORAGE_ENCRYPTION_KEY` en el runtime privado y compartida por API y worker. El scheduler emite trabajos y el worker los procesa. Se vuelve a comprobar pertenencia y revisión de conexión antes de descargar y publicar. Se mantienen validación HTTPS/dirección pública, IP fijada, TLS y rechazo de redirecciones.
 
-Configura `STORAGE_ENCRYPTION_KEY` con un secreto aleatorio persistente del servidor en `.env.storage` (modo 0600, ignorado por Git). API y worker deben usar la misma clave. En Windows local, el iniciador genera esta clave en `.env.local`; `.env.storage` corresponde al servidor. No la reemplaces sin recifrar las conexiones existentes. El planificador `scheduler` emite tareas; el worker ejecuta descargas y análisis. Los trabajos pendientes y leases vencidos se recuperan sin incluir archivos ni secretos en Redis.
+## Escenas de evaluación con licencia
 
-La implementación usa firma S3 SigV4, HTTPS, validación de direcciones públicas y conexión a IP validada conservando TLS/SNI. No acepta redirecciones ni endpoints internos. Las importaciones se serializan por conexión; el worker productivo conserva concurrencia máxima uno.
+`simulator/real-scenes/catalog.json` y `manifest.json` describen **48 recursos con licencia**: 12 fotos y cuatro grabaciones con movimiento para seguridad, enfermería y memoria, respectivamente. Los videos duran 10–15 segundos, a 24 fps y al menos 720p; se comprueba cambio entre fotogramas. Las cuentas y roles son ficticios. El manifiesto contiene fuentes, licencias, hashes y métricas. Los archivos descargados están excluidos de Git.
 
-## Recursos demo y aceptación
+`scripts/prepare_real_scenes.py` prepara y valida los recursos. `scripts/prepare_bucket_demo.py --upload --credentials-file /private/r2.json` sube y vuelve a descargar cada objeto para comprobar SHA-256. Incluye 48 escenas y seis pruebas QA separadas. El archivo privado contiene endpoint, bucket, region, access_key y secret_key; no se publica.
 
-**Preparado en producción el 3 de noviembre de 2026:** 426 recursos sintéticos cargados en el bucket privado `realityos-demo`, todos comprobados mediante lectura remota y SHA-256. Las nueve cuentas de escenario y las cuatro QA ya tienen su conexión en **Perfil → Mis conexiones**. Abre `Demo police`, `Demo nursing`, `Demo memory` o `Demo qa` según tu cuenta; no necesitas configurar claves ni descargar archivos al teléfono.
+Las carpetas `demo/v2/{scenario}/{username}/` distribuyen recursos distintos por autor. QA conserva `demo/v1/qa/`. `scripts/connect_demo_buckets.py --apply --read-credentials-file /private/r2.json` configura las nueve cuentas de escenarios y cuatro QA existentes, sin crear cuentas o membresías. Valida cada fuente antes de retirar copias anteriores. Se desactiva la antigua conexión de exploración del directorio social, conservando sus objetos remotos.
 
-La cuenta `qa-hackathon-admin` tiene además **Directorio social y taller (QA)**, con 327 recursos navegables. Total: 14 conexiones privadas para 13 cuentas. Se comprobaron originales y vistas previas, video por rangos HTTP, PDF y rechazo de acceso entre cuentas. [Comprobante público sin secretos](../../assets/storage/demo-verification.json). Esta preparación no marca como ejecutados los casos manuales de Android.
+`scripts/refresh_demo_gallery.py --apply --journal /private/demo-visibility.json` sustituye solo publicaciones antiguas identificadas como demo, conservando expedientes y retratos biométricos. El diario permite `--rollback`. La indexación usa el proveedor real configurado; el manifiesto no inventa detecciones.
 
-Se reutilizaron las credenciales existentes de Luxisoft por instrucción del propietario; se mantienen cifradas en cada conexión y no se devuelven al cliente. Conservan sus permisos originales, incluida escritura: no se presentan como un token R2 de solo lectura. El conector de la app solo ejecuta lectura/listado y limita cada conexión a su carpeta. Para conexiones nuevas, se recomienda una clave de lectura/listado limitada al bucket.
-
-### Repetir la preparación
-
-`scripts/prepare_bucket_demo.py` genera por defecto un inventario offline en `.runtime/bucket-demo-manifest.json`. Con `--upload --credentials-file /ruta/privada/r2.json` carga y verifica los recursos sintéticos mediante lectura posterior y SHA-256; `--create-bucket` crea el bucket configurado cuando se necesita.
-
-El archivo privado requiere `endpoint`, `bucket`, `region`, `access_key` y `secret_key`. Para esta carga inicial necesita escritura; para nuevas conexiones de evaluación se recomiendan credenciales de lectura/listado limitadas al bucket. Los prefijos son `demo/v1/police/`, `nursing/`, `memory/` y `qa/`; el directorio social y el taller están en `demo/v1/social-directory/`. No se modifican los escenarios existentes ni se copian recursos personales/Facebook. Los JSON de escenario son referencias de preparación, no expedientes importados automáticamente por el explorador multimedia.
-
-Prueba en QA: conectar → comprobar acceso → previsualizar → importar imagen/video → esperar análisis → buscar → repetir importación → cambiar un objeto → actualizar → desconectar. Repite desde otra cuenta para comprobar que no accede a la conexión. La carga R2 y la prueba física solo se consideran aprobadas con evidencia de ejecución; consulta [estado](../project/IMPLEMENTATION_STATUS.md).
-
-Después de verificar la carga, el responsable ejecuta `scripts/connect_demo_buckets.py --apply --read-credentials-file /ruta/privada/r2-readonly.json` en el entorno del backend con `DATABASE_URL` y `STORAGE_ENCRYPTION_KEY`. Prepara conexiones privadas para las nueve cuentas de escenario y las cuatro QA existentes. Sin `--apply` solo comprueba las cuentas. Es idempotente; no crea usuarios, publicaciones, grupos ni enrolamientos. Las credenciales de lectura pueden usar el mismo formato JSON que las de carga, pero deben tener permisos de lectura/listado. El evaluador recibe las conexiones listas en **Mis conexiones**. Para reproducir también la conexión adicional, entra como QA admin y añade otra conexión al mismo bucket con carpeta `demo/v1/social-directory/` y nombre **Directorio social y taller (QA)**.
-
-La preparación inventaría **426 recursos sintéticos**; la cifra depende de los medios generados presentes en el host. El manifiesto identifica cada archivo y su SHA-256. No se borran originales de la base de datos ni se sustituyen escenarios por conexiones vacías.
-
-Referencia del proveedor: [API S3 de Cloudflare R2](https://developers.cloudflare.com/r2/api/s3/api/) y [configuración de boto3](https://developers.cloudflare.com/r2/examples/aws/boto3/).
-
-Una importación nueva permite volver a revisar un archivo cuyo duplicado cancelaste; repetir la solicitud original conserva la cancelación. Al confirmar todos los archivos pendientes, la importación se muestra completada. Las carpetas con espacios, Unicode y caracteres reservados conservan la firma S3 correcta.
+Consulta las comprobaciones R2/API ejecutadas en el [estado de implementación](../project/IMPLEMENTATION_STATUS.md). La aceptación en teléfono y gafas requiere evidencia del dispositivo.

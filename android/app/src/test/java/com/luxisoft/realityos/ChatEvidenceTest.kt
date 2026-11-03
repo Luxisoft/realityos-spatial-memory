@@ -25,8 +25,9 @@ class ChatEvidenceTest {
         assertEquals(true, keepHistoryThumb(GalleryThumb("t", "m", evidenceId = "e1")))
     }
 
-    @Test fun `history keeps face matches without evidence id`() {
-        assertEquals(true, keepHistoryThumb(GalleryThumb("/v1/faces/enrollments/1/thumbnail", "/v1/faces/enrollments/1/thumbnail")))
+    @Test fun `history drops private face references and keeps only avatars`() {
+        assertEquals(false, keepHistoryThumb(GalleryThumb("/v1/faces/enrollments/1/thumbnail", "/v1/faces/enrollments/1/thumbnail")))
+        assertEquals(true, keepHistoryThumb(GalleryThumb("/v1/profiles/1/avatar", "/v1/profiles/1/avatar")))
     }
 
     @Test fun `history drops unanchored gallery items`() {
@@ -75,7 +76,7 @@ class ChatEvidenceTest {
         assertEquals("family", thumb.matchKind)
     }
 
-    @Test fun `display thumbnails default to user enrollment kind`() {
-        assertEquals("face_enrollment", GalleryThumb("t", "m").faceDisplayKind)
+    @Test fun `display thumbnails default to public avatar kind`() {
+        assertEquals("avatar", GalleryThumb("t", "m").faceDisplayKind)
     }
 }

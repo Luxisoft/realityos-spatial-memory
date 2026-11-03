@@ -160,7 +160,7 @@ internal fun ProfileHeader(
                                 email,
                                 Modifier.clickable {
                                     clipboard.setText(AnnotatedString(email))
-                                    Toast.makeText(context, localizedText(R.string.ui_email_copied), Toast.LENGTH_SHORT).show()
+                                    AppNotices.show(localizedText(R.string.ui_email_copied), NoticeKind.SUCCESS)
                                 }.padding(bottom = 8.dp),
                                 style = MaterialTheme.typography.bodySmall,
                                 maxLines = 1,
@@ -182,12 +182,7 @@ internal fun ProfileHeader(
                     }
                 }
             }
-            if (state.error.isNotBlank()) {
-                Row(Modifier.padding(horizontal = 12.dp), verticalAlignment = Alignment.CenterVertically) {
-                    Text(state.error, Modifier.weight(1f), color = MaterialTheme.colorScheme.error, maxLines = 2)
-                    TextButton(onClick = { scope.launch { state.load() } }) { Text(localizedText(R.string.ui_retry)) }
-                }
-            }
+            NoticeEffect(state.error, {})
             AnimatedVisibility(expanded && current != null) {
                 Column(
                     Modifier.fillMaxWidth().heightIn(max = (LocalConfiguration.current.screenHeightDp * .4f).dp)
@@ -196,7 +191,10 @@ internal fun ProfileHeader(
                 ) {
                     if (current != null) {
                         ProfileInformation(current, current.optString("headline"), current.optString("phone"), current.optString("website"), profileLinks(current), { openLink(it) })
-                        current.optText("biography")?.let { Text(it, style = MaterialTheme.typography.bodyMedium) }
+                        Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                            Icon(Icons.Default.Description, null)
+                            Text(current.optText("biography") ?: "-", style = MaterialTheme.typography.bodyMedium)
+                        }
                         val friends = current.optJSONArray("friends") ?: JSONArray()
                         for (index in 0 until minOf(friends.length(), 6)) {
                             val friend = friends.getJSONObject(index)
@@ -258,7 +256,7 @@ private fun ProfileEditor(state: ProfileState, onClose: () -> Unit) {
     Dialog(onDismissRequest = { if (!busy) onClose() }, properties = DialogProperties(usePlatformDefaultWidth = false)) {
         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.CenterEnd) {
             Column(Modifier.widthIn(max = 360.dp)) {
-                if (error.isNotBlank()) Surface { Text(error, Modifier.padding(12.dp), color = MaterialTheme.colorScheme.error) }
+                NoticeEffect(error, { error = "" })
                 ProfileEditDrawer(
                     headline, { headline = it }, biography, { biography = it }, phone, { phone = it },
                     website, { website = it }, links, { links = it }, current.optJSONObject("cv") ?: JSONObject(), busy,

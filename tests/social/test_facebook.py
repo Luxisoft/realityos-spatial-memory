@@ -155,7 +155,7 @@ def test_facebook_login_syncs_profile_and_imports_photos(client, monkeypatch):
         ]
         assert len(imported) == 2
         assert (
-            db.query(Publication).filter(Publication.source == "facebook").count() == 3
+            db.query(Publication).filter(Publication.source == "facebook").count() == 0
         )
         assert (
             db.query(FaceEnrollment)
@@ -167,9 +167,9 @@ def test_facebook_login_syncs_profile_and_imports_photos(client, monkeypatch):
     own = client.get("/v1/me/facebook-profile", headers=headers)
     assert own.status_code == 200
     assert own.json()["email"] == "sync@example.test"
-    assert len(own.json()["media"]) == 3
-    assert all(item["imported"] for item in own.json()["media"])
-    assert all(item["media_id"] for item in own.json()["media"])
+    assert own.json()["media"] == []
+    assert own.json()["references_private"] is True
+    assert "source_url" not in own.text
     page = client.get(f"/v1/profiles/{user_id}/media?limit=2", headers=headers)
     assert page.status_code == 200
     assert page.json()["items"] == []

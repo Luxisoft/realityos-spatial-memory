@@ -10,11 +10,11 @@ Mapa de trabajo vigente. Lee primero las [convenciones](../../../AGENTS.md), con
 | --- | --- |
 | `backend/app/` | API y contratos compartidos con el worker: HTTP, proveedores, procesamiento, cuentas, social, expedientes y almacenamiento. |
 | `backend/app/faces.py` | Biometría aislada y protegida por AGENTS.md. |
-| `backend/alembic/versions/` | Esquema Alembic; revisión vigente documentada `20261103_0035`. |
+| `backend/alembic/versions/` | Esquema Alembic; revisión vigente documentada `20261103_0036`. |
 | `android/` | Única app: Kotlin/Compose, CameraX, DAT y Display nativo; Mock Device Kit solo Debug. |
 | `meta-gateway/` | Egreso restringido a rutas Meta permitidas. |
 | `infrastructure/` | Compose para postgres, redis, api, worker, scheduler y proxy; TLS y gateway. |
-| `simulator/` | Recursos sintéticos para escenarios y QA. |
+| `simulator/` | Escenarios ficticios, recursos sintéticos de identidad y escenas con licencia para QA. |
 | `tests/`, `gateway-tests/` | Regresiones y contrato OpenAPI congelado. |
 | `scripts/` | Preparación de datos, importación, mantenimiento y generadores/verificadores de documentación. |
 | `docs/es/`, `docs/en/` | Guías por idioma y tema, con los mismos nombres de archivo. |
@@ -24,11 +24,13 @@ Mapa de trabajo vigente. Lee primero las [convenciones](../../../AGENTS.md), con
 ## Flujos e invariantes
 
 - Captura/publicación/importación explícita → original BYTEA → procesamiento → evidencia y traducciones persistidas. Consultar no registra nueva evidencia.
-- R2/S3 es una fuente privada por cuenta; importar conserva una copia en RealityOS. Desconectar no elimina publicaciones existentes.
+- R2/S3 es una fuente privada por cuenta. Cambiar o desconectar una fuente retira sus copias importadas y compartidas; los objetos externos se conservan.
 - Todo recurso se vuelve a autorizar al consultarlo o descargarlo. Los grupos no reciben las claves del bucket del creador.
 - Biometría mantiene consentimiento y enrolamiento explícitos, separada del flujo de objetos. No modificar sus módulos como efecto secundario.
 - Meta directo con gateway como respaldo configurable; Muse Voice Transcribe para entrada y ElevenLabs para salida. Claves solo en servidor.
 - Windows local usa `.env.local`, el proyecto Docker `realityos-local` y su propio APK Debug. No reutiliza datos ni claves productivas automáticamente.
+
+Las publicaciones requieren un grupo. El primer ingreso de una cuenta por email solicita consentimiento, avatar y 3–25 fotos de referencia privadas. Las referencias de Meta nunca se publican.
 
 ## Guías de trabajo
 

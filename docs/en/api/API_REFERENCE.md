@@ -712,6 +712,10 @@ Declared responses: `200`, `422`.
 | `POST /v1/faces/search` | Search Faces | bearer | `workspace_id` | — |
 | `GET /v1/faces/enrollments/{enrollment_id}/thumbnail` | Enrollment Thumbnail | bearer | `enrollment_id` | — |
 | `GET /v1/faces/record-enrollments/{enrollment_id}/thumbnail` | Record Enrollment Thumbnail | bearer | `enrollment_id` | — |
+| `POST /v1/faces/reference-photos` | Add Reference | bearer | `file` | ✓ |
+| `DELETE /v1/faces/reference-photos/{enrollment_id}` | Remove Reference | bearer | `enrollment_id` | ✓ |
+| `GET /v1/faces/setup` | Status | bearer | — | — |
+| `POST /v1/faces/setup/complete` | Complete | bearer | — | ✓ |
 
 <details>
 
@@ -899,6 +903,54 @@ Declared responses: `200`, `422`.
 | `full_size` | query | — | `boolean` | `{"default": true}` |
 
 Declared responses: `200`, `422`.
+
+</details>
+
+<details>
+
+<summary>POST /v1/faces/reference-photos</summary>
+
+| Field | Location | Required | Type | Constraints |
+| --- | --- | --- | --- | --- |
+| `file` | body | ✓ | `string` | `{}` |
+
+Declared responses: `201`, `422`.
+
+</details>
+
+<details>
+
+<summary>DELETE /v1/faces/reference-photos/{enrollment_id}</summary>
+
+| Field | Location | Required | Type | Constraints |
+| --- | --- | --- | --- | --- |
+| `enrollment_id` | path | ✓ | `string` | `{}` |
+
+Declared responses: `200`, `422`.
+
+</details>
+
+<details>
+
+<summary>GET /v1/faces/setup</summary>
+
+| Field | Location | Required | Type | Constraints |
+| --- | --- | --- | --- | --- |
+| — | — | — | — | — |
+
+Declared responses: `200`.
+
+</details>
+
+<details>
+
+<summary>POST /v1/faces/setup/complete</summary>
+
+| Field | Location | Required | Type | Constraints |
+| --- | --- | --- | --- | --- |
+| — | — | — | — | — |
+
+Declared responses: `200`.
 
 </details>
 
@@ -1410,7 +1462,7 @@ Declared responses: `200`, `422`.
 | `POST /v1/me/profile/cv` | Upload Cv | bearer | `file` | ✓ |
 | `DELETE /v1/me/profile/cv` | Delete Cv | bearer | — | ✓ |
 | `POST /v1/notes/transcribe` | Transcribe Note | bearer | `audio` | ✓ |
-| `POST /v1/me/profile/publications` | Upload Profile Publication | bearer | `file` | ✓ |
+| `POST /v1/me/profile/publications` | Upload Profile Publication | bearer | `file`, `workspace_id` | ✓ |
 | `POST /v1/me/work-publications` | Upload Work Publication | bearer | `workspace_id`, `file` | ✓ |
 | `POST /v1/me/profile/cv/retry` | Retry Cv | bearer | — | ✓ |
 | `POST /v1/profiles/search` | Search Profiles | bearer | `question` | — |
@@ -1435,6 +1487,7 @@ Declared responses: `200`, `422`.
 | `POST /v1/me/publication-uploads/{upload_id}/confirm` | Publication Upload Confirm | bearer | `upload_id` | ✓ |
 | `POST /v1/me/publication-uploads/{upload_id}/cancel` | Publication Upload Cancel | bearer | `upload_id` | ✓ |
 | `POST /v1/me/publication-uploads/{upload_id}/retry` | Publication Upload Retry | bearer | `upload_id` | ✓ |
+| `POST /v1/groups/{workspace_id}/publications/import` | Import Group Publications | bearer | `workspace_id`, `publication_ids` | ✓ |
 
 <details>
 
@@ -1484,6 +1537,7 @@ Declared responses: `200`.
 | `prefix` | body | — | `string` | `{"maxLength": 1024, "default": ""}` |
 | `access_key` | body | — | `string / null` | `{}` |
 | `secret_key` | body | — | `string / null` | `{}` |
+| `workspace_id` | body | — | `string / null` | `{}` |
 
 ```json
 
@@ -1514,6 +1568,7 @@ Declared responses: `201`, `422`.
 | `prefix` | body | — | `string` | `{"maxLength": 1024, "default": ""}` |
 | `access_key` | body | — | `string / null` | `{}` |
 | `secret_key` | body | — | `string / null` | `{}` |
+| `workspace_id` | body | — | `string / null` | `{}` |
 
 ```json
 
@@ -1597,7 +1652,7 @@ Declared responses: `200`, `422`.
 | `connection_id` | path | ✓ | `string` | `{}` |
 | `request_key` | body | ✓ | `string` | `{"maxLength": 128, "minLength": 1}` |
 | `keys` | body | ✓ | `array` | `{}` |
-| `audience` | body | — | `string` | `{"enum": ["home", "work"], "default": "home"}` |
+| `audience` | body | — | `string` | `{"default": "work"}` |
 | `workspace_id` | body | — | `string / null` | `{}` |
 
 ```json
@@ -1660,9 +1715,9 @@ Declared responses: `200`, `422`.
 | --- | --- | --- | --- | --- |
 | `connection_id` | path | ✓ | `string` | `{}` |
 | `prefix` | body | — | `string` | `{"maxLength": 1024, "default": ""}` |
-| `audience` | body | — | `string` | `{"enum": ["home", "work"], "default": "home"}` |
+| `audience` | body | — | `string` | `{"default": "work"}` |
 | `workspace_id` | body | — | `string / null` | `{}` |
-| `interval_minutes` | body | — | `integer` | `{"enum": [15, 60, 1440], "default": 60}` |
+| `interval_minutes` | body | — | `integer` | `{"enum": [15, 60, 1440], "default": 15}` |
 | `enabled` | body | — | `boolean` | `{"default": false}` |
 
 ```json
@@ -2170,6 +2225,7 @@ Declared responses: `200`, `422`.
 | `caption` | body | — | `string` | `{"maxLength": 4000, "default": ""}` |
 | `note_text` | body | — | `string` | `{"maxLength": 4000, "default": ""}` |
 | `note_source` | body | — | `string` | `{"default": ""}` |
+| `workspace_id` | body | ✓ | `string` | `{}` |
 
 Declared responses: `200`, `422`.
 
@@ -2232,7 +2288,7 @@ Declared responses: `200`, `422`.
 
 | Field | Location | Required | Type | Constraints |
 | --- | --- | --- | --- | --- |
-| `audience` | query | — | `string` | `{"enum": ["home", "work"], "default": "home"}` |
+| `audience` | query | — | `string` | `{"enum": ["home", "work"], "default": "work"}` |
 | `workspace_id` | query | — | `string / null` | `{}` |
 | `limit` | query | — | `integer` | `{"default": 12}` |
 | `cursor` | query | — | `string / null` | `{}` |
@@ -2247,7 +2303,7 @@ Declared responses: `200`, `422`.
 
 | Field | Location | Required | Type | Constraints |
 | --- | --- | --- | --- | --- |
-| `audience` | query | — | `string` | `{"enum": ["home", "public", "work"], "default": "home"}` |
+| `audience` | query | — | `string` | `{"enum": ["home", "public", "work"], "default": "work"}` |
 | `offset` | query | — | `integer` | `{"default": 0}` |
 | `workspace_id` | query | — | `string / null` | `{}` |
 
@@ -2262,7 +2318,7 @@ Declared responses: `200`, `422`.
 | Field | Location | Required | Type | Constraints |
 | --- | --- | --- | --- | --- |
 | `media_id` | body | ✓ | `string` | `{}` |
-| `audience` | body | — | `string` | `{"enum": ["home", "public", "work"], "default": "home"}` |
+| `audience` | body | — | `string` | `{"default": "work"}` |
 | `caption` | body | — | `string` | `{"maxLength": 4000, "default": ""}` |
 | `workspace_id` | body | — | `string / null` | `{}` |
 
@@ -2498,7 +2554,7 @@ Declared responses: `200`, `422`.
 | --- | --- | --- | --- | --- |
 | `file` | body | ✓ | `string` | `{}` |
 | `request_key` | body | ✓ | `string` | `{"maxLength": 64}` |
-| `audience` | body | — | `string` | `{"enum": ["home", "work", "public"], "default": "home"}` |
+| `audience` | body | — | `string` | `{"default": "work"}` |
 | `workspace_id` | body | — | `string / null` | `{}` |
 | `caption` | body | — | `string` | `{"maxLength": 4000, "default": ""}` |
 | `note_text` | body | — | `string` | `{"maxLength": 4000, "default": ""}` |
@@ -2563,6 +2619,29 @@ Declared responses: `200`, `422`.
 | Field | Location | Required | Type | Constraints |
 | --- | --- | --- | --- | --- |
 | `upload_id` | path | ✓ | `string` | `{}` |
+
+Declared responses: `200`, `422`.
+
+</details>
+
+<details>
+
+<summary>POST /v1/groups/{workspace_id}/publications/import</summary>
+
+| Field | Location | Required | Type | Constraints |
+| --- | --- | --- | --- | --- |
+| `workspace_id` | path | ✓ | `string` | `{}` |
+| `publication_ids` | body | ✓ | `array` | `{}` |
+
+```json
+
+{
+  "publication_ids": [
+    "00000000-0000-4000-8000-000000000001"
+  ]
+}
+
+```
 
 Declared responses: `200`, `422`.
 
@@ -2741,7 +2820,7 @@ Declared responses: `200`, `422`.
 
 | Field | Location | Required | Type | Constraints |
 | --- | --- | --- | --- | --- |
-| `kind` | body | ✓ | `string` | `{"enum": ["evidence", "upload", "publication", "face_enrollment", "face_record_enrollment"]}` |
+| `kind` | body | ✓ | `string` | `{"enum": ["evidence", "upload", "publication", "face_enrollment", "face_record_enrollment", "avatar"]}` |
 | `resource_id` | body | ✓ | `string` | `{}` |
 | `labels` | body | — | `array` | `{}` |
 

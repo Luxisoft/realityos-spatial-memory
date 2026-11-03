@@ -45,6 +45,8 @@ def payload(upload):
 
 
 def check_destination(db, user, audience, workspace_id):
+    if audience != "work" or not workspace_id:
+        raise HTTPException(422, "Join or create a work group before publishing.")
     if audience == "work":
         if not workspace_id:
             raise HTTPException(422, "Choose a work group.")
@@ -161,7 +163,7 @@ async def prepare_publication_upload(
     request: Request,
     file: UploadFile = File(...),
     request_key: str = Form(..., max_length=64),
-    audience: Literal["home", "work", "public"] = Form("home"),
+    audience: Literal["work"] = Form("work"),
     workspace_id: uuid.UUID | None = Form(None),
     caption: str = Form("", max_length=4000),
     note_text: str = Form("", max_length=4000),
@@ -254,7 +256,7 @@ async def publication_upload_retry(
 
 
 async def legacy_upload(
-    request, file, caption, note_text, note_source, user, db, audience="home", workspace_id=None
+    request, file, caption, note_text, note_source, user, db, audience="work", workspace_id=None
 ):
     from app.social_features.gallery import _publication_payload
 

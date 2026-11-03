@@ -52,7 +52,13 @@ def test_publications_accept_voice_or_text_notes(client, auth_headers):
         "/v1/me/profile/publications",
         headers=auth_headers,
         files={"file": ("nota.png", output.getvalue(), "image/png")},
-        data={"note_text": "Revisar el cableado", "note_source": "text"},
+        data={
+            "note_text": "Revisar el cableado",
+            "note_source": "text",
+            "workspace_id": client.post(
+                "/v1/groups", headers=auth_headers, json={"name": "Notes group"}
+            ).json()["id"],
+        },
     )
     assert response.status_code == 200, response.text
     assert response.json()["note_text"] == "Revisar el cableado"

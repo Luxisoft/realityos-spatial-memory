@@ -17,11 +17,29 @@ def photo(color="red", size=(128, 96)):
     return out.getvalue()
 
 
+def publication_destination(client, headers):
+    if not headers:
+        return {}
+    spaces = client.get("/v1/workspaces", headers=headers).json()
+    work = next((s for s in spaces if not s["name"].startswith("home:")), None)
+    if work is None:
+        response = client.post(
+            "/v1/groups", headers=headers, json={"name": "Publication tests"}
+        )
+        assert response.status_code == 200, response.text
+        work = response.json()
+    return {"audience": "work", "workspace_id": work["id"]}
+
+
 def upload(client, headers, key=None, raw=None, **fields):
     return client.post(
         "/v1/me/publication-uploads",
         headers=headers,
-        data={"request_key": key or str(uuid.uuid4()), **fields},
+        data={
+            **publication_destination(client, headers),
+            "request_key": key or str(uuid.uuid4()),
+            **fields,
+        },
         files={"file": ("photo.jpg", raw or photo(), "image/jpeg")},
     )
 
@@ -106,7 +124,9 @@ def test_upload_and_evidence_are_owner_scoped(client, auth_headers):
         f"/v1/me/publication-uploads/{first['id']}/preview",
         f"/v1/gallery/evidence/{eid}?labels=yellow%20drill",
     ):
-        assert client.get(path, headers=other).status_code == 404
+        assert client.get(path, headers=other).status_code == (
+            403 if "/gallery/evidence/" in path else 404
+        )
         assert client.get(path).status_code == 401
     assert (
         client.get(
@@ -170,7 +190,7 @@ def test_search_requires_localization_and_deduplicates_content(client, auth_head
     from app.social_features.evidence import gallery_results
 
     upload(client, auth_headers)
-    upload(client, auth_headers, audience="public")  # Different destination is allowed.
+    upload(client, auth_headers)  # Different destination is allowed.
     with client.app.state.database.session_factory() as db:
         user = db.scalar(select(User))
         model = build_meta_client(client.app.state.settings)
@@ -191,7 +211,8 @@ def test_retirement_preserves_references_and_different_destinations(
         copy = Publication(
             owner_id=canonical.owner_id,
             media_id=canonical.media_id,
-            audience="home",
+            audience=canonical.audience,
+            workspace_id=canonical.workspace_id,
             note_text="Otra nota",
         )
         db.add(copy)
@@ -470,11 +491,11 @@ def test_prepare_queues_without_waiting_for_owner_analysis_lock(
 def test_assistant_image_results_use_the_same_strict_evidence_filter(
     client, auth_headers
 ):
-    upload(client, auth_headers, audience="public")
+    upload(client, auth_headers)
     result = client.post(
         "/v1/assistant",
         headers=auth_headers,
-        json={"text": "yellow drill", "audience": "public"},
+        json={"text": "yellow drill", "audience": "work"},
     ).json()
     assert len(result["posts"]) == 1
     assert "/gallery/evidence/" in result["posts"][0]["thumbnail_url"]
@@ -482,7 +503,7 @@ def test_assistant_image_results_use_the_same_strict_evidence_filter(
     result = client.post(
         "/v1/assistant",
         headers=auth_headers,
-        json={"text": "hammer", "audience": "public"},
+        json={"text": "hammer", "audience": "work"},
     ).json()
     assert result["posts"] == []
 
@@ -491,13 +512,14 @@ def test_retirement_rechecks_visibility_after_external_analysis(client, auth_hea
     from app.social_features.maintenance import retire
     from sqlalchemy import update
 
-    original = upload(client, auth_headers, audience="public").json()
+    original = upload(client, auth_headers).json()
     with client.app.state.database.session_factory() as db:
         canonical = db.get(Publication, uuid.UUID(original["result_id"]))
         copy = Publication(
             owner_id=canonical.owner_id,
             media_id=canonical.media_id,
-            audience="public",
+            audience=canonical.audience,
+            workspace_id=canonical.workspace_id,
             note_text="Private after change",
         )
         db.add(copy)

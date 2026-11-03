@@ -1,7 +1,7 @@
-"""Inventory or upload synthetic fixtures to a private R2/S3 evaluation bucket.
+"""Inventory or upload licensed demo media to a private R2/S3 evaluation bucket.
 
 Credentials JSON: endpoint, bucket, region, access_key, secret_key. Never print it.
-Default is an offline inventory; --upload performs writes to demo/v1/ only.
+Default is an offline inventory; --upload writes only the demo/ fixture prefixes.
 """
 
 import argparse
@@ -13,53 +13,39 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 
 
+OWNERS = {
+    "security": ("police", ("alex-rivera", "maya-johnson", "daniel-kim")),
+    "nursing": ("nursing", ("elena-marquez", "mateo-rios", "sarah-chen")),
+    "memory": ("memory", ("noah-brooks", "lucia-vega", "owen-patel")),
+}
+
+
 def inventory():
     result = []
-    for group, file in [
-        ("police", "security"),
-        ("nursing", "hospital"),
-        ("memory", "memory"),
-    ]:
-        # Keep the complete synthetic bundle in each isolated scenario prefix so
-        # references remain resolvable, including shared employee portraits.
-        paths = [ROOT / "simulator/workspaces" / (file + ".json")]
-        paths += sorted((ROOT / "simulator/workspaces/assets").iterdir())
-        for path in paths:
-            if path.is_file() and path.suffix.lower() in {
-                ".json",
-                ".png",
-                ".jpg",
-                ".mp4",
-            }:
-                result.append((path, f"demo/v1/{group}/{path.name}"))
+    manifest = json.loads((ROOT / "simulator/real-scenes/manifest.json").read_text())
+    if manifest.get("errors"):
+        raise ValueError("Verify the real-scene catalog before uploading")
+    for scenario, (folder, owners) in OWNERS.items():
+        rows = [item for item in manifest["items"] if item["group"] == scenario]
+        for index, item in enumerate(rows):
+            path = ROOT / item["path"]
+            if hashlib.sha256(path.read_bytes()).hexdigest() != item["sha256"]:
+                raise ValueError(f"Modified fixture: {path.name}")
+            result.append(
+                (path, f"demo/v2/{folder}/{owners[index % len(owners)]}/{path.name}")
+            )
+    # Existing acceptance probes remain isolated from ordinary publication sources.
     for path in sorted((ROOT / "simulator/acceptance").glob("*.pdf")):
         result.append((path, f"demo/v1/qa/{path.name}"))
-    for name in [
+    for name in (
         "alex-rivera.png",
         "maya-johnson.png",
         "evidence-desk.png",
         "evidence-desk-1.mp4",
-    ]:
+    ):
         result.append(
             (ROOT / "simulator/workspaces/assets" / name, "demo/v1/qa/" + name)
         )
-    directory = ROOT / "simulator/social-directory"
-    for folder in ("source", "muse", "generated", "workshop"):
-        for path in sorted((directory / folder).rglob("*")):
-            if path.is_file() and path.suffix.lower() in {
-                ".png",
-                ".jpg",
-                ".jpeg",
-                ".webp",
-                ".mp4",
-            }:
-                result.append(
-                    (
-                        path,
-                        "demo/v1/social-directory/"
-                        + path.relative_to(directory).as_posix(),
-                    )
-                )
     return result
 
 
@@ -105,7 +91,7 @@ def main():
                 Body=raw,
                 ContentType=mimetypes.guess_type(path.name)[0]
                 or "application/octet-stream",
-                Metadata={"sha256": digest, "synthetic": "true"},
+                Metadata={"sha256": digest, "evaluation-fixture": "true"},
             )
             reply = client.get_object(Bucket=bucket, Key=key)
             with reply["Body"] as body:
@@ -127,7 +113,7 @@ def main():
     )
     args.manifest.chmod(0o600)
     print(
-        f"{len(manifest)} synthetic resources {'uploaded and verified' if client else 'inventoried offline'}; manifest: {args.manifest}"
+        f"{len(manifest)} demo resources {'uploaded and verified' if client else 'inventoried offline'}; manifest: {args.manifest}"
     )
 
 

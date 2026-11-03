@@ -13,6 +13,7 @@ class ConnectionInput(BaseModel):
     prefix: str = Field(default="", max_length=1024)
     access_key: SecretStr | None = None
     secret_key: SecretStr | None = None
+    workspace_id: uuid.UUID | None = None
 
     @model_validator(mode="after")
     def paired(self):
@@ -26,15 +27,15 @@ class ConnectionInput(BaseModel):
 class ImportInput(BaseModel):
     request_key: str = Field(min_length=1, max_length=128)
     keys: list[str] = Field(min_length=1, max_length=100)
-    audience: Literal["home", "work"] = "home"
+    audience: Literal["work"] = "work"
     workspace_id: uuid.UUID | None = None
 
 
 class SyncInput(BaseModel):
     prefix: str = Field(default="", max_length=1024)
-    audience: Literal["home", "work"] = "home"
+    audience: Literal["work"] = "work"
     workspace_id: uuid.UUID | None = None
-    interval_minutes: Literal[15, 60, 1440] = 60
+    interval_minutes: Literal[15, 60, 1440] = 15
     enabled: bool = False
 
 

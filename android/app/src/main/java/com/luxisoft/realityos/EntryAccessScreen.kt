@@ -36,20 +36,7 @@ internal fun FacebookAccessScreen(busy: Boolean, error: String, consentChecked: 
                         Spacer(Modifier.height(8.dp))
                         Text(stringResource(R.string.access_description), style = MaterialTheme.typography.bodyMedium, color = AccountMuted)
                         Spacer(Modifier.height(20.dp))
-                        if (error.isNotBlank()) {
-                            Surface(
-                                shape = MaterialTheme.shapes.medium,
-                                color = MaterialTheme.colorScheme.errorContainer,
-                                modifier = Modifier.fillMaxWidth().testTag("access-error").semantics { liveRegion = LiveRegionMode.Polite }
-                            ) {
-                                Row(Modifier.padding(14.dp)) {
-                                    Icon(Icons.Outlined.ErrorOutline, null, Modifier.size(20.dp), tint = MaterialTheme.colorScheme.error)
-                                    Spacer(Modifier.width(10.dp))
-                                    Text(error, color = MaterialTheme.colorScheme.onErrorContainer, style = MaterialTheme.typography.bodyMedium)
-                                }
-                            }
-                            Spacer(Modifier.height(16.dp))
-                        }
+                        NoticeEffect(error, {})
                         // Existing consent control, wording and authorization behavior are preserved.
                         Row(Modifier.fillMaxWidth().widthIn(max = 560.dp), verticalAlignment = Alignment.CenterVertically) {
                             Checkbox(checked = consentChecked, onCheckedChange = onConsentChange, enabled = !busy)

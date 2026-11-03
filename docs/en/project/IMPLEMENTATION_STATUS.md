@@ -2,43 +2,35 @@
 
 # Current implementation status
 
-Updated **November 3, 2026**. This page consolidates the current state; earlier changes remain in Git. A build or HTTP check does not approve a physical-device test.
+Updated **November 3, 2026**. A build or HTTP check does not approve physical-device testing. Earlier releases remain in Git.
 
 ## Implemented
 
-| Component | State |
+| Area | Current behavior |
 | --- | --- |
-| Android and native Display | Profile, Work, Search and Ray-Ban; explicit capture, evidence and authorized context. Debug includes Mock Device Kit; Release excludes it. |
-| Access and profiles | Email and Facebook accounts, confirmation/recovery, pending-email correction and profile editing according to data origin. |
-| Objects and posts | BYTEA originals, Muse/SAM processing, versioned evidence, duplicate review and persisted translations. |
-| Biometrics | Consent, explicit enrollment, user/record candidates and human confirmation. Separate from object processing. |
-| Records | Versioned imports, relationships and attachments; clinical comparison of explicit fields with references. |
-| Speech | Muse Voice Transcribe for input; ElevenLabs for authenticated synthesis. |
-| R2/S3 buckets | Private connections, browsing, imported profile/group copies, queries, CV and manual/scheduled synchronization. [Guide](../guides/STORAGE_CONNECTIONS.md). |
+| Android | Media loading/buffering indicators, expanded details, initial-data skeletons, corrected root panels/insets, full-window group administration, invite sharing and bottom dismissible alerts. |
+| Groups | Publishing requires membership. Owned posts can be copied into several groups with independent reactions/comments; legacy unassigned posts remain owner-only. |
+| Biometrics | Consent and isolated face search remain. Email onboarding requests a profile photo/avatar and 3–25 accepted private reference photos, with resume and reselection. Meta reference originals and URLs never appear in galleries or account-result thumbnails. |
+| Storage | Editable R2/S3 sources, right-side thumbnails, group destinations, immediate/15-minute synchronization, complete-scan reconciliation and revision-safe retirement of imported/shared copies. Remote objects remain untouched. |
+| Evidence | BYTEA originals, real provider analysis, versioned evidence and translations. Queries never start capture or fabricate observations. |
+| Records and speech | Existing versioned records and clinical comparison; Muse transcription and authenticated ElevenLabs synthesis remain. |
 
-## Verified code and production
+## Verified release
 
-- Reviewed backend: [`0090bdf`](https://github.com/Luxisoft/realityos-spatial-memory/commit/0090bdfcb8d8f298da73ece3c8d6e57e6b5448b6). Includes the S3 signing, cancelled/removed/replaced import, duplicate status and selected evidence fixes. Import retries use the current upload state; manual sync processes without a queue. Provider analysis releases the connection lock and rechecks access before publication; image queries keep the API responsive.
-- [Successful production deployment](https://github.com/Luxisoft/realityos-spatial-memory/actions/runs/41684655293): API, worker and scheduler; Alembic revision `20261103_0035`. Deployed source hashes, readiness and the exact public OpenAPI contract were verified.
-- **492 local backend/gateway tests** —35 connector tests and two image-query concurrency regressions— passed. [Backend version CI](https://github.com/Luxisoft/realityos-spatial-memory/actions/runs/41684656174). The current Android build passed **224 local tests**, formatting/lint and Debug/Release builds. Image queries now wait up to three minutes: the live query took 60.77 seconds, exceeding the former one-minute client limit. [Verification receipt](../../assets/storage/review-verification.json).
-- Installable APK: `android/app/build/outputs/apk/debug/app-debug.apk`. Identify each run by SHA-256; the version label alone does not distinguish builds.
-- Production uses direct Meta access with gateway fallback enabled. ElevenLabs and R2 have independent connections; credentials stay private.
-- The verified release rollback is preserved at `.runtime/storage-followup-20261103-ci-rollback.json`. Code rollback does not automatically reverse migrations or data; follow the [operations guide](../deployment/DEPLOYMENT.md).
-- November 3 cleanup: removed uncalled indexers, unused Android screens and controls, 93 obsolete strings per language, superseded scripts, the uncalled legacy guest-access function and historical baseline replay in CI. Current regression tests remain. Also removed 2.42 GB of duplicate caches and retired web artifacts from the server.
-- Second proxy review: restored forwarding for Swagger at `/docs` and its callback. **27 local checks with real Nginx** passed across production, localhost and socket-activated configurations: documentation and API routes remain reachable, while retired web routes return `410`. Added a regression for Swagger's public contract URL. Post-deployment checks confirmed `/docs` and its callback return `200`, while `/` and `/display` return `410`.
-- Deleted the retired `realityos-tts` GitHub package after authorizing `read:packages` and `delete:packages`. A subsequent request returns `404`; `realityos-backend` and `realityos-meta-gateway` remain accessible. The access review confirmed repository administration and Actions read permissions; the previous GitHub blocker is resolved.
+- Local image: `realityos-backend:workspace-privacy-20261103`; API, worker and scheduler use the preserved runtime. PostgreSQL is at **`20261103_0036`**. Upgrade → downgrade → upgrade passed on a temporary PostgreSQL schema; the production update, readiness and exact public OpenAPI comparison passed.
+- Backend/gateway suite contains **499 tests**. The final targeted run passed **13 tests**, including the corrected contract, membership loss and reference-photo privacy. Android passed **226 tests**, formatting/lint and Debug/Release builds. Documentation, structure and Postman validation passed.
+- Installable APK: `android/app/build/outputs/apk/debug/app-debug.apk`; SHA-256 `e835a29b0d38bc47f03266f728921980ce0355c2fa4da89db3449e3a99483395`.
+- Image rollback: `.runtime/workspace-privacy-20261103-rollback.json`. Demo visibility journal: `.runtime/real-scenes-20261103-visibility.json`. The technical `pre-workspace-privacy-20261103.dump` expires through server maintenance after 24 hours, or one hour under disk pressure; it is not an official backup and was not uploaded to R2.
+- Production retains direct Meta with gateway fallback, private keys and the isolated Windows/Debug login exception. Server maintenance protects active images and the release rollback.
+- [Live API receipt](../../assets/storage/workspace-privacy-verification.json): all three jury accounts could sign in, download avatars and new media, read their records and browse their author-specific bucket. Cross-group requests returned `403`; private publication attempts returned `422`.
 
-## Available evaluation data
+## Current evaluation data
 
-The three prepared scenarios retain **47 records, 27 attachments and six enrolled record portraits**. Nine scenario accounts have avatars, posts and groups. Four QA accounts and their permissions are described in the [checklist](../testing/IMPLEMENTATION_CHECKLIST.md); preparation was recorded in `.runtime/acceptance-readiness.json`.
+Only the **existing** groups are in scope. Workshop and other discarded scenarios are not recreated. The three evaluation groups now have **48 licensed scenes: 12 photos and four moving videos each**. Videos are 10–15 seconds, 24 fps and at least 720p, with decoded frame-change validation. The [catalog and source/license/hash manifest](../../../simulator/real-scenes/manifest.json) describe the resources; downloaded media stays outside Git. Their real analysis runs through the existing worker queue.
 
-Postman retains **Server requests** and **Localhost requests**, **393 total requests** and the **39 walkthrough requests using existing data**. Only the three authorized jury accounts have public passwords; other accounts and credentials remain in private files. The second review verified login, avatar download and a prepared post download for all three accounts; each retains seven group posts and one bucket connection.
+The **47 records, 27 attachments and six enrolled record portraits** are preserved. No group or membership was added by renewal. The current bucket inventory is 48 scene resources plus six QA probes, verified by remote read-back/SHA-256, across **13 active connections**. Author subsets differ. The obsolete social-directory browser connection is disabled; its remote objects were retained.
 
-**R2 prepared:** 426 resources uploaded and read-back/SHA-256 verified; 14 connections for nine scenario and four QA accounts. The QA administrator also has the social directory/workshop. API checks covered originals and previews per account, video `206`, PDF, cross-account rejection `404` and unauthenticated access `401`. Unsigned S3 access was rejected (`400`, `Authorization`). [Receipt](../../assets/storage/demo-verification.json) · [App entry](../guides/STORAGE_CONNECTIONS.md). Luxisoft credentials reused with owner authorization retain their permissions; the application never returns them and performs read operations.
-
-**Additional live R2 API checks:** image/video originals matched their SHA-256 after BYTEA import; private/group access, idempotent reimport, duplicate confirmation, two private CV versions and disconnection passed. A real scheduler cycle over an empty prefix, pause and manual update passed. Object search returned two evidence results without new publications. Measured from the production host, enqueue and disconnect during analysis took 0.010/0.011 seconds; readiness remained available. Temporary connections were disconnected. These checks do not approve the physical Android checklist.
-
-**Third-party review completed:** 93 Python packages and 210 Android dependencies inventoried. Closing `buffalo_l` rights and DAT terms requires the evidence listed in [Third parties](THIRD_PARTY.md).
+Postman keeps exactly **Server requests** and **Localhost requests**, with **403 requests**, including the **39 existing-data walkthrough requests**. Jury publication IDs now reference the renewed media. Only the three owner-authorized jury passwords are public. Email-account users, including existing test accounts without completed setup, receive the new private biometric onboarding; no consent or completed enrollment was fabricated.
 
 <a id="next-steps"></a>
 
@@ -46,11 +38,9 @@ Postman retains **Server requests** and **Localhost requests**, **393 total requ
 
 | Pending | Required evidence |
 | --- | --- |
-| App acceptance | Execute the checklist's **92 acceptance cases and six closure steps** against an identified APK/server; retain results and captures. |
-| Phone and external providers | Complete camera, permissions, audio, real email, real Facebook and Live demo walkthroughs. Unit tests do not approve these runs. |
-| Hardware and Windows | Physical glasses and a complete Windows/Docker installation require their own evidence. Simulated Display and Windows script tests have a different scope. |
-| Hackathon | Confirm team/track and requirements, review rights and demo outputs, record an accessible video and retain the portal receipt. [Submission guide](HACKATHON.md). |
+| Phone UI | Physical keyboard, Android navigation insets, camera-overlay gestures and the full acceptance checklist against the identified APK. No device was connected in this session. |
+| External integrations | Live Facebook login/import, physical DAT/glasses, real email and the complete Windows installation still need their own recorded walkthroughs. Unit tests do not approve them. |
+| Empty database bootstrap | An existing historical baseline issue remains: migration `0001` loads current model metadata and a fresh SQLite bootstrap fails on an unresolved publication foreign key. Existing-schema PostgreSQL upgrade and rollback passed. This release does not claim a fresh Windows installation passed. |
+| Third parties and submission | Authenticated DAT terms, `buffalo_l` rights evidence and the final accessible demo/submission receipt remain tracked in [Third parties](THIRD_PARTY.md) and [Hackathon](HACKATHON.md). |
 
-**Access and authorizations:** the live checks linked above supersede earlier pending R2 credentials. Authenticated DAT terms and the evidence described in [Third parties](THIRD_PARTY.md) are still missing; authorization to use `buffalo_l` is separate from technical permissions. The additional Docker image/container review was not performed in this session: [AGENTS.md](../../../AGENTS.md#deploy-standing-rule) requires authorization for those commands. This does not leave the verified production deployment or Seamless removal pending; the private removal receipt confirms deletion of its container, volume and image.
-
-A 100% pass claim is limited to the checklist scope after every case has evidence and no failures, pending items or blockers remain. Credentials, private responses and personal captures are not published here.
+Private credentials, tokens and personal media are excluded from this report. A complete manual acceptance claim requires evidence for every checklist case.

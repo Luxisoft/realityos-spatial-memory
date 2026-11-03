@@ -16,7 +16,7 @@ from sqlalchemy import func, or_, select
 from sqlalchemy.orm import Session
 
 from app.meta import MetaModelClient, MetaProviderError
-from app.models import MediaAsset, MediaKind, User, WorkspaceMember
+from app.models import MediaAsset, MediaKind, User
 from app.services import search_phrase
 
 FACE_TOKENS = ("persona", "personas", "rostro", "rostros", "face", "faces", "person", "people")
@@ -119,21 +119,19 @@ def index_publication(
 
 def _visible_scope(viewer: User, audience: str | None, workspace_id: uuid.UUID | None):
     from app.social import Publication
-    from app.social_features.publication_visibility import publication_content
+    from app.social_features.publication_visibility import (
+        authorized_publications,
+        publication_content,
+    )
 
-    statement = select(Publication).where(publication_content())
+    statement = select(Publication).where(
+        publication_content(), Publication.hidden.is_(False), authorized_publications(viewer.id)
+    )
     if audience is not None:
         statement = statement.where(Publication.audience == audience)
     if workspace_id is not None:
         statement = statement.where(Publication.workspace_id == workspace_id)
-    memberships = select(WorkspaceMember.workspace_id).where(WorkspaceMember.user_id == viewer.id)
-    return statement.where(
-        or_(
-            Publication.owner_id == viewer.id,
-            Publication.audience == "public",
-            (Publication.audience == "work") & (Publication.workspace_id.in_(memberships)),
-        )
-    )
+    return statement
 
 
 def _known_tags(db: Session, viewer: User) -> list[str]:

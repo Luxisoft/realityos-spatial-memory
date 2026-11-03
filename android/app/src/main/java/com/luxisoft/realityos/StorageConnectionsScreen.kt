@@ -2,12 +2,15 @@ package com.luxisoft.realityos
 
 import android.net.Uri
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import java.util.UUID
@@ -31,11 +34,12 @@ internal fun StorageConnectionsScreen(onClose: () -> Unit) {
     var page by remember { mutableStateOf(JSONObject()) }
     var picked by remember { mutableStateOf(setOf<String>()) }
     var workspaces by remember { mutableStateOf(emptyList<JSONObject>()) }
-    var workspace by remember { mutableStateOf("") }
+    var workspace by remember { mutableStateOf(SocialSession.workWorkspaceId.orEmpty()) }
     var runs by remember { mutableStateOf(emptyList<JSONObject>()) }
     var rules by remember { mutableStateOf(emptyList<JSONObject>()) }
     var busy by remember { mutableStateOf(false) }
     var message by remember { mutableStateOf("") }
+    NoticeEffect(message, { message = "" }, if (message.startsWith(localizedText(R.string.storage_error))) NoticeKind.ERROR else NoticeKind.SUCCESS)
     var confirmation by remember { mutableStateOf<String?>(null) }
     var preview by remember { mutableStateOf<JSONObject?>(null) }
     var result by remember { mutableStateOf<JSONObject?>(null) }
@@ -133,8 +137,7 @@ internal fun StorageConnectionsScreen(onClose: () -> Unit) {
     }
     if (editing) {
         Column(Modifier.fillMaxSize()) {
-            if (message.isNotBlank()) Text(message, color = MaterialTheme.colorScheme.error, modifier = Modifier.padding(12.dp))
-            StorageConnectionForm(formValue, busy, onSave = { body ->
+            StorageConnectionForm(formValue, busy, workspaces = workspaces.filter { !it.optString("name").startsWith("home:") }, onSave = { body ->
                 operation {
                     request(if (formValue == null) STORAGE_BASE else "$STORAGE_BASE/${formValue!!.getString("id")}", body, if (formValue == null) "POST" else "PUT")
                     connections = storageRows(JSONArray(request(STORAGE_BASE)))
@@ -171,7 +174,6 @@ internal fun StorageConnectionsScreen(onClose: () -> Unit) {
             Text(localizedText(R.string.storage_title), style = MaterialTheme.typography.titleLarge)
             TextButton(onClick = { back() }, enabled = !busy) { Text(localizedText(R.string.storage_back)) }
             if (busy) LinearProgressIndicator(Modifier.fillMaxWidth())
-            if (message.isNotBlank()) Text(message, color = MaterialTheme.colorScheme.error)
         }
         if (selected == null) {
             item {
@@ -183,6 +185,7 @@ internal fun StorageConnectionsScreen(onClose: () -> Unit) {
             items(connections, key = { it.getString("id") }) { connection ->
                 OutlinedButton(onClick = {
                     selected = connection
+                    workspace = connection.optText("workspace_id") ?: SocialSession.workWorkspaceId.orEmpty()
                     operation {
                         browse(connection.optString("prefix"))
                         refreshRuns()
@@ -209,12 +212,8 @@ internal fun StorageConnectionsScreen(onClose: () -> Unit) {
                 Text(localizedText(R.string.storage_destination))
                 var destinations by remember { mutableStateOf(false) }
                 Box {
-                    OutlinedButton(onClick = { destinations = true }, enabled = !busy) { Text(workspaces.find { it.getString("id") == workspace }?.optString("name") ?: localizedText(R.string.storage_private)) }
+                    OutlinedButton(onClick = { destinations = true }, enabled = !busy) { Text(workspaces.find { it.getString("id") == workspace }?.optString("name") ?: localizedText(R.string.ui_select_workspace)) }
                     DropdownMenu(destinations, { destinations = false }) {
-                        DropdownMenuItem(text = { Text(localizedText(R.string.storage_private)) }, onClick = {
-                            workspace = ""
-                            destinations = false
-                        })
                         workspaces.filter { !it.optString("name").startsWith("home:") }.forEach { group ->
                             DropdownMenuItem(text = { Text(group.getString("name")) }, onClick = {
                                 workspace = group.getString("id")
@@ -237,10 +236,14 @@ internal fun StorageConnectionsScreen(onClose: () -> Unit) {
                     Column(Modifier.weight(1f)) {
                         Text(key.substringAfterLast('/'))
                         Text("${item.optLong("size")} B · ${item.optString("modified_at")}", style = MaterialTheme.typography.bodySmall)
-                        if (storageSupportsMedia(mime)) {
-                            TextButton(onClick = { preview = item }) { Text(localizedText(R.string.storage_preview)) }
-                        } else if (!storageSupportsCv(mime)) {
+                        if (!storageSupportsMedia(mime) && !storageSupportsCv(mime)) {
                             Text(localizedText(R.string.storage_unsupported))
+                        }
+                    }
+                    if (storageSupportsMedia(mime)) {
+                        val thumbnail = "${BuildConfig.DEFAULT_REALITYOS_API_BASE_URL}/${base()}/content?key=${Uri.encode(key)}&preview=true&revision=${selected!!.optInt("revision", 1)}"
+                        Box(Modifier.size(72.dp).padding(4.dp).clickable { preview = item }) {
+                            DatabaseImage(profileImageRequest(context, thumbnail), localizedText(R.string.storage_preview), Modifier.fillMaxSize(), ContentScale.Crop)
                         }
                     }
                 }
@@ -248,7 +251,7 @@ internal fun StorageConnectionsScreen(onClose: () -> Unit) {
             page.optText("next_cursor")?.let { cursor -> item { TextButton(onClick = { operation { browse(folder, cursor) } }, enabled = !busy) { Text(localizedText(R.string.storage_more)) } } }
             item {
                 val chosen = storageRows(page.optJSONArray("items") ?: JSONArray()).filter { it.getString("key") in picked }
-                Button(onClick = { confirmation = "import" }, enabled = !busy && chosen.isNotEmpty() && chosen.all { storageSupportsMedia(it.optString("mime_type")) }) { Text(localizedText(R.string.storage_import) + " (${picked.size})") }
+                Button(onClick = { confirmation = "import" }, enabled = !busy && workspace.isNotBlank() && chosen.isNotEmpty() && chosen.all { storageSupportsMedia(it.optString("mime_type")) }) { Text(localizedText(R.string.storage_import) + " (${picked.size})") }
                 if (chosen.size == 1) {
                     val mime = chosen.single().optString("mime_type")
                     if (mime.startsWith("image/")) TextButton(onClick = { search(false) }, enabled = !busy) { Text(localizedText(R.string.storage_search_object)) }
@@ -339,13 +342,13 @@ internal fun StorageConnectionsScreen(onClose: () -> Unit) {
                     } else {
                         R.string.storage_import_help
                     }
-                ) + "\n" + (workspaces.find { it.getString("id") == workspace }?.optString("name") ?: localizedText(R.string.storage_private))
+                ) + "\n" + (workspaces.find { it.getString("id") == workspace }?.optString("name") ?: localizedText(R.string.ui_select_workspace))
             )
         }, confirmButton = {
             Button(onClick = {
                 confirmation = null
                 operation {
-                    val destination = JSONObject().put("audience", if (workspace.isBlank()) "home" else "work")
+                    val destination = JSONObject().put("audience", "work")
                     if (workspace.isNotBlank()) destination.put("workspace_id", workspace)
                     when {
                         action == "disconnect" -> {

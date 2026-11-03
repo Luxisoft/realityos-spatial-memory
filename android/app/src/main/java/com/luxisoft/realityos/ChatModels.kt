@@ -108,7 +108,7 @@ internal data class GalleryThumb(
     /** Workspace record behind a 1:N record match; opens the expediente. */
     val recordId: String = "",
     /** Display media-links kind for this thumb's enrollment thumbnail. */
-    val faceDisplayKind: String = "face_enrollment"
+    val faceDisplayKind: String = "avatar"
 ) {
     /** The chat keeps a small preview; the viewer requests the original dimensions. */
     val viewerUrl: String

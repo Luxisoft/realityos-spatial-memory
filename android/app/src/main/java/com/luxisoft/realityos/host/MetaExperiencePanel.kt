@@ -42,14 +42,24 @@ internal fun MetaExperiencePanel(state: RealityUiState, viewModel: RealityViewMo
             }
         }
         Text(stringResource(R.string.meta_publication_destination), style = MaterialTheme.typography.labelLarge)
-        Text(
-            stringResource(R.string.meta_profile),
-            style = MaterialTheme.typography.titleMedium,
-            color = MaterialTheme.colorScheme.primary
-        )
+        var choosingGroup by remember { mutableStateOf(false) }
+        Box {
+            OutlinedButton(onClick = { choosingGroup = true }, enabled = !locked && meta.destinations.isNotEmpty()) {
+                Text(MetaDisplayPolicy.publicationDestination(meta.destinations, SocialSession.workWorkspaceId)?.name ?: stringResource(R.string.ui_select_workspace))
+            }
+            DropdownMenu(expanded = choosingGroup, onDismissRequest = { choosingGroup = false }) {
+                meta.destinations.forEach { destination ->
+                    DropdownMenuItem(text = { Text(destination.name) }, onClick = {
+                        SocialSession.workWorkspaceId = destination.id
+                        choosingGroup = false
+                    })
+                }
+            }
+        }
+        if (meta.destinations.isEmpty() && !meta.loading) Text(stringResource(R.string.publish_needs_group))
         if (meta.loading) LinearProgressIndicator(Modifier.fillMaxWidth())
         if (meta.error != null) {
-            Text(meta.error, color = MaterialTheme.colorScheme.error)
+            NoticeEffect(meta.error, {})
             if (meta.pendingMime == null) TextButton(onClick = viewModel::refreshMetaConfiguration) { Text(stringResource(R.string.display_retry)) }
         }
         if (meta.pendingMime != null) {
@@ -58,12 +68,11 @@ internal fun MetaExperiencePanel(state: RealityUiState, viewModel: RealityViewMo
             Text(stringResource(R.string.meta_capture_explanation), style = MaterialTheme.typography.bodySmall)
             Button(
                 onClick = viewModel::beginMetaCapture,
-                enabled = state.wearable.displayReady && MetaDisplayPolicy.profileDestination(meta.destinations) != null && !locked && !state.wearable.speechActive,
+                enabled = state.wearable.displayReady && MetaDisplayPolicy.publicationDestination(meta.destinations, SocialSession.workWorkspaceId) != null && !locked && !state.wearable.speechActive,
                 modifier = Modifier.fillMaxWidth()
             ) { Text(stringResource(R.string.meta_capture)) }
         }
         if (state.recording) Text(stringResource(R.string.meta_recording_duration, meta.recordingSeconds), color = MaterialTheme.colorScheme.secondary)
-        if (state.message.isNotBlank()) Text(state.message, style = MaterialTheme.typography.bodySmall)
     }
 }
 

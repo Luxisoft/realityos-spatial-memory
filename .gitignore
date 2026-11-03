@@ -4,6 +4,7 @@ android/local.properties
 !.env.example
 !.env.local.example
 infrastructure/gateway/runtime.env
+.venv
 .venv/
 __pycache__/
 *.py[cod]
@@ -43,3 +44,5 @@ simulator/social-directory/generated/
 simulator/social-directory/muse/
 simulator/social-directory/companions/
 *.log
+
+simulator/real-scenes/assets/

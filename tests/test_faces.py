@@ -543,7 +543,9 @@ def test_verify_identity_pending_and_keeps_session_without_profile(client):
     # Password accounts without Facebook stay pending, never failed: they use
     # capture + biometric consent, and repeated calls must not lock them.
     for _ in range(3):
-        response = client.post("/v1/faces/verify-identity", headers=env["owner_headers"])
+        response = client.post(
+            "/v1/faces/verify-identity", headers=env["owner_headers"]
+        )
         assert response.status_code == 200
         body = response.json()
         assert body["verified"] is False
@@ -1206,9 +1208,10 @@ def test_thumbnail_and_own_list(client):
     owned = client.get("/v1/faces/enrollments", headers=env["owner_headers"]).json()
     assert len(owned) == len(enrolled["enrollment_ids"]) >= 1
 
-    preview = client.get(owned[0]["thumbnail_url"], headers=env["other_headers"])
-    assert preview.status_code == 200
-    assert preview.headers["content-type"] == "image/jpeg"
+    assert owned[0]["thumbnail_url"] is None
+    path = f"/v1/faces/enrollments/{owned[0]['id']}/thumbnail"
+    for headers in (env["owner_headers"], env["other_headers"]):
+        assert client.get(path, headers=headers).status_code == 404
 
     with client.app.state.database.session_factory() as db:
         outsider = User(
@@ -1223,10 +1226,7 @@ def test_thumbnail_and_own_list(client):
             + create_access_token(outsider.id, client.app.state.settings)
         }
     _consent(client, outsider_headers)
-    assert (
-        client.get(owned[0]["thumbnail_url"], headers=outsider_headers).status_code
-        == 403
-    )
+    assert client.get(path, headers=outsider_headers).status_code == 404
 
 
 def test_guest_users_cannot_use_face_search(client):
@@ -1383,16 +1383,7 @@ def test_thumbnail_full_size_param(client):
     )
     assert response.status_code == 201, response.text
     owned = client.get("/v1/faces/enrollments", headers=env["owner_headers"]).json()
-    full = client.get(owned[0]["thumbnail_url"], headers=env["other_headers"])
-    small = client.get(
-        owned[0]["thumbnail_url"] + "?full_size=false", headers=env["other_headers"]
-    )
-    assert full.status_code == 200
-    assert small.status_code == 200
-    with Image.open(io.BytesIO(full.content)) as picture:
-        full_size = picture.size
-    with Image.open(io.BytesIO(small.content)) as picture:
-        small_size = picture.size
-    assert full_size == (800, 600)
-    assert small_size[0] <= 360 and small_size[1] <= 480
-    assert len(small.content) < len(full.content)
+    assert owned[0]["thumbnail_url"] is None
+    path = f"/v1/faces/enrollments/{owned[0]['id']}/thumbnail"
+    for query in ("", "?full_size=false", "?full_size=true"):
+        assert client.get(path + query, headers=env["owner_headers"]).status_code == 404

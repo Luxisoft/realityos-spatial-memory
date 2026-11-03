@@ -24,3 +24,7 @@ flowchart LR
 [WEARABLES ](../integrations/WEARABLES.md) · [DEMO ](../guides/DEMO.md) · [IMPLEMENTATION STATUS ](../project/IMPLEMENTATION_STATUS.md)
 
 Editar perfil incorpora información personal con iconos nativos, errores junto al campo y calendario de nacimiento para las cuentas por correo. Facebook muestra esos mismos datos de solo lectura con una explicación de sincronización; biografía, contacto, enlaces y CV conservan su edición. Se mantiene el tema, teclado y texto al 200 %, y los campos se bloquean durante el guardado.
+
+## Corrección de interacción del 3 de noviembre
+
+El visor muestra progreso de carga/buffering e información expandida y desplazable sobre la navegación del sistema. Skeleton representa solo la carga inicial de datos del servidor. Buscador y conexiones administran teclado/insets en el panel raíz. Administrar grupo ocupa la ventana y cerrar sin cambios no recarga la galería. Barra: añadir grupo y selector a la izquierda; historial y acciones a la derecha; invitaciones con compartir de Android. Menú derecho: Conexiones sobre About y ES/EN sobre cerrar sesión. Cada dato de perfil muestra icono, etiqueta y valor (`-` si falta). Los avisos transitorios usan una alerta inferior con cierre inmediato, 4 segundos para información/éxito u 8 para advertencia/error, ampliados por accesibilidad. La validación de campos y los estados persistentes permanecen junto a sus controles.

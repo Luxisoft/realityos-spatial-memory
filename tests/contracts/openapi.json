@@ -5705,7 +5705,7 @@
     "/v1/me/profile/publications": {
       "post": {
         "summary": "Upload Profile Publication",
-        "description": "Persist an owner-selected image and expose it in their private profile feed.",
+        "description": "Persist an owner-selected image in an authorized work group.",
         "operationId": "upload_profile_publication_v1_me_profile_publications_post",
         "requestBody": {
           "content": {
@@ -5937,7 +5937,7 @@
                 "work"
               ],
               "type": "string",
-              "default": "home",
+              "default": "work",
               "title": "Audience"
             }
           },
@@ -6028,7 +6028,7 @@
                 "work"
               ],
               "type": "string",
-              "default": "home",
+              "default": "work",
               "title": "Audience"
             }
           },
@@ -7717,6 +7717,197 @@
           }
         }
       }
+    },
+    "/v1/faces/reference-photos": {
+      "post": {
+        "operationId": "add_reference_v1_faces_reference_photos_post",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_add_reference_v1_faces_reference_photos_post"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Add Reference",
+        "tags": [
+          "faces"
+        ]
+      }
+    },
+    "/v1/faces/reference-photos/{enrollment_id}": {
+      "delete": {
+        "operationId": "remove_reference_v1_faces_reference_photos__enrollment_id__delete",
+        "parameters": [
+          {
+            "name": "enrollment_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Enrollment Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Remove Reference",
+        "tags": [
+          "faces"
+        ]
+      }
+    },
+    "/v1/faces/setup": {
+      "get": {
+        "operationId": "status_v1_faces_setup_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Status",
+        "tags": [
+          "faces"
+        ]
+      }
+    },
+    "/v1/faces/setup/complete": {
+      "post": {
+        "operationId": "complete_v1_faces_setup_complete_post",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Complete",
+        "tags": [
+          "faces"
+        ]
+      }
+    },
+    "/v1/groups/{workspace_id}/publications/import": {
+      "post": {
+        "operationId": "import_group_publications_v1_groups__workspace_id__publications_import_post",
+        "parameters": [
+          {
+            "name": "workspace_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Workspace Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GroupPublicationImport"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Import Group Publications"
+      }
     }
   },
   "components": {
@@ -7978,13 +8169,9 @@
           },
           "audience": {
             "type": "string",
-            "enum": [
-              "home",
-              "work",
-              "public"
-            ],
             "title": "Audience",
-            "default": "home"
+            "default": "work",
+            "const": "work"
           },
           "workspace_id": {
             "anyOf": [
@@ -8143,10 +8330,16 @@
             "type": "string",
             "title": "Note Source",
             "default": ""
+          },
+          "workspace_id": {
+            "format": "uuid",
+            "title": "Workspace Id",
+            "type": "string"
           }
         },
         "type": "object",
         "required": [
+          "workspace_id",
           "file"
         ],
         "title": "Body_upload_profile_publication_v1_me_profile_publications_post"
@@ -8687,6 +8880,18 @@
               }
             ],
             "title": "Secret Key"
+          },
+          "workspace_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Workspace Id"
           }
         },
         "type": "object",
@@ -9061,7 +9266,8 @@
               "upload",
               "publication",
               "face_enrollment",
-              "face_record_enrollment"
+              "face_record_enrollment",
+              "avatar"
             ],
             "title": "Kind"
           },
@@ -9265,8 +9471,15 @@
             "title": "Media Id"
           },
           "thumbnail_url": {
-            "type": "string",
-            "title": "Thumbnail Url"
+            "title": "Thumbnail Url",
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "source": {
             "type": "string",
@@ -9277,7 +9490,6 @@
         "required": [
           "enrollment_id",
           "media_id",
-          "thumbnail_url",
           "source"
         ],
         "title": "FaceMatchEvidence"
@@ -9715,12 +9927,9 @@
           },
           "audience": {
             "type": "string",
-            "enum": [
-              "home",
-              "work"
-            ],
             "title": "Audience",
-            "default": "home"
+            "default": "work",
+            "const": "work"
           },
           "workspace_id": {
             "anyOf": [
@@ -10690,8 +10899,15 @@
             "title": "Quality"
           },
           "thumbnail_url": {
-            "type": "string",
-            "title": "Thumbnail Url"
+            "title": "Thumbnail Url",
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
           }
         },
         "type": "object",
@@ -10699,8 +10915,7 @@
           "id",
           "media_id",
           "source",
-          "quality",
-          "thumbnail_url"
+          "quality"
         ],
         "title": "OwnEnrollmentResponse"
       },
@@ -10735,8 +10950,15 @@
             "title": "Quality"
           },
           "thumbnail_url": {
-            "type": "string",
-            "title": "Thumbnail Url"
+            "title": "Thumbnail Url",
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
           }
         },
         "type": "object",
@@ -10746,8 +10968,7 @@
           "workspace_id",
           "media_id",
           "source",
-          "quality",
-          "thumbnail_url"
+          "quality"
         ],
         "title": "OwnRecordEnrollmentResponse"
       },
@@ -11002,13 +11223,9 @@
           },
           "audience": {
             "type": "string",
-            "enum": [
-              "home",
-              "public",
-              "work"
-            ],
             "title": "Audience",
-            "default": "home"
+            "default": "work",
+            "const": "work"
           },
           "caption": {
             "type": "string",
@@ -11427,8 +11644,15 @@
             "title": "Media Id"
           },
           "thumbnail_url": {
-            "type": "string",
-            "title": "Thumbnail Url"
+            "title": "Thumbnail Url",
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "source": {
             "type": "string",
@@ -11439,7 +11663,6 @@
         "required": [
           "enrollment_id",
           "media_id",
-          "thumbnail_url",
           "source"
         ],
         "title": "RecordFaceMatchEvidence"
@@ -11748,12 +11971,9 @@
           },
           "audience": {
             "type": "string",
-            "enum": [
-              "home",
-              "work"
-            ],
             "title": "Audience",
-            "default": "home"
+            "default": "work",
+            "const": "work"
           },
           "workspace_id": {
             "anyOf": [
@@ -11775,7 +11995,7 @@
               1440
             ],
             "title": "Interval Minutes",
-            "default": 60
+            "default": 15
           },
           "enabled": {
             "type": "boolean",
@@ -12243,6 +12463,39 @@
           "sort_order"
         ],
         "title": "ZoneResponse"
+      },
+      "Body_add_reference_v1_faces_reference_photos_post": {
+        "properties": {
+          "file": {
+            "format": "binary",
+            "title": "File",
+            "type": "string"
+          }
+        },
+        "required": [
+          "file"
+        ],
+        "title": "Body_add_reference_v1_faces_reference_photos_post",
+        "type": "object"
+      },
+      "GroupPublicationImport": {
+        "properties": {
+          "publication_ids": {
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "maxItems": 100,
+            "minItems": 1,
+            "title": "Publication Ids",
+            "type": "array"
+          }
+        },
+        "required": [
+          "publication_ids"
+        ],
+        "title": "GroupPublicationImport",
+        "type": "object"
       }
     },
     "securitySchemes": {

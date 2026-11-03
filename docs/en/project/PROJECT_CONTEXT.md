@@ -10,7 +10,7 @@ Current working map. Read the [conventions](../../../AGENTS.md), check [verified
 | --- | --- |
 | `backend/app/` | API and contracts shared with the worker: HTTP, providers, processing, accounts, social features, records and storage. |
 | `backend/app/faces.py` | Isolated biometrics protected by AGENTS.md. |
-| `backend/alembic/versions/` | Alembic schema; documented current revision `20261103_0035`. |
+| `backend/alembic/versions/` | Alembic schema; documented current revision `20261103_0036`. |
 | `android/` | Only app: Kotlin/Compose, CameraX, DAT and native Display; Mock Device Kit only in Debug. |
 | `meta-gateway/` | Restricted egress to allowlisted Meta routes. |
 | `infrastructure/` | Compose for postgres, redis, api, worker, scheduler and proxy; TLS and gateway. |
@@ -24,11 +24,13 @@ Current working map. Read the [conventions](../../../AGENTS.md), check [verified
 ## Flows and invariants
 
 - Explicit capture/publication/import → BYTEA original → processing → persisted evidence and translations. Queries do not register new evidence.
-- R2/S3 is an account-private source; imports retain a RealityOS copy. Disconnecting keeps existing posts.
+- R2/S3 is an account-private source. Changing or disconnecting it retires proven imported and shared copies; remote objects remain untouched.
 - Authorize every resource again when querying or downloading it. Groups do not receive the creator's bucket keys.
 - Biometrics retains explicit consent and enrollment, separate from object processing. Do not modify protected modules as a side effect.
 - Direct Meta access with configurable gateway fallback; Muse Voice Transcribe for input and ElevenLabs for output. Credentials remain server-side.
 - Local Windows uses `.env.local`, the `realityos-local` Docker project and its own Debug APK. No automatic reuse of production data or keys.
+
+Publications require a work group. First email-account entry requires consent, an avatar and 3–25 private reference photos. Meta biometric references never become publications.
 
 ## Working guides
 

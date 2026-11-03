@@ -34,8 +34,8 @@ configuration and non-code files, or when the graph is unavailable.
   Keep email action pages in the backend. Browser panel and web Display are retired.
 - Keep the restricted Meta egress service in `meta-gateway/`; it must remain an
   allowlisted gateway, never a general-purpose proxy.
-- Store synthetic fixtures only in `simulator/`; never commit credentials or
-  customer media.
+- Store evaluation fixtures only in `simulator/`; licensed stock media must include
+  source/license/hash manifests. Never commit credentials or customer media.
 - Prefer commands exposed by the root `Makefile`. Before handoff, run the
   smallest relevant formatter, type/lint check, test and build.
 
@@ -120,3 +120,25 @@ Do not create extra APK copies named after versions, dates or individual fixes.
 - Validate gateway route allowlisting, token rejection and multipart forwarding
   before changing gateway deployment behavior.
 - Update `docs/en/project/IMPLEMENTATION_STATUS.md` for incomplete external integrations.
+
+## Owner correction: workspace publication and private enrollment (2026-11-03)
+
+Publications require an existing work group; there is no private publication
+choice. Owners can import their publications into additional groups, with separate
+comments/reactions and shared original bytes. Legacy unassigned posts remain
+owner-only pending assignment; never guess a destination.
+
+The owner explicitly requested email-account biometric onboarding: consent,
+profile image and 3–25 distinct accepted reference photos. Keep references and
+Meta imports private, outside publications, generic media and result thumbnails;
+only the separate avatar can be displayed. Preserve the isolated local Debug
+exception. The new `backend/app/face_setup.py` belongs to the protected biometric
+arm alongside `faces.py`; changes remain explicitly authorized only.
+
+Changing/disconnecting a bucket retires its proven imported copies and group
+copies; it never deletes external objects. Validate a changed source before
+committing it. Credential-only rotation keeps existing copies. Synchronize the
+selected folder every 15 minutes and prune missing objects only after a complete
+successful scan. Keep immutable provenance for superseded upload attempts.
+
+Owner correction (2026-11-03): only the existing groups are in scope. Workshop and other retired groups were discarded and removed; never recreate their groups, memberships or publications during demo refresh.

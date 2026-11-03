@@ -126,10 +126,10 @@ class ProfileHeaderTest {
         val store = RealityExperienceStore(androidx.test.core.app.ApplicationProvider.getApplicationContext())
         store.clearForTesting()
         compose.setContent {
-            MaterialTheme { com.luxisoft.realityos.host.DrawerLanguageSelector(store) { throw java.io.IOException("offline") } }
+            MaterialTheme { NoticeLayer { com.luxisoft.realityos.host.DrawerLanguageSelector(store) { throw java.io.IOException("offline") } } }
         }
         compose.onNodeWithText("ES").performClick()
-        compose.onNodeWithTag("language-save-error").assertIsDisplayed()
+        compose.onNodeWithTag("app-notice").assertIsDisplayed()
         compose.runOnIdle { assertEquals(RealityLanguage.ENGLISH, store.selectedLanguage()) }
     }
 

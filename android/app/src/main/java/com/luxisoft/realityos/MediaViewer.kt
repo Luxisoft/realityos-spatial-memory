@@ -42,8 +42,11 @@ internal fun DefaultViewerVideo(mediaUrl: String, authToken: String?, startPosit
     val context = LocalContext.current
     val token = authToken.orEmpty()
     var speeded by remember { mutableStateOf(false) }
-    var buffering by remember { mutableStateOf(true) }
-    val player = remember(mediaUrl, token) {
+    var buffering by remember(mediaUrl) { mutableStateOf(true) }
+    var firstFrame by remember(mediaUrl) { mutableStateOf(false) }
+    var videoError by remember(mediaUrl) { mutableStateOf(false) }
+    var attempt by remember(mediaUrl) { mutableIntStateOf(0) }
+    val player = remember(mediaUrl, token, attempt) {
         val dataSource = androidx.media3.datasource.DefaultHttpDataSource.Factory()
             .setDefaultRequestProperties(mapOf("Authorization" to "Bearer $token"))
         val source = androidx.media3.exoplayer.source.ProgressiveMediaSource.Factory(dataSource)
@@ -51,19 +54,33 @@ internal fun DefaultViewerVideo(mediaUrl: String, authToken: String?, startPosit
         androidx.media3.exoplayer.ExoPlayer.Builder(context).build().apply {
             setMediaSource(source)
             repeatMode = androidx.media3.common.Player.REPEAT_MODE_ONE
-            prepare()
-            seekTo(startPositionMs)
             playWhenReady = true
         }
     }
     DisposableEffect(player) {
         val listener = object : androidx.media3.common.Player.Listener {
             override fun onPlaybackStateChanged(state: Int) {
-                buffering = state == androidx.media3.common.Player.STATE_BUFFERING
+                buffering = state == androidx.media3.common.Player.STATE_BUFFERING || (!firstFrame && state != androidx.media3.common.Player.STATE_ENDED)
+            }
+            override fun onRenderedFirstFrame() {
+                firstFrame = true
+                buffering = false
+            }
+            override fun onPlayerError(error: androidx.media3.common.PlaybackException) {
+                buffering = false
+                videoError = true
             }
         }
+        buffering = true
+        firstFrame = false
+        videoError = false
         player.addListener(listener)
-        onDispose { player.release() }
+        player.prepare()
+        player.seekTo(startPositionMs)
+        onDispose {
+            player.removeListener(listener)
+            player.release()
+        }
     }
     Box(Modifier.fillMaxSize()) {
         AndroidView(
@@ -90,7 +107,13 @@ internal fun DefaultViewerVideo(mediaUrl: String, authToken: String?, startPosit
             update = { it.player = player },
             modifier = Modifier.fillMaxSize()
         )
-        if (buffering) SkeletonBlock(Modifier.matchParentSize())
+        if (buffering && !videoError) Box(Modifier.matchParentSize(), contentAlignment = Alignment.Center) { CircularProgressIndicator() }
+        if (videoError) {
+            Column(Modifier.align(Alignment.Center), horizontalAlignment = Alignment.CenterHorizontally) {
+                Text(stringResource(R.string.media_load_failed), color = Color.White)
+                Button(onClick = { attempt++ }) { Text(stringResource(R.string.ui_retry)) }
+            }
+        }
         if (speeded && !buffering) {
             Surface(
                 shape = RoundedCornerShape(50),
@@ -123,8 +146,8 @@ internal fun MediaViewerScreen(
     onCommentClick: (String) -> Unit = {},
     topActions: @Composable RowScope.() -> Unit = {},
     beforeNotes: @Composable () -> Unit = {},
-    informationInitiallyExpanded: Boolean = false,
-    reserveInformationSpace: Boolean = false,
+    informationInitiallyExpanded: Boolean = true,
+    reserveInformationSpace: Boolean = true,
     informationHeader: (@Composable RowScope.() -> Unit)? = null,
     informationBody: (@Composable () -> Unit)? = null,
     onZoomChange: (Boolean) -> Unit = {},
@@ -143,8 +166,9 @@ internal fun MediaViewerScreen(
     var imageSize by remember(mediaUrl) { mutableStateOf(IntSize.Zero) }
     var viewport by remember { mutableStateOf(IntSize.Zero) }
 
-    val fullImageRequest = remember(context, mediaUrl, authToken) {
-        coil.request.ImageRequest.Builder(context).data(mediaUrl)
+    var imageAttempt by remember(mediaUrl) { mutableIntStateOf(0) }
+    val fullImageRequest = remember(context, mediaUrl, authToken, imageAttempt) {
+        coil.request.ImageRequest.Builder(context).data(mediaUrl).setParameter("retry", imageAttempt)
             .apply { authToken?.let { addHeader("Authorization", "Bearer $it") } }.build()
     }
     val backdropRequest = remember(context, backdrop, authToken) {
@@ -213,12 +237,15 @@ internal fun MediaViewerScreen(
                         },
                         loading = {
                             Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                                SkeletonBlock(Modifier.fillMaxSize())
+                                CircularProgressIndicator()
                             }
                         },
                         error = {
                             Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                                Icon(Icons.Filled.BrokenImage, contentDescription = stringResource(R.string.evidence_image_error), tint = Color.White.copy(alpha = 0.6f), modifier = Modifier.size(64.dp))
+                                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                    Icon(Icons.Filled.BrokenImage, contentDescription = stringResource(R.string.evidence_image_error), tint = Color.White.copy(alpha = 0.6f), modifier = Modifier.size(64.dp))
+                                    Button(onClick = { imageAttempt++ }) { Text(stringResource(R.string.ui_retry)) }
+                                }
                             }
                         }
                     )
@@ -238,7 +265,7 @@ internal fun MediaViewerScreen(
         }
         Box(
             Modifier.align(Alignment.BottomCenter).fillMaxWidth()
-                .then(if (reserveInformationSpace) Modifier.heightIn(max = informationMaxHeight).onSizeChanged { informationHeight = it.height } else Modifier)
+                .heightIn(max = informationMaxHeight).onSizeChanged { informationHeight = it.height }
                 .windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Bottom + WindowInsetsSides.Horizontal))
                 .clip(RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp))
                 .then(if (informationHeader == null) Modifier.clickable { expanded = !expanded } else Modifier)
@@ -250,7 +277,7 @@ internal fun MediaViewerScreen(
                 modifier = Modifier.matchParentSize().blur(28.dp)
             )
             Box(Modifier.matchParentSize().background(Color.Black.copy(alpha = 0.62f)))
-            Column(Modifier.fillMaxWidth().then(if (reserveInformationSpace) Modifier.verticalScroll(rememberScrollState()) else Modifier).padding(horizontal = 16.dp, vertical = 12.dp)) {
+            Column(Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).padding(horizontal = 16.dp, vertical = 12.dp)) {
                 beforeNotes()
                 Row(
                     modifier = Modifier.fillMaxWidth().then(if (informationHeader != null) Modifier.clickable { expanded = !expanded } else Modifier),

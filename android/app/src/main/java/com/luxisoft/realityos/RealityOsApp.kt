@@ -14,6 +14,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -107,33 +108,37 @@ fun RealityOsApp(
     }
 
     RealityOsTheme {
-        if (showWelcome) {
-            RealityWelcome(
-                replay = replayingWelcome,
-                onFinish = {
-                    if (!replayingWelcome) experienceStore.completeWelcome()
-                    showWelcome = false
-                    replayingWelcome = false
-                }
-            )
-        } else if (!SocialSession.active) {
-            SocialGallery(viewModel, onWelcome = {
-                replayingWelcome = true
-                showWelcome = true
-            })
-        } else {
-            RealityHostShell(
-                state = state,
-                experienceStore = experienceStore,
-                viewModel = viewModel,
-                onRegisterWithMeta = onRegisterWithMeta,
-                onConnectDisplay = onConnectDisplay,
-                onDisconnectDisplay = onDisconnectDisplay,
-                onReplayWelcome = {
+        NoticeLayer {
+            if (showWelcome) {
+                RealityWelcome(
+                    replay = replayingWelcome,
+                    onFinish = {
+                        if (!replayingWelcome) experienceStore.completeWelcome()
+                        showWelcome = false
+                        replayingWelcome = false
+                    }
+                )
+            } else if (!SocialSession.active) {
+                SocialGallery(viewModel, onWelcome = {
                     replayingWelcome = true
                     showWelcome = true
+                })
+            } else {
+                AccountBiometricGate {
+                    RealityHostShell(
+                        state = state,
+                        experienceStore = experienceStore,
+                        viewModel = viewModel,
+                        onRegisterWithMeta = onRegisterWithMeta,
+                        onConnectDisplay = onConnectDisplay,
+                        onDisconnectDisplay = onDisconnectDisplay,
+                        onReplayWelcome = {
+                            replayingWelcome = true
+                            showWelcome = true
+                        }
+                    )
                 }
-            )
+            }
         }
     }
 }
@@ -151,7 +156,6 @@ private fun RealityHostShell(
 ) {
     val drawerState = rememberDrawerState(initialValue = androidx.compose.material3.DrawerValue.Closed)
     val scope = rememberCoroutineScope()
-    val snackbarHostState = remember { SnackbarHostState() }
     var selectedName by rememberSaveable { mutableStateOf(HostDestination.PROFILE.name) }
     val selected = remember(selectedName) { HostDestination.entries.firstOrNull { it.name == selectedName } ?: HostDestination.PROFILE }
     // The host gallery is always work: starting here avoids flashing another feed first.
@@ -164,6 +168,7 @@ private fun RealityHostShell(
     var profileEditOpen by rememberSaveable { mutableStateOf(false) }
     var groupAdminOpen by rememberSaveable { mutableStateOf(false) }
     var showSearchSheet by rememberSaveable { mutableStateOf(false) }
+    var showConnections by rememberSaveable { mutableStateOf(false) }
     val chatMessages = remember { mutableStateListOf<ChatMessage>() }
     LaunchedEffect(SocialSession.active) {
         // History belongs to one profile: drop it on login/logout switches.
@@ -274,15 +279,21 @@ private fun RealityHostShell(
     }
     LaunchedEffect(state.message, state.virtualProfileError) {
         val message = state.virtualProfileError ?: state.message
-        if (message.isNotBlank()) snackbarHostState.showSnackbar(message)
+        if (message.isNotBlank()) AppNotices.show(message, if (state.virtualProfileError != null) NoticeKind.ERROR else NoticeKind.INFO)
     }
 
     ModalNavigationDrawer(
         drawerState = drawerState,
-        gesturesEnabled = !previewControlsOpen && !mediaViewerOpen && selected == HostDestination.PROFILE,
+        gesturesEnabled = drawerState.isOpen || (!previewControlsOpen && !mediaViewerOpen && selected == HostDestination.PROFILE),
         drawerContent = {
             RealityDrawer(
                 experienceStore = experienceStore,
+                onConnections = {
+                    scope.launch {
+                        drawerState.close()
+                        showConnections = true
+                    }
+                },
                 onAbout = {
                     scope.launch { drawerState.close() }
                     onReplayWelcome()
@@ -332,7 +343,7 @@ private fun RealityHostShell(
                 },
                 bottomBar = {
                     AnimatedVisibility(
-                        visible = !mediaViewerOpen && (phoneCaptureActive || bottomBarVisible),
+                        visible = !mediaViewerOpen && !showSearchSheet && !showConnections && (phoneCaptureActive || bottomBarVisible),
                         enter = slideInVertically { fullHeight -> fullHeight },
                         exit = slideOutVertically { fullHeight -> fullHeight }
                     ) {
@@ -348,12 +359,13 @@ private fun RealityHostShell(
                         )
                     }
                 },
-                snackbarHost = { SnackbarHost(snackbarHostState) }
+                snackbarHost = {}
             ) { contentPadding ->
                 Box(
                     Modifier
                         .fillMaxSize()
                         .padding(contentPadding)
+                        .consumeWindowInsets(contentPadding)
                         .nestedScroll(bottomBarScrollConnection)
                         .drawerEdgeOpen(
                             enabled = !previewControlsOpen && !mediaViewerOpen && !drawerState.isOpen && selected == HostDestination.PROFILE,
@@ -400,58 +412,16 @@ private fun RealityHostShell(
                             }
                         }
                     }
-                    if (showSearchSheet) {
-                        BackHandler { showSearchSheet = false }
-                        var searchPanelVisible by remember { mutableStateOf(false) }
-                        LaunchedEffect(Unit) { searchPanelVisible = true }
-                        fun closeSearch() {
-                            scope.launch {
-                                searchPanelVisible = false
-                                delay(220)
-                                showSearchSheet = false
-                            }
-                        }
-                        // Custom bottom panel instead of ModalBottomSheet: its height
-                        // behavior ignored every 90% cap, so the cap is structural now.
-                        Box(Modifier.fillMaxSize()) {
-                            Box(
-                                Modifier.fillMaxSize()
-                                    .background(Color.Black.copy(alpha = 0.45f))
-                                    .clickable(
-                                        role = Role.Button,
-                                        onClickLabel = localizedText(R.string.ui_close_search),
-                                        onClick = ::closeSearch
-                                    )
-                            )
-                            AnimatedVisibility(
-                                visible = searchPanelVisible,
-                                enter = slideInVertically { it },
-                                exit = slideOutVertically { it },
-                                modifier = Modifier.align(Alignment.BottomCenter)
-                            ) {
-                                Surface(
-                                    modifier = Modifier.fillMaxWidth().fillMaxHeight(0.9f).imePadding(),
-                                    shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
-                                    tonalElevation = 4.dp
-                                ) {
-                                    Column(Modifier.fillMaxSize()) {
-                                        Box(
-                                            Modifier.align(Alignment.CenterHorizontally)
-                                                .padding(top = 12.dp, bottom = 4.dp)
-                                                .size(width = 32.dp, height = 4.dp)
-                                                .background(
-                                                    MaterialTheme.colorScheme.onSurfaceVariant,
-                                                    CircleShape
-                                                )
-                                        )
-                                        Box(Modifier.weight(1f).fillMaxWidth()) {
-                                            UnifiedSearch(chatMessages, viewModel)
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
+                }
+            }
+            if (showSearchSheet) {
+                RootPanel(onClose = { showSearchSheet = false }) {
+                    UnifiedSearch(chatMessages, viewModel)
+                }
+            }
+            if (showConnections) {
+                RootPanel(onClose = { showConnections = false }) {
+                    StorageConnectionsScreen { showConnections = false }
                 }
             }
             PreviewControlsOverlay(visible = previewControlsOpen, onDismiss = { previewControlsOpen = false }) {

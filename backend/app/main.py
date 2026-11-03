@@ -52,6 +52,9 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     from app.faces import router as faces_router
 
     app.include_router(faces_router, prefix=runtime_settings.api_prefix)
+    from app.face_setup import router as face_setup_router
+
+    app.include_router(face_setup_router, prefix=runtime_settings.api_prefix)
 
     @app.get("/health/live", tags=["system"])
     async def live() -> dict[str, str]:

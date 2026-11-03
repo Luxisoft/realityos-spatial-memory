@@ -275,7 +275,7 @@ internal fun RealityViewModel.executeFaceQuery(photo: ByteArray) {
                 (0 until array.length()).mapNotNull {
                     val match = array.optJSONObject(it) ?: return@mapNotNull null
                     decodeFaceThumb(match)?.copy(
-                        faceEnrollmentId = faceMatchEnrollmentId(match),
+                        faceEnrollmentId = match.optString("user_id"),
                         probeBox = faceMatchProbeBox(match)
                     )
                 }

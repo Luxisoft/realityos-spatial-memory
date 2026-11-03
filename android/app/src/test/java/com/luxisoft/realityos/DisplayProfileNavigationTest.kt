@@ -17,6 +17,7 @@ class DisplayProfileNavigationTest {
     @Test fun matchKeepsInternalUserIdForNativeProfileInsteadOfFacebookUrl() {
         val match = JSONObject().put("user_id", first).put("display_name", "Ana")
             .put("profile_link", "https://facebook.com/example")
+            .put("picture_url", "/v1/profiles/$first/avatar")
             .put("evidence", JSONObject().put("thumbnail_url", "/v1/faces/enrollments/example/thumbnail"))
         assertEquals(first, decodeFaceThumb(match)?.profileUserId)
         match.put("user_id", JSONObject.NULL)

@@ -64,12 +64,11 @@ internal class MetaDisplayController(private val vm: RealityViewModel) {
             try {
                 val groups = withContext(Dispatchers.IO) { JSONArray(SocialSession.request("workspaces")) }
                 if (subject() != current) return@launch
-                val options = listOf(MetaDestination("home", vm.copy(R.string.meta_profile_private), "home")) +
-                    (0 until groups.length()).map { groups.getJSONObject(it) }.filter { !it.getString("name").startsWith("home:") }.map {
-                        MetaDestination(it.optText("workspace_id") ?: it.getString("id"), it.getString("name"), "work")
-                    }
+                val options = (0 until groups.length()).map { groups.getJSONObject(it) }.filter { !it.getString("name").startsWith("home:") }.map {
+                    MetaDestination(it.optText("workspace_id") ?: it.getString("id"), it.getString("name"), "work")
+                }
                 val saved = preferences.getString("$current.destination", null)
-                update { it.copy(destinations = options, destination = options.find { d -> d.id == saved }) }
+                update { it.copy(destinations = options, destination = options.find { d -> d.id == SocialSession.workWorkspaceId } ?: options.find { d -> d.id == saved } ?: options.singleOrNull()) }
                 restore(current)
             } catch (error: Exception) {
                 if (error is CancellationException) throw error
@@ -95,9 +94,9 @@ internal class MetaDisplayController(private val vm: RealityViewModel) {
         vm.viewModelScope.launch(Dispatchers.Main.immediate) {
             if (!requireAccount()) return@launch
             if (!canOpenCamera()) return@launch
-            val profile = MetaDisplayPolicy.profileDestination(meta.destinations)
+            val profile = MetaDisplayPolicy.publicationDestination(meta.destinations, SocialSession.workWorkspaceId)
             if (profile == null) {
-                vm.renderNotice(vm.copy(R.string.meta_profile_required))
+                vm.renderNotice(vm.copy(R.string.publish_needs_group))
                 return@launch
             }
             target = profile
@@ -201,6 +200,10 @@ internal class MetaDisplayController(private val vm: RealityViewModel) {
     private fun save() {
         val file = pending ?: return
         val destination = target ?: return
+        if (destination.audience != "work") {
+            update { it.copy(error = vm.copy(R.string.publish_needs_group)) }
+            return
+        }
         val value = JSONObject().put("file", file.name).put("key", key).put("upload", uploadId)
             .put("mime", meta.pendingMime).put("target", destination.id)
             .put("name", destination.name).put("audience", destination.audience)
@@ -237,6 +240,10 @@ internal class MetaDisplayController(private val vm: RealityViewModel) {
         if (job?.isActive == true || vm.state.value.busy || !authenticated()) return
         val file = pending ?: return
         val destination = target ?: return
+        if (destination.audience != "work") {
+            update { it.copy(error = vm.copy(R.string.publish_needs_group)) }
+            return
+        }
         val current = owner
         val revision = generation.revision
         job = vm.viewModelScope.launch {

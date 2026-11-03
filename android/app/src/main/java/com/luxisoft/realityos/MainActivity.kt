@@ -43,7 +43,7 @@ class MainActivity : AppCompatActivity() {
             this, lifecycleScope, { viewModel.state.value.provisioning },
             viewModel::onSpeechStarted, viewModel::onSpeechDone,
             ::speakWithDeviceVoice,
-            { android.widget.Toast.makeText(this, getString(R.string.voice_device_fallback), android.widget.Toast.LENGTH_SHORT).show() },
+            { AppNotices.show(getString(R.string.voice_device_fallback), NoticeKind.WARNING) },
         )
     }
     private val phoneCaptureSource by lazy { CameraXPhoneCaptureSource(this, this) }
@@ -220,7 +220,7 @@ class MainActivity : AppCompatActivity() {
         }
         val locale = Locale.forLanguageTag(selected)
         if (speech.isLanguageAvailable(locale) < TextToSpeech.LANG_AVAILABLE) {
-            android.widget.Toast.makeText(this, localizedText(R.string.voice_language_unavailable), android.widget.Toast.LENGTH_LONG).show()
+            AppNotices.show(localizedText(R.string.voice_language_unavailable), NoticeKind.WARNING)
             viewModel.onSpeechDone()
             return
         }

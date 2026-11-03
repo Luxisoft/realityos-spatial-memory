@@ -524,4 +524,26 @@
     <string name="profile_choose_media">Elegir foto o video</string>
     <string name="profile_play_video">Reproducir video</string>
     <string name="profile_simulated_media">Simulado</string>
+    <string name="notice_error">Error</string>
+    <string name="notice_warning">Advertencia</string>
+    <string name="notice_success">Listo</string>
+    <string name="notice_information">Información</string>
+    <string name="media_load_failed">No se pudo cargar este video.</string>
+    <string name="biometric_setup_title">Configura tu perfil de reconocimiento</string>
+    <string name="biometric_setup_body">Solo tu avatar es visible. Tus fotos de referencia permanecen privadas y nunca se publican. Añade una foto de perfil y al menos 3 fotos diferentes de tu rostro; puedes añadir hasta 25.</string>
+    <string name="biometric_profile_ready">Foto de perfil lista</string>
+    <string name="biometric_profile_needed">Añade primero tu foto de perfil</string>
+    <string name="biometric_choose_profile">Elegir foto de perfil</string>
+    <string name="biometric_choose_references">Añadir fotos de referencia</string>
+    <string name="biometric_reference_count">%1$d de 25 fotos de referencia · mínimo 3</string>
+    <string name="biometric_complete">Completar registro</string>
+    <string name="import_existing_publications">Importar publicaciones existentes</string>
+    <string name="share_group_invitation">Únete a mi grupo de RealityOS con este código: %1$s</string>
+    <string name="share_invitation">Compartir</string>
+    <string name="publish_needs_group">Crea un grupo de trabajo o únete a uno para publicar.</string>
+    <string name="biometric_private_references">Tus referencias biométricas son privadas. Solo se muestra tu avatar.</string>
+    <string name="ui_copied">Copiado</string>
+    <string name="ui_copy">Copiar</string>
+    <string name="biometric_reset_references">Volver a elegir fotos de referencia</string>
+    <string name="biometric_reset_body">Se eliminarán las fotos de referencia guardadas para esta cuenta. Después podrás subir un conjunto nuevo.</string>
 </resources>

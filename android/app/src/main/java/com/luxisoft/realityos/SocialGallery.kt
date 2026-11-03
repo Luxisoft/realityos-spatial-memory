@@ -108,6 +108,7 @@ internal object SocialSession {
             ?.putString("workspace", workspaceId)?.putBoolean("guest", isGuest)?.apply()
     }
     fun clear() {
+        AppNotices.pending.value = emptyList()
         active = false; token = null; refreshToken = null; workspaceId = null; isGuest = false
         workWorkspaceId = null
         profilePictureUrl = null
@@ -271,11 +272,13 @@ fun SocialGallery(
     val scope = rememberCoroutineScope()
     var authenticated by remember { mutableStateOf(SocialSession.token != null) }
     var loginBusy by remember { mutableStateOf(false) }
+    var showImport by remember { mutableStateOf(false) }
     var showRecords by remember { mutableStateOf(false) }
     var groupId by remember { mutableStateOf<String?>(null) }
     var posts by remember(audience, groupId) { mutableStateOf<List<JSONObject>>(emptyList()) }
     var error by remember { mutableStateOf("") }
     var loading by remember { mutableStateOf(false) }
+    var pageFailed by remember { mutableStateOf(false) }
     var pageLoaded by remember(audience, groupId) { mutableStateOf(false) }
     var groupsLoading by remember { mutableStateOf(true) }
     var commentsLoading by remember { mutableStateOf(false) }
@@ -403,17 +406,20 @@ fun SocialGallery(
         } }
     }
     galleryBar?.let { bar ->
+        bar.onCreate = { groupText = ""; groupPin = ""; groupDialog = "create" }
+        bar.onRecords = { showRecords = true }
+        bar.onImport = { showImport = true }
         bar.loading = groupsLoading
         bar.options = if (authenticated && audience == "work") {
             groups.map { WorkspaceOption(it.optString("id"), it.optString("name"), it.optString("role")) }
         } else emptyList()
         bar.selectedId = groupId
-        bar.publishEnabled = !loading && !publishing && !groupsLoading
+        bar.publishEnabled = !loading && !publishing && !groupsLoading && groups.isNotEmpty()
         val currentGroup = groups.firstOrNull { it.optString("id") == groupId }
         val iCanInvite = currentGroup != null && GroupAdminPolicy.canInvite(currentGroup.optString("role"), currentGroup.optBoolean("can_invite"))
         bar.showInvite = groupId != null && iCanInvite
         bar.showAdmin = groupId != null && iCanInvite
-        bar.onSelect = { groupId = it; SocialSession.workWorkspaceId = it }
+        bar.onSelect = { groupId = it; SocialSession.workWorkspaceId = it; posts = emptyList(); pageLoaded = false; offset = 0; endReached = false }
         bar.onPublish = {
             if (groupId == null) error = localizedText(R.string.ui_select_a_workspace_to_publish)
             else workPublishMenu = true
@@ -519,6 +525,7 @@ fun SocialGallery(
         if (!authenticated) return@LaunchedEffect
         if (offset != 0 && endReached) return@LaunchedEffect
         loading = true
+        pageFailed = false
         error = ""
         try {
             val result = withContext(Dispatchers.IO) { JSONArray(SocialSession.request("gallery?audience=$audience&offset=$offset" + if (audience == "work" && groupId != null) "&workspace_id=$groupId" else "")) }
@@ -526,7 +533,7 @@ fun SocialGallery(
             posts = if (offset == 0) page else (posts + page).distinctBy { it.getString("id") }
             endReached = GalleryPagingPolicy.isEndOfContent(page.size)
             liked = posts.filter { it.optBoolean("liked") }.map { it.getString("id") }.toSet()
-        } catch (e: Exception) { if (e is kotlinx.coroutines.CancellationException) throw e; error = e.message.orEmpty() }
+        } catch (e: Exception) { if (e is kotlinx.coroutines.CancellationException) throw e; pageFailed = true; error = e.message.orEmpty() }
         finally { loading = false; pageLoaded = true }
     }
     LaunchedEffect(authenticated, audience, revision) {
@@ -548,23 +555,18 @@ fun SocialGallery(
         return
     }
     Column(Modifier.fillMaxSize()) {
-        if (audience == "work" && groupId != null) {
-            TextButton(onClick = { showRecords = true }, modifier = Modifier.fillMaxWidth()) { Text(stringResource(R.string.records_title)) }
-        }
+
         if (moderator && audience == "public") Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
             IconButton(onClick = { showAdministration = true }) { Icon(Icons.Filled.Flag, contentDescription = localizedText(R.string.ui_review_reports)) }
         }
-        if (error.isNotEmpty()) {
-            Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
-                Text(error, color = MaterialTheme.colorScheme.error, modifier = Modifier.weight(1f))
-                IconButton(onClick = { error = "" }) { Icon(Icons.Filled.Close, contentDescription = localizedText(R.string.ui_dismiss_notice)) }
-            }
-        }
+        NoticeEffect(error, { error = "" })
         if (publishing) LinearProgressIndicator(Modifier.fillMaxWidth())
         if (posts.isEmpty() && (loading || !pageLoaded) && error.isBlank()) {
             LazyVerticalGrid(columns = GridCells.Fixed(3), modifier = Modifier.weight(1f)) {
                 items(9) { SkeletonBlock(Modifier.padding(1.dp).aspectRatio(0.75f)) }
             }
+        } else if (pageFailed && posts.isEmpty()) {
+            TextButton(onClick = { revision++ }) { Text(localizedText(R.string.ui_retry)) }
         } else if (authenticated && posts.isEmpty() && !loading && pageLoaded && error.isBlank()) {
             Box(Modifier.fillMaxWidth().weight(1f), contentAlignment = Alignment.Center) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -581,7 +583,7 @@ fun SocialGallery(
             }
         } else {
             LazyVerticalGrid(columns = GridCells.Fixed(3), modifier = Modifier.weight(1f)) {
-                items(posts.filter { audience != "work" || groupId == null || it.optString("workspace_id") == groupId }) { post ->
+                items(posts.filter { audience != "work" || groupId == null || it.optString("workspace_id") == groupId }, key = { it.getString("id") }) { post ->
                     Box(Modifier.padding(1.dp).aspectRatio(0.75f).clickable { selected = post }) {
                         DatabaseImage(
                             model = profileImageRequest(context, post.getString("thumbnail_url")),
@@ -594,7 +596,7 @@ fun SocialGallery(
                 if (authenticated && posts.isNotEmpty()) item(span = { GridItemSpan(maxLineSpan) }) {
                     val loadMore = GalleryPagingPolicy.shouldLoadMore(loading, endReached)
                     Box(Modifier.fillMaxWidth().heightIn(min = 56.dp), contentAlignment = Alignment.Center) {
-                        if (loading) SkeletonGrid(rows = 1)
+                        if (loading) CircularProgressIndicator(Modifier.size(24.dp))
                         else if (!loadMore) Text(
                             localizedText(R.string.ui_no_more_publications),
                             style = MaterialTheme.typography.labelMedium,
@@ -633,7 +635,7 @@ fun SocialGallery(
                 post.optString("published_at").substringBefore("T").let { if (it.isNotBlank()) localizedText(R.string.ui_published_on_1_s, it) else "" },
             ),
             commentsLoading = commentsLoading,
-            comments = comments.takeLast(5).map { ViewerComment(it.getString("id"), it.getString("text")) },
+            comments = comments.map { ViewerComment(it.getString("id"), it.getString("text")) },
             onCommentClick = { reply = it; interaction = "comment" },
             topActions = {
                 IconButton(onClick = { interaction = if (likedNow) "unlike" else "like" }) {
@@ -722,7 +724,7 @@ fun SocialGallery(
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     if (action == "invite" && error.isNotBlank()) {
-                        Text(error, color = MaterialTheme.colorScheme.error)
+                        NoticeEffect(error, {})
                     } else if (action == "invite" && inviteLoading) {
                         SkeletonLines(rows = 3)
                     } else if (action == "created") {
@@ -736,21 +738,43 @@ fun SocialGallery(
                     }
                 }
             },
-            confirmButton = { TextButton(onClick = {
+            confirmButton = {
+                if ((action == "invite" && !inviteLoading && groupText.isNotBlank()) || action == "created") {
+                    TextButton(onClick = {
+                        val code = if (action == "created") groupPin else groupText
+                        val clipboard = context.getSystemService(android.content.Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
+                        clipboard.setPrimaryClip(android.content.ClipData.newPlainText("RealityOS", code))
+                        AppNotices.show(localizedText(R.string.ui_copied), NoticeKind.SUCCESS)
+                    }) { Icon(Icons.Default.ContentCopy, localizedText(R.string.ui_copy)) }
+                    TextButton(onClick = {
+                        val code = if (action == "created") groupPin else groupText
+                        context.startActivity(android.content.Intent.createChooser(android.content.Intent(android.content.Intent.ACTION_SEND).apply {
+                            type = "text/plain"
+                            putExtra(android.content.Intent.EXTRA_TEXT, localizedText(R.string.share_group_invitation, code))
+                        }, localizedText(R.string.ui_invite)))
+                    }) { Text(localizedText(R.string.share_invitation)) }
+                }
+                TextButton(onClick = {
                 if (action == "invite" || action == "created") groupDialog = null else runRequest {
                     if (action == "create") {
                         val created = withContext(Dispatchers.IO) { JSONObject(SocialSession.request("groups", JSONObject().put("name", groupText))) }
+                        groupId = created.getString("id")
+                        SocialSession.workWorkspaceId = groupId
+                        showImport = true
                         groupPin = created.optString("join_pin")
                         groupText = ""
                         groupDialog = "created"
                     } else {
                         val route = GroupJoinPolicy.route(groupText)
-                        withContext(Dispatchers.IO) {
-                            SocialSession.request(
+                        val joined = withContext(Dispatchers.IO) {
+                            JSONObject(SocialSession.request(
                                 if (route == GroupJoinPolicy.Route.PIN) "groups/join-by-pin" else "groups/join",
                                 JSONObject().put(if (route == GroupJoinPolicy.Route.PIN) "pin" else "code", groupText),
-                            )
+                            ))
                         }
+                        groupId = joined.optString("workspace_id").ifBlank { joined.optString("id") }
+                        SocialSession.workWorkspaceId = groupId
+                        showImport = true
                         groupDialog = null; groupText = ""
                     }
                     val result = withContext(Dispatchers.IO) { JSONArray(SocialSession.request("workspaces")) }
@@ -772,9 +796,11 @@ fun SocialGallery(
     }
     LaunchedEffect(showAdministration) { onAdminDrawerChange(showAdministration) }
     DisposableEffect(Unit) { onDispose { onAdminDrawerChange(false) } }
+    if (showImport && groupId != null && groupDialog == null) GroupPublicationPicker(groupId!!, onClose = { showImport = false }, onImported = { revision++ })
     if (showAdministration) SocialAdministration(
         if (audience == "work") groupId else null,
-        onDismiss = { showAdministration = false; offset = 0; endReached = false; revision++ },
+        onDismiss = { showAdministration = false },
+        onChanged = { revision++ },
         onGroupDeleted = { groupId = null; showAdministration = false; offset = 0; endReached = false; revision++ },
     )
 }

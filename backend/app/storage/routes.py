@@ -50,7 +50,18 @@ router = APIRouter(
 def connection_json(row):
     return {
         k: getattr(row, k)
-        for k in ("id", "name", "provider", "endpoint", "bucket", "region", "prefix", "active")
+        for k in (
+            "id",
+            "name",
+            "provider",
+            "endpoint",
+            "bucket",
+            "region",
+            "prefix",
+            "active",
+            "workspace_id",
+            "revision",
+        )
     }
 
 
@@ -82,16 +93,54 @@ def connections(user=Depends(get_current_user), db=Depends(get_db)):
     ]
 
 
+def selected_workspace(db, user, requested, previous=None):
+    from app.models import Workspace, WorkspaceMember
+    from app.social_features.uploads import check_destination
+
+    target = requested or previous
+    if target is None:
+        options = list(
+            db.scalars(
+                select(Workspace.id)
+                .join(WorkspaceMember)
+                .where(WorkspaceMember.user_id == user.id, ~Workspace.name.startswith("home:"))
+            )
+        )
+        if len(options) == 1:
+            target = options[0]
+    check_destination(db, user, "work", target)
+    return target
+
+
+def enable_default_sync(db, row):
+    rule = StorageSync(
+        connection_id=row.id,
+        prefix=row.prefix,
+        audience="work",
+        workspace_id=row.workspace_id,
+        interval_minutes=15,
+        enabled=True,
+        next_run=now(),
+        seen_keys=[],
+    )
+    db.add(rule)
+    db.flush()
+    return rule
+
+
 @router.post("", status_code=201)
 def create(
     payload: ConnectionInput, request: Request, user=Depends(get_current_user), db=Depends(get_db)
 ):
     if user.is_guest:
         raise HTTPException(403, "Sign in to connect storage.")
-    row = StorageConnection(owner_id=user.id)
+    target = selected_workspace(db, user, payload.workspace_id)
+    row = StorageConnection(owner_id=user.id, workspace_id=target, revision=1)
     configure(row, payload, request.app.state.settings)
+    BucketClient(row, request.app.state.settings).objects()
     db.add(row)
     db.flush()
+    enable_default_sync(db, row)
     return connection_json(row)
 
 
@@ -103,38 +152,36 @@ def update(
     user=Depends(get_current_user),
     db=Depends(get_db),
 ):
+    from app.storage.lifecycle import retire_connection
+
     row = owned(db, connection_id, user)
     db.refresh(row, with_for_update=True)
-    # Changing a source would make existing sync provenance ambiguous; reconnect it instead.
-    if (
-        payload.endpoint.rstrip("/"),
-        payload.bucket,
-        payload.prefix,
-        payload.region,
-        payload.provider,
-    ) != (row.endpoint.rstrip("/"), row.bucket, row.prefix, row.region, row.provider):
-        raise HTTPException(
-            409, "Create another connection to change bucket, endpoint, region or folder."
-        )
+    target = selected_workspace(db, user, payload.workspace_id, row.workspace_id)
+    identity = ("provider", "endpoint", "bucket", "region", "prefix")
+    changed = any(getattr(payload, k).rstrip("/") != getattr(row, k).rstrip("/") for k in identity)
+    changed |= target != row.workspace_id
+    # Validate a temporary configuration before retiring anything.
+    trial = StorageConnection(owner_id=user.id, secret=row.secret)
+    configure(trial, payload, request.app.state.settings)
+    BucketClient(trial, request.app.state.settings).objects()
+    if changed:
+        retire_connection(db, row)
     configure(row, payload, request.app.state.settings)
+    row.workspace_id = target
+    if changed:
+        enable_default_sync(db, row)
     return connection_json(row)
 
 
 @router.delete("/{connection_id}")
 def disconnect(connection_id: uuid.UUID, user=Depends(get_current_user), db=Depends(get_db)):
+    from app.storage.lifecycle import retire_connection
+
     row = owned(db, connection_id, user)
     db.refresh(row, with_for_update=True)
-    row.active = False
-    row.secret = ""
-    for rule in db.scalars(select(StorageSync).where(StorageSync.connection_id == row.id)):
-        rule.enabled = False
-    for run in db.scalars(
-        select(StorageImport).where(
-            StorageImport.connection_id == row.id, StorageImport.status == "pending"
-        )
-    ):
-        run.status = "cancelled"
-    return {"status": "disconnected", "imported_copies_retained": True}
+    retire_connection(db, row)
+    row.active, row.secret = False, ""
+    return {"status": "disconnected", "imported_copies_retained": False}
 
 
 @router.post("/{connection_id}/test")
@@ -226,11 +273,15 @@ async def cv(
     from app.social_features.profiles import upload_cv
 
     row = owned(db, connection_id, user)
-    raw, mime, _ = await asyncio.to_thread(
+    revision = row.revision
+    raw, mime, provenance = await asyncio.to_thread(
         BucketClient(row, request.app.state.settings).download, payload.key
     )
+    db.refresh(row, with_for_update=True)
     owned(db, connection_id, user)
-    return await upload_cv(
+    if row.revision != revision:
+        raise HTTPException(409, "The source connection has changed.")
+    result = await upload_cv(
         request,
         UploadFile(
             io.BytesIO(raw),
@@ -240,6 +291,24 @@ async def cv(
         user,
         db,
     )
+    from app.storage.provenance_models import StorageObject
+
+    db.refresh(row, with_for_update=True)
+    owned(db, connection_id, user)
+    if row.revision != revision:
+        raise HTTPException(409, "The source connection has changed.")
+    source = db.scalar(
+        select(StorageObject).where(
+            StorageObject.connection_id == row.id,
+            StorageObject.revision == row.revision,
+            StorageObject.key == "cv:" + payload.key,
+        )
+    )
+    if source is None:
+        source = StorageObject(connection_id=row.id, revision=row.revision, key="cv:" + payload.key)
+        db.add(source)
+    source.sha256, source.retired = provenance["sha256"], False
+    return result
 
 
 @router.post("/{connection_id}/imports", status_code=202)
@@ -252,6 +321,7 @@ def start_import(
 ):
     row = owned(db, connection_id, user)
     db.refresh(row, with_for_update=True)
+    payload = payload.model_copy(update={"workspace_id": payload.workspace_id or row.workspace_id})
     run = create_import(db, row, payload)
     db.commit()
     dispatch(run, request.app.state.settings)
@@ -324,7 +394,19 @@ def create_sync(
     prefix = (payload.prefix.rstrip("/") + "/") if payload.prefix else row.prefix
     if not prefix.startswith(row.prefix):
         raise HTTPException(422, "Folder is outside the connection.")
+    payload = payload.model_copy(update={"workspace_id": payload.workspace_id or row.workspace_id})
     destination(db, row, payload.audience, payload.workspace_id)
+    existing = db.scalar(
+        select(StorageSync).where(
+            StorageSync.connection_id == row.id,
+            StorageSync.prefix == prefix,
+            StorageSync.workspace_id == payload.workspace_id,
+        )
+    )
+    if existing:
+        existing.interval_minutes, existing.enabled = payload.interval_minutes, payload.enabled
+        existing.next_run = now()
+        return {"id": str(existing.id), "enabled": existing.enabled}
     rule = StorageSync(
         connection_id=row.id,
         prefix=prefix,

@@ -120,7 +120,7 @@ private fun WorkspaceRecordsContent(workspaceId: String, canWrite: Boolean, onBa
         }) { Text(stringResource(R.string.account_back)) }
         Text(stringResource(R.string.records_title), style = MaterialTheme.typography.headlineSmall)
         if (busy) LinearProgressIndicator(Modifier.fillMaxWidth())
-        if (message.isNotBlank()) Text(message)
+        NoticeEffect(message, { message = "" })
         val item = selected
         if (item == null) {
             OutlinedTextField(query, { query = it }, Modifier.fillMaxWidth(), singleLine = true, label = { Text(stringResource(R.string.records_search)) })

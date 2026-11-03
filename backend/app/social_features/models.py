@@ -75,10 +75,14 @@ class Publication(TimestampMixin, Base):
     __tablename__ = "publications"
     __table_args__ = (
         UniqueConstraint("owner_id", "source", "source_ref", name="uq_publication_source"),
+        UniqueConstraint("shared_from_id", "workspace_id", name="uq_publication_group_copy"),
         Index("ix_publication_feed", "audience", "published_at", "id"),
     )
     id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
     owner_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id"), index=True)
+    shared_from_id: Mapped[uuid.UUID | None] = mapped_column(
+        ForeignKey("publications.id"), index=True
+    )
     media_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("media_assets.id"))
     audience: Mapped[str] = mapped_column(String(16), default="home", index=True)
     caption: Mapped[str] = mapped_column(Text, default="")

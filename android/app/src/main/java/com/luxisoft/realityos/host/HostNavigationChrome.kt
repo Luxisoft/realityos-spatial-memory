@@ -25,9 +25,13 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.AdminPanelSettings
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.GroupAdd
+import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Logout
 import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.PersonAdd
+import androidx.compose.material.icons.filled.Storage
 import androidx.compose.material.icons.outlined.Language
 import androidx.compose.material.icons.outlined.Memory
 import androidx.compose.material3.DropdownMenu
@@ -145,9 +149,10 @@ internal fun HostTopBar(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = androidx.compose.foundation.layout.Arrangement.End
     ) {
-        if (selected == HostDestination.GALLERY && audience == "work" && (galleryBar.loading || galleryBar.options.isNotEmpty())) {
+        if (selected == HostDestination.GALLERY && audience == "work") {
+            IconButton(onClick = galleryBar.onCreate) { Icon(Icons.Default.GroupAdd, localizedText(R.string.ui_create_group)) }
             var workspaceMenu by remember { mutableStateOf(false) }
-            Box {
+            Box(Modifier.weight(1f)) {
                 TextButton(
                     onClick = { workspaceMenu = true },
                     contentPadding = PaddingValues(horizontal = 8.dp)
@@ -197,17 +202,32 @@ internal fun HostTopBar(
                     }
                 }
             }
+            IconButton(onClick = galleryBar.onRecords, enabled = galleryBar.selectedId != null) {
+                Icon(Icons.Default.History, localizedText(R.string.records_title))
+            }
             IconButton(onClick = galleryBar.onPublish, enabled = !galleryBar.loading && galleryBar.publishEnabled) {
-                Icon(Icons.Filled.Add, contentDescription = localizedText(R.string.ui_publish))
+                Icon(Icons.Default.Add, localizedText(R.string.ui_publish))
             }
-            if (galleryBar.showInvite) {
-                IconButton(onClick = galleryBar.onInvite) {
-                    Icon(Icons.Filled.PersonAdd, contentDescription = localizedText(R.string.ui_invite))
-                }
-            }
-            if (galleryBar.showAdmin) {
-                IconButton(onClick = galleryBar.onAdmin) {
-                    Icon(Icons.Filled.AdminPanelSettings, contentDescription = localizedText(R.string.ui_manage))
+            var more by remember { mutableStateOf(false) }
+            Box {
+                IconButton(onClick = { more = true }) { Icon(Icons.Default.MoreVert, localizedText(R.string.ui_manage)) }
+                DropdownMenu(more, { more = false }) {
+                    DropdownMenuItem(text = { Text(localizedText(R.string.import_existing_publications)) }, enabled = galleryBar.selectedId != null, onClick = {
+                        more = false
+                        galleryBar.onImport()
+                    })
+                    if (galleryBar.showInvite) {
+                        DropdownMenuItem(text = { Text(localizedText(R.string.ui_invite)) }, onClick = {
+                            more = false
+                            galleryBar.onInvite()
+                        })
+                    }
+                    if (galleryBar.showAdmin) {
+                        DropdownMenuItem(text = { Text(localizedText(R.string.ui_manage)) }, onClick = {
+                            more = false
+                            galleryBar.onAdmin()
+                        })
+                    }
                 }
             }
         }
@@ -379,6 +399,7 @@ internal fun RowScope.BottomBarItem(
 internal fun RealityDrawer(
     experienceStore: RealityExperienceStore,
     onAbout: () -> Unit,
+    onConnections: () -> Unit = {},
     onLogout: () -> Unit
 ) {
     ModalDrawerSheet(
@@ -408,7 +429,13 @@ internal fun RealityDrawer(
             }
             HorizontalDivider(color = MaterialTheme.colorScheme.secondaryContainer)
             Spacer(Modifier.height(8.dp))
-            DrawerLanguageSelector(experienceStore)
+            NavigationDrawerItem(
+                label = { Text(localizedText(R.string.storage_title)) },
+                icon = { Icon(androidx.compose.material.icons.Icons.Filled.Storage, null) },
+                selected = false,
+                onClick = onConnections,
+                colors = flatDrawerItemColors()
+            )
             NavigationDrawerItem(
                 label = { Text(stringResource(R.string.nav_about)) },
                 icon = { Icon(Icons.Outlined.Memory, null) },
@@ -418,6 +445,7 @@ internal fun RealityDrawer(
                 modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
             )
             Spacer(Modifier.weight(1f))
+            DrawerLanguageSelector(experienceStore)
             HorizontalDivider(color = MaterialTheme.colorScheme.secondaryContainer)
             Spacer(Modifier.height(8.dp))
             Row(
@@ -451,7 +479,6 @@ internal fun DrawerLanguageSelector(
     var saving by remember { mutableStateOf(false) }
     var saveError by remember { mutableStateOf(false) }
     Column(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp)) {
-        Text(stringResource(R.string.nav_language), style = MaterialTheme.typography.labelMedium)
         androidx.compose.material3.SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth().testTag("drawer-language")) {
             RealityLanguage.entries.forEachIndexed { index, language ->
                 SegmentedButton(
@@ -478,7 +505,7 @@ internal fun DrawerLanguageSelector(
                 ) { Text(language.languageTag.uppercase()) }
             }
         }
-        if (saveError) Text(stringResource(R.string.language_save_failed), color = MaterialTheme.colorScheme.error, modifier = Modifier.testTag("language-save-error"))
+        NoticeEffect(if (saveError) stringResource(R.string.language_save_failed) else "", { saveError = false })
     }
 }
 

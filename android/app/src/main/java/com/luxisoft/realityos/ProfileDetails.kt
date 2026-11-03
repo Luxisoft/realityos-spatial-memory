@@ -188,6 +188,7 @@ internal fun ProfileInformation(
         add(ProfileInfoItem(localizedText(R.string.ui_birthday), profileBirthdayLabel(profile.optString("birthday")), Icons.Default.Cake))
         add(ProfileInfoItem(localizedText(R.string.ui_gender), profile.optString("gender"), Icons.Default.Person))
         add(ProfileInfoItem(localizedText(R.string.ui_website), website, Icons.Default.Language) { onOpenLink(website) })
+        if (links.isEmpty()) add(ProfileInfoItem(localizedText(R.string.ui_social_network), "-", Icons.Default.Link))
         links.forEach { link ->
             add(ProfileInfoItem(link.label.ifBlank { localizedText(R.string.ui_link) }, link.url, Icons.Default.Link) { onOpenLink(link.url) })
         }
@@ -195,7 +196,7 @@ internal fun ProfileInformation(
         add(ProfileInfoItem(localizedText(R.string.ui_likes), counts.optString("likes"), Icons.Default.ThumbUp))
         add(ProfileInfoItem(localizedText(R.string.ui_photos), counts.optString("photos"), Icons.Default.PhotoLibrary))
         add(ProfileInfoItem("Videos", counts.optString("videos"), Icons.Default.VideoLibrary))
-    }.filter { it.value.isNotBlank() && it.value != "null" }
+    }.map { it.copy(value = it.value.takeUnless { value -> value.isBlank() || value == "null" } ?: "-", onClick = it.onClick.takeIf { _ -> it.value.isNotBlank() && it.value != "null" }) }
 
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
         items.chunked(2).forEach { rowItems ->
@@ -229,8 +230,7 @@ internal fun ProfileInformation(
                             Text(
                                 item.value,
                                 style = MaterialTheme.typography.bodySmall,
-                                maxLines = 2,
-                                overflow = TextOverflow.Ellipsis
+                                softWrap = true
                             )
                         }
                     }

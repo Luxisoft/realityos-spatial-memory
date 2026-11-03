@@ -33,3 +33,7 @@ make migrate
 [ARCHITECTURE ](ARCHITECTURE.md) · [WORKSPACE DATA ](../guides/WORKSPACE_DATA.md) · [SECURITY ](SECURITY.md)
 
 La revisión `20261103_0035` añade `storage_connections`, `storage_imports` y `storage_syncs`: conexión privada con claves cifradas, procedencia/estado de importaciones y reglas de sincronización. El bucket no sustituye los originales BYTEA. [Operación y conservación](../guides/STORAGE_CONNECTIONS.md).
+
+## Revisión de privacidad por grupo
+
+La revisión `20261103_0036` añade procedencia de copias (`shared_from_id`, único por original/grupo), revisión y grupo de conexión, `storage_objects` inmutables, `seen_keys` del recorrido y `biometric_setups`. La cuarentena de publicaciones biométricas conserva un diario de visibilidad para revertir la migración. Las copias comparten original, con comentarios/reacciones independientes. Los originales de enrolamiento siguen privados; solo se exponen avatares normalizados.

@@ -49,11 +49,21 @@ def reference_fixture(client):
         db.add(asset)
         db.flush()
         db.add(UserProfile(user_id=owner.id, avatar_media_id=asset.id))
+        ordinary = MediaAsset(
+            workspace_id=space.id,
+            kind=MediaKind.IMAGE,
+            mime_type="image/png",
+            original_bytes=raw,
+            sha256="c" * 64,
+            byte_size=len(raw),
+        )
+        db.add(ordinary)
+        db.flush()
         posts = []
         for index, source in enumerate(("facebook", "local", "simulator", "local")):
             post = Publication(
                 owner_id=owner.id,
-                media_id=asset.id,
+                media_id=asset.id if source != "local" else ordinary.id,
                 source=source,
                 audience="home",
                 caption=f"post-{index}",
@@ -78,8 +88,10 @@ def test_references_filtered_before_cursor_pagination(client, auth_headers):
     ).json()
     assert [p["id"] for p in page2["items"]] == [posts[3]]
     assert page2["next_cursor"] is None
-    feed = client.get("/v1/gallery", headers=auth_headers).json()
-    cursor_feed = client.get("/v1/gallery/page", headers=auth_headers).json()["items"]
+    feed = client.get("/v1/gallery?audience=home", headers=auth_headers).json()
+    cursor_feed = client.get(
+        "/v1/gallery/page?audience=home", headers=auth_headers
+    ).json()["items"]
     assert {p["id"] for p in feed} == {posts[1], posts[3]}
     assert {p["id"] for p in cursor_feed} == {posts[1], posts[3]}
 
@@ -145,7 +157,8 @@ def test_reference_raw_media_denied_avatar_and_explicit_copy_preserved(
         == 404
     )
     assert (
-        client.get(f"/v1/profiles/{owner}/avatar", headers=auth_headers).content == raw
+        client.get(f"/v1/profiles/{owner}/avatar", headers=auth_headers).status_code
+        == 200
     )
     # Filtering is non-destructive.
     with client.app.state.database.session_factory() as db:
@@ -200,7 +213,7 @@ def test_work_demo_is_visible_only_to_members_and_references_stay_internal(
 ):
     from app.security import create_access_token, hash_password
 
-    owner_id, asset_id, posts, _ = reference_fixture(client)
+    owner_id, _asset_id, posts, _ = reference_fixture(client)
     with client.app.state.database.session_factory() as db:
         owner = db.get(User, uuid.UUID(owner_id))
         group = Workspace(name="Demo workshop", created_by_id=owner.id)
@@ -220,7 +233,7 @@ def test_work_demo_is_visible_only_to_members_and_references_stay_internal(
             post.workspace_id = group.id
         demo = Publication(
             owner_id=owner.id,
-            media_id=uuid.UUID(asset_id),
+            media_id=db.get(Publication, uuid.UUID(posts[1])).media_id,
             audience="work",
             workspace_id=group.id,
             source="simulator-work",

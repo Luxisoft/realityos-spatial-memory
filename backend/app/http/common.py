@@ -362,9 +362,19 @@ async def _store_capture(
     if chunked_video:
         add_postgres_bytea_chunks(db, asset, raw, settings.video_bytea_chunk_bytes)
     if session.created_by_id is not None:
+        from app.models import Workspace
         from app.social import Publication
 
-        db.add(Publication(owner_id=session.created_by_id, media_id=asset.id, audience="home"))
+        workspace = db.get(Workspace, session.workspace_id)
+        if workspace and not workspace.name.startswith("home:"):
+            db.add(
+                Publication(
+                    owner_id=session.created_by_id,
+                    media_id=asset.id,
+                    audience="work",
+                    workspace_id=session.workspace_id,
+                )
+            )
     _audit(
         db,
         "capture.created",

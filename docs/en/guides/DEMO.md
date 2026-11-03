@@ -15,7 +15,7 @@ These walkthroughs are independent examples of RealityOS capabilities. They are 
 
 ## Sign in and see the prepared data
 
-**All nine accounts have a profile photo, posts and an assigned work group.** Ana's, Luis's and the other people's portraits are part of their records. Evaluators do not need to download images, import JSON, upload photos or create groups to get started.
+**All nine accounts have a profile photo, posts and an assigned work group.** Ana's, Luis's and the other people's portraits are part of their records. Records and groups are ready. Email entry now asks for consent, a profile image and 3–25 private reference photos if setup is incomplete.
 
 1. Download **app-debug.apk** and use one of the three [included public accounts](../api/API.md#quick-start). For Postman, import the collection and click **Send**.
 2. Install the regular server APK ([download and installation](../README.md#evaluate)). Open **Continue with email → Sign in**. Enter the username in **Username or email** and its password from the public table. These accounts are already confirmed.
@@ -30,7 +30,7 @@ These walkthroughs are independent examples of RealityOS capabilities. They are 
 
 Each account belongs to its work group and has a personal workspace. The server contains **47 records, 27 attachments and six enrolled portraits**. The three primary accounts and their passwords are [published for judges](../api/API.md#quick-start), with the owner's authorization. Postman uses these accounts automatically against the same existing data.
 
-HTTP check on November 3, 2026: all nine accounts sign in, their avatars respond successfully, each account has two or three own posts and each group has seven posts. All six attached portraits and rejection of access across groups were checked. This does not replace physical Android or glasses testing.
+Current renewal: each of the three existing groups has 12 licensed photos and four moving videos. Records and biometric portraits are preserved; no discarded groups were recreated. The three jury accounts passed HTTP avatar/media/record and cross-group permission checks. Physical Android and glasses acceptance remains separate.
 
 ### If something is missing
 
@@ -118,7 +118,7 @@ Rehearse before recording. Choose a workspace with prepared data and hide secret
 | --- | --- |
 | Six portraits enrolled through the API; Ana Solis query with live InsightFace. | Evaluation with independent portraits and representative data. |
 | HTTP imports, contextual queries, object search and permission tests. | A real institutional source and complete journeys on physical phone/glasses. |
-| Synthetic images and static-scene MP4s. | A final product recording accessible to evaluators. |
+| 48 licensed scene resources with real moving recordings. | A final product recording accessible to evaluators. |
 
 [Implementation status](../project/IMPLEMENTATION_STATUS.md) records dated checks. This document describes the walkthrough; it does not claim a new execution of those journeys.
 

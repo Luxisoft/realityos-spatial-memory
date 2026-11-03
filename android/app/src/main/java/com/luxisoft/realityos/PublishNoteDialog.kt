@@ -143,7 +143,7 @@ internal fun PublishNoteDialog(
                     modifier = Modifier.fillMaxWidth(),
                     minLines = 2,
                 )
-                if (error.isNotEmpty()) Text(error, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
+                NoticeEffect(error, { error = "" })
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     TextButton(onClick = { onPublish("", "") }) { Text(localizedText(R.string.ui_no_note)) }
                     Spacer(Modifier.weight(1f))

@@ -40,6 +40,11 @@ internal enum class AccountStep(val endpoint: String, val title: Int, val descri
 
 @Composable
 internal fun AccountForm(onBack: () -> Unit, submit: suspend (String, JSONObject) -> Unit) {
+    NoticeLayer { AccountFormContent(onBack, submit) }
+}
+
+@Composable
+private fun AccountFormContent(onBack: () -> Unit, submit: suspend (String, JSONObject) -> Unit) {
     var step by rememberSaveable { mutableStateOf(AccountStep.Login) }
     var email by rememberSaveable { mutableStateOf("") }
     var username by rememberSaveable { mutableStateOf("") }
@@ -267,16 +272,7 @@ internal fun AccountForm(onBack: () -> Unit, submit: suspend (String, JSONObject
                     } else {
                         Spacer(Modifier.height(20.dp))
                     }
-                    if (failure != null) {
-                        Surface(color = MaterialTheme.colorScheme.errorContainer, shape = MaterialTheme.shapes.medium, modifier = Modifier.fillMaxWidth().testTag("account-message").semantics { liveRegion = LiveRegionMode.Polite }) {
-                            Row(Modifier.padding(14.dp)) {
-                                Icon(Icons.Outlined.ErrorOutline, null, Modifier.size(20.dp), tint = MaterialTheme.colorScheme.error)
-                                Spacer(Modifier.width(10.dp))
-                                Text(stringResource(failure!!), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.error)
-                            }
-                        }
-                        Spacer(Modifier.height(16.dp))
-                    }
+                    NoticeEffect(failure?.let { stringResource(it) }.orEmpty(), {})
                     if (conflicts.isNotEmpty()) {
                         Surface(
                             color = AccountFieldSurface,

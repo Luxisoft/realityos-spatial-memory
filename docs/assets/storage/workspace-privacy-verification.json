@@ -1,0 +1,49 @@
+{
+  "scenarios": [
+    {
+      "scenario": "security",
+      "posts": 16,
+      "avatar_status": 200,
+      "media_sha256": "e3be231cae5fd15b1cf5e89b5c6c0331658aee888253282850f012ef3817773f",
+      "foreign_workspace_status": 403,
+      "private_publish_status": 422,
+      "bucket_objects": 6,
+      "biometric_setup_complete": false
+    },
+    {
+      "scenario": "hospital",
+      "posts": 16,
+      "avatar_status": 200,
+      "media_sha256": "d73f06c4a80ba8473664465a4e1523e8fb8b43115c9e308e605f4b53bef24618",
+      "foreign_workspace_status": 403,
+      "private_publish_status": 422,
+      "bucket_objects": 6,
+      "biometric_setup_complete": false
+    },
+    {
+      "scenario": "memory",
+      "posts": 16,
+      "avatar_status": 200,
+      "media_sha256": "e0de861c89d3bec490192177e786d5868f892298c216ea2399b4e349d7108ea7",
+      "foreign_workspace_status": 403,
+      "private_publish_status": 422,
+      "bucket_objects": 6,
+      "biometric_setup_complete": false
+    }
+  ],
+  "openapi_exact": true,
+  "checked_at": "2026-11-03T20:04:34.616724+00:00",
+  "alembic": "20261103_0036",
+  "records": 47,
+  "attachments": 27,
+  "record_portraits": 6,
+  "new_groups": 0,
+  "new_memberships": 0,
+  "active_connections": 13,
+  "licensed_scenes": 48,
+  "videos": 12,
+  "android_tests": 226,
+  "apk_sha256": "e835a29b0d38bc47f03266f728921980ce0355c2fa4da89db3449e3a99483395",
+  "device_tested": false,
+  "indexing": "queued with the configured real provider"
+}

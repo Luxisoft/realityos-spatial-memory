@@ -4,7 +4,7 @@ import hashlib
 import io
 
 from fastapi import Depends, File, HTTPException, UploadFile
-from PIL import Image, UnidentifiedImageError
+from PIL import Image, ImageOps, UnidentifiedImageError
 from sqlalchemy.orm import Session
 
 from app.accounts.routes import router
@@ -33,6 +33,12 @@ async def upload_avatar(
             picture.verify()
     except (OSError, UnidentifiedImageError, Image.DecompressionBombError) as exc:
         raise HTTPException(422, "Invalid image.") from exc
+    with Image.open(io.BytesIO(raw)) as picture:
+        portrait = ImageOps.exif_transpose(picture).convert("RGB")
+        portrait.thumbnail((512, 512))
+        output = io.BytesIO()
+        portrait.save(output, "JPEG", quality=90)
+        raw, mime = output.getvalue(), "image/jpeg"
     asset = MediaAsset(
         workspace_id=home_space(db, user.id),
         kind=MediaKind.IMAGE,

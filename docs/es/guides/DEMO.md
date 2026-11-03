@@ -30,7 +30,7 @@ Estos recorridos son ejemplos independientes de las capacidades de RealityOS. No
 
 Cada cuenta pertenece a su grupo de trabajo y tiene su espacio personal. El servidor contiene **47 registros, 27 adjuntos y seis retratos enrolados**. Las tres cuentas principales y sus contraseñas están [publicadas para el jurado](../api/API.md#quick-start), por autorización del propietario. Postman las utiliza automáticamente sobre estos mismos datos.
 
-Comprobación HTTP del 3 de noviembre de 2026: las nueve cuentas acceden, sus avatares responden correctamente, cada una tiene dos o tres publicaciones propias y cada grupo tiene siete publicaciones. Se verificaron los seis retratos adjuntos y el rechazo de acceso entre grupos. Esta comprobación no sustituye una prueba física de Android o gafas.
+Renovación vigente: cada uno de los tres grupos existentes tiene 12 fotos con licencia y cuatro videos con movimiento. Se conservan expedientes y retratos biométricos; no se recrearon grupos descartados. Las tres cuentas del jurado aprobaron comprobaciones HTTP de avatar/media/expedientes y aislamiento entre grupos. La aceptación física Android/gafas sigue siendo independiente.
 
 ### Si no ves lo esperado
 
@@ -118,7 +118,7 @@ Ensaya el recorrido antes de grabar. Elige un espacio con datos preparados y ocu
 | --- | --- |
 | Seis retratos enrolados por API; consulta de Ana Solis con InsightFace vivo. | Evaluación con retratos independientes y datos representativos. |
 | Importaciones HTTP, consultas contextuales, búsquedas de objetos y pruebas de permisos. | Fuente institucional real y recorridos completos con teléfono/gafas físicos. |
-| Imágenes sintéticas y MP4 de escenas estáticas. | Grabación final del producto accesible al jurado. |
+| 48 recursos con licencia, incluidas grabaciones con movimiento real. | Grabación final del producto accesible al jurado. |
 
 [Estado de implementación](../project/IMPLEMENTATION_STATUS.md) contiene las verificaciones fechadas. Este documento describe el guion; no declara una ejecución nueva de esos recorridos.
 

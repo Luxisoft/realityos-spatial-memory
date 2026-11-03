@@ -92,3 +92,7 @@ Las escrituras de la referencia conservan `enable_write_requests=false`. La [ins
 Regenera la referencia y Postman con `python scripts/build_api_docs.py`; verifica diferencias con `python scripts/build_api_docs.py --check`. La colección usa el [formato oficial v2.1](https://schema.postman.com/); la [guía de importación](https://learning.postman.com/docs/getting-started/importing-and-exporting/importing-data/) explica el flujo de Postman.
 
 Prueba offline de scripts: `node scripts/check_postman_scripts.cjs`.
+
+## Publicación por grupo y fotos de cuenta
+
+Publicar exige pertenencia y un grupo de trabajo explícito. `POST /v1/groups/{workspace_id}/publications/import` copia de forma idempotente entre 1 y 100 publicaciones propias. Las publicaciones antiguas sin grupo solo las ve su propietario hasta asignarlas. El primer ingreso por email usa `GET /v1/faces/setup`, los endpoints existentes de consentimiento/foto de perfil/avatar, `POST /v1/faces/reference-photos` (3–25 imágenes distintas aceptadas), DELETE opcional y `POST /v1/faces/setup/complete`. El proceso se puede retomar. `/v1/me/facebook-profile` ya no expone URLs de referencias; los candidatos de cuenta muestran avatar. Se conserva la excepción de ingreso del backend local y Debug aislado.

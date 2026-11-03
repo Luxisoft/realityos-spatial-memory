@@ -9,7 +9,6 @@ from xml.etree import ElementTree
 
 from fastapi import APIRouter, Depends, File, Form, HTTPException, Request, UploadFile
 from sqlalchemy import (
-    and_,
     or_,
     select,
 )
@@ -222,11 +221,31 @@ def profile_avatar(
     asset = (
         db.get(MediaAsset, profile.avatar_media_id) if profile and profile.avatar_media_id else None
     )
+    if asset is None:
+        from app.models import CaptureSession
+
+        asset = db.scalar(
+            select(MediaAsset)
+            .join(CaptureSession, MediaAsset.capture_session_id == CaptureSession.id)
+            .where(
+                CaptureSession.created_by_id == user_id,
+                MediaAsset.extra_metadata["face_profile"].as_boolean().is_(True),
+            )
+            .order_by(MediaAsset.created_at.desc())
+            .limit(1)
+        )
     if asset is None or not asset.mime_type.startswith("image/"):
         raise HTTPException(404, "Profile picture unavailable.")
+    from PIL import Image, ImageOps
+
+    with Image.open(io.BytesIO(asset.original_bytes)) as original:
+        portrait = ImageOps.exif_transpose(original).convert("RGB")
+        portrait.thumbnail((512, 512))
+        buffer = io.BytesIO()
+        portrait.save(buffer, "JPEG", quality=90)
     return Response(
-        asset.original_bytes,
-        media_type=asset.mime_type,
+        buffer.getvalue(),
+        media_type="image/jpeg",
         headers={"Cache-Control": "private, max-age=3600"},
     )
 
@@ -389,6 +408,7 @@ def _checked_note(note_text: str, note_source: str) -> tuple[str, str]:
 @router.post("/me/profile/publications")
 async def upload_profile_publication(
     request: Request,
+    workspace_id: uuid.UUID = Form(...),
     file: UploadFile = File(...),
     caption: str = Form(default="", max_length=4000),
     note_text: str = Form(default="", max_length=4000),
@@ -396,11 +416,11 @@ async def upload_profile_publication(
     user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    """Persist an owner-selected image and expose it in their private profile feed."""
+    """Persist an owner-selected image in an authorized work group."""
     from app.social_features.uploads import legacy_upload
 
     return await legacy_upload(
-        request, file, caption, note_text, note_source, user, db, "home", None
+        request, file, caption, note_text, note_source, user, db, "work", workspace_id
     )
 
 
@@ -470,6 +490,8 @@ def _profile_search_text(
         )
         if value
     )
+    from app.social_features.publication_visibility import authorized_publications
+
     visible_media = list(
         db.scalars(
             select(Publication)
@@ -477,18 +499,7 @@ def _profile_search_text(
                 Publication.owner_id == target.id,
                 Publication.hidden.is_(False),
                 publication_content(),
-                or_(
-                    Publication.audience == "public",
-                    Publication.owner_id == viewer.id,
-                    and_(
-                        Publication.audience == "work",
-                        Publication.workspace_id.in_(
-                            select(WorkspaceMember.workspace_id).where(
-                                WorkspaceMember.user_id == viewer.id
-                            )
-                        ),
-                    ),
-                ),
+                authorized_publications(viewer.id),
             )
             .order_by(Publication.published_at.desc())
             .limit(60)

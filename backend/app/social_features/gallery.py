@@ -9,6 +9,7 @@ from typing import Literal
 
 from fastapi import APIRouter, Depends, HTTPException, Request
 from PIL import Image
+from pydantic import BaseModel, Field
 from sqlalchemy import (
     and_,
     func,
@@ -85,31 +86,32 @@ def share(
     db: Session = Depends(get_db),
 ):
 
-    post = get_post(post_id, user, db)
-    if post.owner_id != user.id:
-        raise HTTPException(403, "Only the owner can share this publication.")
-    if payload.audience == "work":
-        if payload.workspace_id is None:
-            raise HTTPException(422, "Choose a group.")
-        workspace_member(payload.workspace_id, user, db)
-    post.audience = payload.audience
-    post.workspace_id = payload.workspace_id if payload.audience == "work" else None
-    return {"ok": True}
+    from app.social_features.sharing import import_publications
+
+    get_post(post_id, user, db)
+    if payload.audience != "work" or not payload.workspace_id:
+        raise HTTPException(422, "Choose a work group.")
+    result = import_publications(db, user, payload.workspace_id, [post_id])
+    return {"ok": True, **result}
 
 
 def visible(post: Publication, user: User, db: Session) -> Publication:
 
     require_publication_content(post)
+    asset = db.get(MediaAsset, post.media_id)
+    if asset is None:
+        raise HTTPException(404, "Publication unavailable.")
+    require_ordinary_media(asset, user, db)
     if post.hidden:
         raise HTTPException(404, "Publication unavailable.")
     if user.is_guest and post.owner_id != user.id:
         owner = db.get(User, post.owner_id)
         if owner is None or not owner.is_guest:
             raise HTTPException(404, "Publication unavailable.")
-    if post.owner_id == user.id or post.audience == "public":
-        return post
     if post.audience == "work":
         workspace_member(post.workspace_id, user, db)
+        return post
+    if post.owner_id == user.id:
         return post
     raise HTTPException(404, "Publication unavailable.")
 
@@ -121,6 +123,7 @@ def get_post(post_id: uuid.UUID, user: User, db: Session):
     original = db.get(Publication, post_id)
     if original is not None:
         require_publication_content(original)
+        require_ordinary_media(db.get(MediaAsset, original.media_id), user, db)
     alias = db.get(PublicationDuplicate, post_id)
     if alias is not None:
         post_id = alias.canonical_id
@@ -158,6 +161,7 @@ def _publication_payload(post: Publication, viewer: User, db: Session) -> dict:
     owner_profile = _public_profile_payload(owner, db) if owner else {}
     return {
         "id": str(post.id),
+        "original_id": str(post.shared_from_id or post.id),
         "caption": post.caption,
         "note_text": post.note_text,
         "note_source": post.note_source,
@@ -229,13 +233,27 @@ def profile_media_page(
         publication_content(),
     )
     if user.id != user_id:
-        query = query.where(Publication.audience == "public")
+        query = query.where(
+            Publication.audience == "work",
+            Publication.workspace_id.in_(
+                select(WorkspaceMember.workspace_id).where(WorkspaceMember.user_id == user.id)
+            ),
+        )
+    else:
+        query = query.where(
+            or_(
+                Publication.audience != "work",
+                Publication.workspace_id.in_(
+                    select(WorkspaceMember.workspace_id).where(WorkspaceMember.user_id == user.id)
+                ),
+            )
+        )
     return _gallery_page(query, limit, cursor, user, db)
 
 
 @router.get("/gallery/page")
 def gallery_page(
-    audience: Literal["home", "work"] = "home",
+    audience: Literal["home", "work"] = "work",
     workspace_id: uuid.UUID | None = None,
     limit: int = 12,
     cursor: str | None = None,
@@ -270,18 +288,23 @@ def gallery_page(
 
 @router.get("/gallery")
 def gallery(
-    audience: Literal["home", "public", "work"] = "home",
+    audience: Literal["home", "public", "work"] = "work",
     offset: int = 0,
     workspace_id: uuid.UUID | None = None,
     user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
 
+    from app.social_features.publication_visibility import authorized_publications
+
     query = (
         select(Publication)
         .join(MediaAsset, Publication.media_id == MediaAsset.id)
         .where(
-            Publication.audience == audience, Publication.hidden.is_(False), publication_content()
+            Publication.audience == audience,
+            Publication.hidden.is_(False),
+            publication_content(),
+            authorized_publications(user.id),
         )
     )
     if audience == "home":
@@ -327,10 +350,9 @@ def publish(
         raise HTTPException(403, "Only the capture owner can publish it.")
     workspace_member(asset.workspace_id, user, db)
     require_ordinary_media(asset, user, db)
-    if payload.audience == "work":
-        if payload.workspace_id is None:
-            raise HTTPException(422, "Choose a work group.")
-        workspace_member(payload.workspace_id, user, db)
+    from app.social_features.uploads import check_destination
+
+    check_destination(db, user, payload.audience, payload.workspace_id)
     from app.meta import build_meta_client
     from app.social_features.upload_service import duplicate, scope_lock
 
@@ -700,3 +722,19 @@ def comments(
             .limit(100)
         )
     ]
+
+
+class GroupPublicationImport(BaseModel):
+    publication_ids: list[uuid.UUID] = Field(min_length=1, max_length=100)
+
+
+@router.post("/groups/{workspace_id}/publications/import")
+def import_group_publications(
+    workspace_id: uuid.UUID,
+    payload: GroupPublicationImport,
+    user=Depends(get_current_user),
+    db=Depends(get_db),
+):
+    from app.social_features.sharing import import_publications
+
+    return import_publications(db, user, workspace_id, payload.publication_ids)

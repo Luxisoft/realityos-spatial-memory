@@ -524,4 +524,26 @@
     <string name="profile_choose_media">Choose photo or video</string>
     <string name="profile_play_video">Play video</string>
     <string name="profile_simulated_media">Simulated</string>
+    <string name="notice_error">Error</string>
+    <string name="notice_warning">Warning</string>
+    <string name="notice_success">Done</string>
+    <string name="notice_information">Information</string>
+    <string name="media_load_failed">Could not load this video.</string>
+    <string name="biometric_setup_title">Set up your recognition profile</string>
+    <string name="biometric_setup_body">Only your avatar is visible. Your reference photos stay private and are never published. Add a profile photo and at least 3 different photos of your face; you can add up to 25.</string>
+    <string name="biometric_profile_ready">Profile photo ready</string>
+    <string name="biometric_profile_needed">Add your profile photo first</string>
+    <string name="biometric_choose_profile">Choose profile photo</string>
+    <string name="biometric_choose_references">Add reference photos</string>
+    <string name="biometric_reference_count">%1$d of 25 reference photos · minimum 3</string>
+    <string name="biometric_complete">Finish setup</string>
+    <string name="import_existing_publications">Import existing publications</string>
+    <string name="share_group_invitation">Join my RealityOS group using this code: %1$s</string>
+    <string name="share_invitation">Share</string>
+    <string name="publish_needs_group">Create or join a work group to publish.</string>
+    <string name="biometric_private_references">Your biometric references are private. Only your avatar is displayed.</string>
+    <string name="ui_copied">Copied</string>
+    <string name="ui_copy">Copy</string>
+    <string name="biometric_reset_references">Choose reference photos again</string>
+    <string name="biometric_reset_body">This removes the saved reference photos for this account. You can then upload a new set.</string>
 </resources>

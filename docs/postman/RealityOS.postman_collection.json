@@ -10658,7 +10658,7 @@
                       "value": "application/json"
                     }
                   ],
-                  "body": "[\n  {\n    \"id\": \"00000000-0000-4000-8000-000000000001\",\n    \"media_id\": \"{{server_media_id}}\",\n    \"source\": \"example-source\",\n    \"quality\": 1,\n    \"thumbnail_url\": \"example-thumbnail_url\"\n  }\n]"
+                  "body": "[\n  {\n    \"id\": \"00000000-0000-4000-8000-000000000001\",\n    \"media_id\": \"{{server_media_id}}\",\n    \"source\": \"example-source\",\n    \"quality\": 1\n  }\n]"
                 }
               ]
             },
@@ -11031,7 +11031,7 @@
                       "value": "application/json"
                     }
                   ],
-                  "body": "[\n  {\n    \"id\": \"00000000-0000-4000-8000-000000000001\",\n    \"record_id\": \"{{server_record_id}}\",\n    \"workspace_id\": \"{{server_workspace_id}}\",\n    \"media_id\": \"{{server_media_id}}\",\n    \"source\": \"example-source\",\n    \"quality\": 1,\n    \"thumbnail_url\": \"example-thumbnail_url\"\n  }\n]"
+                  "body": "[\n  {\n    \"id\": \"00000000-0000-4000-8000-000000000001\",\n    \"record_id\": \"{{server_record_id}}\",\n    \"workspace_id\": \"{{server_workspace_id}}\",\n    \"media_id\": \"{{server_media_id}}\",\n    \"source\": \"example-source\",\n    \"quality\": 1\n  }\n]"
                 }
               ]
             },
@@ -11619,6 +11619,508 @@
                       "    if (response.code !== 200) fail(\"Session validation failed (HTTP \" + response.code + \").\");",
                       "  });",
                       "})();"
+                    ]
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Successful response\", () => pm.expect(pm.response.code).to.be.below(400));"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "POST /v1/faces/reference-photos",
+              "request": {
+                "method": "POST",
+                "header": [],
+                "description": "Add Reference\n\nExplicit action (write or provider call). Set `server_enable_write_requests=true` to send.\n\nUse your authorized workspace and role. Provider calls may incur costs.",
+                "url": {
+                  "raw": "{{server_base_url}}/v1/faces/reference-photos",
+                  "host": [
+                    "{{server_base_url}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "faces",
+                    "reference-photos"
+                  ]
+                },
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{server_access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "body": {
+                  "mode": "formdata",
+                  "formdata": [
+                    {
+                      "key": "file",
+                      "type": "file",
+                      "disabled": false,
+                      "src": ""
+                    }
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "if (pm.variables.get(\"server_enable_write_requests\") !== \"true\") { console.warn(\"Skipped write: set this target's enable_write_requests variable to true.\"); pm.execution.skipRequest(); }",
+                      "if (pm.variables.get(\"server_enable_write_requests\") === \"true\") {",
+                      "// Authenticate on Send using this target's configured account and API.",
+                      "// https://learning.postman.com/docs/tests-and-scripts/write-scripts/postman-sandbox-reference/pm-send-request/",
+                      "(function () {",
+                      "  const origin = String(pm.variables.get(\"server_base_url\") || \"\").replace(/\\/$/, \"\");",
+                      "  const email = pm.variables.get(\"server_email\");",
+                      "  const identity = JSON.stringify([origin, email]);",
+                      "  const sameAccount = pm.variables.get(\"server_session_identity\") === identity;",
+                      "  const access = sameAccount ? pm.variables.get(\"server_access_token\") : \"\";",
+                      "  const refresh = sameAccount ? pm.variables.get(\"server_refresh_token\") : \"\";",
+                      "",
+                      "  function fail(message) {",
+                      "    pm.execution.skipRequest();",
+                      "    throw new Error(message);",
+                      "  }",
+                      "",
+                      "  function save(response) {",
+                      "    let body;",
+                      "    try { body = response.json(); } catch (_) { fail(\"Authentication returned invalid JSON.\"); }",
+                      "    if (!body || typeof body.access_token !== \"string\" || !body.access_token ||",
+                      "        typeof body.refresh_token !== \"string\" || !body.refresh_token) {",
+                      "      fail(\"Authentication did not return both session tokens.\");",
+                      "    }",
+                      "    pm.collectionVariables.set(\"server_access_token\", body.access_token);",
+                      "    pm.collectionVariables.set(\"server_refresh_token\", body.refresh_token);",
+                      "    pm.collectionVariables.set(\"server_session_identity\", identity);",
+                      "    if (pm.environment.has(\"server_access_token\")) pm.environment.set(\"server_access_token\", body.access_token);",
+                      "    if (pm.environment.has(\"server_refresh_token\")) pm.environment.set(\"server_refresh_token\", body.refresh_token);",
+                      "    if (pm.environment.has(\"server_session_identity\")) pm.environment.set(\"server_session_identity\", identity);",
+                      "    pm.variables.set(\"server_access_token\", body.access_token);",
+                      "    pm.variables.set(\"server_refresh_token\", body.refresh_token);",
+                      "    pm.variables.set(\"server_session_identity\", identity);",
+                      "  }",
+                      "",
+                      "  function post(path, body, done) {",
+                      "    pm.sendRequest({",
+                      "      url: origin + path,",
+                      "      method: \"POST\",",
+                      "      header: { \"Content-Type\": \"application/json\" },",
+                      "      body: { mode: \"raw\", raw: JSON.stringify(body) }",
+                      "    }, done);",
+                      "  }",
+                      "",
+                      "  function login() {",
+                      "    post(\"/v1/auth/login\", { email, password: pm.variables.get(\"server_password\") }, (error, response) => {",
+                      "      if (error || !response) fail(\"Automatic login could not reach the configured API.\");",
+                      "      if (response.code !== 200) fail(\"Automatic login failed (HTTP \" + response.code + \").\");",
+                      "      save(response);",
+                      "    });",
+                      "  }",
+                      "",
+                      "  function renew() {",
+                      "    if (!refresh) return login();",
+                      "    post(\"/v1/auth/refresh\", { refresh_token: refresh }, (error, response) => {",
+                      "      if (error || !response) fail(\"Automatic refresh could not reach the configured API.\");",
+                      "      if (response.code === 401) return login();",
+                      "      if (response.code !== 200) fail(\"Automatic refresh failed (HTTP \" + response.code + \").\");",
+                      "      save(response);",
+                      "    });",
+                      "  }",
+                      "",
+                      "  if (!access) return renew();",
+                      "  pm.sendRequest({",
+                      "    url: origin + \"/v1/auth/me\",",
+                      "    method: \"GET\",",
+                      "    header: { Authorization: \"Bearer \" + access }",
+                      "  }, (error, response) => {",
+                      "    if (error || !response) fail(\"Session validation could not reach the configured API.\");",
+                      "    if (response.code === 401) return renew();",
+                      "    if (response.code !== 200) fail(\"Session validation failed (HTTP \" + response.code + \").\");",
+                      "  });",
+                      "})();",
+                      "}"
+                    ]
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Successful response\", () => pm.expect(pm.response.code).to.be.below(400));"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "DELETE /v1/faces/reference-photos/{enrollment_id}",
+              "request": {
+                "method": "DELETE",
+                "header": [],
+                "description": "Remove Reference\n\nExplicit action (write or provider call). Set `server_enable_write_requests=true` to send.\n\nUse your authorized workspace and role. Provider calls may incur costs.",
+                "url": {
+                  "raw": "{{server_base_url}}/v1/faces/reference-photos/{{server_enrollment_id}}",
+                  "host": [
+                    "{{server_base_url}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "faces",
+                    "reference-photos",
+                    "{{server_enrollment_id}}"
+                  ]
+                },
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{server_access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "if (pm.variables.get(\"server_enable_write_requests\") !== \"true\") { console.warn(\"Skipped write: set this target's enable_write_requests variable to true.\"); pm.execution.skipRequest(); }",
+                      "if (pm.variables.get(\"server_enable_write_requests\") === \"true\") {",
+                      "// Authenticate on Send using this target's configured account and API.",
+                      "// https://learning.postman.com/docs/tests-and-scripts/write-scripts/postman-sandbox-reference/pm-send-request/",
+                      "(function () {",
+                      "  const origin = String(pm.variables.get(\"server_base_url\") || \"\").replace(/\\/$/, \"\");",
+                      "  const email = pm.variables.get(\"server_email\");",
+                      "  const identity = JSON.stringify([origin, email]);",
+                      "  const sameAccount = pm.variables.get(\"server_session_identity\") === identity;",
+                      "  const access = sameAccount ? pm.variables.get(\"server_access_token\") : \"\";",
+                      "  const refresh = sameAccount ? pm.variables.get(\"server_refresh_token\") : \"\";",
+                      "",
+                      "  function fail(message) {",
+                      "    pm.execution.skipRequest();",
+                      "    throw new Error(message);",
+                      "  }",
+                      "",
+                      "  function save(response) {",
+                      "    let body;",
+                      "    try { body = response.json(); } catch (_) { fail(\"Authentication returned invalid JSON.\"); }",
+                      "    if (!body || typeof body.access_token !== \"string\" || !body.access_token ||",
+                      "        typeof body.refresh_token !== \"string\" || !body.refresh_token) {",
+                      "      fail(\"Authentication did not return both session tokens.\");",
+                      "    }",
+                      "    pm.collectionVariables.set(\"server_access_token\", body.access_token);",
+                      "    pm.collectionVariables.set(\"server_refresh_token\", body.refresh_token);",
+                      "    pm.collectionVariables.set(\"server_session_identity\", identity);",
+                      "    if (pm.environment.has(\"server_access_token\")) pm.environment.set(\"server_access_token\", body.access_token);",
+                      "    if (pm.environment.has(\"server_refresh_token\")) pm.environment.set(\"server_refresh_token\", body.refresh_token);",
+                      "    if (pm.environment.has(\"server_session_identity\")) pm.environment.set(\"server_session_identity\", identity);",
+                      "    pm.variables.set(\"server_access_token\", body.access_token);",
+                      "    pm.variables.set(\"server_refresh_token\", body.refresh_token);",
+                      "    pm.variables.set(\"server_session_identity\", identity);",
+                      "  }",
+                      "",
+                      "  function post(path, body, done) {",
+                      "    pm.sendRequest({",
+                      "      url: origin + path,",
+                      "      method: \"POST\",",
+                      "      header: { \"Content-Type\": \"application/json\" },",
+                      "      body: { mode: \"raw\", raw: JSON.stringify(body) }",
+                      "    }, done);",
+                      "  }",
+                      "",
+                      "  function login() {",
+                      "    post(\"/v1/auth/login\", { email, password: pm.variables.get(\"server_password\") }, (error, response) => {",
+                      "      if (error || !response) fail(\"Automatic login could not reach the configured API.\");",
+                      "      if (response.code !== 200) fail(\"Automatic login failed (HTTP \" + response.code + \").\");",
+                      "      save(response);",
+                      "    });",
+                      "  }",
+                      "",
+                      "  function renew() {",
+                      "    if (!refresh) return login();",
+                      "    post(\"/v1/auth/refresh\", { refresh_token: refresh }, (error, response) => {",
+                      "      if (error || !response) fail(\"Automatic refresh could not reach the configured API.\");",
+                      "      if (response.code === 401) return login();",
+                      "      if (response.code !== 200) fail(\"Automatic refresh failed (HTTP \" + response.code + \").\");",
+                      "      save(response);",
+                      "    });",
+                      "  }",
+                      "",
+                      "  if (!access) return renew();",
+                      "  pm.sendRequest({",
+                      "    url: origin + \"/v1/auth/me\",",
+                      "    method: \"GET\",",
+                      "    header: { Authorization: \"Bearer \" + access }",
+                      "  }, (error, response) => {",
+                      "    if (error || !response) fail(\"Session validation could not reach the configured API.\");",
+                      "    if (response.code === 401) return renew();",
+                      "    if (response.code !== 200) fail(\"Session validation failed (HTTP \" + response.code + \").\");",
+                      "  });",
+                      "})();",
+                      "}"
+                    ]
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Successful response\", () => pm.expect(pm.response.code).to.be.below(400));"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "GET /v1/faces/setup",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "description": "Status\n\nRead or session access.\n\nUse your authorized workspace and role. Provider calls may incur costs.",
+                "url": {
+                  "raw": "{{server_base_url}}/v1/faces/setup",
+                  "host": [
+                    "{{server_base_url}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "faces",
+                    "setup"
+                  ]
+                },
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{server_access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "// Authenticate on Send using this target's configured account and API.",
+                      "// https://learning.postman.com/docs/tests-and-scripts/write-scripts/postman-sandbox-reference/pm-send-request/",
+                      "(function () {",
+                      "  const origin = String(pm.variables.get(\"server_base_url\") || \"\").replace(/\\/$/, \"\");",
+                      "  const email = pm.variables.get(\"server_email\");",
+                      "  const identity = JSON.stringify([origin, email]);",
+                      "  const sameAccount = pm.variables.get(\"server_session_identity\") === identity;",
+                      "  const access = sameAccount ? pm.variables.get(\"server_access_token\") : \"\";",
+                      "  const refresh = sameAccount ? pm.variables.get(\"server_refresh_token\") : \"\";",
+                      "",
+                      "  function fail(message) {",
+                      "    pm.execution.skipRequest();",
+                      "    throw new Error(message);",
+                      "  }",
+                      "",
+                      "  function save(response) {",
+                      "    let body;",
+                      "    try { body = response.json(); } catch (_) { fail(\"Authentication returned invalid JSON.\"); }",
+                      "    if (!body || typeof body.access_token !== \"string\" || !body.access_token ||",
+                      "        typeof body.refresh_token !== \"string\" || !body.refresh_token) {",
+                      "      fail(\"Authentication did not return both session tokens.\");",
+                      "    }",
+                      "    pm.collectionVariables.set(\"server_access_token\", body.access_token);",
+                      "    pm.collectionVariables.set(\"server_refresh_token\", body.refresh_token);",
+                      "    pm.collectionVariables.set(\"server_session_identity\", identity);",
+                      "    if (pm.environment.has(\"server_access_token\")) pm.environment.set(\"server_access_token\", body.access_token);",
+                      "    if (pm.environment.has(\"server_refresh_token\")) pm.environment.set(\"server_refresh_token\", body.refresh_token);",
+                      "    if (pm.environment.has(\"server_session_identity\")) pm.environment.set(\"server_session_identity\", identity);",
+                      "    pm.variables.set(\"server_access_token\", body.access_token);",
+                      "    pm.variables.set(\"server_refresh_token\", body.refresh_token);",
+                      "    pm.variables.set(\"server_session_identity\", identity);",
+                      "  }",
+                      "",
+                      "  function post(path, body, done) {",
+                      "    pm.sendRequest({",
+                      "      url: origin + path,",
+                      "      method: \"POST\",",
+                      "      header: { \"Content-Type\": \"application/json\" },",
+                      "      body: { mode: \"raw\", raw: JSON.stringify(body) }",
+                      "    }, done);",
+                      "  }",
+                      "",
+                      "  function login() {",
+                      "    post(\"/v1/auth/login\", { email, password: pm.variables.get(\"server_password\") }, (error, response) => {",
+                      "      if (error || !response) fail(\"Automatic login could not reach the configured API.\");",
+                      "      if (response.code !== 200) fail(\"Automatic login failed (HTTP \" + response.code + \").\");",
+                      "      save(response);",
+                      "    });",
+                      "  }",
+                      "",
+                      "  function renew() {",
+                      "    if (!refresh) return login();",
+                      "    post(\"/v1/auth/refresh\", { refresh_token: refresh }, (error, response) => {",
+                      "      if (error || !response) fail(\"Automatic refresh could not reach the configured API.\");",
+                      "      if (response.code === 401) return login();",
+                      "      if (response.code !== 200) fail(\"Automatic refresh failed (HTTP \" + response.code + \").\");",
+                      "      save(response);",
+                      "    });",
+                      "  }",
+                      "",
+                      "  if (!access) return renew();",
+                      "  pm.sendRequest({",
+                      "    url: origin + \"/v1/auth/me\",",
+                      "    method: \"GET\",",
+                      "    header: { Authorization: \"Bearer \" + access }",
+                      "  }, (error, response) => {",
+                      "    if (error || !response) fail(\"Session validation could not reach the configured API.\");",
+                      "    if (response.code === 401) return renew();",
+                      "    if (response.code !== 200) fail(\"Session validation failed (HTTP \" + response.code + \").\");",
+                      "  });",
+                      "})();"
+                    ]
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Successful response\", () => pm.expect(pm.response.code).to.be.below(400));"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "POST /v1/faces/setup/complete",
+              "request": {
+                "method": "POST",
+                "header": [],
+                "description": "Complete\n\nExplicit action (write or provider call). Set `server_enable_write_requests=true` to send.\n\nUse your authorized workspace and role. Provider calls may incur costs.",
+                "url": {
+                  "raw": "{{server_base_url}}/v1/faces/setup/complete",
+                  "host": [
+                    "{{server_base_url}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "faces",
+                    "setup",
+                    "complete"
+                  ]
+                },
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{server_access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "if (pm.variables.get(\"server_enable_write_requests\") !== \"true\") { console.warn(\"Skipped write: set this target's enable_write_requests variable to true.\"); pm.execution.skipRequest(); }",
+                      "if (pm.variables.get(\"server_enable_write_requests\") === \"true\") {",
+                      "// Authenticate on Send using this target's configured account and API.",
+                      "// https://learning.postman.com/docs/tests-and-scripts/write-scripts/postman-sandbox-reference/pm-send-request/",
+                      "(function () {",
+                      "  const origin = String(pm.variables.get(\"server_base_url\") || \"\").replace(/\\/$/, \"\");",
+                      "  const email = pm.variables.get(\"server_email\");",
+                      "  const identity = JSON.stringify([origin, email]);",
+                      "  const sameAccount = pm.variables.get(\"server_session_identity\") === identity;",
+                      "  const access = sameAccount ? pm.variables.get(\"server_access_token\") : \"\";",
+                      "  const refresh = sameAccount ? pm.variables.get(\"server_refresh_token\") : \"\";",
+                      "",
+                      "  function fail(message) {",
+                      "    pm.execution.skipRequest();",
+                      "    throw new Error(message);",
+                      "  }",
+                      "",
+                      "  function save(response) {",
+                      "    let body;",
+                      "    try { body = response.json(); } catch (_) { fail(\"Authentication returned invalid JSON.\"); }",
+                      "    if (!body || typeof body.access_token !== \"string\" || !body.access_token ||",
+                      "        typeof body.refresh_token !== \"string\" || !body.refresh_token) {",
+                      "      fail(\"Authentication did not return both session tokens.\");",
+                      "    }",
+                      "    pm.collectionVariables.set(\"server_access_token\", body.access_token);",
+                      "    pm.collectionVariables.set(\"server_refresh_token\", body.refresh_token);",
+                      "    pm.collectionVariables.set(\"server_session_identity\", identity);",
+                      "    if (pm.environment.has(\"server_access_token\")) pm.environment.set(\"server_access_token\", body.access_token);",
+                      "    if (pm.environment.has(\"server_refresh_token\")) pm.environment.set(\"server_refresh_token\", body.refresh_token);",
+                      "    if (pm.environment.has(\"server_session_identity\")) pm.environment.set(\"server_session_identity\", identity);",
+                      "    pm.variables.set(\"server_access_token\", body.access_token);",
+                      "    pm.variables.set(\"server_refresh_token\", body.refresh_token);",
+                      "    pm.variables.set(\"server_session_identity\", identity);",
+                      "  }",
+                      "",
+                      "  function post(path, body, done) {",
+                      "    pm.sendRequest({",
+                      "      url: origin + path,",
+                      "      method: \"POST\",",
+                      "      header: { \"Content-Type\": \"application/json\" },",
+                      "      body: { mode: \"raw\", raw: JSON.stringify(body) }",
+                      "    }, done);",
+                      "  }",
+                      "",
+                      "  function login() {",
+                      "    post(\"/v1/auth/login\", { email, password: pm.variables.get(\"server_password\") }, (error, response) => {",
+                      "      if (error || !response) fail(\"Automatic login could not reach the configured API.\");",
+                      "      if (response.code !== 200) fail(\"Automatic login failed (HTTP \" + response.code + \").\");",
+                      "      save(response);",
+                      "    });",
+                      "  }",
+                      "",
+                      "  function renew() {",
+                      "    if (!refresh) return login();",
+                      "    post(\"/v1/auth/refresh\", { refresh_token: refresh }, (error, response) => {",
+                      "      if (error || !response) fail(\"Automatic refresh could not reach the configured API.\");",
+                      "      if (response.code === 401) return login();",
+                      "      if (response.code !== 200) fail(\"Automatic refresh failed (HTTP \" + response.code + \").\");",
+                      "      save(response);",
+                      "    });",
+                      "  }",
+                      "",
+                      "  if (!access) return renew();",
+                      "  pm.sendRequest({",
+                      "    url: origin + \"/v1/auth/me\",",
+                      "    method: \"GET\",",
+                      "    header: { Authorization: \"Bearer \" + access }",
+                      "  }, (error, response) => {",
+                      "    if (error || !response) fail(\"Session validation could not reach the configured API.\");",
+                      "    if (response.code === 401) return renew();",
+                      "    if (response.code !== 200) fail(\"Session validation failed (HTTP \" + response.code + \").\");",
+                      "  });",
+                      "})();",
+                      "}"
                     ]
                   }
                 },
@@ -22150,6 +22652,12 @@
                       "type": "text",
                       "disabled": true,
                       "value": ""
+                    },
+                    {
+                      "key": "workspace_id",
+                      "type": "text",
+                      "disabled": false,
+                      "value": "{{server_workspace_id}}"
                     }
                   ]
                 }
@@ -22685,7 +23193,7 @@
                   "query": [
                     {
                       "key": "audience",
-                      "value": "home",
+                      "value": "work",
                       "disabled": true
                     },
                     {
@@ -22826,7 +23334,7 @@
                   "query": [
                     {
                       "key": "audience",
-                      "value": "home",
+                      "value": "work",
                       "disabled": true
                     },
                     {
@@ -24808,7 +25316,7 @@
                       "key": "audience",
                       "type": "text",
                       "disabled": true,
-                      "value": "home"
+                      "value": "work"
                     },
                     {
                       "key": "workspace_id",
@@ -25453,6 +25961,145 @@
                       "type": "string"
                     }
                   ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "if (pm.variables.get(\"server_enable_write_requests\") !== \"true\") { console.warn(\"Skipped write: set this target's enable_write_requests variable to true.\"); pm.execution.skipRequest(); }",
+                      "if (pm.variables.get(\"server_enable_write_requests\") === \"true\") {",
+                      "// Authenticate on Send using this target's configured account and API.",
+                      "// https://learning.postman.com/docs/tests-and-scripts/write-scripts/postman-sandbox-reference/pm-send-request/",
+                      "(function () {",
+                      "  const origin = String(pm.variables.get(\"server_base_url\") || \"\").replace(/\\/$/, \"\");",
+                      "  const email = pm.variables.get(\"server_email\");",
+                      "  const identity = JSON.stringify([origin, email]);",
+                      "  const sameAccount = pm.variables.get(\"server_session_identity\") === identity;",
+                      "  const access = sameAccount ? pm.variables.get(\"server_access_token\") : \"\";",
+                      "  const refresh = sameAccount ? pm.variables.get(\"server_refresh_token\") : \"\";",
+                      "",
+                      "  function fail(message) {",
+                      "    pm.execution.skipRequest();",
+                      "    throw new Error(message);",
+                      "  }",
+                      "",
+                      "  function save(response) {",
+                      "    let body;",
+                      "    try { body = response.json(); } catch (_) { fail(\"Authentication returned invalid JSON.\"); }",
+                      "    if (!body || typeof body.access_token !== \"string\" || !body.access_token ||",
+                      "        typeof body.refresh_token !== \"string\" || !body.refresh_token) {",
+                      "      fail(\"Authentication did not return both session tokens.\");",
+                      "    }",
+                      "    pm.collectionVariables.set(\"server_access_token\", body.access_token);",
+                      "    pm.collectionVariables.set(\"server_refresh_token\", body.refresh_token);",
+                      "    pm.collectionVariables.set(\"server_session_identity\", identity);",
+                      "    if (pm.environment.has(\"server_access_token\")) pm.environment.set(\"server_access_token\", body.access_token);",
+                      "    if (pm.environment.has(\"server_refresh_token\")) pm.environment.set(\"server_refresh_token\", body.refresh_token);",
+                      "    if (pm.environment.has(\"server_session_identity\")) pm.environment.set(\"server_session_identity\", identity);",
+                      "    pm.variables.set(\"server_access_token\", body.access_token);",
+                      "    pm.variables.set(\"server_refresh_token\", body.refresh_token);",
+                      "    pm.variables.set(\"server_session_identity\", identity);",
+                      "  }",
+                      "",
+                      "  function post(path, body, done) {",
+                      "    pm.sendRequest({",
+                      "      url: origin + path,",
+                      "      method: \"POST\",",
+                      "      header: { \"Content-Type\": \"application/json\" },",
+                      "      body: { mode: \"raw\", raw: JSON.stringify(body) }",
+                      "    }, done);",
+                      "  }",
+                      "",
+                      "  function login() {",
+                      "    post(\"/v1/auth/login\", { email, password: pm.variables.get(\"server_password\") }, (error, response) => {",
+                      "      if (error || !response) fail(\"Automatic login could not reach the configured API.\");",
+                      "      if (response.code !== 200) fail(\"Automatic login failed (HTTP \" + response.code + \").\");",
+                      "      save(response);",
+                      "    });",
+                      "  }",
+                      "",
+                      "  function renew() {",
+                      "    if (!refresh) return login();",
+                      "    post(\"/v1/auth/refresh\", { refresh_token: refresh }, (error, response) => {",
+                      "      if (error || !response) fail(\"Automatic refresh could not reach the configured API.\");",
+                      "      if (response.code === 401) return login();",
+                      "      if (response.code !== 200) fail(\"Automatic refresh failed (HTTP \" + response.code + \").\");",
+                      "      save(response);",
+                      "    });",
+                      "  }",
+                      "",
+                      "  if (!access) return renew();",
+                      "  pm.sendRequest({",
+                      "    url: origin + \"/v1/auth/me\",",
+                      "    method: \"GET\",",
+                      "    header: { Authorization: \"Bearer \" + access }",
+                      "  }, (error, response) => {",
+                      "    if (error || !response) fail(\"Session validation could not reach the configured API.\");",
+                      "    if (response.code === 401) return renew();",
+                      "    if (response.code !== 200) fail(\"Session validation failed (HTTP \" + response.code + \").\");",
+                      "  });",
+                      "})();",
+                      "}"
+                    ]
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Successful response\", () => pm.expect(pm.response.code).to.be.below(400));"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "POST /v1/groups/{workspace_id}/publications/import",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "description": "Import Group Publications\n\nExplicit action (write or provider call). Set `server_enable_write_requests=true` to send.\n\nUse your authorized workspace and role. Provider calls may incur costs.",
+                "url": {
+                  "raw": "{{server_base_url}}/v1/groups/{{server_workspace_id}}/publications/import",
+                  "host": [
+                    "{{server_base_url}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "groups",
+                    "{{server_workspace_id}}",
+                    "publications",
+                    "import"
+                  ]
+                },
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{server_access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"publication_ids\": [\n    \"00000000-0000-4000-8000-000000000001\"\n  ]\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
                 }
               },
               "event": [
@@ -34296,7 +34943,7 @@
                       "value": "application/json"
                     }
                   ],
-                  "body": "[\n  {\n    \"id\": \"00000000-0000-4000-8000-000000000001\",\n    \"media_id\": \"{{localhost_media_id}}\",\n    \"source\": \"example-source\",\n    \"quality\": 1,\n    \"thumbnail_url\": \"example-thumbnail_url\"\n  }\n]"
+                  "body": "[\n  {\n    \"id\": \"00000000-0000-4000-8000-000000000001\",\n    \"media_id\": \"{{localhost_media_id}}\",\n    \"source\": \"example-source\",\n    \"quality\": 1\n  }\n]"
                 }
               ]
             },
@@ -34669,7 +35316,7 @@
                       "value": "application/json"
                     }
                   ],
-                  "body": "[\n  {\n    \"id\": \"00000000-0000-4000-8000-000000000001\",\n    \"record_id\": \"{{localhost_record_id}}\",\n    \"workspace_id\": \"{{localhost_workspace_id}}\",\n    \"media_id\": \"{{localhost_media_id}}\",\n    \"source\": \"example-source\",\n    \"quality\": 1,\n    \"thumbnail_url\": \"example-thumbnail_url\"\n  }\n]"
+                  "body": "[\n  {\n    \"id\": \"00000000-0000-4000-8000-000000000001\",\n    \"record_id\": \"{{localhost_record_id}}\",\n    \"workspace_id\": \"{{localhost_workspace_id}}\",\n    \"media_id\": \"{{localhost_media_id}}\",\n    \"source\": \"example-source\",\n    \"quality\": 1\n  }\n]"
                 }
               ]
             },
@@ -35257,6 +35904,508 @@
                       "    if (response.code !== 200) fail(\"Session validation failed (HTTP \" + response.code + \").\");",
                       "  });",
                       "})();"
+                    ]
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Successful response\", () => pm.expect(pm.response.code).to.be.below(400));"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "POST /v1/faces/reference-photos",
+              "request": {
+                "method": "POST",
+                "header": [],
+                "description": "Add Reference\n\nExplicit action (write or provider call). Set `localhost_enable_write_requests=true` to send.\n\nUse your authorized workspace and role. Provider calls may incur costs.",
+                "url": {
+                  "raw": "{{localhost_base_url}}/v1/faces/reference-photos",
+                  "host": [
+                    "{{localhost_base_url}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "faces",
+                    "reference-photos"
+                  ]
+                },
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{localhost_access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "body": {
+                  "mode": "formdata",
+                  "formdata": [
+                    {
+                      "key": "file",
+                      "type": "file",
+                      "disabled": false,
+                      "src": ""
+                    }
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "if (pm.variables.get(\"localhost_enable_write_requests\") !== \"true\") { console.warn(\"Skipped write: set this target's enable_write_requests variable to true.\"); pm.execution.skipRequest(); }",
+                      "if (pm.variables.get(\"localhost_enable_write_requests\") === \"true\") {",
+                      "// Authenticate on Send using this target's configured account and API.",
+                      "// https://learning.postman.com/docs/tests-and-scripts/write-scripts/postman-sandbox-reference/pm-send-request/",
+                      "(function () {",
+                      "  const origin = String(pm.variables.get(\"localhost_base_url\") || \"\").replace(/\\/$/, \"\");",
+                      "  const email = pm.variables.get(\"localhost_email\");",
+                      "  const identity = JSON.stringify([origin, email]);",
+                      "  const sameAccount = pm.variables.get(\"localhost_session_identity\") === identity;",
+                      "  const access = sameAccount ? pm.variables.get(\"localhost_access_token\") : \"\";",
+                      "  const refresh = sameAccount ? pm.variables.get(\"localhost_refresh_token\") : \"\";",
+                      "",
+                      "  function fail(message) {",
+                      "    pm.execution.skipRequest();",
+                      "    throw new Error(message);",
+                      "  }",
+                      "",
+                      "  function save(response) {",
+                      "    let body;",
+                      "    try { body = response.json(); } catch (_) { fail(\"Authentication returned invalid JSON.\"); }",
+                      "    if (!body || typeof body.access_token !== \"string\" || !body.access_token ||",
+                      "        typeof body.refresh_token !== \"string\" || !body.refresh_token) {",
+                      "      fail(\"Authentication did not return both session tokens.\");",
+                      "    }",
+                      "    pm.collectionVariables.set(\"localhost_access_token\", body.access_token);",
+                      "    pm.collectionVariables.set(\"localhost_refresh_token\", body.refresh_token);",
+                      "    pm.collectionVariables.set(\"localhost_session_identity\", identity);",
+                      "    if (pm.environment.has(\"localhost_access_token\")) pm.environment.set(\"localhost_access_token\", body.access_token);",
+                      "    if (pm.environment.has(\"localhost_refresh_token\")) pm.environment.set(\"localhost_refresh_token\", body.refresh_token);",
+                      "    if (pm.environment.has(\"localhost_session_identity\")) pm.environment.set(\"localhost_session_identity\", identity);",
+                      "    pm.variables.set(\"localhost_access_token\", body.access_token);",
+                      "    pm.variables.set(\"localhost_refresh_token\", body.refresh_token);",
+                      "    pm.variables.set(\"localhost_session_identity\", identity);",
+                      "  }",
+                      "",
+                      "  function post(path, body, done) {",
+                      "    pm.sendRequest({",
+                      "      url: origin + path,",
+                      "      method: \"POST\",",
+                      "      header: { \"Content-Type\": \"application/json\" },",
+                      "      body: { mode: \"raw\", raw: JSON.stringify(body) }",
+                      "    }, done);",
+                      "  }",
+                      "",
+                      "  function login() {",
+                      "    post(\"/v1/auth/login\", { email, password: pm.variables.get(\"localhost_password\") }, (error, response) => {",
+                      "      if (error || !response) fail(\"Automatic login could not reach the configured API.\");",
+                      "      if (response.code !== 200) fail(\"Automatic login failed (HTTP \" + response.code + \").\");",
+                      "      save(response);",
+                      "    });",
+                      "  }",
+                      "",
+                      "  function renew() {",
+                      "    if (!refresh) return login();",
+                      "    post(\"/v1/auth/refresh\", { refresh_token: refresh }, (error, response) => {",
+                      "      if (error || !response) fail(\"Automatic refresh could not reach the configured API.\");",
+                      "      if (response.code === 401) return login();",
+                      "      if (response.code !== 200) fail(\"Automatic refresh failed (HTTP \" + response.code + \").\");",
+                      "      save(response);",
+                      "    });",
+                      "  }",
+                      "",
+                      "  if (!access) return renew();",
+                      "  pm.sendRequest({",
+                      "    url: origin + \"/v1/auth/me\",",
+                      "    method: \"GET\",",
+                      "    header: { Authorization: \"Bearer \" + access }",
+                      "  }, (error, response) => {",
+                      "    if (error || !response) fail(\"Session validation could not reach the configured API.\");",
+                      "    if (response.code === 401) return renew();",
+                      "    if (response.code !== 200) fail(\"Session validation failed (HTTP \" + response.code + \").\");",
+                      "  });",
+                      "})();",
+                      "}"
+                    ]
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Successful response\", () => pm.expect(pm.response.code).to.be.below(400));"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "DELETE /v1/faces/reference-photos/{enrollment_id}",
+              "request": {
+                "method": "DELETE",
+                "header": [],
+                "description": "Remove Reference\n\nExplicit action (write or provider call). Set `localhost_enable_write_requests=true` to send.\n\nUse your authorized workspace and role. Provider calls may incur costs.",
+                "url": {
+                  "raw": "{{localhost_base_url}}/v1/faces/reference-photos/{{localhost_enrollment_id}}",
+                  "host": [
+                    "{{localhost_base_url}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "faces",
+                    "reference-photos",
+                    "{{localhost_enrollment_id}}"
+                  ]
+                },
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{localhost_access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "if (pm.variables.get(\"localhost_enable_write_requests\") !== \"true\") { console.warn(\"Skipped write: set this target's enable_write_requests variable to true.\"); pm.execution.skipRequest(); }",
+                      "if (pm.variables.get(\"localhost_enable_write_requests\") === \"true\") {",
+                      "// Authenticate on Send using this target's configured account and API.",
+                      "// https://learning.postman.com/docs/tests-and-scripts/write-scripts/postman-sandbox-reference/pm-send-request/",
+                      "(function () {",
+                      "  const origin = String(pm.variables.get(\"localhost_base_url\") || \"\").replace(/\\/$/, \"\");",
+                      "  const email = pm.variables.get(\"localhost_email\");",
+                      "  const identity = JSON.stringify([origin, email]);",
+                      "  const sameAccount = pm.variables.get(\"localhost_session_identity\") === identity;",
+                      "  const access = sameAccount ? pm.variables.get(\"localhost_access_token\") : \"\";",
+                      "  const refresh = sameAccount ? pm.variables.get(\"localhost_refresh_token\") : \"\";",
+                      "",
+                      "  function fail(message) {",
+                      "    pm.execution.skipRequest();",
+                      "    throw new Error(message);",
+                      "  }",
+                      "",
+                      "  function save(response) {",
+                      "    let body;",
+                      "    try { body = response.json(); } catch (_) { fail(\"Authentication returned invalid JSON.\"); }",
+                      "    if (!body || typeof body.access_token !== \"string\" || !body.access_token ||",
+                      "        typeof body.refresh_token !== \"string\" || !body.refresh_token) {",
+                      "      fail(\"Authentication did not return both session tokens.\");",
+                      "    }",
+                      "    pm.collectionVariables.set(\"localhost_access_token\", body.access_token);",
+                      "    pm.collectionVariables.set(\"localhost_refresh_token\", body.refresh_token);",
+                      "    pm.collectionVariables.set(\"localhost_session_identity\", identity);",
+                      "    if (pm.environment.has(\"localhost_access_token\")) pm.environment.set(\"localhost_access_token\", body.access_token);",
+                      "    if (pm.environment.has(\"localhost_refresh_token\")) pm.environment.set(\"localhost_refresh_token\", body.refresh_token);",
+                      "    if (pm.environment.has(\"localhost_session_identity\")) pm.environment.set(\"localhost_session_identity\", identity);",
+                      "    pm.variables.set(\"localhost_access_token\", body.access_token);",
+                      "    pm.variables.set(\"localhost_refresh_token\", body.refresh_token);",
+                      "    pm.variables.set(\"localhost_session_identity\", identity);",
+                      "  }",
+                      "",
+                      "  function post(path, body, done) {",
+                      "    pm.sendRequest({",
+                      "      url: origin + path,",
+                      "      method: \"POST\",",
+                      "      header: { \"Content-Type\": \"application/json\" },",
+                      "      body: { mode: \"raw\", raw: JSON.stringify(body) }",
+                      "    }, done);",
+                      "  }",
+                      "",
+                      "  function login() {",
+                      "    post(\"/v1/auth/login\", { email, password: pm.variables.get(\"localhost_password\") }, (error, response) => {",
+                      "      if (error || !response) fail(\"Automatic login could not reach the configured API.\");",
+                      "      if (response.code !== 200) fail(\"Automatic login failed (HTTP \" + response.code + \").\");",
+                      "      save(response);",
+                      "    });",
+                      "  }",
+                      "",
+                      "  function renew() {",
+                      "    if (!refresh) return login();",
+                      "    post(\"/v1/auth/refresh\", { refresh_token: refresh }, (error, response) => {",
+                      "      if (error || !response) fail(\"Automatic refresh could not reach the configured API.\");",
+                      "      if (response.code === 401) return login();",
+                      "      if (response.code !== 200) fail(\"Automatic refresh failed (HTTP \" + response.code + \").\");",
+                      "      save(response);",
+                      "    });",
+                      "  }",
+                      "",
+                      "  if (!access) return renew();",
+                      "  pm.sendRequest({",
+                      "    url: origin + \"/v1/auth/me\",",
+                      "    method: \"GET\",",
+                      "    header: { Authorization: \"Bearer \" + access }",
+                      "  }, (error, response) => {",
+                      "    if (error || !response) fail(\"Session validation could not reach the configured API.\");",
+                      "    if (response.code === 401) return renew();",
+                      "    if (response.code !== 200) fail(\"Session validation failed (HTTP \" + response.code + \").\");",
+                      "  });",
+                      "})();",
+                      "}"
+                    ]
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Successful response\", () => pm.expect(pm.response.code).to.be.below(400));"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "GET /v1/faces/setup",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "description": "Status\n\nRead or session access.\n\nUse your authorized workspace and role. Provider calls may incur costs.",
+                "url": {
+                  "raw": "{{localhost_base_url}}/v1/faces/setup",
+                  "host": [
+                    "{{localhost_base_url}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "faces",
+                    "setup"
+                  ]
+                },
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{localhost_access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "// Authenticate on Send using this target's configured account and API.",
+                      "// https://learning.postman.com/docs/tests-and-scripts/write-scripts/postman-sandbox-reference/pm-send-request/",
+                      "(function () {",
+                      "  const origin = String(pm.variables.get(\"localhost_base_url\") || \"\").replace(/\\/$/, \"\");",
+                      "  const email = pm.variables.get(\"localhost_email\");",
+                      "  const identity = JSON.stringify([origin, email]);",
+                      "  const sameAccount = pm.variables.get(\"localhost_session_identity\") === identity;",
+                      "  const access = sameAccount ? pm.variables.get(\"localhost_access_token\") : \"\";",
+                      "  const refresh = sameAccount ? pm.variables.get(\"localhost_refresh_token\") : \"\";",
+                      "",
+                      "  function fail(message) {",
+                      "    pm.execution.skipRequest();",
+                      "    throw new Error(message);",
+                      "  }",
+                      "",
+                      "  function save(response) {",
+                      "    let body;",
+                      "    try { body = response.json(); } catch (_) { fail(\"Authentication returned invalid JSON.\"); }",
+                      "    if (!body || typeof body.access_token !== \"string\" || !body.access_token ||",
+                      "        typeof body.refresh_token !== \"string\" || !body.refresh_token) {",
+                      "      fail(\"Authentication did not return both session tokens.\");",
+                      "    }",
+                      "    pm.collectionVariables.set(\"localhost_access_token\", body.access_token);",
+                      "    pm.collectionVariables.set(\"localhost_refresh_token\", body.refresh_token);",
+                      "    pm.collectionVariables.set(\"localhost_session_identity\", identity);",
+                      "    if (pm.environment.has(\"localhost_access_token\")) pm.environment.set(\"localhost_access_token\", body.access_token);",
+                      "    if (pm.environment.has(\"localhost_refresh_token\")) pm.environment.set(\"localhost_refresh_token\", body.refresh_token);",
+                      "    if (pm.environment.has(\"localhost_session_identity\")) pm.environment.set(\"localhost_session_identity\", identity);",
+                      "    pm.variables.set(\"localhost_access_token\", body.access_token);",
+                      "    pm.variables.set(\"localhost_refresh_token\", body.refresh_token);",
+                      "    pm.variables.set(\"localhost_session_identity\", identity);",
+                      "  }",
+                      "",
+                      "  function post(path, body, done) {",
+                      "    pm.sendRequest({",
+                      "      url: origin + path,",
+                      "      method: \"POST\",",
+                      "      header: { \"Content-Type\": \"application/json\" },",
+                      "      body: { mode: \"raw\", raw: JSON.stringify(body) }",
+                      "    }, done);",
+                      "  }",
+                      "",
+                      "  function login() {",
+                      "    post(\"/v1/auth/login\", { email, password: pm.variables.get(\"localhost_password\") }, (error, response) => {",
+                      "      if (error || !response) fail(\"Automatic login could not reach the configured API.\");",
+                      "      if (response.code !== 200) fail(\"Automatic login failed (HTTP \" + response.code + \").\");",
+                      "      save(response);",
+                      "    });",
+                      "  }",
+                      "",
+                      "  function renew() {",
+                      "    if (!refresh) return login();",
+                      "    post(\"/v1/auth/refresh\", { refresh_token: refresh }, (error, response) => {",
+                      "      if (error || !response) fail(\"Automatic refresh could not reach the configured API.\");",
+                      "      if (response.code === 401) return login();",
+                      "      if (response.code !== 200) fail(\"Automatic refresh failed (HTTP \" + response.code + \").\");",
+                      "      save(response);",
+                      "    });",
+                      "  }",
+                      "",
+                      "  if (!access) return renew();",
+                      "  pm.sendRequest({",
+                      "    url: origin + \"/v1/auth/me\",",
+                      "    method: \"GET\",",
+                      "    header: { Authorization: \"Bearer \" + access }",
+                      "  }, (error, response) => {",
+                      "    if (error || !response) fail(\"Session validation could not reach the configured API.\");",
+                      "    if (response.code === 401) return renew();",
+                      "    if (response.code !== 200) fail(\"Session validation failed (HTTP \" + response.code + \").\");",
+                      "  });",
+                      "})();"
+                    ]
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Successful response\", () => pm.expect(pm.response.code).to.be.below(400));"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "POST /v1/faces/setup/complete",
+              "request": {
+                "method": "POST",
+                "header": [],
+                "description": "Complete\n\nExplicit action (write or provider call). Set `localhost_enable_write_requests=true` to send.\n\nUse your authorized workspace and role. Provider calls may incur costs.",
+                "url": {
+                  "raw": "{{localhost_base_url}}/v1/faces/setup/complete",
+                  "host": [
+                    "{{localhost_base_url}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "faces",
+                    "setup",
+                    "complete"
+                  ]
+                },
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{localhost_access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "if (pm.variables.get(\"localhost_enable_write_requests\") !== \"true\") { console.warn(\"Skipped write: set this target's enable_write_requests variable to true.\"); pm.execution.skipRequest(); }",
+                      "if (pm.variables.get(\"localhost_enable_write_requests\") === \"true\") {",
+                      "// Authenticate on Send using this target's configured account and API.",
+                      "// https://learning.postman.com/docs/tests-and-scripts/write-scripts/postman-sandbox-reference/pm-send-request/",
+                      "(function () {",
+                      "  const origin = String(pm.variables.get(\"localhost_base_url\") || \"\").replace(/\\/$/, \"\");",
+                      "  const email = pm.variables.get(\"localhost_email\");",
+                      "  const identity = JSON.stringify([origin, email]);",
+                      "  const sameAccount = pm.variables.get(\"localhost_session_identity\") === identity;",
+                      "  const access = sameAccount ? pm.variables.get(\"localhost_access_token\") : \"\";",
+                      "  const refresh = sameAccount ? pm.variables.get(\"localhost_refresh_token\") : \"\";",
+                      "",
+                      "  function fail(message) {",
+                      "    pm.execution.skipRequest();",
+                      "    throw new Error(message);",
+                      "  }",
+                      "",
+                      "  function save(response) {",
+                      "    let body;",
+                      "    try { body = response.json(); } catch (_) { fail(\"Authentication returned invalid JSON.\"); }",
+                      "    if (!body || typeof body.access_token !== \"string\" || !body.access_token ||",
+                      "        typeof body.refresh_token !== \"string\" || !body.refresh_token) {",
+                      "      fail(\"Authentication did not return both session tokens.\");",
+                      "    }",
+                      "    pm.collectionVariables.set(\"localhost_access_token\", body.access_token);",
+                      "    pm.collectionVariables.set(\"localhost_refresh_token\", body.refresh_token);",
+                      "    pm.collectionVariables.set(\"localhost_session_identity\", identity);",
+                      "    if (pm.environment.has(\"localhost_access_token\")) pm.environment.set(\"localhost_access_token\", body.access_token);",
+                      "    if (pm.environment.has(\"localhost_refresh_token\")) pm.environment.set(\"localhost_refresh_token\", body.refresh_token);",
+                      "    if (pm.environment.has(\"localhost_session_identity\")) pm.environment.set(\"localhost_session_identity\", identity);",
+                      "    pm.variables.set(\"localhost_access_token\", body.access_token);",
+                      "    pm.variables.set(\"localhost_refresh_token\", body.refresh_token);",
+                      "    pm.variables.set(\"localhost_session_identity\", identity);",
+                      "  }",
+                      "",
+                      "  function post(path, body, done) {",
+                      "    pm.sendRequest({",
+                      "      url: origin + path,",
+                      "      method: \"POST\",",
+                      "      header: { \"Content-Type\": \"application/json\" },",
+                      "      body: { mode: \"raw\", raw: JSON.stringify(body) }",
+                      "    }, done);",
+                      "  }",
+                      "",
+                      "  function login() {",
+                      "    post(\"/v1/auth/login\", { email, password: pm.variables.get(\"localhost_password\") }, (error, response) => {",
+                      "      if (error || !response) fail(\"Automatic login could not reach the configured API.\");",
+                      "      if (response.code !== 200) fail(\"Automatic login failed (HTTP \" + response.code + \").\");",
+                      "      save(response);",
+                      "    });",
+                      "  }",
+                      "",
+                      "  function renew() {",
+                      "    if (!refresh) return login();",
+                      "    post(\"/v1/auth/refresh\", { refresh_token: refresh }, (error, response) => {",
+                      "      if (error || !response) fail(\"Automatic refresh could not reach the configured API.\");",
+                      "      if (response.code === 401) return login();",
+                      "      if (response.code !== 200) fail(\"Automatic refresh failed (HTTP \" + response.code + \").\");",
+                      "      save(response);",
+                      "    });",
+                      "  }",
+                      "",
+                      "  if (!access) return renew();",
+                      "  pm.sendRequest({",
+                      "    url: origin + \"/v1/auth/me\",",
+                      "    method: \"GET\",",
+                      "    header: { Authorization: \"Bearer \" + access }",
+                      "  }, (error, response) => {",
+                      "    if (error || !response) fail(\"Session validation could not reach the configured API.\");",
+                      "    if (response.code === 401) return renew();",
+                      "    if (response.code !== 200) fail(\"Session validation failed (HTTP \" + response.code + \").\");",
+                      "  });",
+                      "})();",
+                      "}"
                     ]
                   }
                 },
@@ -45788,6 +46937,12 @@
                       "type": "text",
                       "disabled": true,
                       "value": ""
+                    },
+                    {
+                      "key": "workspace_id",
+                      "type": "text",
+                      "disabled": false,
+                      "value": "{{localhost_workspace_id}}"
                     }
                   ]
                 }
@@ -46323,7 +47478,7 @@
                   "query": [
                     {
                       "key": "audience",
-                      "value": "home",
+                      "value": "work",
                       "disabled": true
                     },
                     {
@@ -46464,7 +47619,7 @@
                   "query": [
                     {
                       "key": "audience",
-                      "value": "home",
+                      "value": "work",
                       "disabled": true
                     },
                     {
@@ -48446,7 +49601,7 @@
                       "key": "audience",
                       "type": "text",
                       "disabled": true,
-                      "value": "home"
+                      "value": "work"
                     },
                     {
                       "key": "workspace_id",
@@ -49091,6 +50246,145 @@
                       "type": "string"
                     }
                   ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "if (pm.variables.get(\"localhost_enable_write_requests\") !== \"true\") { console.warn(\"Skipped write: set this target's enable_write_requests variable to true.\"); pm.execution.skipRequest(); }",
+                      "if (pm.variables.get(\"localhost_enable_write_requests\") === \"true\") {",
+                      "// Authenticate on Send using this target's configured account and API.",
+                      "// https://learning.postman.com/docs/tests-and-scripts/write-scripts/postman-sandbox-reference/pm-send-request/",
+                      "(function () {",
+                      "  const origin = String(pm.variables.get(\"localhost_base_url\") || \"\").replace(/\\/$/, \"\");",
+                      "  const email = pm.variables.get(\"localhost_email\");",
+                      "  const identity = JSON.stringify([origin, email]);",
+                      "  const sameAccount = pm.variables.get(\"localhost_session_identity\") === identity;",
+                      "  const access = sameAccount ? pm.variables.get(\"localhost_access_token\") : \"\";",
+                      "  const refresh = sameAccount ? pm.variables.get(\"localhost_refresh_token\") : \"\";",
+                      "",
+                      "  function fail(message) {",
+                      "    pm.execution.skipRequest();",
+                      "    throw new Error(message);",
+                      "  }",
+                      "",
+                      "  function save(response) {",
+                      "    let body;",
+                      "    try { body = response.json(); } catch (_) { fail(\"Authentication returned invalid JSON.\"); }",
+                      "    if (!body || typeof body.access_token !== \"string\" || !body.access_token ||",
+                      "        typeof body.refresh_token !== \"string\" || !body.refresh_token) {",
+                      "      fail(\"Authentication did not return both session tokens.\");",
+                      "    }",
+                      "    pm.collectionVariables.set(\"localhost_access_token\", body.access_token);",
+                      "    pm.collectionVariables.set(\"localhost_refresh_token\", body.refresh_token);",
+                      "    pm.collectionVariables.set(\"localhost_session_identity\", identity);",
+                      "    if (pm.environment.has(\"localhost_access_token\")) pm.environment.set(\"localhost_access_token\", body.access_token);",
+                      "    if (pm.environment.has(\"localhost_refresh_token\")) pm.environment.set(\"localhost_refresh_token\", body.refresh_token);",
+                      "    if (pm.environment.has(\"localhost_session_identity\")) pm.environment.set(\"localhost_session_identity\", identity);",
+                      "    pm.variables.set(\"localhost_access_token\", body.access_token);",
+                      "    pm.variables.set(\"localhost_refresh_token\", body.refresh_token);",
+                      "    pm.variables.set(\"localhost_session_identity\", identity);",
+                      "  }",
+                      "",
+                      "  function post(path, body, done) {",
+                      "    pm.sendRequest({",
+                      "      url: origin + path,",
+                      "      method: \"POST\",",
+                      "      header: { \"Content-Type\": \"application/json\" },",
+                      "      body: { mode: \"raw\", raw: JSON.stringify(body) }",
+                      "    }, done);",
+                      "  }",
+                      "",
+                      "  function login() {",
+                      "    post(\"/v1/auth/login\", { email, password: pm.variables.get(\"localhost_password\") }, (error, response) => {",
+                      "      if (error || !response) fail(\"Automatic login could not reach the configured API.\");",
+                      "      if (response.code !== 200) fail(\"Automatic login failed (HTTP \" + response.code + \").\");",
+                      "      save(response);",
+                      "    });",
+                      "  }",
+                      "",
+                      "  function renew() {",
+                      "    if (!refresh) return login();",
+                      "    post(\"/v1/auth/refresh\", { refresh_token: refresh }, (error, response) => {",
+                      "      if (error || !response) fail(\"Automatic refresh could not reach the configured API.\");",
+                      "      if (response.code === 401) return login();",
+                      "      if (response.code !== 200) fail(\"Automatic refresh failed (HTTP \" + response.code + \").\");",
+                      "      save(response);",
+                      "    });",
+                      "  }",
+                      "",
+                      "  if (!access) return renew();",
+                      "  pm.sendRequest({",
+                      "    url: origin + \"/v1/auth/me\",",
+                      "    method: \"GET\",",
+                      "    header: { Authorization: \"Bearer \" + access }",
+                      "  }, (error, response) => {",
+                      "    if (error || !response) fail(\"Session validation could not reach the configured API.\");",
+                      "    if (response.code === 401) return renew();",
+                      "    if (response.code !== 200) fail(\"Session validation failed (HTTP \" + response.code + \").\");",
+                      "  });",
+                      "})();",
+                      "}"
+                    ]
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Successful response\", () => pm.expect(pm.response.code).to.be.below(400));"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "POST /v1/groups/{workspace_id}/publications/import",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "description": "Import Group Publications\n\nExplicit action (write or provider call). Set `localhost_enable_write_requests=true` to send.\n\nUse your authorized workspace and role. Provider calls may incur costs.",
+                "url": {
+                  "raw": "{{localhost_base_url}}/v1/groups/{{localhost_workspace_id}}/publications/import",
+                  "host": [
+                    "{{localhost_base_url}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "groups",
+                    "{{localhost_workspace_id}}",
+                    "publications",
+                    "import"
+                  ]
+                },
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{localhost_access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"publication_ids\": [\n    \"00000000-0000-4000-8000-000000000001\"\n  ]\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
                 }
               },
               "event": [
@@ -52521,7 +53815,7 @@
     },
     {
       "key": "server_post_id",
-      "value": "c663f3ec-2c6e-43cc-9c73-5a55a1b357f7",
+      "value": "1c347cf0-a6c7-4ca7-acca-dc786e410511",
       "type": "string",
       "description": "Copy this identifier from an authorized response for this target."
     },
@@ -52971,7 +54265,7 @@
     },
     {
       "key": "security_post_id",
-      "value": "b63687eb-38f5-416c-9058-86a86476b27e",
+      "value": "05c14de7-f9de-445b-9650-3ecf172886fc",
       "type": "string",
       "description": "Preconfigured evaluation value. Copy this identifier from an authorized response for this target."
     },
@@ -53061,7 +54355,7 @@
     },
     {
       "key": "hospital_post_id",
-      "value": "b3b9310e-812c-4b3e-88f4-66b7fa43f973",
+      "value": "2a02e8e2-14d4-4994-b1a6-3efeb4afb8c3",
       "type": "string",
       "description": "Preconfigured evaluation value. Copy this identifier from an authorized response for this target."
     },
@@ -53151,7 +54445,7 @@
     },
     {
       "key": "memory_post_id",
-      "value": "c663f3ec-2c6e-43cc-9c73-5a55a1b357f7",
+      "value": "1c347cf0-a6c7-4ca7-acca-dc786e410511",
       "type": "string",
       "description": "Preconfigured evaluation value. Copy this identifier from an authorized response for this target."
     },

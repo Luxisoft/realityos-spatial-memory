@@ -15,7 +15,7 @@ from app.social_features.models import Publication
 from PIL import Image
 from sqlalchemy import select
 
-from .test_evidence_uploads import photo, upload
+from .test_evidence_uploads import photo, publication_destination, upload
 
 
 def outsider(client):
@@ -70,7 +70,9 @@ def test_display_images_are_scoped_and_expire(client, auth_headers):
         ("upload", first["id"]),
         ("publication", first["result_id"]),
     ]:
-        assert link(client, other, kind, resource, labels=labels).status_code == 404
+        assert link(client, other, kind, resource, labels=labels).status_code == (
+            404 if kind == "upload" else 403
+        )
         assert link(client, {}, kind, resource, labels=labels).status_code == 401
         assert (
             link(client, auth_headers, kind, resource, labels=labels).status_code == 200
@@ -219,12 +221,16 @@ def video_upload(client, headers, clip, key=None, **fields):
     return client.post(
         "/v1/me/publication-uploads",
         headers=headers,
-        data={"request_key": key or str(uuid.uuid4()), **fields},
+        data={
+            **publication_destination(client, headers),
+            "request_key": key or str(uuid.uuid4()),
+            **fields,
+        },
         files={"file": ("capture.mp4", clip, "video/mp4")},
     )
 
 
-@pytest.mark.parametrize("audience", ["home", "work"])
+@pytest.mark.parametrize("audience", ["work"])
 def test_reviewed_video_original_frames_and_idempotent_replacement(
     client, auth_headers, clip, audience
 ):
@@ -410,26 +416,12 @@ def _face_enrollment_id(client, headers, color="green"):
     return enrolled.json()["enrollment_ids"][0]
 
 
-def test_display_face_enrollment_serves_match_thumbnail(client, auth_headers):
+def test_display_face_enrollment_is_private(client, auth_headers):
     other_headers = _face_pair(client, auth_headers)
     enrollment_id = _face_enrollment_id(client, other_headers)
-    response = link(client, auth_headers, "face_enrollment", enrollment_id)
-    assert response.status_code == 200, response.text
-    image = client.get(response.json()["url"])
-    assert image.status_code == 200
-    assert image.headers["content-type"] == "image/jpeg"
-    with Image.open(io.BytesIO(image.content)) as picture:
-        assert picture.size == (600, 280)
-    assert (
-        link(client, outsider(client), "face_enrollment", enrollment_id).status_code
-        == 403
-    )
-    revoked = client.request("DELETE", "/v1/faces/consent", headers=other_headers)
-    assert revoked.status_code == 200, revoked.text
-    # Revoking wipes the owner's enrollments, so the match URL is gone too.
-    assert (
-        link(client, auth_headers, "face_enrollment", enrollment_id).status_code == 404
-    )
+    for headers in (auth_headers, other_headers, outsider(client)):
+        response = link(client, headers, "face_enrollment", enrollment_id)
+        assert response.status_code == 404, response.text
 
 
 def _group_marks():

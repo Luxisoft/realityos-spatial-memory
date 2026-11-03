@@ -139,7 +139,7 @@ class AccountEntryTest {
         tap("account-password-visibility")
         compose.onNodeWithContentDescription("Hide").assertExists()
         tap("account-submit")
-        compose.onNodeWithTag("account-message").assertExists()
+        compose.onNodeWithTag("app-notice").assertExists()
         compose.onNodeWithTag("account-submit").assertIsEnabled()
         capture("error-en-390")
     }
@@ -341,7 +341,7 @@ class AccountEntryTest {
         compose.onNodeWithText(compose.activity.getString(R.string.account_correction_credentials_error)).assertExists()
         compose.onNodeWithTag("account-identifier").assertTextContains("initial@example.test")
         compose.onNodeWithTag("account-email").assertTextContains("corrected@example.test")
-        compose.onNodeWithTag("account-message").performScrollTo()
+        compose.onNodeWithTag("app-notice").assertIsDisplayed()
         capture("correction-credentials-en-390")
         tap("account-recover")
         compose.onNodeWithTag("account-email").assertTextContains("initial@example.test")

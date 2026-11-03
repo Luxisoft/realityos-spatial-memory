@@ -239,7 +239,7 @@ internal fun FaceCaptureScreen(
                     Spacer(Modifier.height(16.dp))
                 }
                 if (error.isNotBlank()) {
-                    Text(error, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodyMedium)
+                    NoticeEffect(error, {})
                     Spacer(Modifier.height(16.dp))
                 }
                 Button(onClick = {
@@ -274,7 +274,7 @@ internal fun FaceCaptureScreen(
                     Spacer(Modifier.height(12.dp))
                     Button(onClick = { verify() }) { Text(stringResource(R.string.face_retry)) }
                 } else if (error.isNotBlank()) {
-                    Text(error, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodyMedium)
+                    NoticeEffect(error, {})
                     Spacer(Modifier.height(12.dp))
                     Button(onClick = { verify() }) { Text(stringResource(R.string.face_retry)) }
                 }

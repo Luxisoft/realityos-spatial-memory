@@ -168,7 +168,7 @@ internal fun PublicationUploadDialog(state: PublicationUploader) {
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 when {
-                    failed -> Text(state.error.ifBlank { value?.optString("error").orEmpty() })
+                    failed -> NoticeEffect(state.error.ifBlank { value?.optString("error").orEmpty() }, {})
                     duplicate -> {
                         Text(localizedText(R.string.ui_a_publication_with_this_photo_already_exists_in_the_same_profile_or_group_would_you_l))
                         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -182,7 +182,7 @@ internal fun PublicationUploadDialog(state: PublicationUploader) {
                         Text(localizedText(R.string.ui_comments_reactions_and_permissions_will_be_preserved), style = MaterialTheme.typography.bodySmall)
                     }
                     else -> {
-                        SkeletonGrid(rows = 1)
+                        LinearProgressIndicator(Modifier.fillMaxWidth())
                         Text(localizedText(R.string.ui_meta_checks_for_duplicates_and_locates_objects_the_publication_will_appear_when_finis))
                     }
                 }

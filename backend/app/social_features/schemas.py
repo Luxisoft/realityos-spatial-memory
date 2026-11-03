@@ -136,7 +136,7 @@ class ProfileSearchRequest(BaseModel):
 
 class Publish(BaseModel):
     media_id: uuid.UUID
-    audience: Literal["home", "public", "work"] = "home"
+    audience: Literal["work"] = "work"
     caption: str = Field(default="", max_length=4000)
     workspace_id: uuid.UUID | None = None
 

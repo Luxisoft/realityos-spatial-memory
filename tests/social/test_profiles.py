@@ -95,20 +95,25 @@ def test_public_profile_and_single_replaceable_private_cv(client, auth_headers):
     assert removed.json()["cv"]["status"] == "empty"
 
 
-def test_owner_uploads_private_profile_publication(client, auth_headers):
+def test_owner_uploads_group_profile_publication(client, auth_headers):
     output = io.BytesIO()
     Image.new("RGB", (48, 32), "green").save(output, format="PNG")
     response = client.post(
         "/v1/me/profile/publications",
         headers=auth_headers,
         files={"file": ("profile.png", output.getvalue(), "image/png")},
-        data={"caption": "Nueva publicación"},
+        data={
+            "caption": "Nueva publicación",
+            "workspace_id": client.post(
+                "/v1/groups", headers=auth_headers, json={"name": "Profile group"}
+            ).json()["id"],
+        },
     )
     assert response.status_code == 200, response.text
     payload = response.json()
     assert payload["caption"] == "Nueva publicación"
     assert payload["owned"] is True
-    assert payload["audience"] == "home"
+    assert payload["audience"] == "work"
 
     owner_id = client.get("/v1/me/profile", headers=auth_headers).json()["user_id"]
     own_media = client.get(

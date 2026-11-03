@@ -254,35 +254,17 @@ def _facebook_published_at(value: str | None) -> datetime:
     return parsed.replace(tzinfo=UTC) if parsed.tzinfo is None else parsed
 
 
-def _ensure_import_publication(db: Session, item: FacebookMedia) -> Publication | None:
-    """Expose imported account media through the normal private publication path."""
-
-    if item.imported_media_id is None:
-        return None
-    existing = db.scalar(
+def _ensure_import_publication(db: Session, item: FacebookMedia) -> None:
+    # References remain private, including retries of older imports.
+    for post in db.scalars(
         select(Publication).where(
             Publication.owner_id == item.user_id,
+            Publication.source == "facebook",
             Publication.source_ref == item.fb_id,
         )
-    )
-    if existing is not None:
-        existing.media_id = item.imported_media_id
-        existing.caption = item.caption or ""
-        existing.search_text = item.caption or ""
-        existing.published_at = _facebook_published_at(item.fb_created_time)
-        return existing
-    publication = Publication(
-        owner_id=item.user_id,
-        media_id=item.imported_media_id,
-        audience="home",
-        caption=item.caption or "",
-        search_text=item.caption or "",
-        source="facebook",
-        source_ref=item.fb_id,
-        published_at=_facebook_published_at(item.fb_created_time),
-    )
-    db.add(publication)
-    return publication
+    ):
+        post.hidden = True
+    return None
 
 
 def _store_chunked_bytes(db: Session, asset, raw: bytes, chunk_bytes: int) -> None:

@@ -24,7 +24,9 @@ router = APIRouter()
 
 
 class DisplayMediaRequest(BaseModel):
-    kind: Literal["evidence", "upload", "publication", "face_enrollment", "face_record_enrollment"]
+    kind: Literal[
+        "evidence", "upload", "publication", "face_enrollment", "face_record_enrollment", "avatar"
+    ]
     resource_id: uuid.UUID
     labels: list[str] = Field(default_factory=list, max_length=30)
 
@@ -34,6 +36,10 @@ def render(payload, user, db):
         response = evidence_image(payload.resource_id, ",".join(payload.labels), True, user, db)
     elif payload.kind == "upload":
         response = publication_upload_preview(payload.resource_id, user, db)
+    elif payload.kind == "avatar":
+        from app.social_features.profiles import profile_avatar
+
+        response = profile_avatar(payload.resource_id, user, db)
     elif payload.kind == "face_enrollment":
         from app.faces import enrollment_thumbnail
 

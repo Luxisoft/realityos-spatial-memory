@@ -2,14 +2,21 @@
 
 Run on the backend host with DATABASE_URL and STORAGE_ENCRYPTION_KEY configured.
 Default is a read-only account check; --apply also requires read-only S3 credentials.
-No account, publication, membership or biometric data is created or changed.
+Accounts, memberships and biometric data are preserved. Changing an existing demo
+source retires its imported copies through the standard connection lifecycle.
 """
 
 import argparse
 import json
 from pathlib import Path
 
-from sqlalchemy import select
+from sqlalchemy import or_, select
+
+WORKSPACES = {
+    "police": "Pacific Ridge Police Department",
+    "nursing": "California Valley Medical Center",
+    "memory": "Sonoran Neurological Institute",
+}
 
 PRINCIPALS = {
     "police": ("alex-rivera", "maya-johnson", "daniel-kim"),
@@ -26,10 +33,11 @@ PRINCIPALS = {
 
 def prepare(db, settings, credentials=None):
     from app.accounts.models import PasswordAccount
-    from app.models import User
+    from app.models import User, Workspace, WorkspaceMember
     from app.storage.client import BucketClient
+    from app.storage.lifecycle import retire_connection
     from app.storage.models import StorageConnection
-    from app.storage.routes import configure
+    from app.storage.routes import configure, enable_default_sync
     from app.storage.schemas import ConnectionInput
 
     prepared = []
@@ -49,7 +57,9 @@ def prepare(db, settings, credentials=None):
             prepared.append((user, username, group))
     results = []
     for user, username, group in prepared:
-        prefix = f"demo/v1/{group}/"
+        prefix = (
+            f"demo/v1/{group}/" if group == "qa" else f"demo/v2/{group}/{username}/"
+        )
         if credentials:
             payload = ConnectionInput(
                 name=f"Demo {group}",
@@ -61,13 +71,35 @@ def prepare(db, settings, credentials=None):
                 access_key=credentials["access_key"],
                 secret_key=credentials["secret_key"],
             )
+            workspace = (
+                db.scalar(
+                    select(Workspace)
+                    .join(WorkspaceMember)
+                    .where(
+                        WorkspaceMember.user_id == user.id,
+                        Workspace.name == WORKSPACES.get(group),
+                    )
+                )
+                if group != "qa"
+                else None
+            )
+            if group != "qa" and workspace is None:
+                raise ValueError(f"Existing group membership required: {username}")
+            trial = StorageConnection(owner_id=user.id)
+            configure(trial, payload, settings)
+            page = BucketClient(trial, settings).objects()
+            if not page["items"]:
+                raise ValueError(f"Upload and verify the demo prefix first: {prefix}")
             row = db.scalar(
                 select(StorageConnection)
                 .where(
                     StorageConnection.owner_id == user.id,
                     StorageConnection.endpoint == payload.endpoint,
                     StorageConnection.bucket == payload.bucket,
-                    StorageConnection.prefix == prefix,
+                    or_(
+                        StorageConnection.prefix == prefix,
+                        StorageConnection.prefix == f"demo/v1/{group}/",
+                    ),
                     StorageConnection.active.is_(True),
                 )
                 .with_for_update()
@@ -75,11 +107,26 @@ def prepare(db, settings, credentials=None):
             if row is None:
                 row = StorageConnection(owner_id=user.id)
                 db.add(row)
+            elif row.prefix != prefix:
+                retire_connection(db, row)
             configure(row, payload, settings)
-            page = BucketClient(row, settings).objects()
-            if not page["items"]:
-                raise ValueError(f"Upload and verify the demo prefix first: {prefix}")
+            if workspace:
+                row.workspace_id = workspace.id
             db.flush()
+            if workspace:
+                enable_default_sync(db, row)
+            if group == "qa":
+                for legacy in db.scalars(
+                    select(StorageConnection).where(
+                        StorageConnection.owner_id == user.id,
+                        StorageConnection.endpoint == payload.endpoint,
+                        StorageConnection.bucket == payload.bucket,
+                        StorageConnection.prefix == "demo/v1/social-directory/",
+                        StorageConnection.active.is_(True),
+                    )
+                ):
+                    retire_connection(db, legacy)
+                    legacy.active, legacy.secret = False, ""
         results.append(
             {"username": username, "prefix": prefix, "connected": bool(credentials)}
         )

@@ -18,6 +18,7 @@ from app.social_features.upload_service import process_upload
 from app.social_features.uploads import candidate, check_destination
 from app.storage.client import MEDIA, BucketClient, check_key, mime_for
 from app.storage.models import StorageConnection, StorageImport
+from app.storage.provenance_models import StorageObject
 
 
 def now():
@@ -52,6 +53,8 @@ def create_import(db, row, payload):
         )
     )
     if previous:
+        if previous.revision != row.revision:
+            raise HTTPException(409, "Use a new request key for the new connection source.")
         if previous.payload_hash != digest:
             raise HTTPException(409, "Import request key already used for different content.")
         return previous
@@ -59,6 +62,7 @@ def create_import(db, row, payload):
         connection_id=row.id,
         request_key=payload.request_key,
         payload_hash=digest,
+        revision=row.revision,
         audience=payload.audience,
         workspace_id=payload.workspace_id,
         items=[{"key": key, "status": "pending"} for key in dict.fromkeys(payload.keys)],
@@ -138,12 +142,17 @@ def process_import(db, run_id, settings):
     run.lease_until = now() + timedelta(hours=1)
     db.commit()
     for index, source in enumerate(run.items):
+        db.refresh(run)
+        if run.status == "cancelled":
+            return
         if source["status"] not in {"pending", "downloading"}:
             continue
         item = dict(source)
         row = db.get(StorageConnection, run.connection_id, populate_existing=True)
         try:
             destination(db, row, run.audience, run.workspace_id)
+            if run.revision != row.revision:
+                raise HTTPException(409, "Connection source changed.")
             item["status"] = "downloading"
             run.items = [dict(v) if i != index else item for i, v in enumerate(run.items)]
             db.commit()
@@ -151,6 +160,8 @@ def process_import(db, run_id, settings):
             # Serialize publication with disconnect/credential rotation and membership validation.
             db.refresh(row, with_for_update=True)
             user = destination(db, row, run.audience, run.workspace_id)
+            if run.revision != row.revision:
+                raise HTTPException(409, "Connection source changed.")
             request = SimpleNamespace(app=SimpleNamespace(state=SimpleNamespace(settings=settings)))
             identity = json.dumps(
                 [
@@ -180,6 +191,34 @@ def process_import(db, run_id, settings):
                     request_key,
                 )
             )
+            from app.storage.lifecycle import retire_object
+
+            source_row = db.scalar(
+                select(StorageObject).where(
+                    StorageObject.connection_id == row.id,
+                    StorageObject.revision == row.revision,
+                    StorageObject.key == item["key"],
+                    StorageObject.retired.is_(False),
+                    StorageObject.workspace_id == run.workspace_id,
+                )
+            )
+            if source_row is not None and source_row.upload_id != upload.id:
+                retire_object(db, source_row)
+                source_row = None
+            if source_row is None:
+                source_row = StorageObject(
+                    connection_id=row.id,
+                    revision=row.revision,
+                    key=item["key"],
+                    workspace_id=run.workspace_id,
+                )
+                db.add(source_row)
+            source_row.sha256, source_row.upload_id, source_row.retired = (
+                provenance["sha256"],
+                upload.id,
+                False,
+            )
+            db.flush()
             # Persist the candidate and release the connection lock before
             # provider calls. Other imports, rotation and disconnect must not
             # wait for the complete analysis. Recovery reuses this candidate.
@@ -191,6 +230,8 @@ def process_import(db, run_id, settings):
             # after analysis so a concurrent disconnect rolls them back.
             db.refresh(row, with_for_update=True)
             destination(db, row, run.audience, run.workspace_id)
+            if run.revision != row.revision:
+                raise HTTPException(409, "Connection source changed.")
             item["status"] = upload.status
             item["error"] = (
                 "Analysis failed; retry this file." if upload.status == "failed" else None
@@ -214,6 +255,9 @@ def process_import(db, run_id, settings):
                 error_code=exc.status_code if isinstance(exc, HTTPException) else 502,
             )
         run = db.get(StorageImport, run_id, populate_existing=True)
+        if run.status == "cancelled" or run.revision != row.revision:
+            db.rollback()
+            return
         run.items = [dict(v) if i != index else item for i, v in enumerate(run.items)]
         run.lease_until = now() + timedelta(hours=1)
         db.commit()
@@ -257,6 +301,20 @@ def sync_page(db, rule, settings):
         run_id = run.id
     else:
         run_id = None
+    rule.seen_keys = list(set(rule.seen_keys or []) | {item["key"] for item in page["items"]})
+    if page["next_cursor"] is None:
+        from app.storage.lifecycle import retire_object
+
+        for source in db.scalars(
+            select(StorageObject).where(
+                StorageObject.connection_id == connection.id,
+                StorageObject.revision == connection.revision,
+                StorageObject.workspace_id == rule.workspace_id,
+            )
+        ):
+            if source.key.startswith(rule.prefix) and source.key not in rule.seen_keys:
+                retire_object(db, source)
+        rule.seen_keys = []
     rule.cursor = page["next_cursor"]
     rule.next_run = now() + timedelta(minutes=1 if rule.cursor else rule.interval_minutes)
     rule.error = None

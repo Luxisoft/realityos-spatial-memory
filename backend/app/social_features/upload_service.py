@@ -16,6 +16,7 @@ from app.models import (
     MediaAsset,
     MediaKind,
     Role,
+    User,
     Workspace,
     WorkspaceMember,
 )
@@ -132,7 +133,13 @@ def save_publication(db, upload, replace=None):
         )
         if member is None:
             raise HTTPException(403, "Workspace membership changed during analysis.")
-    target = upload.workspace_id if upload.audience == "work" else home_space(db, upload.owner_id)
+    from app.social_features.uploads import check_destination
+
+    check_destination(db, db.get(User, upload.owner_id), upload.audience, upload.workspace_id)
+    from app.storage.lifecycle import check_upload_source
+
+    check_upload_source(db, upload)
+    target = upload.workspace_id
     now = datetime.now(UTC)
     session = CaptureSession(
         workspace_id=target,

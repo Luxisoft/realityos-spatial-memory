@@ -77,7 +77,7 @@ MOCK_EMBEDDING_DIM = 128
 # photos, then videos. The first stage with matches above threshold wins.
 _FACE_SEARCH_STAGES: tuple[tuple[str, ...], ...] = (
     ("profile", "capture"),
-    ("facebook-photo",),
+    ("facebook-photo", "account-photo"),
     ("facebook-video", "frame"),
 )
 _SELF_MATCH_SOURCE = "profile"
@@ -641,13 +641,13 @@ class OwnEnrollmentResponse(BaseModel):
     media_id: uuid.UUID
     source: str
     quality: float
-    thumbnail_url: str
+    thumbnail_url: str | None = None
 
 
 class FaceMatchEvidence(BaseModel):
     enrollment_id: uuid.UUID
     media_id: uuid.UUID
-    thumbnail_url: str
+    thumbnail_url: str | None = None
     source: str
 
 
@@ -666,7 +666,7 @@ class FaceMatch(BaseModel):
 class RecordFaceMatchEvidence(BaseModel):
     enrollment_id: uuid.UUID
     media_id: uuid.UUID
-    thumbnail_url: str
+    thumbnail_url: str | None = None
     source: str
 
 
@@ -720,7 +720,7 @@ class OwnRecordEnrollmentResponse(BaseModel):
     media_id: uuid.UUID
     source: str
     quality: float
-    thumbnail_url: str
+    thumbnail_url: str | None = None
 
 
 def _face_engine_or_503(settings: Settings) -> FaceEngine:
@@ -1236,6 +1236,7 @@ async def upload_profile_photo(
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN, detail="Guest users cannot use face search."
         )
+    db.refresh(user, with_for_update=True)
     settings = request.app.state.settings
     engine = _face_engine_or_503(settings)
     raw = await _read_probe_image(file, settings)
@@ -1247,11 +1248,16 @@ async def upload_profile_photo(
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(exc)
         ) from exc
-    if len(pre_faces) > 1:
+    if len(pre_faces) != 1:
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
             detail="Profile photos must show exactly one face.",
         )
+    from app.face_setup import BiometricSetup
+
+    setup = db.get(BiometricSetup, user.id)
+    if setup:
+        setup.completed_at = None
     # A new selfie replaces the previous one: a single current capture per user.
     delete_selfie_enrollments(db, user.id)
     db.flush()
@@ -1337,7 +1343,7 @@ def list_own_enrollments(user: User = Depends(get_current_user), db: Session = D
             media_id=item.media_asset_id,
             source=item.source,
             quality=item.quality,
-            thumbnail_url=f"/v1/faces/enrollments/{item.id}/thumbnail",
+            thumbnail_url=None,
         )
         for item in rows
     ]
@@ -1695,12 +1701,16 @@ async def search_faces(
                 match_type=(
                     "direct" if enrollment.source == _SELF_MATCH_SOURCE else "possible_acquaintance"
                 ),
-                picture_url=profile.picture_url if profile else None,
+                picture_url=(
+                    profile.picture_url
+                    if profile and profile.picture_url
+                    else f"/v1/profiles/{user_id}/avatar"
+                ),
                 profile_link=profile.profile_link if profile else None,
                 evidence=FaceMatchEvidence(
                     enrollment_id=enrollment.id,
                     media_id=enrollment.media_asset_id,
-                    thumbnail_url=f"/v1/faces/enrollments/{enrollment.id}/thumbnail",
+                    thumbnail_url=None,
                     source=enrollment.source,
                 ),
                 probe_face_index=probe_index,
@@ -1798,72 +1808,7 @@ def enrollment_thumbnail(
     user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    require_biometric_consent(db, user)
-    enrollment = db.get(FaceEnrollment, enrollment_id)
-    if enrollment is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Enrollment not found.")
-    asset = db.get(MediaAsset, enrollment.media_asset_id)
-    if asset is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Evidence media not found."
-        )
-    # Enrollment evidence may live in the candidate's home workspace, so access
-    # follows the same rule as search results: a shared workspace plus consent.
-    shared = db.scalar(
-        select(WorkspaceMember.id)
-        .where(WorkspaceMember.user_id == user.id)
-        .where(
-            WorkspaceMember.workspace_id.in_(
-                select(WorkspaceMember.workspace_id).where(
-                    WorkspaceMember.user_id == enrollment.user_id
-                )
-            )
-        )
-        .limit(1)
-    )
-    if shared is None or not has_biometric_consent(db, enrollment.user_id):
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN, detail="Workspace access denied."
-        )
-    try:
-        with Image.open(io.BytesIO(asset.original_bytes)) as picture:
-            frame = ImageOps.exif_transpose(picture).convert("RGB")
-    except Exception:
-        raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="Invalid image data."
-        )
-    width, height = frame.size
-    box = enrollment.bounding_box or {}
-    try:
-        left = float(box.get("x", 0.0)) * width
-        top = float(box.get("y", 0.0)) * height
-        right = left + float(box.get("width", 1.0)) * width
-        bottom = top + float(box.get("height", 1.0)) * height
-    except (TypeError, ValueError):
-        left, top, right, bottom = 0.0, 0.0, float(width), float(height)
-    # A photo-wide stroke can fill a small face. Keep the outline outside
-    # the detected region and size it relative to that face instead.
-    face_size = max(1.0, min(right - left, bottom - top))
-    outline = max(1, min(max(2, width // 200), int(face_size / 24)))
-    ImageDraw.Draw(frame).rectangle(
-        [
-            max(0, left - outline),
-            max(0, top - outline),
-            min(width - 1, right + outline),
-            min(height - 1, bottom + outline),
-        ],
-        outline=(240, 191, 36),
-        width=outline,
-    )
-    if not full_size:
-        frame.thumbnail((360, 480))
-    output = io.BytesIO()
-    frame.save(output, format="JPEG", quality=95 if full_size else 85)
-    return Response(
-        output.getvalue(),
-        media_type="image/jpeg",
-        headers={"Cache-Control": "private, no-store"},
-    )
+    raise HTTPException(404, "Biometric reference images are private.")
 
 
 @router.get("/faces/record-enrollments/{enrollment_id}/thumbnail")

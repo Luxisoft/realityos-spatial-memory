@@ -14,15 +14,16 @@ class MetaDisplayPolicyTest {
         assertFalse(MetaDisplayPolicy.canChangeDestination(false, false, true))
     }
 
-    @Test fun glassesCaptureUsesProfileEvenWhenWorkComesFirst() {
-        assertEquals(profile, MetaDisplayPolicy.profileDestination(listOf(work, profile)))
+    @Test fun captureRequiresAnExistingGroup() {
+        assertEquals(work, MetaDisplayPolicy.publicationDestination(listOf(work, profile), null))
+        assertNull(MetaDisplayPolicy.publicationDestination(listOf(profile), null))
+        assertNull(MetaDisplayPolicy.publicationDestination(emptyList(), null))
     }
 
-    @Test fun missingProfileNeverFallsBackToAGroup() {
-        assertNull(MetaDisplayPolicy.profileDestination(listOf(work)))
-        assertNull(MetaDisplayPolicy.profileDestination(emptyList()))
-        assertNull(MetaDisplayPolicy.profileDestination(listOf(work.copy(id = "home"))))
-        assertNull(MetaDisplayPolicy.profileDestination(listOf(profile.copy(id = "group-a"))))
+    @Test fun multipleGroupsRequireASelection() {
+        val other = work.copy(id = "group-b")
+        assertNull(MetaDisplayPolicy.publicationDestination(listOf(work, other), null))
+        assertEquals(other, MetaDisplayPolicy.publicationDestination(listOf(work, other), other.id))
     }
 
     @Test fun galleryIsDefaultAndSourcesHaveDifferentWireValues() {
@@ -63,8 +64,8 @@ class MetaDisplayPolicyTest {
         assertEquals(MetaVoiceSearch.CHAT, MetaDisplayPolicy.voiceSearchRoute("chat", false))
     }
 
-    @Test fun faceMatchesRenderThroughSignedEnrollmentThumbnails() {
-        assertEquals("face_enrollment", MetaDisplayPolicy.faceDisplayKind())
+    @Test fun faceMatchesRenderOnlyAvatars() {
+        assertEquals("avatar", MetaDisplayPolicy.faceDisplayKind())
     }
 
     @Test fun faceGroupPaletteHasEightDistinctHexColors() {

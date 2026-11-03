@@ -27,6 +27,9 @@ class GalleryTopBarState {
     var publishEnabled by mutableStateOf(true)
     var showInvite by mutableStateOf(false)
     var showAdmin by mutableStateOf(false)
+    var onCreate: () -> Unit = {}
+    var onRecords: () -> Unit = {}
+    var onImport: () -> Unit = {}
     var onSelect: (String?) -> Unit = {}
     var onPublish: () -> Unit = {}
     var onInvite: () -> Unit = {}

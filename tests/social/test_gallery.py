@@ -62,7 +62,9 @@ def test_gallery_privacy_and_interactions(client, auth_headers):
             "Authorization": "Bearer "
             + create_access_token(other.id, client.app.state.settings)
         }
-    assert len(client.get("/v1/gallery", headers=auth_headers).json()) == 1
+    assert (
+        len(client.get("/v1/gallery?audience=home", headers=auth_headers).json()) == 1
+    )
     preview = client.get(f"/v1/gallery/{post_id}/thumbnail", headers=auth_headers)
     assert preview.status_code == 200
     assert preview.headers["content-type"] == "image/jpeg"
@@ -156,7 +158,7 @@ def test_gallery_privacy_and_interactions(client, auth_headers):
     assert client.get("/v1/gallery?audience=work", headers=other_headers).json() == []
     assert (
         client.get(f"/v1/gallery/{post_id}/media", headers=other_headers).status_code
-        == 403
+        == 404
     )
     assert (
         client.get("/v1/moderation/reports", headers=other_headers).status_code == 403

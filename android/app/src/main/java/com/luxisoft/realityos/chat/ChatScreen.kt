@@ -176,7 +176,7 @@ internal fun ChatScreen(state: ChatScreenState, actions: ChatScreenActions) {
                     color = MaterialTheme.colorScheme.secondaryContainer,
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    Column(Modifier.fillMaxWidth().navigationBarsPadding()) {
+                    Column(Modifier.fillMaxWidth()) {
                         HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
                         pendingAttachment?.let { probe ->
                             Row(

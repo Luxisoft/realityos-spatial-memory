@@ -21,7 +21,6 @@ from app.models import (
 from app.security import create_access_token, create_refresh_token
 from app.social_features.models import (
     FacebookIdentity,
-    FacebookMedia,
     FacebookPost,
     FacebookProfile,
 )
@@ -192,14 +191,6 @@ def own_facebook_profile(user: User = Depends(get_current_user), db: Session = D
     profile = db.get(FacebookProfile, user.id)
     if profile is None:
         raise HTTPException(404, "No Facebook profile synced yet.")
-    media = list(
-        db.scalars(
-            select(FacebookMedia)
-            .where(FacebookMedia.user_id == user.id)
-            .order_by(FacebookMedia.fb_id)
-            .limit(100)
-        )
-    )
     posts = list(db.scalars(select(FacebookPost).where(FacebookPost.user_id == user.id).limit(50)))
     return {
         "email": profile.email,
@@ -232,16 +223,6 @@ def own_facebook_profile(user: User = Depends(get_current_user), db: Session = D
             }
             for item in posts
         ],
-        "media": [
-            {
-                "fb_id": item.fb_id,
-                "kind": item.kind,
-                "caption": item.caption,
-                "source_url": item.source_url,
-                "fb_created_time": item.fb_created_time,
-                "imported": item.imported_media_id is not None,
-                "media_id": str(item.imported_media_id) if item.imported_media_id else None,
-            }
-            for item in media
-        ],
+        "media": [],
+        "references_private": True,
     }

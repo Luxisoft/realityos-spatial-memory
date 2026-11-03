@@ -76,6 +76,7 @@ async def highlighted_observation(
     asset = db.get(MediaAsset, observation.media_asset_id)
     if asset is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Media not found.")
+    require_ordinary_media(asset, None, db)
     return _render_highlight(db, observation, asset)
 
 
@@ -95,6 +96,7 @@ async def device_highlighted_observation(
     asset = db.get(MediaAsset, observation.media_asset_id)
     if asset is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Media not found.")
+    require_ordinary_media(asset, None, db)
     return _render_highlight(db, observation, asset)
 
 
@@ -133,6 +135,7 @@ async def display_highlighted_observation(
     asset = db.get(MediaAsset, observation.media_asset_id)
     if asset is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Evidence not found.")
+    require_ordinary_media(asset, None, db)
     response = _render_highlight(db, observation, asset)
     response.headers["Cache-Control"] = "private, no-store"
     response.headers["Referrer-Policy"] = "no-referrer"
@@ -162,4 +165,5 @@ async def highlighted_media(
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="No verified highlight is available."
         )
+    require_ordinary_media(asset, None, db)
     return _render_highlight(db, observation, asset)
