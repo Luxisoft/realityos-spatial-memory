@@ -1,33 +1,48 @@
-# Direct server deployment
+<p align="center">
+  <a href="DEPLOYMENT_DIRECT.md"><img src="assets/readme/language-en-active.svg" alt="English — selected" height="32"></a>
+  <a href="DEPLOYMENT_DIRECT.es.md"><img src="assets/readme/language-es.svg" alt="Leer en español" height="32"></a>
+</p>
 
-Run RealityOS on a single Ubuntu + Docker host that reaches the Meta Model
-API directly. This is the primary production topology.
-Back to the [main README](../README.md) · also see
-[server with gateway](DEPLOYMENT_GATEWAY.md) and
-[localhost](DEPLOYMENT_LOCALHOST.md).
+# Deploy a server with direct Meta access
 
-## Requirements
+**One Ubuntu + Docker host, with Android as the client.**
 
-- Ubuntu host with Docker Engine and Compose v2, plus Git.
-- A domain with an `A` record pointing at the server (production TLS).
-- A Meta API key with `muse-spark-1.3`, `sam-3.1` and
-  `muse-voice-transcribe-1.0` enabled, and an ElevenLabs key for speech.
-- For CI production deploys: the protected GitHub Environment `production`
-  with the secrets listed in [Gateway](GATEWAY.md) (Meta key, gateway token,
-  SSH access, ACME email, allowlists, deploy path).
+[← Project](../README.md) · [Gateway fallback](DEPLOYMENT_GATEWAY.md) · [Windows local](DEPLOYMENT_LOCALHOST.md)
 
-## Start on the host
+```mermaid
+flowchart LR
+    A[Android + native Display] -->|HTTPS| B[RealityOS API + worker]
+    B --> C[PostgreSQL BYTEA]
+    B --> D[Meta Model API]
+    B --> E[ElevenLabs voice]
+```
+
+## Prepare
+
+| You need | Purpose |
+| --- | --- |
+| Ubuntu, Docker Engine, Compose v2 and Git | Run the API, worker, database and proxy. |
+| Domain and DNS record | Publish the API over HTTPS. |
+| Your Meta and ElevenLabs keys | Real image understanding, segmentation, transcription and synthesis. |
+| Protected GitHub `production` environment | Automated releases; required secrets are listed in the [gateway guide](DEPLOYMENT_GATEWAY.md#production). |
+
+## Start
 
 ```bash
-git clone <repo> && cd realityos-spatial-memory
+git clone https://github.com/Luxisoft/realityos-spatial-memory.git
+cd realityos-spatial-memory
 cp .env.example .env
-# Edit .env: POSTGRES_PASSWORD, JWT_SECRET, MODEL_API_KEY,
-# META_MODE=live, META_CONNECTION_MODE=direct
+```
+
+Before starting, edit the **private** `.env`: set unique `POSTGRES_PASSWORD` and `JWT_SECRET`, your `MODEL_API_KEY`, `META_MODE=live` and `META_CONNECTION_MODE=direct`. For this base Compose setup, provide `ELEVENLABS_API_KEY` in `.env` too. Production's overlay additionally reads the private `.env.elevenlabs` file for the API.
+
+```bash
 docker compose --env-file .env -f infrastructure/docker-compose.yml up --build -d
 ```
 
-The Compose proxy listens on `${HTTP_BIND_ADDRESS:-127.0.0.1}:${HTTP_PORT:-8080}`.
-Verify locally before exposing anything:
+The proxy binds to `127.0.0.1:8080` by default; `HTTP_BIND_ADDRESS` and `HTTP_PORT` control it. PostgreSQL and Redis are not published on the host.
+
+## Verify before connecting Android
 
 ```bash
 curl -sf http://127.0.0.1:8080/health/ready
@@ -35,43 +50,30 @@ curl -sf http://127.0.0.1:8080/v1/openapi.json -o /dev/null
 docker compose --env-file .env -f infrastructure/docker-compose.yml exec -T api alembic current
 ```
 
-Key settings live in `.env` (private, never committed):
+For an installed on-demand ingress, check `/v1/openapi.json` as well as health: the ingress can answer health itself. After replacing the API, follow the ingress restart instructions in [operations](DEPLOYMENT.md).
 
-| Variable | Meaning |
+| Setting | Use |
 | --- | --- |
-| `META_MODE` | `live` for Meta inference, `mock` for deterministic tests. |
-| `META_CONNECTION_MODE` | `direct` here; see the gateway guide for `gateway`. |
-| `META_GATEWAY_FALLBACK_ENABLED` | `true` keeps FRONTEND as standby on connection/auth/rate-limit failures. |
-| `MODEL_API_KEY` | Server-only Meta key (also installed on FRONTEND for one account). |
-| `META_API_BASE_URL` | `https://api.meta.ai/v1`. |
-| `ELEVENLABS_API_KEY` | Voice synthesis key (in private `.env.elevenlabs`). |
-| `CORS_ORIGINS` | Restrict to real domains before production. |
+| `META_CONNECTION_MODE=direct` | Reach Meta from the RealityOS server. |
+| `META_GATEWAY_FALLBACK_ENABLED=true` | Use an already configured gateway as standby. |
+| `META_API_BASE_URL=https://api.meta.ai/v1` | Model API destination. |
+| `META_MODE=mock` | Deterministic, explicitly simulated development tests. |
 
-Restart API/worker after editing `.env`. Only API, worker and proxy join the
-egress network; PostgreSQL and Redis stay unreachable from the host. Volumes
-`postgres_data` and `redis_data` persist state; back up with
-`scripts/backup-postgres.sh` and test restores.
+Restart API/worker after runtime changes. Keep provider keys and database credentials out of Git. Persistent data lives in the `postgres_data` and `redis_data` volumes.
 
-## Production TLS via CI
+## HTTPS and production releases
 
-Merges to `main` run `.github/workflows/deploy-production.yml`: tests, then
-immutable GHCR images, then deployment. The workflow installs the host Nginx
-virtual host, obtains the Let's Encrypt certificate and serves panel, Display
-and `/v1/` over `https://realityos.luxisoft.com:443`. Do not expose the
-backend port to the Internet.
+The [production workflow](../.github/workflows/deploy-production.yml) verifies code, publishes immutable images and deploys API/worker, gateway and proxy. It preserves configured runtime connections. The browser apps are retired: `/` and `/display/` return 410. Android uses `/v1/`; email confirmation and reset pages remain available.
 
-First-time TLS notes:
+<details>
+<summary><strong>First certificate, Cloudflare and rollback</strong></summary>
 
-- Point the domain `A` record at the server IP.
-- If the zone sits behind Cloudflare Workers/Pages routing, exclude this host
-  (dedicated `Worker: None` route) or start **DNS only** (grey cloud), run the
-  workflow, then re-enable proxying with SSL/TLS **Full (strict)**.
-- A LUXIPANEL 404 on `/.well-known/acme-challenge/` means Cloudflare is
-  routing the challenge to the wrong origin.
+Point the domain's DNS record to the intended host. If Cloudflare Workers/Pages captures the hostname, exclude it from that route or use DNS-only mode for the first certificate. Once origin TLS exists, use **Full (strict)**.
 
-To roll back, run **Deploy production** manually with a previously published
-immutable `release_tag` (commit SHA); builds are skipped and that exact image
-pair is deployed.
+The workflow configures host Nginx and Let's Encrypt; keep the internal API port private. A foreign site's 404 at `/.well-known/acme-challenge/` indicates the wrong origin is handling certificate validation.
 
-For the full operator reference (Spanish), see
-[Deployment](DEPLOYMENT.md).
+For code rollback, manually run **Deploy production** with an existing immutable `release_tag` (commit SHA). This selects previously built images; it does not reverse database migrations or restore deleted data. Follow the project's approved backup and migration procedure in [operations](DEPLOYMENT.md).
+
+</details>
+
+[← Project](../README.md) · [Español](DEPLOYMENT_DIRECT.es.md) · [Operations reference](DEPLOYMENT.md)

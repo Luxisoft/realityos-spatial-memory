@@ -1,17 +1,30 @@
-# Social directory fixtures
+<p align="center">
+  <a href="README.md"><img src="../../docs/assets/readme/language-en-active.svg" alt="English — selected" height="32"></a>
+  <a href="README.es.md"><img src="../../docs/assets/readme/language-es.svg" alt="Leer en español" height="32"></a>
+</p>
 
-`PROFILE_ROWS` in `scripts/seed_social_directory.py` describes 20 deterministic
-test identities. Source portraits live in `source/` (identity anchors only);
-`scripts/generate_directory_photos.py` renders 10 genuinely different
-Muse-anchored scenes per profile under ignored `muse/` (1 anchor + 10 forked
-takes, InsightFace-validated), and the seed imports them through the same
-BYTEA and InsightFace path used by Facebook media. Avatars stay in ignored
-`generated/`. No synthetic videos ship with directory profiles.
+# Synthetic social directory
 
-`workshop/` holds the 15 same-shop takes (9 day, 6 night) published in the
-"Mechanic Workshop" group (5 members, day/night shifts) plus the original
-shop video.
+**Fictional identities for evaluation, processed through the real authorized pipeline.**
 
-The generated identities do not represent real people. Production behavior is
-not mocked: the deployed face engine, workspace membership and authorization
-rules remain active.
+[← Project](../../README.md) · [Evaluation scenarios](../../README.md#evaluate) · [Implementation status](../../docs/IMPLEMENTATION_STATUS.md)
+
+```mermaid
+flowchart LR
+    A[20 fictional identities] --> B[Source portrait anchors]
+    B --> C[10 Muse scenes per profile]
+    C --> D[BYTEA media + authorized enrollment]
+```
+
+| Location | What it contains |
+| --- | --- |
+| [`source/`](source/) | Synthetic identity anchors. |
+| `muse/` — ignored | Ten different Muse-anchored scenes per profile, validated with InsightFace. |
+| `generated/` — ignored | Generated avatars. |
+| [`workshop/`](workshop/) | Fifteen views of the same workshop: nine day and six night, plus its original video. |
+
+[`PROFILE_ROWS`](../../scripts/seed_social_directory.py) defines the 20 deterministic test identities. The [photo generator](../../scripts/generate_directory_photos.py) creates their scenes; the importer uses the BYTEA and InsightFace path used for authorized social media. Directory profiles ship without synthetic videos.
+
+The “Mechanic Workshop” scenario has five members with day/night shifts. All identities are fictional and must remain identified as simulated. Membership, authorization and biometric permissions remain active; synthetic data does not bypass them.
+
+[Español →](README.es.md)

@@ -1,31 +1,35 @@
-# Localhost deployment
+<p align="center">
+  <a href="DEPLOYMENT_LOCALHOST.md"><img src="assets/readme/language-en-active.svg" alt="English — selected" height="32"></a>
+  <a href="DEPLOYMENT_LOCALHOST.es.md"><img src="assets/readme/language-es.svg" alt="Leer en español" height="32"></a>
+</p>
 
-Evaluate RealityOS on your own machine with Windows + Docker Desktop: an
-independent installation with its own configuration, account, database and
-volumes. It never touches production, FRONTEND, or production credentials.
-Back to the [main README](../README.md) · also see
-[direct server](DEPLOYMENT_DIRECT.md) and
-[server with gateway](DEPLOYMENT_GATEWAY.md).
+# Run locally on Windows
 
-The AI is real here: Muse Spark, SAM and transcription call the Meta API with
-your key, ElevenLabs synthesizes voice with your key, and InsightFace runs
-locally. No synthetic media is loaded and seed scripts never run — screens
-start empty until you register your own data.
+**Your computer, your accounts, your data and your provider keys.**
+This additional installation uses the isolated Docker project `realityos-local` and private `.env.local`.
 
-## Requirements
+[← Project](../README.md) · [Direct server](DEPLOYMENT_DIRECT.md) · [Gateway](DEPLOYMENT_GATEWAY.md)
 
-- Windows x64 with Docker Desktop, Linux containers and WSL2 (Windows
-  containers mode does not work). See the official
-  [Docker setup](https://docs.docker.com/desktop/setup/install/windows-install/)
-  and [WSL2 backend](https://docs.docker.com/desktop/features/wsl/) docs.
-- Git and PowerShell (5.1 or 7). Python and Node are not needed on the host;
-  they build inside Docker.
-- Internet access plus your own Meta key with `muse-spark-1.3`, `sam-3.1` and
-  `muse-voice-transcribe-1.0` enabled, and your own ElevenLabs key.
-- At least 4 CPUs, 8 GiB of RAM assigned to Docker and 25 GiB free. No GPU
-  required.
+```mermaid
+flowchart LR
+    A[Local Android Debug] -->|USB + adb reverse| B[Windows + Docker Desktop]
+    B --> C[Independent database + volumes]
+    B --> D[Meta API + ElevenLabs]
+```
 
-## First boot
+## Prepare
+
+| Requirement | Details |
+| --- | --- |
+| Windows x64 + Docker Desktop | Linux containers with the WSL2 backend. |
+| Git + PowerShell | Windows PowerShell 5.1 or PowerShell 7. |
+| Docker resources | At least 4 CPUs, 8 GiB RAM and 25 GiB free disk. |
+| Your provider keys | Meta access for Muse Spark, SAM and transcription; ElevenLabs for speech. |
+| Android tools | Java 21, Android SDK 36, ADB and a USB-debuggable phone or emulator. |
+
+No host Python, Node or GPU is needed to start the backend. See Docker's [Windows installation](https://docs.docker.com/desktop/setup/install/windows-install/) and [WSL2 guide](https://docs.docker.com/desktop/features/wsl/).
+
+## ① Start the local backend
 
 From PowerShell at the repository root:
 
@@ -33,40 +37,13 @@ From PowerShell at the repository root:
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\local\Start-RealityOS.ps1
 ```
 
-(`Bypass` applies to that process only.) The script creates `.env.local`
-from the example, asks for your keys and local email/password (12+ characters,
-typed hidden), generates independent PostgreSQL/JWT/device secrets, builds
-the images, applies migrations, creates your account with an empty workspace,
-and waits for API and voice health — including a real EN/ES audio check that
-publishes nothing. If Docker data lives on another drive, pass
-`-DockerDataDrive 'D:\'`. If a credential, resource or model fails, the script
-says so instead of claiming readiness.
+The launcher asks privately for your keys and local email/password, creates independent database/JWT/device secrets, builds images, applies migrations and creates an empty workspace. It checks the API and real EN/ES speech. `Bypass` affects this PowerShell process only. If Docker data is on another drive, add `-DockerDataDrive 'D:\'`.
 
-| App | Default address |
-| --- | --- |
-| Panel | `http://localhost:8080` |
-| Display web | `http://localhost:8080/display/` |
-| API contract | `http://localhost:8080/v1/openapi.json` |
-| Health | `http://localhost:8080/health/ready` |
+**No sample media or production credentials are imported.** Meta and ElevenLabs are real providers; InsightFace runs locally. The initial workspace is empty.
 
-Sign in with the email and password you chose — a real local account, with no
-facial recognition at login. Facial features keep their permission/consent
-requirements when explicitly requested. Key local settings (`.env.local`
-only, direct Meta route, no gateway dependency):
+## ② Install the separate Android app
 
-```dotenv
-ENVIRONMENT=local
-META_MODE=live
-FACE_ENGINE=insightface
-META_CONNECTION_MODE=direct
-META_GATEWAY_FALLBACK_ENABLED=false
-```
-
-## Local Android app
-
-You additionally need Android SDK 36, Java 21, ADB and a phone with USB
-debugging (or an emulator). The local APK installs as a separate app
-(`com.luxisoft.realityos.local`) and never replaces the regular one:
+From the repository root in PowerShell:
 
 ```powershell
 $env:ANDROID_HOME = 'C:\path\to\Android\Sdk'
@@ -77,14 +54,13 @@ adb reverse tcp:8080 tcp:8080
 adb install -r app\build\outputs\apk\debug\app-debug.apk
 ```
 
-`adb reverse` links the phone's localhost to Windows (re-run on USB
-reconnect; confirm the debugging prompt on the phone). This local Debug build
-alone, confirmed by the local backend, skips entry face verification; Release
-never accepts this mode or local HTTP. Physical glasses need real Meta/DAT
-hardware — Docker does not substitute them. Testing Facebook import needs
-your own real Facebook app, permissions, account and Android setup.
+The application ID is `com.luxisoft.realityos.local`. It installs alongside the regular app. Sign in with the local account you created; the backend must confirm its local realm. Local entry does not require Facebook or facial verification. Facial features still require their own permissions and consent.
 
-## Verify, stop, troubleshoot
+`adb reverse` connects the phone's localhost to Windows; run it again after reconnecting USB. The local variant permits loopback HTTP only in Debug and does not enable automatic virtual-device preview. Real glasses require compatible hardware and DAT setup.
+
+## ③ Verify and stop
+
+Return to the repository root before running these scripts:
 
 ```powershell
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\local\Test-RealityOS.ps1
@@ -92,17 +68,36 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\local\Test-Rea
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\local\Stop-RealityOS.ps1
 ```
 
-`Stop` keeps data and models; never use `down -v` if you want to keep them.
-Re-running `Start` never replaces accounts, passwords or data. If port 8080
-is taken, change `LOCAL_HTTP_PORT` in `.env.local` and use that port in URLs
-and the Android connection. PostgreSQL and Redis are not published on
-Windows. For voice errors:
+| Check | Default address |
+| --- | --- |
+| API contract | `http://localhost:8080/v1/openapi.json` |
+| Health | `http://localhost:8080/health/ready` |
+| User app | Local Android Debug; no browser panel or web Display. |
+
+<details>
+<summary><strong>Configuration and troubleshooting</strong></summary>
+
+The local launcher keeps these settings in `.env.local`:
+
+```dotenv
+ENVIRONMENT=local
+LOCAL_LOGIN_ENABLED=true
+META_MODE=live
+FACE_ENGINE=insightface
+META_CONNECTION_MODE=direct
+META_GATEWAY_FALLBACK_ENABLED=false
+```
+
+The gateway is not a local dependency. Never copy production `.env` files into this setup. Re-running Start preserves accounts and data; Stop preserves volumes. Avoid `down -v` when keeping data.
+
+If port 8080 is occupied, change `LOCAL_HTTP_PORT` and update the Android build URL and `adb reverse` ports. PostgreSQL and Redis are not exposed on Windows. Inspect API errors with:
 
 ```powershell
 docker compose --project-name realityos-local --env-file .env.local --file infrastructure/docker-compose.local.yml logs --tail 50 api
 ```
 
-Local execution requires real providers with no mock fallback. Automated
-tests use doubles only inside their own runs.
+Provider failures are reported explicitly. A successful build does not prove physical camera, audio or glasses behavior.
 
-Full local reference (Spanish): [Windows local setup](LOCAL_WINDOWS.md).
+</details>
+
+[← Project](../README.md) · [Español](DEPLOYMENT_LOCALHOST.es.md) · [Detailed Windows reference (Spanish)](LOCAL_WINDOWS.md)
