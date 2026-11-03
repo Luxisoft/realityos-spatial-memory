@@ -1805,6 +1805,11 @@ Declared responses: `200`.
 
 | Field | Location | Required | Type | Constraints |
 | --- | --- | --- | --- | --- |
+| `display_name` | body | — | `string / null` | `{}` |
+| `birthday` | body | — | `string / null` | `{}` |
+| `gender` | body | — | `string / null` | `{}` |
+| `hometown` | body | — | `string / null` | `{}` |
+| `location` | body | — | `string / null` | `{}` |
 | `headline` | body | — | `string` | `{"maxLength": 240, "default": ""}` |
 | `biography` | body | — | `string` | `{"maxLength": 4000, "default": ""}` |
 | `phone` | body | — | `string` | `{"maxLength": 64, "default": ""}` |

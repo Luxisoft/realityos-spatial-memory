@@ -15,13 +15,20 @@ from sqlalchemy import (
 )
 from sqlalchemy.orm import Session
 
+from app.accounts.models import PasswordAccount
 from app.dependencies import get_current_user, get_db
 from app.models import (
     MediaAsset,
     User,
     WorkspaceMember,
 )
-from app.social_features.models import FacebookFriend, FacebookProfile, Publication, UserProfile
+from app.social_features.models import (
+    FacebookFriend,
+    FacebookIdentity,
+    FacebookProfile,
+    Publication,
+    UserProfile,
+)
 from app.social_features.publication_visibility import publication_content
 from app.social_features.schemas import ProfileSearchRequest, ProfileUpdate
 
@@ -61,17 +68,24 @@ def _public_profile_payload(target: User, db: Session) -> dict:
         )
     )
     local_avatar = custom.avatar_media_id if custom else None
+    birthday = custom.birthday if custom and not facebook else None
+    today = datetime.now(UTC).date()
+    age = (
+        today.year - birthday.year - ((today.month, today.day) < (birthday.month, birthday.day))
+        if birthday
+        else None
+    )
     return {
         "user_id": str(target.id),
         "display_name": target.display_name,
         "is_guest": target.is_guest,
         "email": facebook.email if facebook else target.email,
-        "birthday": facebook.birthday if facebook else None,
-        "age_min": facebook.age_min if facebook else None,
-        "age_max": facebook.age_max if facebook else None,
-        "gender": facebook.gender if facebook else None,
-        "hometown": facebook.hometown if facebook else None,
-        "location": facebook.location if facebook else None,
+        "birthday": facebook.birthday if facebook else birthday.isoformat() if birthday else None,
+        "age_min": facebook.age_min if facebook else age,
+        "age_max": facebook.age_max if facebook else age,
+        "gender": facebook.gender if facebook else custom.gender if custom else None,
+        "hometown": facebook.hometown if facebook else custom.hometown if custom else None,
+        "location": facebook.location if facebook else custom.location if custom else None,
         "facebook_link": facebook.profile_link if facebook else None,
         "picture_url": (
             f"/v1/profiles/{target.id}/avatar"
@@ -106,6 +120,16 @@ def _public_profile_payload(target: User, db: Session) -> dict:
 def _own_profile_payload(user: User, db: Session) -> dict:
     payload = _public_profile_payload(user, db)
     custom = _user_profile(db, user.id)
+    facebook_account = bool(
+        db.scalar(select(FacebookIdentity.subject).where(FacebookIdentity.user_id == user.id))
+    )
+    password_account = db.get(PasswordAccount, user.id)
+    payload["profile_source"] = (
+        "facebook" if facebook_account else "email" if password_account else "other"
+    )
+    payload["personal_details_editable"] = bool(
+        password_account and not facebook_account and not user.is_guest
+    )
     payload["cv"] = {
         "present": custom.cv_bytes is not None,
         "filename": custom.cv_filename,
@@ -132,15 +156,34 @@ def update_profile(
     db: Session = Depends(get_db),
 ):
 
+    personal_fields = {"display_name", "birthday", "gender", "hometown", "location"}
+    supplied = payload.model_fields_set
+    if supplied & personal_fields:
+        facebook_account = db.scalar(
+            select(FacebookIdentity.subject).where(FacebookIdentity.user_id == user.id)
+        )
+        if facebook_account or user.is_guest or not db.get(PasswordAccount, user.id):
+            raise HTTPException(
+                403, "Personal details are editable only for email accounts without Facebook."
+            )
     profile = _user_profile(db, user.id)
-    profile.headline = payload.headline.strip()
-    profile.biography = payload.biography.strip()
-    profile.phone = payload.phone.strip()
-    profile.website = _safe_web_url(payload.website)
-    profile.social_links = [
-        {"label": item.label.strip(), "url": _safe_web_url(item.url)}
-        for item in payload.social_links
-    ]
+    if "display_name" in supplied:
+        user.display_name = payload.display_name
+    if "birthday" in supplied:
+        profile.birthday = payload.birthday
+    for field in ("gender", "hometown", "location"):
+        if field in supplied:
+            setattr(profile, field, (getattr(payload, field) or "").strip() or None)
+    for field in ("headline", "biography", "phone"):
+        if field in supplied:
+            setattr(profile, field, getattr(payload, field).strip())
+    if "website" in supplied:
+        profile.website = _safe_web_url(payload.website)
+    if "social_links" in supplied:
+        profile.social_links = [
+            {"label": item.label.strip(), "url": _safe_web_url(item.url)}
+            for item in payload.social_links
+        ]
     db.flush()
     return _own_profile_payload(user, db)
 

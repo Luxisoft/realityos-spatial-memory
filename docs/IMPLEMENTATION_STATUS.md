@@ -226,3 +226,44 @@ Upstream dependency declarations: [Celery Redis extra](https://github.com/celery
 [Kombu Redis extra](https://github.com/celery/kombu/blob/v5.7.0/requirements/extras/redis.txt).
 
 Formatting, lint, architecture checks and Debug/Release builds passed. The single installable Debug APK was replaced.
+
+
+## Personal profile details by account source — 2026-11-03
+
+Email/password accounts can edit display name, current location, hometown,
+birthday and gender in the Android profile editor. Birthday accepts an ISO date
+from 1900 through today, with a native calendar and optional clearing; age is
+derived. Nullable fields live in `user_profiles`, separate from imported
+`facebook_profiles`. PATCH preserves omitted fields and accepts changes only
+for the authenticated owner with a password account and no Facebook identity.
+Guests and Facebook identities cannot bypass this restriction through the API.
+`GET /me/profile` exposes `profile_source` and `personal_details_editable` for
+the native editor; these capabilities are not included in public profiles.
+
+Facebook profile fields are fetched at every Facebook login. Returning users'
+names now refresh too. A failed Graph read keeps the last successfully fetched
+details and reports `profile_synced=false`; a successful read clears fields
+that Meta no longer supplies. The editor explains the Facebook source and keeps
+these fields read-only, while custom biography/contact/links/CV remain editable.
+No biometric code, consent UI or import/enrollment behavior was changed.
+
+The fields and permission mapping were checked against the
+[official Meta SDK profile definition](https://github.com/meta/facebook-ios-sdk/blob/main/FBSDKCoreKit/FBSDKCoreKit/Profile.swift).
+Meta's developer reference returned HTTP 429 during verification; existing
+Graph endpoints and SDK signatures were preserved. Actual Facebook login on
+a handset remains pending; repeated login, withheld fields and provider failure
+were tested with synthetic Graph responses.
+
+Production image: `realityos-backend:profile-details-20261103-r3`. Additive
+migration `20261103_0034` applied before starting the updated API/worker. Readiness,
+public/local OpenAPI, ORM columns, authenticated-write guard and worker verified;
+runtime and gateway preserved. No database dump, profile backfill or manual
+account edit. Rollback `.runtime/profile-details-20261103-r3-rollback.json`
+restores code while retaining the compatible added columns. Receipt:
+`.runtime/profile-details-20261103-r3/verified.json`. All 445 backend/gateway
+tests passed, including ownership, Facebook restrictions, date validation,
+partial update, repeated sync and both fresh/existing migration paths.
+
+Android: all 220 tests passed, including real PATCH exchanges against MockWebServer, read-only Facebook fields, clearing birthday, header refresh and 320 dp/200% text. EN/ES native screenshots were inspected. The test fixture uses OkHttp for PATCH because the desktop JVM URLConnection rejects that method; production Android transport is unchanged.
+
+Formatting, lint, architecture checks and Debug/Release builds passed. The installable Debug APK was replaced at the standard path. Physical-device and live Facebook verification remain pending.

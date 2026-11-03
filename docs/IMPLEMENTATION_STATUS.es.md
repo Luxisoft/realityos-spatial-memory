@@ -205,3 +205,41 @@ inspección del worker. La nueva regresión de transporte falla en la imagen
 incompatible anterior. Ver las fuentes oficiales enlazadas en la versión inglesa.
 
 Formato, lint, estructura y builds Debug/Release aprobados. Se reemplazó el único APK Debug instalable.
+
+
+## Datos personales según el origen de la cuenta — 2026-11-03
+
+Las cuentas por correo editan nombre, ubicación actual, localidad de origen,
+fecha de nacimiento y género desde Editar perfil. La fecha admite calendario y
+borrado opcional, desde 1900 hasta hoy; la edad se calcula. Los campos viven en
+`user_profiles`, separados de `facebook_profiles`. PATCH conserva campos
+omitidos y exige propietario autenticado con cuenta por contraseña sin identidad
+Facebook. Invitados y cuentas Facebook no pueden eludir el control mediante API.
+El perfil propio publica `profile_source` y `personal_details_editable` para la
+interfaz; esas capacidades no se incluyen en perfiles públicos.
+
+Facebook consulta los datos en cada inicio de sesión y también actualiza el
+nombre de usuarios que regresan. Un fallo Graph conserva los últimos datos
+válidos e indica `profile_synced=false`; una lectura exitosa elimina campos que
+Meta ya no devuelve. La interfaz muestra esos datos de solo lectura y explica
+su sincronización. Biografía, contacto, enlaces y CV conservan su edición.
+No se modificaron biometría, consentimientos ni comportamiento de enrolamiento.
+
+Campos/permisos contrastados con el SDK oficial de Meta (enlace en la versión
+inglesa); la referencia web devolvió 429. Se conservan endpoints y firmas SDK.
+Pendiente el login real de Facebook en teléfono: las regresiones usan respuestas
+Graph sintéticas, incluyendo dos inicios, campos retirados y fallo del proveedor.
+
+API/worker: `realityos-backend:profile-details-20261103-r3`; migración aditiva
+`20261103_0034` aplicada antes del reinicio. Verificados salud, OpenAPI local y
+público, columnas ORM, rechazo de escritura anónima y worker. Runtime/gateway
+conservados; sin dump, relleno de perfiles ni edición manual de cuentas.
+Rollback `.runtime/profile-details-20261103-r3-rollback.json`: revierte código
+y conserva las columnas compatibles. Recibo privado en
+`.runtime/profile-details-20261103-r3/verified.json`. Pasan 445 pruebas de
+backend/gateway, con propiedad, bloqueo Facebook, fechas, PATCH parcial,
+sincronización repetida y migración sobre bases nuevas/existentes.
+
+Android: 220 pruebas aprobadas, con PATCH real contra MockWebServer, campos Facebook bloqueados, borrado de fecha, actualización de cabecera y 320 dp/texto al 200 %. Capturas nativas ES/EN revisadas. La prueba usa OkHttp para PATCH porque URLConnection de la JVM de escritorio no admite ese método; el transporte Android de producción no cambia.
+
+Formato, lint, estructura y builds Debug/Release aprobados. APK Debug instalable reemplazado en la ruta habitual. Pendientes: dispositivo físico e inicio real con Facebook.

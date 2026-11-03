@@ -227,6 +227,9 @@ private fun ProfileEditor(state: ProfileState, onClose: () -> Unit) {
     var phone by rememberSaveable { mutableStateOf(current.optString("phone")) }
     var website by rememberSaveable { mutableStateOf(current.optString("website")) }
     var links by remember { mutableStateOf(profileLinks(current)) }
+    var personal by rememberSaveable(stateSaver = PersonalProfileDraft.Saver) { mutableStateOf(PersonalProfileDraft.from(current)) }
+    var personalErrors by remember { mutableStateOf(emptyMap<String, Int>()) }
+    val personalEditable = current.optBoolean("personal_details_editable")
     var busy by remember { mutableStateOf(false) }
     var error by remember { mutableStateOf("") }
     val pickCv = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
@@ -261,6 +264,8 @@ private fun ProfileEditor(state: ProfileState, onClose: () -> Unit) {
                     website, { website = it }, links, { links = it }, current.optJSONObject("cv") ?: JSONObject(), busy,
                     onClose = { if (!busy) onClose() },
                     onSave = {
+                        personalErrors = if (personalEditable) personal.errors() else emptyMap()
+                        if (personalErrors.isNotEmpty()) return@ProfileEditDrawer
                         scope.launch {
                             busy = true
                             error = ""
@@ -272,6 +277,7 @@ private fun ProfileEditor(state: ProfileState, onClose: () -> Unit) {
                                             links.filter { it.label.isNotBlank() && it.url.isNotBlank() }.forEach { put(JSONObject().put("label", it.label).put("url", it.url)) }
                                         }
                                     )
+                                if (personalEditable) personal.addTo(payload)
                                 state.apply(withContext(Dispatchers.IO) { JSONObject(SocialSession.requestJson("me/profile", "PATCH", payload)) })
                                 onClose()
                             } catch (failure: CancellationException) {
@@ -283,7 +289,15 @@ private fun ProfileEditor(state: ProfileState, onClose: () -> Unit) {
                             }
                         }
                     },
-                    onUploadCv = { pickCv.launch(arrayOf("application/pdf", "application/vnd.openxmlformats-officedocument.wordprocessingml.document")) }
+                    onUploadCv = { pickCv.launch(arrayOf("application/pdf", "application/vnd.openxmlformats-officedocument.wordprocessingml.document")) },
+                    personal = personal,
+                    onPersonalChange = {
+                        personal = it
+                        personalErrors = emptyMap()
+                    },
+                    personalEditable = personalEditable,
+                    facebook = current.optString("profile_source") == "facebook",
+                    personalErrors = personalErrors
                 )
             }
         }

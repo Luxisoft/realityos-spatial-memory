@@ -49,3 +49,6 @@ La referencia original conserva los detalles técnicos, ejemplos y verificacione
 [↗ corrección-de-correo-y-datos-ya-registrados--2026-11-03](reference/UI_DESIGN.legacy.md#corrección-de-correo-y-datos-ya-registrados--2026-11-03)
 
 </details>
+
+
+Editar perfil incorpora información personal con iconos nativos, errores junto al campo y calendario de nacimiento para las cuentas por correo. Facebook muestra esos mismos datos de solo lectura con una explicación de sincronización; biografía, contacto, enlaces y CV conservan su edición. Se mantiene el tema, teclado y texto al 200 %, y los campos se bloquean durante el guardado.

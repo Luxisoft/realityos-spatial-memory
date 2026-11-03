@@ -1,0 +1,13 @@
+<resources>
+    <string name="profile_personal_details">Información personal</string>
+    <string name="profile_personal_details_hint">Completa los datos que aparecen en tu perfil. Solo el nombre es obligatorio.</string>
+    <string name="profile_facebook_details">Sincronizado con Facebook</string>
+    <string name="profile_facebook_details_hint">Estos datos se actualizan al ingresar con Facebook. Edítalos en Facebook; aquí solo aparece la información que compartes con RealityOS.</string>
+    <string name="profile_not_shared">Sin compartir</string>
+    <string name="profile_birthday_hint">AAAA-MM-DD · opcional</string>
+    <string name="profile_birthday_error">Usa una fecha válida desde 1900 hasta hoy (AAAA-MM-DD).</string>
+    <string name="profile_gender_error">Usa hasta 32 caracteres.</string>
+    <string name="profile_place_error">Usa hasta 160 caracteres.</string>
+    <string name="profile_choose_birthday">Elegir fecha de nacimiento</string>
+    <string name="profile_clear_birthday">Quitar fecha</string>
+</resources>

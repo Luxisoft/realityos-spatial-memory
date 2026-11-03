@@ -1,9 +1,10 @@
 from __future__ import annotations
 
 import uuid
+from datetime import UTC, date, datetime
 from typing import Literal
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 from app.schemas import LocalizedGalleryInformation
 
@@ -93,11 +94,38 @@ class ProfileLinkInput(BaseModel):
 
 
 class ProfileUpdate(BaseModel):
+    display_name: str | None = Field(default=None, min_length=1, max_length=160)
+    birthday: date | None = None
+    gender: str | None = Field(default=None, max_length=32)
+    hometown: str | None = Field(default=None, max_length=160)
+    location: str | None = Field(default=None, max_length=160)
     headline: str = Field(default="", max_length=240)
     biography: str = Field(default="", max_length=4000)
     phone: str = Field(default="", max_length=64)
     website: str = Field(default="", max_length=1024)
     social_links: list[ProfileLinkInput] = Field(default_factory=list, max_length=12)
+
+    @field_validator("display_name")
+    @classmethod
+    def valid_display_name(cls, value):
+        if value is None or not value.strip():
+            raise ValueError("A display name is required.")
+        return value.strip()
+
+    @field_validator("birthday", mode="before")
+    @classmethod
+    def valid_birthday(cls, value):
+        if value is None:
+            return None
+        if not isinstance(value, str) or len(value) != 10:
+            raise ValueError("Use YYYY-MM-DD for the birthday.")
+        parsed = date.fromisoformat(value)
+        if (
+            parsed.isoformat() != value
+            or not date(1900, 1, 1) <= parsed <= datetime.now(UTC).date()
+        ):
+            raise ValueError("Birthday must be a past or current date from 1900 onwards.")
+        return parsed
 
 
 class ProfileSearchRequest(BaseModel):

@@ -98,6 +98,9 @@ async def facebook_login(payload: FacebookLogin, request: Request, db: Session =
         user = db.get(User, identity.user_id)
     if user is None or not user.is_active:
         raise HTTPException(401, "Inactive identity.")
+    # The basic identity read is repeated on every login, including returning users.
+    if isinstance(profile.get("name"), str) and profile["name"].strip():
+        user.display_name = profile["name"].strip()[:160]
     if payload.device_id:
         user.device_id = payload.device_id.strip()[:128]
     refresh, jti, expires = create_refresh_token(user.id, settings)
@@ -112,7 +115,7 @@ async def facebook_login(payload: FacebookLogin, request: Request, db: Session =
             profile_row = await sync_facebook_profile(
                 db, settings, user, sync_client, payload.access_token, granted_scopes
             )
-        profile_synced = True
+        profile_synced = profile_row.sync_diagnostics.get("profile") == "ready"
         import_status = profile_row.import_status
         if settings.enqueue_processing:
             from app.tasks import import_facebook_media_task

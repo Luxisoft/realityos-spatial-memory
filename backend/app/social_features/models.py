@@ -1,11 +1,12 @@
 from __future__ import annotations
 
 import uuid
-from datetime import UTC, datetime
+from datetime import UTC, date, datetime
 
 from sqlalchemy import (
     JSON,
     Boolean,
+    Date,
     DateTime,
     ForeignKey,
     Index,
@@ -176,6 +177,10 @@ class UserProfile(TimestampMixin, Base):
     user_id: Mapped[uuid.UUID] = mapped_column(
         ForeignKey("users.id", ondelete="CASCADE"), primary_key=True
     )
+    birthday: Mapped[date | None] = mapped_column(Date)
+    gender: Mapped[str | None] = mapped_column(String(32))
+    hometown: Mapped[str | None] = mapped_column(String(160))
+    location: Mapped[str | None] = mapped_column(String(160))
     headline: Mapped[str] = mapped_column(String(240), default="", nullable=False)
     biography: Mapped[str] = mapped_column(Text, default="", nullable=False)
     phone: Mapped[str] = mapped_column(String(64), default="", nullable=False)

@@ -6,10 +6,12 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
@@ -36,13 +38,24 @@ internal fun ProfileEditDrawer(
     busy: Boolean,
     onClose: () -> Unit,
     onSave: () -> Unit,
-    onUploadCv: () -> Unit
+    onUploadCv: () -> Unit,
+    personal: PersonalProfileDraft,
+    onPersonalChange: (PersonalProfileDraft) -> Unit,
+    personalEditable: Boolean,
+    facebook: Boolean,
+    personalErrors: Map<String, Int>
 ) {
+    val listState = rememberLazyListState()
+    LaunchedEffect(personalErrors) {
+        val index = listOf("display_name", "location", "hometown", "birthday", "gender").indexOfFirst { it in personalErrors }
+        if (index >= 0) listState.animateScrollToItem(index + 2)
+    }
     ModalDrawerSheet(
-        modifier = Modifier.fillMaxHeight().widthIn(min = 320.dp, max = 360.dp),
+        modifier = Modifier.fillMaxHeight().widthIn(max = 360.dp).fillMaxWidth().imePadding(),
         drawerContainerColor = MaterialTheme.colorScheme.surface
     ) {
         LazyColumn(
+            state = listState,
             modifier = Modifier.testTag("profile-edit-fields"),
             contentPadding = PaddingValues(start = 18.dp, top = 2.dp, end = 18.dp, bottom = 16.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp)
@@ -53,30 +66,33 @@ internal fun ProfileEditDrawer(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(localizedText(R.string.ui_edit_profile), style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f))
-                    IconButton(onClick = onClose) { Icon(Icons.Default.Close, localizedText(R.string.ui_close_editor)) }
+                    IconButton(onClick = onClose, enabled = !busy) { Icon(Icons.Default.Close, localizedText(R.string.ui_close_editor)) }
                 }
             }
-            item { OutlinedTextField(headline, onHeadlineChange, label = { Text(localizedText(R.string.ui_headline)) }, modifier = Modifier.fillMaxWidth()) }
-            item { OutlinedTextField(biography, onBiographyChange, label = { Text(localizedText(R.string.ui_biography)) }, minLines = 3, modifier = Modifier.fillMaxWidth()) }
-            item { OutlinedTextField(phone, onPhoneChange, label = { Text(localizedText(R.string.ui_phone)) }, modifier = Modifier.fillMaxWidth()) }
-            item { OutlinedTextField(website, onWebsiteChange, label = { Text(localizedText(R.string.ui_website)) }, modifier = Modifier.fillMaxWidth()) }
+            personalProfileFields(personal, onPersonalChange, personalEditable, facebook, busy, personalErrors)
+            item { OutlinedTextField(headline, onHeadlineChange, enabled = !busy, label = { Text(localizedText(R.string.ui_headline)) }, modifier = Modifier.fillMaxWidth()) }
+            item { OutlinedTextField(biography, onBiographyChange, enabled = !busy, label = { Text(localizedText(R.string.ui_biography)) }, minLines = 3, modifier = Modifier.fillMaxWidth()) }
+            item { OutlinedTextField(phone, onPhoneChange, enabled = !busy, label = { Text(localizedText(R.string.ui_phone)) }, modifier = Modifier.fillMaxWidth()) }
+            item { OutlinedTextField(website, onWebsiteChange, enabled = !busy, label = { Text(localizedText(R.string.ui_website)) }, modifier = Modifier.fillMaxWidth()) }
             items(links.indices.toList()) { index ->
                 Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                     Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
                         OutlinedTextField(
                             value = links[index].label,
+                            enabled = !busy,
                             onValueChange = { value ->
                                 onLinksChange(links.toMutableList().also { it[index] = it[index].copy(label = value) })
                             },
                             label = { Text(localizedText(R.string.ui_social_network)) },
                             modifier = Modifier.weight(.4f)
                         )
-                        IconButton(onClick = { onLinksChange(links.filterIndexed { itemIndex, _ -> itemIndex != index }) }) {
+                        IconButton(onClick = { onLinksChange(links.filterIndexed { itemIndex, _ -> itemIndex != index }) }, enabled = !busy) {
                             Icon(Icons.Default.Delete, localizedText(R.string.ui_remove_social_link))
                         }
                     }
                     OutlinedTextField(
                         value = links[index].url,
+                        enabled = !busy,
                         onValueChange = { value ->
                             onLinksChange(links.toMutableList().also { it[index] = it[index].copy(url = value) })
                         },
@@ -91,8 +107,8 @@ internal fun ProfileEditDrawer(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    OutlinedButton(onClick = { onLinksChange(links + EditableProfileLink()) }) { Text(localizedText(R.string.ui_add_social_link)) }
-                    Button(onClick = onSave, enabled = !busy) { Text(localizedText(R.string.ui_save)) }
+                    OutlinedButton(onClick = { onLinksChange(links + EditableProfileLink()) }, enabled = !busy) { Text(localizedText(R.string.ui_add_social_link)) }
+                    Button(onClick = onSave, enabled = !busy, modifier = Modifier.testTag("profile-save")) { Text(localizedText(R.string.ui_save)) }
                 }
             }
             item { HorizontalDivider(Modifier.padding(vertical = 8.dp)) }
@@ -169,7 +185,7 @@ internal fun ProfileInformation(
         add(ProfileInfoItem(localizedText(R.string.ui_headline), headline, Icons.Default.Work))
         add(ProfileInfoItem(localizedText(R.string.ui_age), if (age.isBlank()) "" else localizedText(R.string.ui_1_s_years_old, age), Icons.Default.Badge))
         add(ProfileInfoItem(localizedText(R.string.ui_phone), phone, Icons.Default.Phone))
-        add(ProfileInfoItem(localizedText(R.string.ui_birthday), profile.optString("birthday"), Icons.Default.Cake))
+        add(ProfileInfoItem(localizedText(R.string.ui_birthday), profileBirthdayLabel(profile.optString("birthday")), Icons.Default.Cake))
         add(ProfileInfoItem(localizedText(R.string.ui_gender), profile.optString("gender"), Icons.Default.Person))
         add(ProfileInfoItem(localizedText(R.string.ui_website), website, Icons.Default.Language) { onOpenLink(website) })
         links.forEach { link ->

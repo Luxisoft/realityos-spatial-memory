@@ -57,7 +57,7 @@ async def _graph_get(
         payload = response.json()
     except (httpx.HTTPError, ValueError):
         return None
-    return payload if isinstance(payload, dict) else None
+    return payload if isinstance(payload, dict) and "error" not in payload else None
 
 
 def _graph_total(node: dict | None) -> int | None:
@@ -127,21 +127,25 @@ async def sync_facebook_profile(
     if row is None:
         row = FacebookProfile(user_id=user.id)
         db.add(row)
-    row.email = node.get("email")
-    row.birthday = node.get("birthday")
-    row.age_min = age_range.get("min")
-    row.age_max = age_range.get("max")
-    row.gender = node.get("gender")
-    row.hometown = (node.get("hometown") or {}).get("name")
-    row.location = (node.get("location") or {}).get("name")
-    row.profile_link = node.get("link")
-    row.picture_url = picture
+    # Preserve the last successful profile on a transient failure while keeping
+    # the independent photo/video inventory and import flow running as before.
+    if profile_node is not None:
+        row.email = node.get("email")
+        row.birthday = node.get("birthday")
+        row.age_min = age_range.get("min")
+        row.age_max = age_range.get("max")
+        row.gender = node.get("gender")
+        row.hometown = (node.get("hometown") or {}).get("name")
+        row.location = (node.get("location") or {}).get("name")
+        row.profile_link = node.get("link")
+        row.picture_url = picture
     row.friends_count = _graph_total(friends_node)
     row.likes_count = _graph_total(likes_node)
     row.photos_count = _graph_total(photos_count_node)
     row.videos_count = _graph_total(videos_count_node)
     row.granted_scopes = granted_scopes
     row.sync_diagnostics = {
+        "profile": "ready" if profile_node is not None else "unavailable",
         "photos": (
             "unavailable"
             if photos_node is None
@@ -157,7 +161,8 @@ async def sync_facebook_profile(
             else "empty"
         ),
     }
-    row.synced_at = datetime.now(UTC)
+    if profile_node is not None:
+        row.synced_at = datetime.now(UTC)
     if friends_node is not None:
         db.execute(delete(FacebookFriend).where(FacebookFriend.owner_user_id == user.id))
         for friend in friends_node.get("data", []) or []:

@@ -10,6 +10,7 @@
 | --- | --- |
 | **Account** | Register with username, email, name and password; confirm email before access. Login accepts email or username in `email`. |
 | **Correct email** | `POST /v1/auth/change-pending-email` accepts the existing username or current email in `username`, verifies its password, preserves its ID and invalidates previous links. Confirmed, active and provisioned accounts are excluded. |
+| **Personal details** | Email accounts edit their name, current location, hometown, birthday and gender in `PATCH /v1/me/profile`. Facebook identities keep these fields read-only and refresh them at each Facebook login. Birthday uses `YYYY-MM-DD`; age is derived. Omitted PATCH fields are preserved. |
 | **Connection** | An admin creates a connection; the integration key is shown once and sent in `X-RealityOS-Integration-Key`. |
 | **Batch** | Up to 100 records and 2 MiB; increasing versions, external-ID relations and atomic transaction. Same key/content returns the original result; different content returns 409. |
 | **Kinds** | `person`, `case`, `encounter`, `event`, `object`, `prescription`, `allergy`, `administration`. Draft/deleted records are excluded from queries. |

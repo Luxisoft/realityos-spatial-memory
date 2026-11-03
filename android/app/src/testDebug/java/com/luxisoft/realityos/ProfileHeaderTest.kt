@@ -15,17 +15,30 @@ import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollToNode
 import androidx.compose.ui.unit.dp
 import org.json.JSONObject
+import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
+import org.robolectric.RuntimeEnvironment
 import org.robolectric.annotation.Config
 
 @RunWith(RobolectricTestRunner::class)
 @Config(application = Application::class, sdk = [35], qualifiers = "w320dp-h800dp")
 class ProfileHeaderTest {
     @get:Rule val compose = createComposeRule()
+
+    @Before fun initializeLocalization() {
+        val context = RuntimeEnvironment.getApplication()
+        LocalizedText.initialize(context)
+        RealityExperienceStore(context).setLanguage(if (context.resources.configuration.locales[0].language == "es") RealityLanguage.SPANISH else RealityLanguage.ENGLISH)
+    }
+
+    @After fun resetLocalization() {
+        RealityExperienceStore(RuntimeEnvironment.getApplication()).setLanguage(RealityLanguage.ENGLISH)
+    }
 
     private fun profile(userId: String? = null) = ProfileState(userId).apply {
         apply(

@@ -655,3 +655,20 @@ Rollback `.runtime/email-identity-20261103-rollback.json`.
 Sin cambio manual de cuenta ni correo real de prueba; QA física pendiente.
 
 APK Debug único reconstruido; builds Debug/Release, lint y formato aprobados.
+
+
+Perfiles editables por correo (2026-11-03): nombre, ubicación actual, localidad,
+fecha de nacimiento y género; edad derivada. El servidor limita esos cambios a
+cuentas por contraseña sin identidad Facebook. Facebook conserva la fuente de
+sus campos y se consulta en cada login, incluido el nombre; fallo temporal no
+borra el último perfil válido. Metadatos propios `profile_source` y
+`personal_details_editable` controlan Android. Migración aditiva `20261103_0034`
+y release `realityos-backend:profile-details-20261103-r3` desplegados; salud,
+contrato/ORM/head y worker verificados. 445 pruebas backend/gateway aprobadas.
+Rollback `.runtime/profile-details-20261103-r3-rollback.json` conserva columnas
+para no perder datos nuevos al revertir código. Sin cambios biométricos; QA de
+Facebook real y dispositivo físico pendiente. Ver IMPLEMENTATION_STATUS.md.
+
+Validación Android: 220 pruebas aprobadas y capturas nativas ES/EN revisadas, incluyendo 320 dp y texto al 200 %.
+
+APK Debug único reconstruido; builds Debug/Release, lint/formato y estructura aprobados.
