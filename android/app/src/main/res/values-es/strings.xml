@@ -357,6 +357,8 @@
     <string name="ui_age">Edad</string>
     <string name="ui_link">Enlace</string>
     <string name="ui_photos">Fotos</string>
+    <string name="ui_videos">Videos</string>
+    <string name="ui_history">Historial</string>
     <string name="ui_save">Guardar</string>
     <string name="ui_browser">Navegador</string>
     <string name="ui_ask">Preguntar</string>

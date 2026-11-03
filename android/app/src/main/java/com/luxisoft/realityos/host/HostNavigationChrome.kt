@@ -22,10 +22,11 @@ import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.AddPhotoAlternate
 import androidx.compose.material.icons.filled.AdminPanelSettings
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.CloudUpload
+import androidx.compose.material.icons.filled.FolderCopy
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Logout
 import androidx.compose.material.icons.filled.Menu
@@ -204,17 +205,22 @@ internal fun HostTopBar(
                     }
                 }
             }
-            IconButton(onClick = galleryBar.onRecords, enabled = galleryBar.selectedId != null) {
-                Icon(Icons.Default.History, localizedText(R.string.records_title))
-            }
             IconButton(onClick = galleryBar.onPublish, enabled = !galleryBar.loading && galleryBar.publishEnabled, modifier = Modifier.testTag("work-publish")) {
-                Icon(Icons.Default.AddPhotoAlternate, localizedText(R.string.ui_publish))
+                Icon(Icons.Default.CloudUpload, localizedText(R.string.ui_publish))
             }
             var more by remember { mutableStateOf(false) }
             Box {
                 IconButton(onClick = { more = true }) { Icon(Icons.Default.MoreVert, localizedText(R.string.ui_manage)) }
                 DropdownMenu(more, { more = false }) {
-                    DropdownMenuItem(text = { Text(localizedText(R.string.import_existing_publications)) }, enabled = galleryBar.selectedId != null, onClick = {
+                    DropdownMenuItem(text = { Text(localizedText(R.string.ui_history)) }, leadingIcon = {
+                        Icon(Icons.Default.History, contentDescription = null)
+                    }, enabled = galleryBar.selectedId != null, modifier = Modifier.testTag("work-history"), onClick = {
+                        more = false
+                        galleryBar.onRecords()
+                    })
+                    DropdownMenuItem(text = { Text(localizedText(R.string.import_existing_publications)) }, leadingIcon = {
+                        Icon(Icons.Default.FolderCopy, contentDescription = null)
+                    }, enabled = galleryBar.selectedId != null, onClick = {
                         more = false
                         galleryBar.onImport()
                     })
@@ -227,7 +233,9 @@ internal fun HostTopBar(
                         })
                     }
                     if (galleryBar.showAdmin) {
-                        DropdownMenuItem(text = { Text(localizedText(R.string.ui_manage)) }, onClick = {
+                        DropdownMenuItem(text = { Text(localizedText(R.string.ui_manage)) }, leadingIcon = {
+                            Icon(Icons.Default.AdminPanelSettings, contentDescription = null)
+                        }, onClick = {
                             more = false
                             galleryBar.onAdmin()
                         })
@@ -435,39 +443,32 @@ internal fun RealityDrawer(
             Spacer(Modifier.height(8.dp))
             NavigationDrawerItem(
                 label = { Text(localizedText(R.string.storage_title)) },
-                icon = { Icon(androidx.compose.material.icons.Icons.Filled.Storage, null) },
+                icon = { Icon(Icons.Filled.Storage, null, Modifier.size(24.dp).testTag("drawer-connections-icon")) },
                 selected = false,
                 onClick = onConnections,
-                colors = flatDrawerItemColors()
+                colors = flatDrawerItemColors(),
+                modifier = Modifier.fillMaxWidth().testTag("drawer-connections")
             )
             NavigationDrawerItem(
                 label = { Text(stringResource(R.string.nav_about)) },
-                icon = { Icon(Icons.Outlined.Memory, null) },
+                icon = { Icon(Icons.Outlined.Memory, null, Modifier.size(24.dp).testTag("drawer-about-icon")) },
                 selected = false,
                 onClick = onAbout,
                 colors = flatDrawerItemColors(),
-                modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
+                modifier = Modifier.fillMaxWidth().testTag("drawer-about")
             )
             Spacer(Modifier.weight(1f))
             DrawerLanguageSelector(experienceStore)
             HorizontalDivider(color = MaterialTheme.colorScheme.secondaryContainer)
             Spacer(Modifier.height(8.dp))
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(NavigationDrawerItemDefaults.ItemPadding)
-                    .padding(bottom = 12.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                NavigationDrawerItem(
-                    label = { Text(localizedText(R.string.ui_sign_out), style = MaterialTheme.typography.bodySmall) },
-                    icon = { Icon(Icons.Filled.Logout, contentDescription = null) },
-                    selected = false,
-                    onClick = onLogout,
-                    colors = flatDrawerItemColors(),
-                    modifier = Modifier.weight(1f)
-                )
-            }
+            NavigationDrawerItem(
+                label = { Text(localizedText(R.string.ui_sign_out)) },
+                icon = { Icon(Icons.Filled.Logout, null, Modifier.size(24.dp).testTag("drawer-logout-icon")) },
+                selected = false,
+                onClick = onLogout,
+                colors = flatDrawerItemColors(),
+                modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp).testTag("drawer-logout")
+            )
         }
     }
 }

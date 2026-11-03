@@ -99,6 +99,7 @@ internal fun ProfileHeader(
     var editing by rememberSaveable(state.userId) { mutableStateOf(false) }
     var webUrl by rememberSaveable(state.userId) { mutableStateOf<String?>(null) }
     val current = state.profile
+    val facebookProfile = current?.optString("profile_source") == "facebook"
     LaunchedEffect(editing) { onEditDrawerChange(editing) }
     DisposableEffect(Unit) { onDispose { onEditDrawerChange(false) } }
     fun openLink(url: String, facebook: Boolean = false) {
@@ -115,7 +116,7 @@ internal fun ProfileHeader(
     Surface(tonalElevation = 1.dp, modifier = Modifier.testTag("global-profile-header")) {
         Column(Modifier.fillMaxWidth()) {
             Row(
-                Modifier.fillMaxWidth().heightIn(min = 96.dp).padding(horizontal = 4.dp),
+                Modifier.fillMaxWidth().heightIn(min = 64.dp).padding(horizontal = 4.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(4.dp)
             ) {
@@ -149,19 +150,14 @@ internal fun ProfileHeader(
                     if (current == null && state.loading) {
                         SkeletonLines(rows = 2)
                     } else {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Text(current?.optString("display_name").orEmpty(), Modifier.weight(1f), style = MaterialTheme.typography.titleSmall, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                            IconButton(onClick = { expanded = !expanded }, enabled = current != null, modifier = Modifier.size(48.dp).testTag("profile-expand")) {
-                                Icon(if (expanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore, localizedText(if (expanded) R.string.ui_hide_information else R.string.ui_show_information))
-                            }
-                        }
+                        Text(current?.optString("display_name").orEmpty(), Modifier.testTag("profile-name"), style = MaterialTheme.typography.titleSmall, maxLines = 1, overflow = TextOverflow.Ellipsis)
                         current?.optText("email")?.let { email ->
                             Text(
                                 email,
                                 Modifier.clickable {
                                     clipboard.setText(AnnotatedString(email))
                                     AppNotices.show(localizedText(R.string.ui_email_copied), NoticeKind.SUCCESS)
-                                }.padding(bottom = 8.dp),
+                                }.testTag("profile-email"),
                                 style = MaterialTheme.typography.bodySmall,
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis
@@ -169,8 +165,11 @@ internal fun ProfileHeader(
                         }
                     }
                 }
+                IconButton(onClick = { expanded = !expanded }, enabled = current != null, modifier = Modifier.size(48.dp).testTag("profile-expand")) {
+                    Icon(if (expanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore, localizedText(if (expanded) R.string.ui_hide_information else R.string.ui_show_information))
+                }
                 Column {
-                    current?.optText("facebook_link")?.let { facebook ->
+                    current?.optText("facebook_link")?.takeIf { facebookProfile }?.let { facebook ->
                         IconButton(onClick = { openLink(facebook, true) }, modifier = Modifier.testTag("profile-facebook")) {
                             Icon(Icons.Default.Facebook, localizedText(R.string.ui_open_facebook))
                         }
@@ -195,7 +194,7 @@ internal fun ProfileHeader(
                             Icon(Icons.Default.Description, null)
                             Text(current.optText("biography") ?: "-", style = MaterialTheme.typography.bodyMedium)
                         }
-                        val friends = current.optJSONArray("friends") ?: JSONArray()
+                        val friends = if (facebookProfile) current.optJSONArray("friends") ?: JSONArray() else JSONArray()
                         for (index in 0 until minOf(friends.length(), 6)) {
                             val friend = friends.getJSONObject(index)
                             TextButton(onClick = { friend.optText("profile_link")?.let { openLink(it, true) } }) {

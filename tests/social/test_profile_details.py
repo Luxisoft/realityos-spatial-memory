@@ -63,6 +63,7 @@ def test_email_details_save_read_clear_and_keep_unsupplied_fields(client, email_
     public = client.get(f"/v1/profiles/{user_id}", headers=headers).json()
     assert public["birthday"] == "2000-02-29" and public["location"] == "Valencia"
     assert "personal_details_editable" not in public
+    assert public["profile_source"] == "email"
     cleared = patch(
         client, headers, birthday=None, gender=None, hometown=" ", location=None
     )
@@ -111,6 +112,10 @@ def test_facebook_identity_blocks_manual_changes_even_without_synced_profile(
         db.commit()
     own = client.get("/v1/me/profile", headers=headers).json()
     assert own["profile_source"] == "facebook" and not own["personal_details_editable"]
+    public = client.get(f"/v1/profiles/{user_id}", headers=headers).json()
+    assert public["profile_source"] == "facebook"
+    assert public["facebook_link"] is None
+    assert "personal_details_editable" not in public
     for field, value in {
         "display_name": "Forged",
         "birthday": None,
@@ -174,6 +179,36 @@ def test_profile_edit_cannot_target_another_account(client, email_owner):
         == 405
     )
     assert patch(client, {}, location="Forged").status_code == 401
+
+
+def test_viewed_profile_source_is_independent_from_the_viewer(client, email_owner):
+    user_id, headers = email_owner
+    with client.app.state.database.session_factory() as db:
+        other = User(
+            email="facebook@example.test",
+            display_name="Facebook account",
+            password_hash=hash_password("SyntheticPassword123!"),
+        )
+        db.add(other)
+        db.flush()
+        db.add(FacebookIdentity(subject="synthetic:viewer", user_id=other.id))
+        other_id = other.id
+        db.commit()
+    other_headers = {
+        "Authorization": "Bearer "
+        + create_access_token(other_id, client.app.state.settings)
+    }
+    assert (
+        client.get(f"/v1/profiles/{user_id}", headers=other_headers).json()[
+            "profile_source"
+        ]
+        == "email"
+    )
+    assert (
+        client.get(f"/v1/profiles/{other_id}", headers=headers).json()["profile_source"]
+        == "facebook"
+    )
+    assert client.get(f"/v1/profiles/{other_id}").status_code == 401
 
 
 def test_guest_cannot_opt_into_email_account_details(client):

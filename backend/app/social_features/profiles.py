@@ -56,6 +56,9 @@ def _safe_web_url(value: str) -> str:
 
 def _public_profile_payload(target: User, db: Session) -> dict:
 
+    facebook_account = bool(
+        db.scalar(select(FacebookIdentity.subject).where(FacebookIdentity.user_id == target.id))
+    )
     facebook = db.get(FacebookProfile, target.id)
     custom = db.get(UserProfile, target.id)
     friends = list(
@@ -76,6 +79,13 @@ def _public_profile_payload(target: User, db: Session) -> dict:
     )
     return {
         "user_id": str(target.id),
+        "profile_source": (
+            "facebook"
+            if facebook_account
+            else "email"
+            if db.get(PasswordAccount, target.id)
+            else "other"
+        ),
         "display_name": target.display_name,
         "is_guest": target.is_guest,
         "email": facebook.email if facebook else target.email,
@@ -119,13 +129,8 @@ def _public_profile_payload(target: User, db: Session) -> dict:
 def _own_profile_payload(user: User, db: Session) -> dict:
     payload = _public_profile_payload(user, db)
     custom = _user_profile(db, user.id)
-    facebook_account = bool(
-        db.scalar(select(FacebookIdentity.subject).where(FacebookIdentity.user_id == user.id))
-    )
+    facebook_account = payload["profile_source"] == "facebook"
     password_account = db.get(PasswordAccount, user.id)
-    payload["profile_source"] = (
-        "facebook" if facebook_account else "email" if password_account else "other"
-    )
     payload["personal_details_editable"] = bool(
         password_account and not facebook_account and not user.is_guest
     )

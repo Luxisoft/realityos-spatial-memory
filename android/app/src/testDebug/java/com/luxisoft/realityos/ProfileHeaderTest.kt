@@ -42,7 +42,7 @@ class ProfileHeaderTest {
 
     private fun profile(userId: String? = null) = ProfileState(userId).apply {
         apply(
-            JSONObject().put("display_name", "Sample person").put("email", "sample@example.test")
+            JSONObject().put("display_name", "Sample person").put("email", "sample@example.test").put("profile_source", "facebook")
                 .put("facebook_link", "https://facebook.invalid/sample").put("location", "Madrid")
                 .put("hometown", "Lima").put("cv", JSONObject().put("present", false))
         )

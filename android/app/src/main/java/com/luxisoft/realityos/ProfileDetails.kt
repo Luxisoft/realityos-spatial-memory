@@ -14,8 +14,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import org.json.JSONObject
@@ -192,50 +192,47 @@ internal fun ProfileInformation(
         links.forEach { link ->
             add(ProfileInfoItem(link.label.ifBlank { localizedText(R.string.ui_link) }, link.url, Icons.Default.Link) { onOpenLink(link.url) })
         }
-        add(ProfileInfoItem(localizedText(R.string.ui_friends), counts.optString("friends"), Icons.Default.People))
-        add(ProfileInfoItem(localizedText(R.string.ui_likes), counts.optString("likes"), Icons.Default.ThumbUp))
-        add(ProfileInfoItem(localizedText(R.string.ui_photos), counts.optString("photos"), Icons.Default.PhotoLibrary))
-        add(ProfileInfoItem("Videos", counts.optString("videos"), Icons.Default.VideoLibrary))
+        if (profile.optString("profile_source") == "facebook") {
+            add(ProfileInfoItem(localizedText(R.string.ui_friends), counts.optString("friends"), Icons.Default.People))
+            add(ProfileInfoItem(localizedText(R.string.ui_likes), counts.optString("likes"), Icons.Default.ThumbUp))
+            add(ProfileInfoItem(localizedText(R.string.ui_photos), counts.optString("photos"), Icons.Default.PhotoLibrary))
+            add(ProfileInfoItem(localizedText(R.string.ui_videos), counts.optString("videos"), Icons.Default.VideoLibrary))
+        }
     }.map { it.copy(value = it.value.takeUnless { value -> value.isBlank() || value == "null" } ?: "-", onClick = it.onClick.takeIf { _ -> it.value.isNotBlank() && it.value != "null" }) }
 
-    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        items.chunked(2).forEach { rowItems ->
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(14.dp)
-            ) {
-                rowItems.forEach { item ->
-                    Row(
-                        modifier = Modifier
-                            .weight(1f)
-                            .then(item.onClick?.let { onClick -> Modifier.clickable(onClick = onClick) } ?: Modifier)
-                            .padding(vertical = 2.dp),
-                        verticalAlignment = Alignment.Top,
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        Icon(
-                            imageVector = item.icon,
-                            contentDescription = item.label,
-                            modifier = Modifier.size(19.dp),
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text(
-                                item.label,
-                                style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis
+    BoxWithConstraints(Modifier.fillMaxWidth()) {
+        val columns = if (maxWidth < 320.dp || LocalDensity.current.fontScale >= 1.5f) 1 else 2
+        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            items.chunked(columns).forEach { rowItems ->
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(14.dp)
+                ) {
+                    rowItems.forEach { item ->
+                        Row(
+                            modifier = Modifier
+                                .weight(1f)
+                                .then(item.onClick?.let { onClick -> Modifier.clickable(onClick = onClick) } ?: Modifier)
+                                .padding(vertical = 2.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            Icon(
+                                imageVector = item.icon,
+                                contentDescription = item.label,
+                                modifier = Modifier.size(19.dp),
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                             Text(
                                 item.value,
+                                modifier = Modifier.weight(1f),
                                 style = MaterialTheme.typography.bodySmall,
                                 softWrap = true
                             )
                         }
                     }
+                    if (rowItems.size < columns) Spacer(Modifier.weight(1f))
                 }
-                if (rowItems.size == 1) Spacer(Modifier.weight(1f))
             }
         }
     }

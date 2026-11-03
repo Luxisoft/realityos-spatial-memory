@@ -82,6 +82,7 @@ class WorkGroupActionsTest {
         val publish = compose.onNodeWithTag("work-publish")
         create.assertContentDescriptionEquals(localizedText(R.string.ui_create_group)).assertIsDisplayed()
         publish.assertContentDescriptionEquals(localizedText(R.string.ui_publish)).assertIsDisplayed()
+        compose.onNodeWithTag("work-history").assertDoesNotExist()
         compose.onNodeWithContentDescription(localizedText(R.string.ui_select_workspace)).assertIsDisplayed()
         assertTrue(create.fetchSemanticsNode().boundsInRoot.right <= publish.fetchSemanticsNode().boundsInRoot.left)
         capture("toolbar-$name")
@@ -96,6 +97,10 @@ class WorkGroupActionsTest {
         invite.performTouchInput { click() }
         compose.runOnIdle { assertEquals(listOf("create-group", "publish-photo", "invite-person"), actions) }
         invite.assertDoesNotExist()
+        compose.onNodeWithContentDescription(localizedText(R.string.ui_manage)).performTouchInput { click() }
+        compose.onNodeWithTag("work-history").assertTextEquals(localizedText(R.string.ui_history)).assertIsDisplayed().performTouchInput { click() }
+        compose.runOnIdle { assertEquals(listOf("create-group", "publish-photo", "invite-person", "records"), actions) }
+        compose.onNodeWithTag("work-history").assertDoesNotExist()
     }
 
     @Test fun groupCreationPersonInvitationAndPublicationUseSeparateButtons() = checkDistinctActions("es-390", 1f)
@@ -118,8 +123,8 @@ class WorkGroupActionsTest {
         compose.onNodeWithTag("work-create-group").assertIsEnabled().performTouchInput { click() }
         compose.runOnIdle { assertEquals(listOf("create-group"), actions) }
         compose.onNodeWithTag("work-publish").assertIsNotEnabled()
-        compose.onNodeWithContentDescription(localizedText(R.string.records_title)).assertIsNotEnabled()
         compose.onNodeWithContentDescription(localizedText(R.string.ui_manage)).performTouchInput { click() }
+        compose.onNodeWithTag("work-history").assertIsNotEnabled()
         compose.onNodeWithTag("work-invite-person").assertDoesNotExist()
     }
 }
