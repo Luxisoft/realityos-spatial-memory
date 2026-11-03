@@ -59,11 +59,29 @@ Thumbnails and linked videos are conceptual. [Available tests and fixture covera
 
 ![Visual face lookup: photo, face representation, authorized index, candidates and context.](docs/assets/readme/face-lookup.svg)
 
-**1. Photo/video → 2. Face representation → 3. Compare authorized enrollments → 4. Candidates → 5. Profile or record.**
+**1. Consent → 2. Explicit enrollment → 3. Photo/video probe → 4. Ranked candidates → 5. Human-confirmed profile or record.**
 
-Enrollment is a prior, explicit operation. Search uses InsightFace and returns `matches` for users and `matches_records` for person records. Uploaded probes are ephemeral; results are scoped to the workspace and current authorization.
+### Consent first, enrollment explicit
 
-Similarity is not identity probability: the professional confirms the candidate. Biometrics remains separate from object processing. [Face contract and permissions →](docs/API.md)
+| Step | What happens |
+| --- | --- |
+| **Consent** | `POST /v1/faces/consent` with `{"confirm": true}` records versioned consent. Enroll and search return `403` without it, and guests are always blocked. `DELETE /v1/faces/consent` revokes and deletes the user's enrollments. |
+| **People** | Login users enroll a single-face selfie (`POST /v1/faces/profile-photo`) or their own capture media (`POST /v1/faces/enroll`). Candidates come only from workspace members with active consent. |
+| **Records** | Person records enroll authorized record media (`POST /v1/faces/record-enroll`); the record must stay active and biometric-authorized with a recorded basis. |
+
+Nothing enrolls automatically: every enrollment is an explicit call over authorized media. At entry, the app takes a mandatory private face capture and verifies it against the account's own synced Facebook faces when present (`POST /v1/faces/verify-identity`: verified, pending, failed or locked, with attempt limits and a temporary lockout).
+
+### Search returns candidates, never an identity verdict
+
+`POST /v1/faces/search` takes a workspace plus an ephemeral probe upload (JPEG/PNG/WebP photo, or MP4/MOV/WebM video sampled into frames) or a stored `media_id`. Uploaded probes are never persisted. Multi-face probes keep the best faces (quality-sorted, capped, skipped faces counted); matching is cosine similarity over facial representations (default threshold `0.5`) with quality and face-size gates.
+
+Each candidate carries `similarity`, `probe_box`, `probe_face_index` and an evidence thumbnail: `matches` for users (with profile link) and `matches_records` for person records (with record link). Responses also report `probe_faces`, `threshold` and whether the output is `simulated`. Results stay scoped to workspace membership and record authorization; synced Facebook media is searched only within its authorized flows, never as global Facebook search.
+
+### Where it appears
+
+Android **Find person** and the Ray-Ban Display **Buscar persona** action share this endpoint: numbered color boxes over a group photo (rendered from an ephemeral in-memory probe, never stored), per-candidate thumbnails through short-lived signed links, and opening the profile or record inside the app under the same permissions.
+
+Similarity is a ranking score, not identity probability: the professional confirms the candidate. Biometrics is an isolated arm — shared auth, membership and BYTEA storage only — never merged into the object Register/Query pipeline, and InsightFace runs locally on the server, independently of Meta. [Face contract →](docs/API_REFERENCE.md) · [Test walkthroughs →](docs/DEMO.md)
 
 <a id="architecture"></a>
 

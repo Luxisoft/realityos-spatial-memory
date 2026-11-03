@@ -59,11 +59,29 @@ Las miniaturas y los videos enlazados son conceptuales. [Pruebas disponibles y a
 
 ![Flujo visual de búsqueda facial: foto, representación facial, índice autorizado, candidatos y contexto.](docs/assets/readme/face-lookup.svg)
 
-**1. Foto/video → 2. Representación facial → 3. Comparación con enrolamientos autorizados → 4. Candidatos → 5. Perfil o expediente.**
+**1. Consentimiento → 2. Enrolamiento explícito → 3. Sonda foto/video → 4. Candidatos ordenados → 5. Perfil o expediente confirmado por una persona.**
 
-El enrolamiento se realiza antes, de forma explícita. La búsqueda usa InsightFace y devuelve `matches` para usuarios y `matches_records` para expedientes. La sonda subida es efímera; los resultados se limitan al espacio y a la autorización vigente.
+### Consentimiento primero, enrolamiento explícito
 
-La similitud no es probabilidad de identidad: el profesional confirma al candidato. La biometría permanece separada del procesamiento de objetos. [Contrato facial y permisos →](docs/API.es.md)
+| Paso | Qué ocurre |
+| --- | --- |
+| **Consentimiento** | `POST /v1/faces/consent` con `{"confirm": true}` registra un consentimiento versionado. Enrolar y buscar devuelven `403` sin él, y los invitados siempre están bloqueados. `DELETE /v1/faces/consent` revoca y elimina los enrolamientos del usuario. |
+| **Personas** | Los usuarios con sesión enrolan una selfie de un solo rostro (`POST /v1/faces/profile-photo`) o sus propios medios de captura (`POST /v1/faces/enroll`). Los candidatos solo proceden de miembros del espacio con consentimiento activo. |
+| **Expedientes** | Los expedientes de persona enrolan medios autorizados del expediente (`POST /v1/faces/record-enroll`); el expediente debe mantenerse activo y con autorización biométrica y base registrada. |
+
+Nada se enrola automáticamente: cada enrolamiento es una llamada explícita sobre medios autorizados. Al entrar, la app toma una captura facial privada obligatoria y la verifica contra las fotos de Facebook sincronizadas de la propia cuenta cuando existen (`POST /v1/faces/verify-identity`: verified, pending, failed o locked, con límite de intentos y bloqueo temporal).
+
+### La búsqueda devuelve candidatos, nunca un veredicto de identidad
+
+`POST /v1/faces/search` recibe un espacio más una sonda efímera subida (foto JPEG/PNG/WebP, o video MP4/MOV/WebM muestreado en fotogramas) o un `media_id` almacenado. Las sondas subidas nunca se guardan. Las sondas con varios rostros conservan los mejores (ordenados por calidad, con límite y conteo de omitidos); la comparación es similitud coseno sobre representaciones faciales (umbral por defecto `0.5`) con filtros de calidad y tamaño de rostro.
+
+Cada candidato incluye `similarity`, `probe_box`, `probe_face_index` y una miniatura de evidencia: `matches` para usuarios (con enlace al perfil) y `matches_records` para expedientes de persona (con enlace al expediente). Las respuestas también indican `probe_faces`, `threshold` y si la salida es `simulated`. Los resultados se limitan a la pertenencia al espacio y a la autorización de cada expediente; los medios sincronizados de Facebook solo se buscan dentro de sus flujos autorizados, nunca como búsqueda global de Facebook.
+
+### Dónde aparece
+
+**Buscar persona** en Android y la acción **Buscar persona** del Display Ray-Ban comparten este endpoint: recuadros numerados de colores sobre la foto grupal (generados desde una sonda efímera en memoria, nunca almacenada), miniaturas por candidato mediante enlaces firmados de corta duración y apertura del perfil o expediente dentro de la app con los mismos permisos.
+
+La similitud es una puntuación de ordenación, no probabilidad de identidad: el profesional confirma al candidato. La biometría es un brazo aislado — solo comparte autenticación, pertenencia y almacenamiento BYTEA — nunca fusionado con el pipeline Register/Query de objetos, e InsightFace se ejecuta localmente en el servidor, independiente de Meta. [Contrato facial →](docs/API_REFERENCE.es.md) · [Guiones de prueba →](docs/DEMO.es.md)
 
 <a id="architecture"></a>
 
