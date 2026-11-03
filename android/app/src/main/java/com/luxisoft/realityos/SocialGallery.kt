@@ -35,7 +35,11 @@ import java.net.URL
 /** Human sessions are independent from the wearable's device credential. */
 internal object SocialSession {
     private var preferences: android.content.SharedPreferences? = null
+    private val sessionLock = Any()
+    private val refreshLock = Any()
+    private var sessionGeneration = 0L
     private var refreshToken: String? = null
+    @Volatile
     var token: String? = null
     var active by mutableStateOf(false)
     var isGuest by mutableStateOf(false)
@@ -85,7 +89,11 @@ internal object SocialSession {
         isGuest = preferences?.getBoolean("guest", false) == true && token != null
         active = token != null && refreshToken != null && workspaceId != null
     }
-    fun remember(response: JSONObject) {
+    fun remember(response: JSONObject) = synchronized(sessionLock) {
+        sessionGeneration++
+        rememberTokens(response)
+    }
+    private fun rememberTokens(response: JSONObject) {
         token = response.getString("access_token")
         refreshToken = response.getString("refresh_token")
         isGuest = response.optBoolean("is_guest")
@@ -107,7 +115,8 @@ internal object SocialSession {
             ?.putString("facebook_app_id", BuildConfig.FACEBOOK_APP_ID)
             ?.putString("workspace", workspaceId)?.putBoolean("guest", isGuest)?.apply()
     }
-    fun clear() {
+    fun clear(): Unit = synchronized(sessionLock) {
+        sessionGeneration++
         AppNotices.pending.value = emptyList()
         active = false; token = null; refreshToken = null; workspaceId = null; isGuest = false
         workWorkspaceId = null
@@ -119,6 +128,32 @@ internal object SocialSession {
         passwordAccountConfirmed = false
         loginNotice = null
         preferences?.edit()?.clear()?.apply()
+    }
+    private data class RequestSession(val generation: Long, val access: String?, val refresh: String?)
+    private fun sessionSnapshot(generation: Long? = null): RequestSession = synchronized(sessionLock) {
+        check(generation == null || generation == sessionGeneration) { localizedText(R.string.storage_session_changed) }
+        RequestSession(sessionGeneration, token, refreshToken)
+    }
+    private fun expireSession(session: RequestSession): Nothing = synchronized(sessionLock) {
+        sessionSnapshot(session.generation)
+        // A late rejection must not erase credentials renewed by another request.
+        check(token == session.access && refreshToken == session.refresh) { localizedText(R.string.storage_session_changed) }
+        val wasGuest = isGuest || passwordAccount
+        clear()
+        error(if (wasGuest) localizedText(R.string.ui_your_session_expired_sign_in_again) else localizedText(R.string.ui_your_session_expired_continue_with_facebook_again))
+    }
+    private fun refreshSession(session: RequestSession, timeoutMillis: Int = 30000): RequestSession = synchronized(refreshLock) {
+        val current = sessionSnapshot(session.generation)
+        // Profile, connections, chat and uploads share one rotating refresh token.
+        // Reuse a completed renewal; never submit that one-use token twice.
+        if (current.access != session.access || current.refresh != session.refresh) return@synchronized current
+        if (current.refresh == null) expireSession(current)
+        val refreshed = JSONObject(requestOnce("auth/refresh", "POST", JSONObject().put("refresh_token", current.refresh), false, timeoutMillis, current))
+        synchronized(sessionLock) {
+            sessionSnapshot(session.generation)
+            rememberTokens(refreshed)
+            sessionSnapshot(session.generation)
+        }
     }
     @Synchronized
     fun request(path: String, payload: JSONObject? = null): String {
@@ -144,13 +179,14 @@ internal object SocialSession {
     internal var openJsonConnection: (String) -> HttpURLConnection = { path ->
         URL("${BuildConfig.DEFAULT_REALITYOS_API_BASE_URL}/$path").openConnection() as HttpURLConnection
     }
-    private fun requestOnce(path: String, method: String, payload: JSONObject?, mayRefresh: Boolean, timeoutMillis: Int = 30000): String {
+    private fun requestOnce(path: String, method: String, payload: JSONObject?, mayRefresh: Boolean, timeoutMillis: Int = 30000, session: RequestSession = sessionSnapshot()): String {
+        sessionSnapshot(session.generation)
         val connection = openJsonConnection(path)
         if (path in setOf("auth/register", "auth/resend-confirmation", "auth/forgot-password", "auth/change-pending-email")) connection.setRequestProperty("Accept-Language", AccountRequestLanguage.value)
         connection.setRequestProperty("X-Client-Version", BuildConfig.VERSION_NAME)
         connection.connectTimeout = minOf(15000, timeoutMillis)
         connection.readTimeout = timeoutMillis
-        token?.let { connection.setRequestProperty("Authorization", "Bearer $it") }
+        session.access?.let { connection.setRequestProperty("Authorization", "Bearer $it") }
         return try {
             connection.requestMethod = method
             if (payload != null) {
@@ -158,6 +194,8 @@ internal object SocialSession {
                 connection.setRequestProperty("Content-Type", "application/json")
                 connection.outputStream.bufferedWriter().use { it.write(payload.toString()) }
             }
+            val status = connection.responseCode
+            sessionSnapshot(session.generation)
             val authenticatedAccountRoute = path in setOf("auth/account-session", "auth/account-capture-profile")
             if (connection.responseCode == 409 && path in setOf("auth/register", "auth/change-pending-email")) {
                 val body = connection.errorStream?.bufferedReader()?.use { it.readText() }.orEmpty()
@@ -166,18 +204,15 @@ internal object SocialSession {
             if (connection.responseCode !in 200..299) {
                 accountFailure(path, connection.responseCode)?.let { throw it }
             }
-            if (connection.responseCode == 401 && mayRefresh && refreshToken != null && (!path.startsWith("auth/") || authenticatedAccountRoute)) {
-                val refreshed = JSONObject(requestOnce("auth/refresh", "POST", JSONObject().put("refresh_token", refreshToken), false, timeoutMillis))
-                remember(refreshed)
-                return requestOnce(path, method, payload, false, timeoutMillis)
+            if (status == 401 && mayRefresh && session.refresh != null && (!path.startsWith("auth/") || authenticatedAccountRoute)) {
+                val renewed = refreshSession(session, timeoutMillis)
+                return requestOnce(path, method, payload, false, timeoutMillis, renewed)
             }
-            if (connection.responseCode == 401 && !path.startsWith("auth/facebook")) {
-                val wasGuest = isGuest || passwordAccount
-                clear()
-                error(if (wasGuest) localizedText(R.string.ui_your_session_expired_sign_in_again) else localizedText(R.string.ui_your_session_expired_continue_with_facebook_again))
+            if (status == 401 && !path.startsWith("auth/facebook")) {
+                expireSession(session)
             }
             if (connection.responseCode !in 200..299) error(localizedText(R.string.ui_could_not_complete_the_request_1_d, connection.responseCode))
-            connection.inputStream.bufferedReader().use { it.readText() }
+            connection.inputStream.bufferedReader().use { it.readText() }.also { sessionSnapshot(session.generation) }
         } finally { connection.disconnect() }
     }
     /** Stream captured clips from private storage; retries reuse the caller's request key. */
@@ -185,16 +220,17 @@ internal object SocialSession {
     fun requestMultipartFile(path: String, fields: Map<String, String>, file: File, mime: String): String =
         multipartFileOnce(path, fields, file, mime, true)
 
-    private fun multipartFileOnce(path: String, fields: Map<String, String>, file: File, mime: String, mayRefresh: Boolean): String {
+    private fun multipartFileOnce(path: String, fields: Map<String, String>, file: File, mime: String, mayRefresh: Boolean, session: RequestSession = sessionSnapshot()): String {
+        sessionSnapshot(session.generation)
         val boundary = "RealityOS-${java.util.UUID.randomUUID()}"
-        val connection = URL("${BuildConfig.DEFAULT_REALITYOS_API_BASE_URL}/$path").openConnection() as HttpURLConnection
+        val connection = openJsonConnection(path)
         connection.requestMethod = "POST"
         connection.connectTimeout = 15000
         connection.readTimeout = 60000
         connection.doOutput = true
         connection.setChunkedStreamingMode(64 * 1024)
         connection.setRequestProperty("Content-Type", "multipart/form-data; boundary=$boundary")
-        token?.let { connection.setRequestProperty("Authorization", "Bearer $it") }
+        session.access?.let { connection.setRequestProperty("Authorization", "Bearer $it") }
         return try {
             connection.outputStream.buffered().use { output ->
                 fun text(value: String) = output.write(value.toByteArray(Charsets.UTF_8))
@@ -205,13 +241,15 @@ internal object SocialSession {
                 file.inputStream().use { it.copyTo(output) }
                 text("\r\n--$boundary--\r\n")
             }
-            if (connection.responseCode == 401 && mayRefresh && refreshToken != null) {
-                val refreshed = JSONObject(requestOnce("auth/refresh", "POST", JSONObject().put("refresh_token", refreshToken), false))
-                remember(refreshed)
-                multipartFileOnce(path, fields, file, mime, false)
+            val status = connection.responseCode
+            sessionSnapshot(session.generation)
+            if (status == 401 && mayRefresh && session.refresh != null) {
+                val renewed = refreshSession(session)
+                multipartFileOnce(path, fields, file, mime, false, renewed)
             } else {
+                if (status == 401) expireSession(session)
                 check(connection.responseCode in 200..299) { localizedText(R.string.ui_upload_failed_1_d, connection.responseCode) }
-                connection.inputStream.bufferedReader().use { it.readText() }
+                connection.inputStream.bufferedReader().use { it.readText() }.also { sessionSnapshot(session.generation) }
             }
         } finally { connection.disconnect() }
     }
@@ -220,7 +258,8 @@ internal object SocialSession {
     fun requestMultipart(path: String, fields: Map<String, String>, fileBytes: ByteArray, filename: String, mimeType: String, fieldName: String? = null): String {
         return requestMultipartOnce(path, fields, fileBytes, filename, mimeType, fieldName, true)
     }
-    private fun requestMultipartOnce(path: String, fields: Map<String, String>, fileBytes: ByteArray, filename: String, mimeType: String, requestedFieldName: String?, mayRefresh: Boolean): String {
+    private fun requestMultipartOnce(path: String, fields: Map<String, String>, fileBytes: ByteArray, filename: String, mimeType: String, requestedFieldName: String?, mayRefresh: Boolean, session: RequestSession = sessionSnapshot()): String {
+        sessionSnapshot(session.generation)
         val boundary = "RealityOS-${java.util.UUID.randomUUID()}"
         val fieldName = requestedFieldName ?: if (path == "faces/search" || path == "display/face-group-links") "probe" else "file"
         val connection = openJsonConnection(path)
@@ -231,7 +270,7 @@ internal object SocialSession {
         connection.readTimeout = if (path == "queries/image") 180000 else 60000
         connection.doOutput = true
         connection.setRequestProperty("Content-Type", "multipart/form-data; boundary=$boundary")
-        token?.let { connection.setRequestProperty("Authorization", "Bearer $it") }
+        session.access?.let { connection.setRequestProperty("Authorization", "Bearer $it") }
         return try {
             val output = java.io.DataOutputStream(connection.outputStream)
             fun text(value: String) = output.write(value.toByteArray(Charsets.UTF_8))
@@ -244,11 +283,13 @@ internal object SocialSession {
             output.write(fileBytes)
             text("\r\n--$boundary--\r\n")
             output.flush()
-            if (connection.responseCode == 401 && mayRefresh && refreshToken != null) {
-                val refreshed = JSONObject(requestOnce("auth/refresh", "POST", JSONObject().put("refresh_token", refreshToken), false))
-                remember(refreshed)
-                return requestMultipartOnce(path, fields, fileBytes, filename, mimeType, requestedFieldName, false)
+            val status = connection.responseCode
+            sessionSnapshot(session.generation)
+            if (status == 401 && mayRefresh && session.refresh != null) {
+                val renewed = refreshSession(session)
+                return requestMultipartOnce(path, fields, fileBytes, filename, mimeType, requestedFieldName, false, renewed)
             }
+            if (status == 401) expireSession(session)
             if (connection.responseCode == 403 && path.startsWith("faces/")) error(localizedText(R.string.ui_face_search_requires_your_biometric_consent))
             if (connection.responseCode !in 200..299) {
                 val detail = connection.errorStream?.bufferedReader()?.use { it.readText() }.orEmpty()
@@ -256,7 +297,7 @@ internal object SocialSession {
                 publicationUploadFailure(path, connection.responseCode, detail)?.let { error(it) }
                 error(localizedHttpError(connection.responseCode))
             }
-            connection.inputStream.bufferedReader().use { it.readText() }
+            connection.inputStream.bufferedReader().use { it.readText() }.also { sessionSnapshot(session.generation) }
         } finally { connection.disconnect() }
     }
 }

@@ -47,6 +47,8 @@ flowchart LR
 
 Receive the APK, username, password and group in one [access card](../guides/DEMO.md#handoff). Use **Continue with email → Sign in**. All nine scenario accounts already have avatars, posts and assigned groups; person portraits are in their records. [Installation and sign-in steps →](../README.md#evaluate)
 
+When opening **My connections**, profile requests, resources and uploads share a single session refresh. Temporary errors and permission failures preserve sign-in; a refresh rejected because credentials expired or were revoked requires signing in again. Pending responses from a previous account are discarded when switching accounts or signing out.
+
 <a id="build"></a>
 
 ## Build and install

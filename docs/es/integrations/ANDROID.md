@@ -47,6 +47,8 @@ flowchart LR
 
 Recibe el APK, usuario, contraseña y grupo en una sola [ficha de acceso](../guides/DEMO.md#handoff). Entra por **Continuar con correo → Iniciar sesión**. Las nueve cuentas de escenario ya tienen avatar, publicaciones y grupo asignado; los retratos de personas están en sus expedientes. [Pasos para instalar y entrar →](../README.md#evaluate)
 
+Al abrir **Mis conexiones**, las consultas del perfil, los recursos y las subidas comparten una sola renovación de sesión. Un error temporal o de permisos conserva el acceso; una renovación rechazada por credenciales vencidas o revocadas exige iniciar sesión de nuevo. Las respuestas pendientes de una cuenta anterior se descartan al cambiar de cuenta o cerrar sesión.
+
 <a id="build"></a>
 
 ## Compilar e instalar
