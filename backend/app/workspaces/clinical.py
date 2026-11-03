@@ -88,12 +88,12 @@ async def medication_check(
         if person.external_id not in row.related_ids:
             continue
         sources.append(str(row.id))
-        if (
-            row.kind == "allergy"
-            and str(row.data.get("substance", "")).strip().casefold()
-            == payload.observed_ingredient.strip().casefold()
-        ):
-            issues.append("recorded_allergy")
+        if row.kind == "allergy":
+            substance = row.data.get("substance")
+            if not isinstance(substance, str) or not substance.strip():
+                missing.append("allergy_substance")
+            elif substance.strip().casefold() == payload.observed_ingredient.strip().casefold():
+                issues.append("recorded_allergy")
         if row.kind == "administration" and prescription.external_id in row.related_ids:
             issues.append("administration_history_requires_review")
     return {

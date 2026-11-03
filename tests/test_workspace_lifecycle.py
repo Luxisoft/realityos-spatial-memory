@@ -78,3 +78,50 @@ def test_medication_comparison_rejects_blank_observations_and_untyped_source(
             path, headers=auth_headers, json={**comparison, field: "  "}
         )
         assert response.status_code == 422
+
+
+def test_incomplete_allergy_is_missing_evidence_not_a_match(client, auth_headers):
+    ws, _, headers = setup_source(client, auth_headers)
+    payload = batch()
+    person = payload["records"][0]
+    person["data"]["allergies_reviewed_at"] = "2026-11-01T12:00:00Z"
+    payload["records"] += [
+        {
+            **person,
+            "external_id": "rx",
+            "kind": "prescription",
+            "related_ids": ["patient1"],
+            "data": {
+                "ingredient": "DEMO",
+                "concentration": "10 mg",
+                "state": "active",
+                "valid_from": "2026-11-01T00:00:00Z",
+                "valid_until": "2026-12-01T00:00:00Z",
+            },
+        },
+        {
+            **person,
+            "external_id": "allergy",
+            "kind": "allergy",
+            "related_ids": ["patient1"],
+            "data": {},
+        },
+    ]
+    rows = client.post(
+        "/v1/integrations/imports", headers=headers, json=payload
+    ).json()["records"]
+    response = client.post(
+        f"/v1/workspaces/{ws}/records/{rows[0]['id']}/medication-check",
+        headers=auth_headers,
+        json={
+            "prescription_id": rows[1]["id"],
+            "observed_ingredient": "DEMO",
+            "observed_concentration": "10 mg",
+            "patient_confirmed": True,
+            "checked_at": "2026-11-02T12:00:00Z",
+        },
+    )
+    assert response.status_code == 200
+    assert response.json()["status"] == "insufficient_data"
+    assert "allergy_substance" in response.json()["missing"]
+    assert rows[2]["id"] in response.json()["source_record_ids"]

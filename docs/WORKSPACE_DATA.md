@@ -115,7 +115,8 @@ confirmación profesional de identidad y fecha. Compara campos exactos, vigencia
 alergias y antecedentes de administración. No convierte unidades ni calcula dosis,
 no prescribe y no registra administraciones automáticamente. Los campos observados
 no admiten texto vacío o espacios; los campos importados vacíos o que no sean texto
-se informan como datos insuficientes. Editar el formulario invalida la comparación
+se informan como datos insuficientes. Una alergia registrada sin sustancia válida
+también se informa como evidencia incompleta, conservando su referencia. Editar el formulario invalida la comparación
 anterior y los campos quedan bloqueados mientras llega la respuesta. Los formularios no
 sustituyen una verificación clínica. La extracción automática del envase completo
 no forma parte de este comparador de campos.
