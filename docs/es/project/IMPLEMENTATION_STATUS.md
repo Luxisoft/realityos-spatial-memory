@@ -17,8 +17,8 @@ Actualizado el **3 de noviembre de 2026**. Un build o una comprobación HTTP no 
 
 ## Entrega verificada
 
-- Imagen local: `realityos-backend:workspace-privacy-20261103`; API, worker y scheduler usan el runtime conservado. PostgreSQL está en **`20261103_0036`**. Actualización → reversión → actualización aprobadas sobre un esquema PostgreSQL temporal; actualización productiva, salud y comparación exacta de OpenAPI público aprobadas.
-- CI aprobó las **499 pruebas backend/gateway**, incluidos contrato corregido, pérdida de membresía y privacidad de referencias. Android aprobó **228 pruebas**, formato/lint y builds Debug/Release. Documentación, estructura y Postman validados.
+- [Despliegue productivo aprobado](https://github.com/Luxisoft/realityos-spatial-memory/actions/runs/41709265025): imagen inmutable `99fe11f`, después de la entrega local `realityos-backend:workspace-privacy-20261103`. API, worker y scheduler conservan runtime y conexiones. PostgreSQL está en **`20261103_0036`**. Actualización → reversión → actualización aprobadas sobre un esquema PostgreSQL temporal; actualización productiva, salud y comparación exacta de OpenAPI público aprobadas.
+- La suite de 499 pruebas backend/gateway terminó CI con **496 aprobadas y tres omitidas**, incluidos contrato corregido, pérdida de membresía y privacidad de referencias. Android aprobó **228 pruebas**, formato/lint y builds Debug/Release. Documentación, estructura y Postman validados.
 - APK instalable: `android/app/build/outputs/apk/debug/app-debug.apk`; SHA-256 `2666a4ee7a15decca18311a28f8d3072e05afe22823b2cae04167a46d78953bc`.
 - Rollback de imagen: `.runtime/workspace-privacy-20261103-rollback.json`. Diario de visibilidad demo: `.runtime/real-scenes-20261103-visibility.json`. El snapshot técnico `pre-workspace-privacy-20261103.dump` caduca mediante mantenimiento tras 24 horas, o una bajo presión de disco; no es un respaldo oficial y no se envió a R2.
 - Producción conserva Meta directo con gateway de respaldo, claves privadas y la excepción aislada de ingreso Windows/Debug. El mantenimiento protege imágenes activas y rollback.
@@ -26,7 +26,7 @@ Actualizado el **3 de noviembre de 2026**. Un build o una comprobación HTTP no 
 
 ## Datos vigentes de evaluación
 
-El alcance se limita a los grupos **existentes**. No se recrean el taller ni otros escenarios descartados. Los tres grupos de evaluación tienen **48 escenas con licencia: 12 fotos y cuatro videos con movimiento por grupo**. Los videos duran 10–15 segundos, a 24 fps y al menos 720p, con comprobación de cambio entre fotogramas decodificados. El [catálogo y manifiesto de fuentes/licencias/hashes](../../../simulator/real-scenes/manifest.json) describe los recursos; las descargas quedan fuera de Git. El análisis real usa la cola del worker existente.
+El alcance se limita a los grupos **existentes**. No se recrean el taller ni otros escenarios descartados. Los tres grupos de evaluación tienen **48 escenas con licencia: 12 fotos y cuatro videos con movimiento por grupo**. Los videos duran 10–15 segundos, a 24 fps y al menos 720p, con comprobación de cambio entre fotogramas decodificados. El [catálogo y manifiesto de fuentes/licencias/hashes](../../../simulator/real-scenes/manifest.json) describe los recursos; las descargas quedan fuera de Git. El análisis real continúa en la cola del worker existente. Se retomó un análisis interrumpido por el despliegue y se encoló un reintento por formato inválido del proveedor; no se declara completado todo el análisis.
 
 Se conservan **47 expedientes, 27 adjuntos y seis retratos de expediente enrolados**. La renovación no añadió grupos ni membresías. El inventario vigente del bucket contiene 48 escenas y seis recursos QA, verificados por lectura remota/SHA-256, con **13 conexiones activas**. Cada autor tiene un subconjunto distinto. La conexión obsoleta de exploración del directorio social quedó desactivada; sus objetos remotos se conservaron.
 

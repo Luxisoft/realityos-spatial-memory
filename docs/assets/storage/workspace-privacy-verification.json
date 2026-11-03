@@ -32,7 +32,7 @@
     }
   ],
   "openapi_exact": true,
-  "checked_at": "2026-11-03T20:04:34.616724+00:00",
+  "checked_at": "2026-11-03T20:20:14.690971+00:00",
   "alembic": "20261103_0036",
   "records": 47,
   "attachments": 27,
@@ -74,5 +74,12 @@
   ],
   "backend_gateway_tests": 499,
   "ci_backend_verification": "https://github.com/Luxisoft/realityos-spatial-memory/actions/runs/41709265025",
-  "external_avatars_receive_session_token": false
+  "external_avatars_receive_session_token": false,
+  "ci_backend_passed": 496,
+  "ci_backend_skipped": 3,
+  "production_image": "ghcr.io/luxisoft/realityos-backend:99fe11f9dd77443a52263c90e2cdcbe823e50c6b",
+  "deployment_result": "success",
+  "runtime_preserved": true,
+  "interrupted_analyses_resumed": 1,
+  "retryable_provider_failures_requeued": 1
 }

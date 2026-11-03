@@ -17,8 +17,8 @@ Updated **November 3, 2026**. A build or HTTP check does not approve physical-de
 
 ## Verified release
 
-- Local image: `realityos-backend:workspace-privacy-20261103`; API, worker and scheduler use the preserved runtime. PostgreSQL is at **`20261103_0036`**. Upgrade → downgrade → upgrade passed on a temporary PostgreSQL schema; the production update, readiness and exact public OpenAPI comparison passed.
-- CI passed the **499 backend/gateway tests**, including the corrected contract, membership loss and reference-photo privacy. Android passed **228 tests**, formatting/lint and Debug/Release builds. Documentation, structure and Postman validation passed.
+- [Production deployment succeeded](https://github.com/Luxisoft/realityos-spatial-memory/actions/runs/41709265025): immutable backend image `99fe11f`, following the local `realityos-backend:workspace-privacy-20261103` release. API, worker and scheduler retain their runtime and connection settings. PostgreSQL is at **`20261103_0036`**. Upgrade → downgrade → upgrade passed on a temporary PostgreSQL schema; the production update, readiness and exact public OpenAPI comparison passed.
+- The 499-test backend/gateway suite finished CI with **496 passed and three skipped**, including the corrected contract, membership loss and reference-photo privacy. Android passed **228 tests**, formatting/lint and Debug/Release builds. Documentation, structure and Postman validation passed.
 - Installable APK: `android/app/build/outputs/apk/debug/app-debug.apk`; SHA-256 `2666a4ee7a15decca18311a28f8d3072e05afe22823b2cae04167a46d78953bc`.
 - Image rollback: `.runtime/workspace-privacy-20261103-rollback.json`. Demo visibility journal: `.runtime/real-scenes-20261103-visibility.json`. The technical `pre-workspace-privacy-20261103.dump` expires through server maintenance after 24 hours, or one hour under disk pressure; it is not an official backup and was not uploaded to R2.
 - Production retains direct Meta with gateway fallback, private keys and the isolated Windows/Debug login exception. Server maintenance protects active images and the release rollback.
@@ -26,7 +26,7 @@ Updated **November 3, 2026**. A build or HTTP check does not approve physical-de
 
 ## Current evaluation data
 
-Only the **existing** groups are in scope. Workshop and other discarded scenarios are not recreated. The three evaluation groups now have **48 licensed scenes: 12 photos and four moving videos each**. Videos are 10–15 seconds, 24 fps and at least 720p, with decoded frame-change validation. The [catalog and source/license/hash manifest](../../../simulator/real-scenes/manifest.json) describe the resources; downloaded media stays outside Git. Their real analysis runs through the existing worker queue.
+Only the **existing** groups are in scope. Workshop and other discarded scenarios are not recreated. The three evaluation groups now have **48 licensed scenes: 12 photos and four moving videos each**. Videos are 10–15 seconds, 24 fps and at least 720p, with decoded frame-change validation. The [catalog and source/license/hash manifest](../../../simulator/real-scenes/manifest.json) describe the resources; downloaded media stays outside Git. Their real analysis continues through the existing worker queue. One analysis interrupted by deployment was resumed and one retryable provider-format error was requeued; completion of every analysis is not claimed.
 
 The **47 records, 27 attachments and six enrolled record portraits** are preserved. No group or membership was added by renewal. The current bucket inventory is 48 scene resources plus six QA probes, verified by remote read-back/SHA-256, across **13 active connections**. Author subsets differ. The obsolete social-directory browser connection is disabled; its remote objects were retained.
 
