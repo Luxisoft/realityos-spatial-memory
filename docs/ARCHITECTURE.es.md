@@ -10,16 +10,23 @@
 | --- | --- |
 | **Cliente** | Android Kotlin/Compose y Display nativo DAT; panel web y Display web retirados. |
 | **API** | FastAPI aplica autenticación, roles y pertenencia. API y worker comparten contratos y modelos SQLAlchemy. |
-| **Memoria visual** | Captura explícita → original BYTEA → Celery/Redis → hechos y evidencia. Consultar no inicia captura ni procesamiento. |
+| **Memoria visual** | Captura explícita → original BYTEA → Celery/Redis → hechos y evidencia. Muse Spark también interpreta consultas desde la API, sin iniciar captura ni indexación de evidencia. |
 | **Biometría** | Brazo aislado InsightFace: consentimiento, enrolamientos, candidatos y contexto autorizado. No se mezcla con procesamiento de objetos. |
+| **Expedientes y perfiles** | Muse Spark responde preguntas sobre contexto previamente autorizado desde la API. La lectura/importación de registros sigue su contrato propio y no requiere siempre IA. |
 | **Módulos** | `app.http`, `app.providers`, `app.processing`, `app.social_features`, `app.accounts` y `app.workspaces`; las fachadas conservan compatibilidad. |
 | **Escala** | SQLAlchemy síncrono en handlers async; evaluar réplicas o controlador async para concurrencia alta. |
 
 ```mermaid
-flowchart LR
-    N0["Android + DAT"] --> N1["API"] --> N2["PostgreSQL"]
-    N1["API"] --> N3["Worker"]
-    N3["Worker"] --> N4["Meta"]
+flowchart TB
+    A["Android + DAT"] --> B["API · permisos por espacio"]
+    B --> C["Biometría<br/>InsightFace"]
+    B --> D["Expedientes y perfiles<br/>Muse Spark · consultas"]
+    B --> E["Memoria visual<br/>Muse Spark · consultas"]
+    C --> F[(PostgreSQL BYTEA)]
+    D --> F
+    E --> F
+    E -->|Captura o publicación explícita| G["Worker<br/>Muse Spark + SAM"]
+    G --> F
 ```
 
 ## Comandos

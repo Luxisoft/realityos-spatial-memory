@@ -70,27 +70,28 @@ La similitud no es probabilidad de identidad: el profesional confirma al candida
 ## Arquitectura y uso de Meta AI
 
 ```mermaid
-flowchart LR
-    A[Android + DAT] --> B[API · permisos por espacio]
-    B --> C[Biometría]
-    B --> D[Expedientes y perfiles]
-    B --> E[Memoria visual]
+flowchart TB
+    A["Android + DAT"] --> B["API · permisos por espacio"]
+    B --> C["Biometría<br/>InsightFace"]
+    B --> D["Expedientes y perfiles<br/>Muse Spark · consultas"]
+    B --> E["Memoria visual<br/>Muse Spark · consultas"]
     C --> F[(PostgreSQL BYTEA)]
     D --> F
     E --> F
-    E --> G[Worker · Muse Spark + SAM]
+    E -->|Captura o publicación explícita| G["Worker<br/>Muse Spark + SAM"]
     G --> F
 ```
 
 | Tecnología | Aporte al producto | Implementación |
 | --- | --- | --- |
-| **Muse Spark 1.3** | Interpreta imágenes y preguntas, estructura hechos visibles, prepara respuestas y textos EN/ES con contexto autorizado. | [Proveedores](backend/app/providers/) · [contratos Meta](docs/META_INTEGRATION.es.md) |
+| **Muse Spark 1.3** | Interpreta imágenes y preguntas, responde consultas de expedientes y perfiles y prepara textos EN/ES con contexto autorizado. | [Proveedores](backend/app/providers/) · [contratos Meta](docs/META_INTEGRATION.es.md) |
 | **SAM 3.1** | Localiza y segmenta objetos; conserva geometría y evidencia de fotogramas durante procesamiento explícito. | [Procesamiento](backend/app/processing/) |
 | **Muse Voice Transcribe** | Convierte consultas de voz en texto. | [Integración Meta](docs/META_INTEGRATION.es.md) |
 | **Meta Wearables DAT** | Conecta cámara, voz y Display nativo de las gafas con Android. | [Android y gafas](android/README.es.md) |
-| **InsightFace / ElevenLabs** | Reconocimiento facial local / respuestas habladas desde el servidor. Son componentes independientes de los modelos Meta. | [API facial](docs/API.es.md) · [TTS](docs/TTS.es.md) |
+| **InsightFace · IA biométrica** | Detecta rostros y calcula representaciones faciales para comparar enrolamientos autorizados. Se ejecuta localmente en el servidor; es independiente de Meta. | [API facial](docs/API.es.md) |
+| **ElevenLabs** | Genera respuestas habladas desde el servidor. Es un proveedor independiente de Meta. | [TTS](docs/TTS.es.md) |
 
-El worker procesa capturas/publicaciones explícitas; consultar evidencia no lo activa.
+Las consultas contextuales de expedientes, perfiles y memoria visual pueden llamar a Muse Spark desde la API. El worker analiza capturas/publicaciones explícitas con Muse Spark y SAM; consultar evidencia no inicia ese procesamiento. Leer o importar registros no implica por sí solo una llamada a IA.
 
 La API de expedientes importa personas, casos, atenciones, objetos, prescripciones, alergias y administraciones mediante lotes versionados, relaciones y adjuntos. Los conectores HTTPS usan un contrato explícito. [Integración de datos →](docs/WORKSPACE_DATA.es.md)
 

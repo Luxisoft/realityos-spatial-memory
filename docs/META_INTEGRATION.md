@@ -9,6 +9,8 @@
 | Topic | What to know |
 | --- | --- |
 | **Muse Spark 1.3** | Visible-fact analysis, query interpretation and EN/ES text preparation using authorized context. |
+| **Records and profiles** | Muse Spark answers contextual queries from the API through `answer_profile_question`; it also prepares private CV context with `extract_profile_context`. Storage and imports do not depend on generated answers. |
+| **Independent biometric AI** | InsightFace detects and represents faces to compare authorized candidates. It is not a Meta model and does not use the object-segmentation worker. |
 | **SAM 3.1** | Explicit segmentation and worker publication analysis. Batches of up to 16 objects; preserve original geometry and evidence. |
 | **Video** | Temporary Files API upload and SAM streaming; preserve PTS and RLE. Ambiguous submissions remain uncertain without automatic replay. |
 | **Translations** | Prepared and stored on publication or through an explicit action. Opening evidence information reads prepared text. |
