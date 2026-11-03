@@ -208,6 +208,7 @@ val refactoredKotlin = files(
     "src/test/java/com/luxisoft/realityos/GalleryViewerUrlTest.kt",
     "src/main/java/com/luxisoft/realityos/LoadingSkeleton.kt",
     "src/main/java/com/luxisoft/realityos/GalleryTopBarState.kt",
+    "src/testDebug/java/com/luxisoft/realityos/WorkGroupActionsTest.kt",
     "src/main/java/com/luxisoft/realityos/SocialAdministration.kt",
     "src/main/java/com/luxisoft/realityos/MediaViewer.kt",
     "src/main/java/com/luxisoft/realityos/MediaZoomPolicy.kt",

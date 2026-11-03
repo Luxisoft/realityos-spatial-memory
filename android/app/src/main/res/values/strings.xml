@@ -510,6 +510,7 @@
     <string name="ui_controls">Controls</string>
     <string name="ui_glasses">Glasses</string>
     <string name="ui_invite">Invite</string>
+    <string name="ui_invite_person">Invite a person</string>
     <string name="ui_profile">Profile</string>
     <string name="ui_work">Work</string>
     <string name="ui_preview">Preview</string>

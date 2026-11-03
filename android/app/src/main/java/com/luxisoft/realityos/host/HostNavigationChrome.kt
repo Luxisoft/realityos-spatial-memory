@@ -22,10 +22,10 @@ import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.AddPhotoAlternate
 import androidx.compose.material.icons.filled.AdminPanelSettings
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.GroupAdd
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Logout
 import androidx.compose.material.icons.filled.Menu
@@ -150,7 +150,9 @@ internal fun HostTopBar(
         horizontalArrangement = androidx.compose.foundation.layout.Arrangement.End
     ) {
         if (selected == HostDestination.GALLERY && audience == "work") {
-            IconButton(onClick = galleryBar.onCreate) { Icon(Icons.Default.GroupAdd, localizedText(R.string.ui_create_group)) }
+            IconButton(onClick = galleryBar.onCreate, modifier = Modifier.testTag("work-create-group")) {
+                Icon(Icons.Default.Add, localizedText(R.string.ui_create_group))
+            }
             var workspaceMenu by remember { mutableStateOf(false) }
             Box(Modifier.weight(1f)) {
                 TextButton(
@@ -164,7 +166,7 @@ internal fun HostTopBar(
                             GalleryWorkspaceLabels.selectedName(galleryBar.options, galleryBar.selectedId, localizedText(R.string.ui_all_workspaces)),
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis,
-                            modifier = Modifier.widthIn(max = 110.dp)
+                            modifier = Modifier.weight(1f, fill = false).widthIn(max = 110.dp)
                         )
                     }
                     Icon(Icons.Filled.ArrowDropDown, contentDescription = localizedText(R.string.ui_select_workspace))
@@ -205,8 +207,8 @@ internal fun HostTopBar(
             IconButton(onClick = galleryBar.onRecords, enabled = galleryBar.selectedId != null) {
                 Icon(Icons.Default.History, localizedText(R.string.records_title))
             }
-            IconButton(onClick = galleryBar.onPublish, enabled = !galleryBar.loading && galleryBar.publishEnabled) {
-                Icon(Icons.Default.Add, localizedText(R.string.ui_publish))
+            IconButton(onClick = galleryBar.onPublish, enabled = !galleryBar.loading && galleryBar.publishEnabled, modifier = Modifier.testTag("work-publish")) {
+                Icon(Icons.Default.AddPhotoAlternate, localizedText(R.string.ui_publish))
             }
             var more by remember { mutableStateOf(false) }
             Box {
@@ -217,7 +219,9 @@ internal fun HostTopBar(
                         galleryBar.onImport()
                     })
                     if (galleryBar.showInvite) {
-                        DropdownMenuItem(text = { Text(localizedText(R.string.ui_invite)) }, onClick = {
+                        DropdownMenuItem(text = { Text(localizedText(R.string.ui_invite_person)) }, leadingIcon = {
+                            Icon(Icons.Default.PersonAdd, contentDescription = null)
+                        }, modifier = Modifier.testTag("work-invite-person"), onClick = {
                             more = false
                             galleryBar.onInvite()
                         })
