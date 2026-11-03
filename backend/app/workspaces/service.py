@@ -24,6 +24,8 @@ def record_json(row):
         "occurred_at": row.occurred_at.isoformat(),
         "updated_at": row.updated_at.isoformat(),
         "simulated": row.simulated,
+        "biometric_authorized": bool(getattr(row, "biometric_authorized", False)),
+        "biometric_basis": getattr(row, "biometric_basis", None),
     }
 
 
@@ -74,7 +76,8 @@ def import_batch(db, connection, payload):
     now = datetime.now(UTC)
     for entry in payload.records:
         row = existing.get(entry.external_id)
-        if row is None:
+        is_new = row is None
+        if is_new:
             row = Record(
                 workspace_id=connection.workspace_id,
                 connection_id=connection.id,
@@ -92,6 +95,24 @@ def import_batch(db, connection, payload):
             "simulated",
         ):
             setattr(row, field, getattr(entry, field))
+        # Biometric authorization is explicit and traceable. Integration batches
+        # may set it on person records, but never enroll faces by themselves.
+        # Absent fields preserve the stored decision (notes-like behavior).
+        if entry.biometric_authorized is not None or is_new:
+            authorized = bool(entry.biometric_authorized) if entry.biometric_authorized is not None else False
+            if authorized and row.kind != "person":
+                raise HTTPException(422, f"Only persons may be biometric-authorized: {entry.external_id}.")
+            row.biometric_authorized = authorized
+            if authorized:
+                row.biometric_basis = (entry.biometric_basis or "").strip()
+                row.biometric_authorized_by = connection.created_by_id
+                row.biometric_authorized_at = now
+            elif entry.biometric_authorized is False:
+                row.biometric_basis = None
+                row.biometric_authorized_by = None
+                row.biometric_authorized_at = None
+        elif entry.biometric_basis is not None and row.biometric_authorized:
+            row.biometric_basis = entry.biometric_basis.strip()
         row.updated_at = now
         db.flush()
         snapshot = record_json(row)

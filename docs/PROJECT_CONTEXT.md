@@ -444,6 +444,16 @@ por la búsqueda y la pantalla de perfil existente, con autorización habitual.
 Sin cambios de contratos, reconocimiento, consentimientos ni migraciones.
 
 
+Carga verificada de fotos en Display (2026-11-01): se conserva el diseño actual.
+Android valida y decodifica los derivados firmados antes de pasarlos a DAT como
+Bitmap; la tarjeta grupal se restaura desde memoria durante la misma búsqueda,
+respetando el vencimiento. Los matches solicitan enlaces autorizados nuevos y
+los fallos muestran recuperación explícita. Cancelación y cambios de pantalla o
+cuenta impiden restaurar imágenes anteriores. Regresiones HTTPS y de píxeles
+incorporadas; ver `WEARABLES.md` e `IMPLEMENTATION_STATUS.md`. Sin cambios de
+backend ni biometría; QA física pendiente.
+
+
 ## Voz sin modelo residente — 2026-11-02
 
 Producción pasa a `TTS_PROVIDER=elevenlabs`, modelo `eleven_flash_v2_5`, voz
@@ -474,17 +484,6 @@ se conservan. Windows utiliza su propia clave ElevenLabs y no copia claves de
 producción. Las referencias previas a modelos/volúmenes y rollbacks de Seamless
 son históricas y quedan retiradas; la recuperación inmediata usa la última
 versión ElevenLabs, sin modelo local. Se mantienen datos de usuario y biometría.
-
-
-Carga verificada de fotos en Display (2026-11-02): se conserva el diseño actual.
-Android valida y decodifica los derivados firmados antes de pasarlos a DAT como
-Bitmap; la tarjeta grupal se restaura desde memoria durante la misma búsqueda,
-respetando el vencimiento. Los matches solicitan enlaces autorizados nuevos y
-los fallos muestran recuperación explícita. Cancelación y cambios de pantalla o
-cuenta impiden restaurar imágenes anteriores. Pasan 170 pruebas Android locales;
-regresiones HTTPS y de píxeles incorporadas al emulador de CI. Ver `WEARABLES.md`
-e `IMPLEMENTATION_STATUS.md`. Sin cambios de backend ni biometría; QA física
-pendiente.
 
 
 Cabecera compacta global Android (2026-11-02): Perfil/Trabajo/Buscar/Ray-Ban
@@ -576,3 +575,14 @@ retrato autenticado comprobados en el sitio público. API/worker:
 Rollback: `.runtime/workspace-review3-20261102-rollback.json`; web:
 `.runtime/web-cc254575d71f36a95811ad71d1d8d91007f60a0a/rollback.json`.
 Se mantienen los pendientes externos y límites descritos en WORKSPACE_DATA.md.
+
+
+## Enlace facial a expedientes — 2026-11-03
+
+Migración `20261103_0032` aplicada en producción; api/worker usan
+`realityos-backend:face-records-20261103` (rollback a
+`workspace-review3-20261102-r2`). `POST /v1/faces/search` devuelve `matches`
+(usuarios, sin cambios) más `matches_records` (expedientes persona autorizados
+del mismo espacio). 6 retratos del jurado enrolados por API; sonda viva Ana
+Solis → expediente similitud 1.0. Ver `IMPLEMENTATION_STATUS.md` y
+`WORKSPACE_DATA.md`.

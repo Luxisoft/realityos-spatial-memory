@@ -104,7 +104,9 @@ internal data class GalleryThumb(
     /** Probe box behind a 1:N match; Display-only, never persisted to chat history. */
     val probeBox: FaceProbeBox? = null,
     /** Internal profile from a fresh face match; never a browser URL or history field. */
-    val profileUserId: String = ""
+    val profileUserId: String = "",
+    /** Workspace record behind a 1:N record match; opens the expediente. */
+    val recordId: String = ""
 ) {
     /** The chat keeps a small preview; the viewer requests the original dimensions. */
     val viewerUrl: String

@@ -160,11 +160,14 @@ se presentan como verificadas. El flujo normal de registro confirma correos real
 
 Pruebas sugeridas: buscar la linterna amarilla o el destornillador rojo; consultar
 `Ana Solis` y su expediente; comparar `DEMO MEDICINE` de `20 mg` con la prescripción
-ficticia de `10 mg`; consultar dónde se vieron los documentos de `Luis Moreno`.
-Las respuestas deben mostrar evidencia, fuentes y fechas, respetando el espacio
-seleccionado. Los pacientes son registros importados, no cuentas de acceso.
+ficticia de `10 mg`; consultar dónde se vieron los documentos de `Luis Moreno`;
+buscar a `Ana Solis` por foto para traer su expediente (retrato autorizado,
+candidata a confirmar). Las respuestas deben mostrar evidencia, fuentes y fechas,
+respetando el espacio seleccionado. Los pacientes son registros importados, no
+cuentas de acceso.
 
 Datos, retratos y escenas son ficticios y están identificados como pruebas.
 El almacenamiento, API y procesamiento utilizan el circuito real. Los MP4 del
-conjunto son escenas estáticas simuladas. El reconocimiento biométrico existente
-no se modifica ni se conecta automáticamente a estas personas importadas.
+conjunto son escenas estáticas simuladas. El enlace facial a personas importadas
+requiere autorización explícita con base trazable y enrolamiento por retrato;
+nunca es automático.

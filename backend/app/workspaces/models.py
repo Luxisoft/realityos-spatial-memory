@@ -50,6 +50,10 @@ class Record(TimestampMixin, Base):
     occurred_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
     simulated: Mapped[bool] = mapped_column(default=False)
+    biometric_authorized: Mapped[bool] = mapped_column(default=False)
+    biometric_basis: Mapped[str | None] = mapped_column(String(200))
+    biometric_authorized_by: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("users.id"))
+    biometric_authorized_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
 
 class RecordRevision(TimestampMixin, Base):

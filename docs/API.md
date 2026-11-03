@@ -129,27 +129,41 @@ according to `DISPLAY_EVIDENCE_TOKEN_MINUTES`, cannot call any JSON API, and is
 invalidated when its issuing enrolled device is revoked.
 
 Face search is an isolated arm (`backend/app/faces.py`, migration
-`20261028_0009`): `POST /v1/faces/consent`, `GET /v1/faces/consent` and
-`DELETE /v1/faces/consent` manage the versioned biometric notice; revocation
-deletes the user's enrollments. `POST /v1/faces/profile-photo` and
-`POST /v1/faces/enroll` enroll only caller-owned media (video enrolls from its
-extracted frames). `POST /v1/faces/search` is read-only: it accepts an
-ephemeral probe photo or video (never persisted) or an authorized stored media
-id, and returns consenting workspace members ranked by cosine similarity with
-boxed evidence at `/v1/faces/enrollments/{id}/thumbnail`. Video probes sample
-up to `FACE_VIDEO_PROBE_FRAMES` frames evenly across the clip; only the best
-`FACE_PROBE_MAX_FACES` probe faces are ranked. Probe faces and enrollments
-pass the same usable-geometry and minimum-quality filter (`FACE_MIN_QUALITY`,
-`FACE_MIN_BOX_AREA`); dropped items are reported as `probe_faces_skipped` and
-`enrollments_skipped`, and analyzed frames as `probe_frames`. Search runs in
-sequential stages (1: face captures, 2: Facebook photos, 3: videos); the first
-stage with matches wins and each match carries `direct` or
-`possible_acquaintance` type. Scores are similarity, not calibrated
-probability; mock results are labelled simulated. Thumbnails accept
+`20261028_0009` plus `20261103_0032` for record links): `POST /v1/faces/consent`,
+`GET /v1/faces/consent` and `DELETE /v1/faces/consent` manage the versioned
+biometric notice; revocation deletes the user's enrollments. `POST
+/v1/faces/profile-photo` and `POST /v1/faces/enroll` enroll only caller-owned
+media (video enrolls from its extracted frames). `POST /v1/faces/search` is
+read-only: it accepts an ephemeral probe photo or video (never persisted) or an
+authorized stored media id, and returns consenting workspace members ranked by
+cosine similarity with boxed evidence at
+`/v1/faces/enrollments/{id}/thumbnail`, plus authorized workspace person
+records in `matches_records` (separate list, same threshold, `include_records`
+defaults true) with evidence at
+`/v1/faces/record-enrollments/{id}/thumbnail` and `record_url` to the
+expediente. Video probes sample up to `FACE_VIDEO_PROBE_FRAMES` frames evenly
+across the clip; only the best `FACE_PROBE_MAX_FACES` probe faces are ranked.
+Probe faces and enrollments pass the same usable-geometry and minimum-quality
+filter (`FACE_MIN_QUALITY`, `FACE_MIN_BOX_AREA`); dropped items are reported as
+`probe_faces_skipped`, `enrollments_skipped` and `record_enrollments_skipped`,
+and analyzed frames as `probe_frames`. User search runs in sequential stages
+(1: face captures, 2: Facebook photos, 3: videos); the first stage with matches
+wins and each match carries `direct` or `possible_acquaintance` type. Record
+matches are best-per-record over active, person-kind, biometric-authorized rows
+of the same workspace; deleted/draft/unauthorized rows are excluded and every
+match is a candidate the professional must confirm. Scores are similarity, not
+calibrated probability; mock results are labelled simulated. Thumbnails accept
 `full_size=false` for a 360×480 preview (default keeps source pixels). With
 the live engine, capture uploads additionally pass passive anti-spoof
 heuristics (tiny face, blur, moire, glare) and are rejected at 422 above
-`FACE_SPOOF_MAX_RISK`.
+`FACE_SPOOF_MAX_RISK`. `POST /v1/faces/record-enroll` enrolls an explicit
+portrait (`record_id` plus `record_media_id` or `media_id`, single face only)
+for ADMIN/REGISTER members; it requires record biometric authorization with a
+traceable `biometric_basis` and never enrolls automatically. `GET
+/v1/faces/record-enrollments?workspace_id=&record_id=` lists and `DELETE
+/v1/faces/record-enrollments/{id}` removes. `POST /v1/faces/verify-identity`
+compares the selfie against account Facebook faces; password accounts without
+Facebook stay `pending` (never failed) and use capture plus consent.
 
 
 ### Reviewed uploads and search evidence (2026-10-30)

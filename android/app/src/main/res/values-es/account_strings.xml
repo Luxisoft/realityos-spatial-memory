@@ -30,4 +30,8 @@
     <string name="medication_discrepancy">Se encontró una discrepancia. Revisa la prescripción, las alergias y las administraciones.</string>
     <string name="medication_incomplete">Falta información para completar esta comparación.</string>
     <string name="medication_review">Requiere revisión profesional. No se ha registrado ninguna administración.</string>
+    <string name="records_face_authorized">Búsqueda facial autorizada</string>
+    <string name="records_face_enroll">Enrolar retrato para búsqueda facial</string>
+    <string name="records_face_basis">Base de autorización</string>
+    <string name="records_face_candidate">Las coincidencias faciales son candidatas; confirma la identidad.</string>
 </resources>

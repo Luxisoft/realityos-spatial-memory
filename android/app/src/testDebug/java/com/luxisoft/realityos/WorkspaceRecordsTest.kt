@@ -60,6 +60,30 @@ class WorkspaceRecordsTest {
         compose.onNodeWithText("external-a · v1").assertDoesNotExist()
     }
 
+    @Test fun authorizedPersonShowsBadgeAndPortraitEnroll() {
+        val portrait = JSONObject().put("id", "link-1").put("url", "/v1/x")
+            .put("mime_type", "image/png").put("external_id", "portrait")
+        val authorized = record("a").put("biometric_authorized", true)
+            .put("media", JSONArray().put(portrait))
+        compose.setContent {
+            MaterialTheme {
+                WorkspaceRecords("work", true, {}) { path, _ ->
+                    if (path.endsWith("/a")) {
+                        authorized.toString()
+                    } else {
+                        JSONArray().put(authorized).toString()
+                    }
+                }
+            }
+        }
+        waitText("Patient a")
+        compose.onNodeWithText("Face search authorized").assertIsDisplayed()
+        compose.onNodeWithText("Patient a").performClick()
+        waitText("external-a · v1")
+        compose.onNodeWithText("Face matches are candidates; confirm identity.").assertIsDisplayed()
+        compose.onNodeWithText("Enroll portrait for face search").assertIsDisplayed()
+    }
+
     @Test fun leavingPendingNoteDoesNotRestorePreviousPatient() {
         val held = CompletableDeferred<String>()
         val saving = AtomicInteger()

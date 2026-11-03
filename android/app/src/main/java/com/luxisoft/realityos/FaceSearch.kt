@@ -52,6 +52,7 @@ internal fun FaceSearch(onBack: () -> Unit, onOpenProfile: (String) -> Unit = {}
     var probeUri by remember(initialProbe) { mutableStateOf(initialProbe) }
     var probeMime by remember { mutableStateOf("image/jpeg") }
     var matches by remember { mutableStateOf(listOf<JSONObject>()) }
+    var recordMatches by remember { mutableStateOf(listOf<JSONObject>()) }
     var searched by remember { mutableStateOf(false) }
     var simulated by remember { mutableStateOf(false) }
     var stage by remember { mutableStateOf<Int?>(null) }
@@ -75,7 +76,7 @@ internal fun FaceSearch(onBack: () -> Unit, onOpenProfile: (String) -> Unit = {}
     val pickProbe = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
         probeUri = uri
         probeMime = uri?.let { context.contentResolver.getType(it) } ?: "image/jpeg"
-        searched = false; matches = emptyList(); message = ""; stage = null; probeFrames = 0
+        searched = false; matches = emptyList(); recordMatches = emptyList(); message = ""; stage = null; probeFrames = 0
     }
     val takeProbe = rememberLauncherForActivityResult(ActivityResultContracts.TakePicture()) { success ->
         if (success) {
@@ -83,6 +84,7 @@ internal fun FaceSearch(onBack: () -> Unit, onOpenProfile: (String) -> Unit = {}
             probeMime = "image/jpeg"
             searched = false
             matches = emptyList()
+            recordMatches = emptyList()
             message = ""
             stage = null
             probeFrames = 0
@@ -147,8 +149,10 @@ internal fun FaceSearch(onBack: () -> Unit, onOpenProfile: (String) -> Unit = {}
                 val result = withContext(Dispatchers.IO) {
                     JSONObject(SocialSession.requestMultipart("faces/search", mapOf("workspace_id" to workspaceId), bytes, filename, mime))
                 }
-                val found = result.getJSONArray("matches")
+                val found = result.optJSONArray("matches") ?: JSONArray()
                 matches = (0 until found.length()).map { found.getJSONObject(it) }
+                val foundRecords = result.optJSONArray("matches_records") ?: JSONArray()
+                recordMatches = (0 until foundRecords.length()).map { foundRecords.getJSONObject(it) }
                 simulated = result.optBoolean("simulated")
                 stage = if (result.isNull("stage")) null else result.getInt("stage")
                 probeFrames = result.optInt("probe_frames", 0)
@@ -231,7 +235,7 @@ internal fun FaceSearch(onBack: () -> Unit, onOpenProfile: (String) -> Unit = {}
             if (simulated) Text(stringResource(R.string.face_simulated), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.tertiary)
             if (searched && stage != null) Text(stringResource(R.string.face_stage, stage!!), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.tertiary)
             if (searched && probeFrames > 1) Text(stringResource(R.string.face_frames, probeFrames), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.tertiary)
-            if (searched && matches.isEmpty()) Text(stringResource(R.string.face_no_match), modifier = Modifier.padding(vertical = 8.dp))
+            if (searched && matches.isEmpty() && recordMatches.isEmpty()) Text(stringResource(R.string.face_no_match), modifier = Modifier.padding(vertical = 8.dp))
         }
         LazyColumn(Modifier.weight(1f)) {
             items(matches) { match ->
@@ -251,6 +255,24 @@ internal fun FaceSearch(onBack: () -> Unit, onOpenProfile: (String) -> Unit = {}
                         val badge = if (match.optString("match_type") == "possible_acquaintance") stringResource(R.string.face_badge_knows)
                         else stringResource(R.string.face_badge_direct)
                         Text("${(match.getDouble("similarity") * 100).toInt()}% · $badge")
+                    },
+                )
+                HorizontalDivider()
+            }
+            items(recordMatches) { match ->
+                val evidence = match.getJSONObject("evidence")
+                ListItem(
+                    leadingContent = {
+                        coil.compose.AsyncImage(
+                            model = coil.request.ImageRequest.Builder(context)
+                                .data(faceEvidenceUrl(evidence.getString("thumbnail_url")))
+                                .addHeader("Authorization", "Bearer ${SocialSession.token}").build(),
+                            contentDescription = match.optString("title"),
+                            contentScale = ContentScale.Crop, modifier = Modifier.size(56.dp))
+                    },
+                    headlineContent = { Text(match.optString("title")) },
+                    supportingContent = {
+                        Text("${(match.optDouble("similarity", 0.0) * 100).toInt()}% · ${match.optString("external_id")}")
                     },
                 )
                 HorizontalDivider()

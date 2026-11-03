@@ -30,6 +30,8 @@ class ImportedRecord(BaseModel):
     data: dict = Field(default_factory=dict)
     related_ids: list[str] = Field(default_factory=list, max_length=100)
     simulated: bool = False
+    biometric_authorized: bool | None = None
+    biometric_basis: str | None = Field(default=None, max_length=200)
 
     @model_validator(mode="after")
     def validate_active(self):
@@ -38,6 +40,15 @@ class ImportedRecord(BaseModel):
         if self.status == "active" and self.kind in {"prescription", "allergy", "administration"}:
             if not self.related_ids:
                 raise ValueError("Clinical records require a related person")
+        if self.biometric_authorized:
+            if self.kind != "person":
+                raise ValueError("Only person records may carry biometric authorization")
+            if self.status != "active" or not self.authorized:
+                raise ValueError("Biometric authorization requires an active authorized person")
+            if not (self.biometric_basis or "").strip():
+                raise ValueError("Biometric authorization requires a traceable basis")
+        if self.biometric_basis is not None and not self.biometric_basis.strip():
+            raise ValueError("Biometric basis must not be blank")
         return self
 
 

@@ -527,7 +527,8 @@ def test_verify_identity_requires_capture(client):
     )
 
 
-def test_verify_identity_fails_in_place_and_keeps_session_without_profile(client):
+def test_verify_identity_pending_and_keeps_session_without_profile(client):
+    from app.faces import FaceVerification
     from app.models import RefreshToken
     from app.security import create_refresh_token
 
@@ -539,12 +540,14 @@ def test_verify_identity_fails_in_place_and_keeps_session_without_profile(client
         _, jti, expires = create_refresh_token(owner.id, client.app.state.settings)
         db.add(RefreshToken(user_id=owner.id, jti=jti, expires_at=expires))
         db.commit()
-    response = client.post("/v1/faces/verify-identity", headers=env["owner_headers"])
-    assert response.status_code == 200
-    body = response.json()
-    assert body["verified"] is False
-    assert body["status"] == "failed"
-    assert body["attempts_remaining"] == 4
+    # Password accounts without Facebook stay pending, never failed: they use
+    # capture + biometric consent, and repeated calls must not lock them.
+    for _ in range(3):
+        response = client.post("/v1/faces/verify-identity", headers=env["owner_headers"])
+        assert response.status_code == 200
+        body = response.json()
+        assert body["verified"] is False
+        assert body["status"] == "pending"
     with client.app.state.database.session_factory() as db:
         owner = db.query(User).filter(User.email == "admin@example.test").one()
         assert (
@@ -553,6 +556,7 @@ def test_verify_identity_fails_in_place_and_keeps_session_without_profile(client
             .count()
             == 1
         )
+        assert db.query(FaceVerification).count() == 0
 
 
 def test_verify_identity_mismatch_wipes_selfie(client, monkeypatch):

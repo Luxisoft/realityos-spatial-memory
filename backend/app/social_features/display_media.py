@@ -24,7 +24,7 @@ router = APIRouter()
 
 
 class DisplayMediaRequest(BaseModel):
-    kind: Literal["evidence", "upload", "publication", "face_enrollment"]
+    kind: Literal["evidence", "upload", "publication", "face_enrollment", "face_record_enrollment"]
     resource_id: uuid.UUID
     labels: list[str] = Field(default_factory=list, max_length=30)
 
@@ -38,6 +38,10 @@ def render(payload, user, db):
         from app.faces import enrollment_thumbnail
 
         response = enrollment_thumbnail(payload.resource_id, True, user, db)
+    elif payload.kind == "face_record_enrollment":
+        from app.faces import record_enrollment_thumbnail
+
+        response = record_enrollment_thumbnail(payload.resource_id, True, user, db)
     else:
         response = thumbnail(payload.resource_id, user, db)
     # Reserve space for date, confidence and controls on a 600px Display.

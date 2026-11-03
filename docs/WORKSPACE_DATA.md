@@ -121,9 +121,14 @@ anterior y los campos quedan bloqueados mientras llega la respuesta. Los formula
 sustituyen una verificación clínica. La extracción automática del envase completo
 no forma parte de este comparador de campos.
 
-El módulo biométrico permanece intacto. Los registros `person` importados no son
-usuarios ni se enrolan automáticamente. No se conecta este nuevo registro al
-buscador facial existente ni se modifica su contrato.
+El brazo biométrico conserva su aislamiento y ahora enlaza expedientes
+autorizados: los registros `person` importados no son usuarios ni se enrolan
+automáticamente. La importación puede marcar `biometric_authorized` con
+`biometric_basis` trazable; el enrolamiento es un paso explícito posterior por
+retrato (`POST /v1/faces/record-enroll`, una sola cara, ADMIN/REGISTER) y la
+búsqueda `POST /v1/faces/search` devuelve `matches_records` del mismo espacio
+(solo `active` + `person` + autorización vigente) como candidatas que el
+profesional debe confirmar. Bajas y revocaciones excluyen sin borrar notas.
 
 ## Conjunto del jurado
 
@@ -173,9 +178,10 @@ instalado conserva 47 registros; los 51 de esa prueba no se cargan en producció
 Pendientes de validación externa: recepción de confirmación y recuperación en un
 correo autorizado, conexión a una fuente institucional que implemente el contrato
 y pruebas físicas con teléfono y Ray-Ban. La importación HTTP del conjunto del jurado
-sí se ejecutó contra la API real. La conexión de estos nuevos registros de personas
-al reconocimiento facial y la lectura automática de envases no están implementadas;
-el módulo biométrico existente permanece sin cambios por indicación del propietario.
+sí se ejecutó contra la API real. La lectura automática de envases no está
+implementada. El enlace de personas al reconocimiento facial se implementó en
+`20261103_0032` con autorización explícita y enrolamiento por retrato; falta
+enrolar los retratos del jurado por API y verificar la búsqueda viva.
 
 | Parte del plan | Verificación y límite |
 | --- | --- |

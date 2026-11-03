@@ -59,6 +59,23 @@ internal fun decodeFaceThumb(match: JSONObject?): GalleryThumb? {
     )
 }
 
+/** Map one `/v1/faces/search` record match to an inline chat thumbnail. */
+internal fun decodeRecordFaceThumb(match: JSONObject?): GalleryThumb? {
+    match ?: return null
+    val evidence = match.optJSONObject("evidence") ?: return null
+    val thumb = evidence.optText("thumbnail_url") ?: return null
+    return GalleryThumb(
+        thumbnailUrl = thumb,
+        mediaUrl = thumb,
+        caption = match.optText("title").orEmpty(),
+        mediaId = evidence.optText("media_id").orEmpty(),
+        recordId = match.optText("record_id").orEmpty(),
+        matchedLabels = listOf("record_candidate"),
+        confidence = if (match.isNull("similarity")) null else match.optDouble("similarity"),
+        simulated = match.optBoolean("simulated")
+    )
+}
+
 /**
  * History keeps gallery items anchored to evidence, plus face matches, which
  * legitimately carry no gallery evidence id (their thumbnails live under the

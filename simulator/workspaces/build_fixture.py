@@ -39,8 +39,8 @@ PATIENTS = {
 }
 
 
-def entry(external_id, kind, title, data, related=(), hour=9):
-    return {
+def entry(external_id, kind, title, data, related=(), hour=9, biometric=False):
+    row = {
         "external_id": external_id,
         "kind": kind,
         "title": title,
@@ -52,6 +52,10 @@ def entry(external_id, kind, title, data, related=(), hour=9):
         "simulated": True,
         "occurred_at": f"2026-11-02T{hour:02}:00:00-05:00",
     }
+    if biometric:
+        row["biometric_authorized"] = True
+        row["biometric_basis"] = "jury-test-consent"
+    return row
 
 
 def main():
@@ -149,6 +153,7 @@ def main():
                         "allergies_reviewed_at": "2026-11-02T08:00:00-05:00",
                     },
                     [f"{slug}-case-{i + 1}"],
+                    biometric=True,
                 )
             )
             attachments.append(

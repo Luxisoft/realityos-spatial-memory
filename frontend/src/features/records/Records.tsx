@@ -11,10 +11,17 @@ type Entry = {
   version: number;
   occurred_at: string;
   simulated: boolean;
+  biometric_authorized?: boolean;
+  biometric_basis?: string | null;
   data: Record<string, unknown>;
   related?: Entry[];
   notes?: { id: string; text: string; occurred_at: string }[];
-  media?: { id: string; url: string; mime_type: string }[];
+  media?: {
+    id: string;
+    url: string;
+    mime_type: string;
+    external_id?: string;
+  }[];
 };
 type Connection = {
   id: string;
@@ -62,6 +69,10 @@ export function Records({
     [sourceToken, setSourceToken] = useState(""),
     [key, setKey] = useState(""),
     [busy, setBusy] = useState(false);
+  const [biometricBasis, setBiometricBasis] = useState("");
+  const [recordEnrollments, setRecordEnrollments] = useState<
+    { id: string; quality: number }[]
+  >([]);
   const base = `/v1/workspaces/${workspaceId}`;
   useEffect(() => {
     let current = true;
@@ -114,14 +125,55 @@ export function Records({
     setSelected(null);
     setAttachment(null);
     setNote("");
+    setRecordEnrollments([]);
     setBusy(true);
     try {
       const entry = await request<Entry>(`${base}/records/${id}`, token);
-      if (requestId === detailRequest.current) setSelected(entry);
+      if (requestId === detailRequest.current) {
+        setSelected(entry);
+        if (entry.kind === "person") {
+          try {
+            const enrollments = await request<
+              { id: string; quality: number }[]
+            >(
+              `/v1/faces/record-enrollments?workspace_id=${workspaceId}&record_id=${id}`,
+              token,
+            );
+            if (requestId === detailRequest.current)
+              setRecordEnrollments(enrollments);
+          } catch {
+            if (requestId === detailRequest.current) setRecordEnrollments([]);
+          }
+        }
+      }
     } catch (e) {
       if (requestId === detailRequest.current) setMessage(String(e));
     } finally {
       if (requestId === detailRequest.current) setBusy(false);
+    }
+  }
+
+  async function enrollPortrait(e: FormEvent, recordMediaId: string) {
+    e.preventDefault();
+    if (!selected) return;
+    setBusy(true);
+    try {
+      await request("/v1/faces/record-enroll", token, {
+        method: "POST",
+        body: JSON.stringify({
+          record_id: selected.id,
+          record_media_id: recordMediaId,
+          biometric_basis: biometricBasis || undefined,
+        }),
+      });
+      if (selectedId.current === selected.id) {
+        setBiometricBasis("");
+        await open(selected.id);
+      }
+    } catch (err) {
+      if (selectedId.current === selected?.id) setMessage(String(err));
+    } finally {
+      if (selectedId.current === selected?.id) setBusy(false);
     }
   }
   async function addNote(e: FormEvent) {
@@ -192,6 +244,9 @@ export function Records({
               <br />
               {r.kind} · {r.external_id}
               {r.simulated ? " · Simulated" : ""}
+              {r.kind === "person" && r.biometric_authorized
+                ? " · Face enrolled"
+                : ""}
             </button>
           ))}
           {loading && <p role="status">{t("Loading…")}</p>}
@@ -226,6 +281,13 @@ export function Records({
                 </div>
               ))}
             </dl>
+            {selected.kind === "person" && (
+              <p role="status">
+                {selected.biometric_authorized
+                  ? `Face search authorized (${selected.biometric_basis || "basis on file"}) · ${recordEnrollments.length} portrait(s) enrolled. Matches are candidates; confirm identity.`
+                  : "Face search not authorized for this person."}
+              </p>
+            )}
             <h3>{t("Related records")}</h3>
             {selected.related?.map((r) => (
               <button key={r.id} onClick={() => open(r.id)}>
@@ -265,26 +327,49 @@ export function Records({
             )}
             <h3>{t("Attachments")}</h3>
             {selected.media?.map((m) => (
-              <button
-                key={m.id}
-                onClick={async () => {
-                  try {
-                    const response = await fetch(apiUrl(m.url), {
-                      headers: { Authorization: `Bearer ${token}` },
-                    });
-                    if (!response.ok)
-                      throw Error(t("Unable to open attachment"));
-                    const blob = await response.blob();
-                    if (selectedId.current !== selected.id) return;
-                    const objectUrl = URL.createObjectURL(blob);
-                    setAttachment({ url: objectUrl, mime: m.mime_type });
-                  } catch (e) {
-                    setMessage(String(e));
-                  }
-                }}
-              >
-                {t("Open attachment")}
-              </button>
+              <div key={m.id}>
+                <button
+                  onClick={async () => {
+                    try {
+                      const response = await fetch(apiUrl(m.url), {
+                        headers: { Authorization: `Bearer ${token}` },
+                      });
+                      if (!response.ok)
+                        throw Error(t("Unable to open attachment"));
+                      const blob = await response.blob();
+                      if (selectedId.current !== selected.id) return;
+                      const objectUrl = URL.createObjectURL(blob);
+                      setAttachment({ url: objectUrl, mime: m.mime_type });
+                    } catch (e) {
+                      setMessage(String(e));
+                    }
+                  }}
+                >
+                  {t("Open attachment")}
+                  {m.external_id ? ` (${m.external_id})` : ""}
+                </button>
+                {selected.kind === "person" &&
+                  canWrite &&
+                  m.mime_type.startsWith("image/") && (
+                    <form onSubmit={(e) => enrollPortrait(e, m.id)}>
+                      {!selected.biometric_authorized && (
+                        <label>
+                          {t("Authorization basis")}
+                          <input
+                            value={biometricBasis}
+                            onChange={(e) => setBiometricBasis(e.target.value)}
+                            required
+                            maxLength={200}
+                            placeholder="consent-form-id"
+                          />
+                        </label>
+                      )}
+                      <button disabled={busy}>
+                        {t("Enroll portrait for face search")}
+                      </button>
+                    </form>
+                  )}
+              </div>
             ))}
             {attachment &&
               (attachment.mime.startsWith("video/") ? (

@@ -1356,6 +1356,36 @@ navegación sustituyen únicamente ese contenido. QA visual en teléfono y gafas
 físicas sigue pendiente; no se infiere de la cámara emulada.
 
 
+## Carga verificada de fotos al navegar en Display — 2026-11-01
+
+Se conserva el diseño de Buscar persona, la tarjeta grupal señalizada, las
+fotos coincidentes y Abrir perfil en la app. Android descarga los derivados
+firmados y comprueba HTTP, formato, tamaño, decodificación y vencimiento antes
+de entregarlos a DAT como Bitmap. Un match sin enrolamiento o una foto fallida
+muestra un error con reintento; ya no genera una tarjeta silenciosamente vacía.
+Cada visita a un candidato solicita un enlace nuevo mediante la autorización
+existente. La tarjeta grupal se conserva solo en memoria durante la búsqueda,
+hasta el vencimiento del enlace; salir, desconectar o cambiar de cuenta la
+elimina. Un enlace grupal vencido ofrece otra búsqueda. Cancelar la carga libera
+el estado ocupado y las respuestas tardías no reemplazan pantallas nuevas.
+La navegación del perfil mantiene montado el mismo resultado.
+
+Las regresiones usan un servidor HTTPS de imágenes de prueba generado en
+memoria, sin cuentas ni medios de producción. La prueba de decodificación usa
+el motor gráfico nativo de Robolectric, incluyendo fotos corruptas. Las pruebas
+instrumentadas de CI leen píxeles del WebView oficial después de repetir tres
+veces fotos coincidentes, siguiente/anterior, acciones/volver y perfil/regresar;
+también cubren 404, datos corruptos, enrolamiento ausente, vencimiento, búsqueda
+nueva, cancelación y cambio de cuenta. El servidor de prueba se confía únicamente
+en las conexiones de esa fixture, sin modificar la confianza TLS de la app.
+
+Sin cambios de servidor, contratos API, permisos, reconocimiento, consentimientos
+ni migraciones. No hay dispositivo ADB ni emulador instalado en este host:
+la ejecución instrumentada corresponde al emulador de CI y la validación física
+en teléfono/gafas sigue pendiente. El APK Debug se conserva únicamente en
+`android/app/build/outputs/apk/debug/app-debug.apk`.
+
+
 ## Voz sin modelo residente — 2026-11-02
 
 Producción pasa a `TTS_PROVIDER=elevenlabs`, modelo `eleven_flash_v2_5`, voz
@@ -1386,43 +1416,6 @@ se conservan. Windows utiliza su propia clave ElevenLabs y no copia claves de
 producción. Las referencias previas a modelos/volúmenes y rollbacks de Seamless
 son históricas y quedan retiradas; la recuperación inmediata usa la última
 versión ElevenLabs, sin modelo local. Se mantienen datos de usuario y biometría.
-
-
-## Carga verificada de fotos al navegar en Display — 2026-11-02
-
-Se conserva el diseño de Buscar persona, la tarjeta grupal señalizada, las
-fotos coincidentes y Abrir perfil en la app. Android descarga los derivados
-firmados y comprueba HTTP, formato, tamaño, decodificación y vencimiento antes
-de entregarlos a DAT como Bitmap. Un match sin enrolamiento o una foto fallida
-muestra un error con reintento; no genera una tarjeta silenciosamente vacía.
-Cada visita a un candidato solicita un enlace nuevo mediante la autorización
-existente. La tarjeta grupal se conserva solo en memoria durante la búsqueda,
-hasta el vencimiento del enlace; salir, desconectar o cambiar de cuenta la
-elimina. Un enlace grupal vencido ofrece otra búsqueda. Cancelar la carga libera
-el estado ocupado y las respuestas tardías no reemplazan pantallas nuevas.
-La navegación del perfil mantiene montado el mismo resultado.
-
-Las regresiones usan un servidor HTTPS de imágenes de prueba generado en
-memoria, sin cuentas ni medios de producción. La decodificación usa el motor
-gráfico nativo de Robolectric, incluyendo fotos corruptas. Las pruebas
-instrumentadas activan los botones mediante el puente real del WebView y leen
-sus píxeles tras repetir tres veces fotos
-coincidentes, siguiente/anterior, acciones/volver y perfil/regresar. También
-cubren 404, datos corruptos, enrolamiento ausente, vencimiento, búsqueda nueva,
-cancelación y cambio de cuenta. El certificado de prueba se confía únicamente
-en las conexiones de la fixture, sin modificar la confianza TLS de la app.
-
-Validación local: 170 pruebas Android, ktlint, lint sin errores, compilación de
-pruebas instrumentadas y APK Debug aprobados. APK `0.1.6-debug-20261102-0751`,
-SHA-256 `8baa5555d95341b7c57b94d522b6e4eeb54508cd831c9eef2ed84effad78b92c`.
-El Debug local declara explícitamente
-`includeSubdomains=false` para los tres hosts de loopback, resolviendo errores
-preexistentes de lint sin ampliar su acceso. Sin cambios de servidor,
-contratos API, permisos, reconocimiento, consentimientos ni migraciones.
-La ejecución instrumentada corresponde al emulador de CI; este host no tiene
-emulador ni dispositivo ADB. La validación física en teléfono/gafas sigue
-pendiente. El único APK Debug permanece en
-`android/app/build/outputs/apk/debug/app-debug.apk`.
 
 
 ## Cabecera global compacta y referencias internas — 2026-11-02
@@ -1606,3 +1599,39 @@ añadió OCR de envases ni enlace automático entre registros de personas y el
 buscador facial. Los videos del jurado siguen siendo escenas estáticas
 sintéticas. Estos límites impiden afirmar validación integral de los tres
 casos de uso con hardware y sistemas institucionales.
+
+
+## Enlace facial a expedientes — 2026-11-03
+
+Migración `20261103_0032`: columnas `biometric_authorized/basis/by/at` en
+`workspace_records` y tabla `face_record_enrollments` propiedad de
+`backend/app/faces.py`. La importación puede autorizar personas con base
+trazable; el enrolamiento es explícito por retrato (`POST
+/v1/faces/record-enroll`, una sola cara, ADMIN/REGISTER) y nunca automático.
+`POST /v1/faces/search` añade `matches_records` del mismo espacio (solo
+`active` + `person` + autorización vigente) con `record_url` y evidencia en
+`/v1/faces/record-enrollments/{id}/thumbnail`; `matches` de usuarios sin
+cambios. `verify-identity` devuelve `pending` (nunca `failed`) para cuentas de
+contraseña sin Facebook. Display acepta `face_record_enrollment` en
+`display/media-links` con el mismo TTL y autorización.
+
+Fixtures `simulator/workspaces/{hospital,memory}.json` regenerados con
+`biometric_authorized` + `jury-test-consent` en las 6 personas; enrolamiento
+reproducible por API con `scripts/enroll_record_portraits.py`. Web muestra
+insignia y formulario de enrolamiento; Android añade insignia, enrolamiento en
+expediente, `matches_records` en chat/FaceSearch y pruebas Compose/unitarias.
+Contrato OpenAPI regenerado (144 rutas).
+
+Validación: 395 pruebas backend/gateway, ruff/arquitectura/formato, builds
+frontend/display, ktlint/testDebugUnitTest/lintDebug/APK Debug reconstruido
+(`app-debug.apk` único). Prueba web `workspace-ui.mjs` no corre en este host
+-Chromium local expira en `networkidle0` también sin estos cambios; pasa por CI
+con Chrome-. Producción: `realityos-backend:face-records-20261103` en
+api/worker, salud 200, OpenAPI con `record-enroll`, Alembic `20261103_0032`,
+worker en línea, biometría preservada (136 enrolamientos, 22 consentimientos).
+6 retratos del jurado enrolados por API con InsightFace vivo; sonda Ana Solis
+devuelve su expediente con similitud 1.0, `simulated=false`. Rollback:
+`.runtime/face-records-20261103-rollback.json` (imagen
+`workspace-review3-20261102-r2`) + downgrade a `20261102_0031`; comprobante en
+`.runtime/face-records-20261103-verification.json`. Siguen fuera de alcance OCR
+de envases, alerta policial automática, FHIR/MCP y QA física.

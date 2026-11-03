@@ -37,7 +37,12 @@ model version, evidence media, bounding box, quality and source
 (`profile`, `capture` or `frame`); only same-model embeddings are ever
 compared. `biometric_consents` records the notice version, consent timestamp
 and optional revocation per user. Both tables belong to the isolated
-face-search arm and its `20261028_0009` migration.
+face-search arm and its `20261028_0009` migration. Revision `20261103_0032`
+adds `face_record_enrollments` (record, workspace, media, optional record-media
+link, embedding, box, quality, `record-portrait`/`record-frame` source and
+authorizing worker) plus explicit `biometric_authorized/basis/by/at` columns on
+`workspace_records`; only active person rows with authorization are searchable,
+and enrollments are explicit, never automatic.
 
 `facebook_profiles` stores one synced row per user (email, birthday, age
 range, gender, hometown, location, link, picture, friends/likes/photos/videos

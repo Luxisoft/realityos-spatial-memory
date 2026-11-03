@@ -38,6 +38,7 @@ private fun WorkspaceRecordsContent(workspaceId: String, canWrite: Boolean, onBa
     var selected by remember { mutableStateOf<JSONObject?>(null) }
     var attachment by remember { mutableStateOf<JSONObject?>(null) }
     var note by remember { mutableStateOf("") }
+    var biometricBasis by remember { mutableStateOf("") }
     var message by remember { mutableStateOf("") }
     var listBusy by remember { mutableStateOf(false) }
     var detailBusy by remember { mutableStateOf(false) }
@@ -132,6 +133,7 @@ private fun WorkspaceRecordsContent(workspaceId: String, canWrite: Boolean, onBa
                         Text(row.getString("title"))
                         Text(row.getString("external_id") + " · " + row.getString("kind"), style = MaterialTheme.typography.bodySmall)
                         if (row.optBoolean("simulated")) Text(stringResource(R.string.records_simulated), style = MaterialTheme.typography.labelSmall)
+                        if (row.optString("kind") == "person" && row.optBoolean("biometric_authorized")) Text(stringResource(R.string.records_face_authorized), style = MaterialTheme.typography.labelSmall)
                     }
                 }
             }
@@ -140,6 +142,12 @@ private fun WorkspaceRecordsContent(workspaceId: String, canWrite: Boolean, onBa
             Text(item.getString("title"), style = MaterialTheme.typography.titleLarge)
             Text(item.getString("external_id") + " · v" + item.getInt("version"))
             Text(item.getString("occurred_at"), style = MaterialTheme.typography.bodySmall)
+            if (item.optString("kind") == "person") {
+                if (item.optBoolean("biometric_authorized")) {
+                    Text(stringResource(R.string.records_face_authorized), style = MaterialTheme.typography.labelMedium)
+                    Text(stringResource(R.string.records_face_candidate), style = MaterialTheme.typography.bodySmall)
+                }
+            }
             val data = item.optJSONObject("data") ?: JSONObject()
             data.keys().forEach { key -> Text("$key: ${data.opt(key)}") }
             Text(stringResource(R.string.records_related), style = MaterialTheme.typography.titleMedium)
@@ -182,12 +190,42 @@ private fun WorkspaceRecordsContent(workspaceId: String, canWrite: Boolean, onBa
                 }) { Text(stringResource(R.string.records_save)) }
             }
             val media = item.optJSONArray("media") ?: JSONArray()
+            if (item.optString("kind") == "person" && canWrite && !item.optBoolean("biometric_authorized")) {
+                OutlinedTextField(biometricBasis, { biometricBasis = it }, Modifier.fillMaxWidth(), enabled = !busy, label = { Text(stringResource(R.string.records_face_basis)) })
+            }
             (0 until media.length()).forEach { i ->
                 val file = media.getJSONObject(i)
                 if (file.optString("mime_type").startsWith("video/")) {
                     OutlinedButton(onClick = { attachment = file }) { Text(stringResource(R.string.records_video)) }
                 } else {
                     DatabaseImage(model = profileImageRequest(androidx.compose.ui.platform.LocalContext.current, file.getString("url")), contentDescription = item.getString("title"), modifier = Modifier.fillMaxWidth().height(240.dp).clickable { attachment = file })
+                    if (item.optString("kind") == "person" && canWrite) {
+                        val needsBasis = !item.optBoolean("biometric_authorized")
+                        OutlinedButton(enabled = !busy && (!needsBasis || biometricBasis.isNotBlank()), onClick = {
+                            val current = ++operation
+                            val basis = biometricBasis
+                            detailJob?.cancel()
+                            detailBusy = true
+                            detailJob = scope.launch {
+                                try {
+                                    val payload = JSONObject().put("record_id", item.getString("id")).put("record_media_id", file.getString("id"))
+                                    if (basis.isNotBlank()) payload.put("biometric_basis", basis)
+                                    withContext(Dispatchers.IO) { request("faces/record-enroll", payload) }
+                                    val response = withContext(Dispatchers.IO) { JSONObject(request("$base/${item.getString("id")}", null)) }
+                                    if (operation == current) {
+                                        biometricBasis = ""
+                                        selected = response
+                                    }
+                                } catch (cancelled: CancellationException) {
+                                    throw cancelled
+                                } catch (_: Exception) {
+                                    if (operation == current) message = localizedText(R.string.account_failed)
+                                } finally {
+                                    if (operation == current) detailBusy = false
+                                }
+                            }
+                        }) { Text(stringResource(R.string.records_face_enroll)) }
+                    }
                 }
             }
         }

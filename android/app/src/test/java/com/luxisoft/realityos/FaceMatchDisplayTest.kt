@@ -33,4 +33,30 @@ class FaceMatchDisplayTest {
             .put("probe_box", JSONObject().put("x", 0.1).put("y", 0.2).put("width", 0.0).put("height", 0.4))
         assertEquals(null, faceMatchProbeBox(flat))
     }
+
+    @Test fun `record face match decodes to expediente thumbnail`() {
+        val match = JSONObject()
+            .put("record_id", "record-1")
+            .put("title", "Ana Solis")
+            .put("similarity", 0.93)
+            .put("simulated", true)
+            .put(
+                "evidence",
+                JSONObject()
+                    .put("thumbnail_url", "/v1/faces/record-enrollments/e1/thumbnail")
+                    .put("media_id", "media-1")
+            )
+        val thumb = decodeRecordFaceThumb(match)!!
+        assertEquals("Ana Solis", thumb.caption)
+        assertEquals("record-1", thumb.recordId)
+        assertEquals("media-1", thumb.mediaId)
+        assertEquals(true, thumb.simulated)
+        assertEquals(listOf("record_candidate"), thumb.matchedLabels)
+        assertEquals(true, keepHistoryThumb(thumb))
+    }
+
+    @Test fun `record face match without evidence is dropped`() {
+        assertEquals(null, decodeRecordFaceThumb(JSONObject().put("title", "Ana")))
+        assertEquals(null, decodeRecordFaceThumb(null))
+    }
 }

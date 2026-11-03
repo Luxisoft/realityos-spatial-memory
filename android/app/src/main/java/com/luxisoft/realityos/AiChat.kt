@@ -443,7 +443,9 @@ internal fun AiChat(
                 }
                 val response = JSONObject(raw)
                 val found = response.optJSONArray("matches") ?: JSONArray()
-                val gallery = (0 until found.length()).mapNotNull { decodeFaceThumb(found.optJSONObject(it)) }
+                val foundRecords = response.optJSONArray("matches_records") ?: JSONArray()
+                val gallery = (0 until found.length()).mapNotNull { decodeFaceThumb(found.optJSONObject(it)) } +
+                    (0 until foundRecords.length()).mapNotNull { decodeRecordFaceThumb(foundRecords.optJSONObject(it)) }
                 val names = gallery.joinToString { faceMatchLabel(it.caption, it.confidence) }
                 val message = if (gallery.isEmpty()) {
                     chatText(R.string.chat_face_none)

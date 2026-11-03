@@ -22,7 +22,17 @@ from pathlib import Path
 from typing import Literal
 
 import numpy as np
-from fastapi import APIRouter, Depends, File, Form, HTTPException, Request, UploadFile, status
+from fastapi import (
+    APIRouter,
+    Depends,
+    File,
+    Form,
+    HTTPException,
+    Query,
+    Request,
+    UploadFile,
+    status,
+)
 from fastapi.responses import Response
 from PIL import Image, ImageDraw, ImageOps
 from pydantic import BaseModel, Field
@@ -326,6 +336,18 @@ def _usable_enrollment(enrollment: FaceEnrollment, *, min_quality: float, min_ar
     return bool(enrollment.embedding)
 
 
+def _usable_record_enrollment(
+    enrollment: FaceRecordEnrollment, *, min_quality: float, min_area: float
+) -> bool:
+    box = _valid_face_box(enrollment.bounding_box)
+    if box is None or box["width"] * box["height"] < min_area:
+        return False
+    quality = enrollment.quality or 0.0
+    if not math.isfinite(quality) or quality < min_quality:
+        return False
+    return bool(enrollment.embedding)
+
+
 def _probe_video_duration_seconds(source: Path) -> float | None:
     try:
         result = subprocess.run(
@@ -455,6 +477,46 @@ class FaceVerification(TimestampMixin, Base):
     engine: Mapped[str] = mapped_column(String(80), nullable=False, default="")
     simulated: Mapped[bool] = mapped_column(default=False, nullable=False)
     verified_for_synced_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
+
+class FaceRecordEnrollment(TimestampMixin, Base):
+    """Face embedding linked to a workspace person record, not to a login user.
+
+    Owned by the faces arm. Record must stay active + biometric-authorized to
+    be searchable; enrollment rows are never created automatically.
+    """
+
+    __tablename__ = "face_record_enrollments"
+    __table_args__ = (
+        UniqueConstraint(
+            "record_id", "media_asset_id", "face_index", name="uq_face_record_enrollment"
+        ),
+        Index("ix_face_record_enrollment_record", "record_id"),
+        Index("ix_face_record_enrollment_workspace", "workspace_id"),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
+    record_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("workspace_records.id", ondelete="CASCADE"), nullable=False
+    )
+    workspace_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("workspaces.id", ondelete="CASCADE"), nullable=False
+    )
+    media_asset_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("media_assets.id", ondelete="CASCADE"), nullable=False
+    )
+    record_media_id: Mapped[uuid.UUID | None] = mapped_column(
+        ForeignKey("workspace_record_media.id", ondelete="SET NULL")
+    )
+    face_index: Mapped[int] = mapped_column(nullable=False, default=0)
+    embedding_model: Mapped[str] = mapped_column(String(80), nullable=False)
+    embedding: Mapped[bytes] = mapped_column(LargeBinary, nullable=False)
+    bounding_box: Mapped[dict[str, float]] = mapped_column(JSON, default=dict)
+    quality: Mapped[float] = mapped_column(Float, nullable=False, default=0.0)
+    source: Mapped[str] = mapped_column(String(32), default="record-portrait", nullable=False)
+    authorized_by: Mapped[uuid.UUID | None] = mapped_column(
+        ForeignKey("users.id", ondelete="SET NULL")
+    )
 
 
 def has_biometric_consent(db: Session, user_id: uuid.UUID) -> bool:
@@ -601,6 +663,26 @@ class FaceMatch(BaseModel):
     probe_box: dict[str, float]
 
 
+class RecordFaceMatchEvidence(BaseModel):
+    enrollment_id: uuid.UUID
+    media_id: uuid.UUID
+    thumbnail_url: str
+    source: str
+
+
+class RecordFaceMatch(BaseModel):
+    record_id: uuid.UUID
+    workspace_id: uuid.UUID
+    external_id: str
+    title: str
+    similarity: float
+    record_url: str
+    simulated: bool = False
+    evidence: RecordFaceMatchEvidence
+    probe_face_index: int
+    probe_box: dict[str, float]
+
+
 class FaceSearchResponse(BaseModel):
     found: bool
     probe_faces: int
@@ -608,10 +690,37 @@ class FaceSearchResponse(BaseModel):
     probe_faces_skipped: int = 0
     enrollments_skipped: int = 0
     matches: list[FaceMatch] = Field(default_factory=list)
+    matches_records: list[RecordFaceMatch] = Field(default_factory=list)
+    record_enrollments_skipped: int = 0
     threshold: float
     simulated: bool
     stage: int | None = None
     stages_searched: list[int] = Field(default_factory=list)
+
+
+class RecordEnrollRequest(BaseModel):
+    record_id: uuid.UUID
+    media_id: uuid.UUID | None = None
+    record_media_id: uuid.UUID | None = None
+    biometric_basis: str | None = Field(default=None, max_length=200)
+
+
+class RecordEnrollResponse(BaseModel):
+    record_id: uuid.UUID
+    media_id: uuid.UUID
+    faces_enrolled: int
+    enrollment_ids: list[uuid.UUID]
+    simulated: bool
+
+
+class OwnRecordEnrollmentResponse(BaseModel):
+    id: uuid.UUID
+    record_id: uuid.UUID
+    workspace_id: uuid.UUID
+    media_id: uuid.UUID
+    source: str
+    quality: float
+    thumbnail_url: str
 
 
 def _face_engine_or_503(settings: Settings) -> FaceEngine:
@@ -751,6 +860,72 @@ def ingest_media_assets(
     """Enrollment write API owned by the faces arm; used by the Facebook importer."""
 
     return _enroll_images(db, user, images, source, engine, spoof_max_risk)
+
+
+def _enroll_record_images(
+    db: Session,
+    *,
+    record_id: uuid.UUID,
+    workspace_id: uuid.UUID,
+    record_media_id: uuid.UUID | None,
+    authorized_by: uuid.UUID,
+    images: list[MediaAsset],
+    source: str,
+    engine: FaceEngine,
+    spoof_max_risk: float | None = None,
+) -> list[FaceRecordEnrollment]:
+    created: list[FaceRecordEnrollment] = []
+    for image in images:
+        try:
+            faces = engine.detect_faces(image.original_bytes)
+        except FaceEngineError as exc:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(exc)
+            ) from exc
+        if len(faces) != 1:
+            continue
+        if spoof_max_risk is not None:
+            for face in faces:
+                assessment = assess_spoof_risk(image.original_bytes, face.bounding_box)
+                if assessment.risk > spoof_max_risk:
+                    raise HTTPException(
+                        status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                        detail=(
+                            "No live face could be verified in this image. "
+                            "Take the photo directly with the camera in good light."
+                        ),
+                    )
+        for index, face in enumerate(faces):
+            existing = db.scalar(
+                select(FaceRecordEnrollment).where(
+                    FaceRecordEnrollment.record_id == record_id,
+                    FaceRecordEnrollment.media_asset_id == image.id,
+                    FaceRecordEnrollment.face_index == index,
+                )
+            )
+            if existing is not None:
+                if existing.embedding_model == engine.name:
+                    created.append(existing)
+                    continue
+                db.delete(existing)
+                db.flush()
+            enrollment = FaceRecordEnrollment(
+                record_id=record_id,
+                workspace_id=workspace_id,
+                media_asset_id=image.id,
+                record_media_id=record_media_id,
+                face_index=index,
+                embedding_model=engine.name,
+                embedding=face.embedding,
+                bounding_box=face.bounding_box,
+                quality=face.quality,
+                source=source,
+                authorized_by=authorized_by,
+            )
+            db.add(enrollment)
+            db.flush()
+            created.append(enrollment)
+    return created
 
 
 async def _read_probe_image(probe: UploadFile, settings: Settings) -> bytes:
@@ -962,7 +1137,9 @@ def verify_identity(
         )
     profile = db.get(FacebookProfile, user.id)
     if profile is None:
-        return record_failure(None)
+        # Password accounts without Facebook have no reference faces. They use
+        # capture + biometric consent; verification stays pending, never failed.
+        return FaceVerifyResponse(verified=False, status="pending", simulated=engine.simulated)
     assert profile is not None
     if profile.import_status not in ("done", "partial"):
         # Self-healing: resumed sessions may never have triggered the import.
@@ -1166,6 +1343,138 @@ def list_own_enrollments(user: User = Depends(get_current_user), db: Session = D
     ]
 
 
+@router.post("/faces/record-enroll", response_model=RecordEnrollResponse, status_code=201)
+def enroll_record_media(
+    payload: RecordEnrollRequest,
+    request: Request,
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    from app.workspaces.models import Record as WorkspaceRecord
+    from app.workspaces.models import RecordMedia as WorkspaceRecordMedia
+
+    require_biometric_consent(db, user)
+    if user.is_guest:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, detail="Guest users cannot use face search."
+        )
+    record = db.get(WorkspaceRecord, payload.record_id)
+    if record is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Record not found.")
+    workspace_member(record.workspace_id, user, db, {Role.ADMIN, Role.REGISTER})
+    if record.kind != "person" or record.status != "active":
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="Only active person records may be enrolled.",
+        )
+    if not bool(getattr(record, "biometric_authorized", False)):
+        basis = (payload.biometric_basis or "").strip()
+        if not basis:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="Record requires explicit biometric authorization with a traceable basis.",
+            )
+        record.biometric_authorized = True
+        record.biometric_basis = basis
+        record.biometric_authorized_by = user.id
+        record.biometric_authorized_at = datetime.now(UTC)
+        db.flush()
+    if (payload.media_id is None) == (payload.record_media_id is None):
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="Provide either media_id or record_media_id.",
+        )
+    settings = request.app.state.settings
+    engine = _face_engine_or_503(settings)
+    link: WorkspaceRecordMedia | None = None
+    if payload.record_media_id is not None:
+        link = db.get(WorkspaceRecordMedia, payload.record_media_id)
+        if link is None or link.record_id != record.id:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND, detail="Record media not found."
+            )
+        asset = db.get(MediaAsset, link.media_id)
+    else:
+        assert payload.media_id is not None
+        asset = db.get(MediaAsset, payload.media_id)
+    if asset is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Media not found.")
+    if asset.workspace_id != record.workspace_id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, detail="Media belongs to another workspace."
+        )
+    images, image_source = _face_source_images(db, asset)
+    source = "record-frame" if image_source == "frame" else "record-portrait"
+    spoof_max_risk = None if engine.simulated else settings.face_spoof_max_risk
+    created = _enroll_record_images(
+        db,
+        record_id=record.id,
+        workspace_id=record.workspace_id,
+        record_media_id=link.id if link else None,
+        authorized_by=user.id,
+        images=images,
+        source=source,
+        engine=engine,
+        spoof_max_risk=spoof_max_risk,
+    )
+    db.flush()
+    return RecordEnrollResponse(
+        record_id=record.id,
+        media_id=asset.id,
+        faces_enrolled=len(created),
+        enrollment_ids=[item.id for item in created],
+        simulated=engine.simulated,
+    )
+
+
+@router.get("/faces/record-enrollments", response_model=list[OwnRecordEnrollmentResponse])
+def list_record_enrollments(
+    workspace_id: uuid.UUID = Query(...),
+    record_id: uuid.UUID | None = Query(default=None),
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    require_biometric_consent(db, user)
+    workspace_member(workspace_id, user, db)
+    query = select(FaceRecordEnrollment).where(FaceRecordEnrollment.workspace_id == workspace_id)
+    if record_id is not None:
+        query = query.where(FaceRecordEnrollment.record_id == record_id)
+    rows = list(db.scalars(query.order_by(FaceRecordEnrollment.created_at)))
+    return [
+        OwnRecordEnrollmentResponse(
+            id=item.id,
+            record_id=item.record_id,
+            workspace_id=item.workspace_id,
+            media_id=item.media_asset_id,
+            source=item.source,
+            quality=item.quality,
+            thumbnail_url=f"/v1/faces/record-enrollments/{item.id}/thumbnail",
+        )
+        for item in rows
+    ]
+
+
+@router.delete("/faces/record-enrollments/{enrollment_id}")
+def delete_record_enrollment(
+    enrollment_id: uuid.UUID,
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    require_biometric_consent(db, user)
+    if user.is_guest:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, detail="Guest users cannot use face search."
+        )
+    enrollment = db.get(FaceRecordEnrollment, enrollment_id)
+    if enrollment is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Enrollment not found.")
+    workspace_member(enrollment.workspace_id, user, db, {Role.ADMIN, Role.REGISTER})
+    record_id = enrollment.record_id
+    db.delete(enrollment)
+    db.flush()
+    return {"deleted": True, "record_id": str(record_id)}
+
+
 def _rank_stage(
     probe_faces: list[DetectedFace],
     enrollments: list[FaceEnrollment],
@@ -1191,12 +1500,36 @@ def _rank_stage(
     )[:limit]
 
 
+def _rank_record_stage(
+    probe_faces: list[DetectedFace],
+    enrollments: list[FaceRecordEnrollment],
+    threshold: float,
+    limit: int,
+) -> list[tuple[uuid.UUID, float, FaceRecordEnrollment, int]]:
+    best: dict[uuid.UUID, tuple[float, FaceRecordEnrollment, int]] = {}
+    for probe_index, probe_face in enumerate(probe_faces):
+        for enrollment in enrollments:
+            score = cosine_similarity(probe_face.embedding, enrollment.embedding)
+            current = best.get(enrollment.record_id)
+            if current is None or score > current[0]:
+                best[enrollment.record_id] = (score, enrollment, probe_index)
+    return sorted(
+        (
+            (record_id, score, enrollment, probe_index)
+            for record_id, (score, enrollment, probe_index) in best.items()
+            if score >= threshold
+        ),
+        key=lambda item: (-item[1], str(item[0])),
+    )[:limit]
+
+
 @router.post("/faces/search", response_model=FaceSearchResponse)
 async def search_faces(
     request: Request,
     workspace_id: str = Form(...),
     media_id: str | None = Form(default=None),
     probe: UploadFile | None = File(default=None),
+    include_records: bool = Form(default=True),
     user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
@@ -1289,34 +1622,20 @@ async def search_faces(
             select(WorkspaceMember.user_id).where(WorkspaceMember.workspace_id == workspace_uuid)
         )
     )
-    if not member_ids:
-        return FaceSearchResponse(
-            found=False,
-            probe_faces=len(probe_faces),
-            probe_frames=probe_frames,
-            probe_faces_skipped=probe_faces_skipped,
-            threshold=settings.face_match_threshold,
-            simulated=engine.simulated,
-        )
-    consented_ids = set(
-        db.scalars(
-            select(BiometricConsent.user_id).where(
-                BiometricConsent.user_id.in_(member_ids),
-                BiometricConsent.revoked_at.is_(None),
+    consented_ids: set[uuid.UUID] = set()
+    if member_ids:
+        consented_ids = set(
+            db.scalars(
+                select(BiometricConsent.user_id).where(
+                    BiometricConsent.user_id.in_(member_ids),
+                    BiometricConsent.revoked_at.is_(None),
+                )
             )
         )
-    )
-    if not consented_ids:
-        return FaceSearchResponse(
-            found=False,
-            probe_faces=len(probe_faces),
-            probe_frames=probe_frames,
-            probe_faces_skipped=probe_faces_skipped,
-            threshold=settings.face_match_threshold,
-            simulated=engine.simulated,
-        )
-    candidates = list(
-        db.scalars(select(FaceEnrollment).where(FaceEnrollment.user_id.in_(consented_ids)))
+    candidates = (
+        list(db.scalars(select(FaceEnrollment).where(FaceEnrollment.user_id.in_(consented_ids))))
+        if consented_ids
+        else []
     )
     enrollments: list[FaceEnrollment] = []
     enrollments_skipped = 0
@@ -1388,13 +1707,83 @@ async def search_faces(
                 probe_box=dict(probe_faces[probe_index].bounding_box),
             )
         )
+    record_matches: list[RecordFaceMatch] = []
+    record_skipped = 0
+    if include_records:
+        from app.workspaces.models import Record as WorkspaceRecord
+
+        record_candidates = list(
+            db.scalars(
+                select(FaceRecordEnrollment).where(
+                    FaceRecordEnrollment.workspace_id == workspace_uuid
+                )
+            )
+        )
+        usable_records: list[FaceRecordEnrollment] = []
+        wanted_records: set[uuid.UUID] = set()
+        for item in record_candidates:
+            if item.embedding_model != engine.name:
+                record_skipped += 1
+                continue
+            if not _usable_record_enrollment(
+                item,
+                min_quality=settings.face_min_quality,
+                min_area=settings.face_min_box_area,
+            ):
+                record_skipped += 1
+                continue
+            wanted_records.add(item.record_id)
+            usable_records.append(item)
+        authorized: dict[uuid.UUID, WorkspaceRecord] = {}
+        if wanted_records:
+            for row in db.scalars(
+                select(WorkspaceRecord).where(WorkspaceRecord.id.in_(wanted_records))
+            ):
+                if (
+                    row.workspace_id != workspace_uuid
+                    or row.status != "active"
+                    or row.kind != "person"
+                    or not bool(getattr(row, "biometric_authorized", False))
+                ):
+                    continue
+                authorized[row.id] = row
+        searchable = [item for item in usable_records if item.record_id in authorized]
+        record_skipped += len(usable_records) - len(searchable)
+        ranked_records = _rank_record_stage(
+            probe_faces, searchable, settings.face_match_threshold, settings.face_search_limit
+        )
+        for record_id, score, enrollment, probe_index in ranked_records:
+            row = authorized.get(record_id)
+            if row is None:
+                continue
+            record_matches.append(
+                RecordFaceMatch(
+                    record_id=record_id,
+                    workspace_id=workspace_uuid,
+                    external_id=row.external_id,
+                    title=row.title,
+                    similarity=round(score, 4),
+                    record_url=f"/v1/workspaces/{workspace_uuid}/records/{record_id}",
+                    simulated=bool(row.simulated),
+                    evidence=RecordFaceMatchEvidence(
+                        enrollment_id=enrollment.id,
+                        media_id=enrollment.media_asset_id,
+                        thumbnail_url=f"/v1/faces/record-enrollments/{enrollment.id}/thumbnail",
+                        source=enrollment.source,
+                    ),
+                    probe_face_index=probe_index,
+                    probe_box=dict(probe_faces[probe_index].bounding_box),
+                )
+            )
     return FaceSearchResponse(
-        found=bool(matches),
+        found=bool(matches or record_matches),
         probe_faces=len(probe_faces),
         probe_frames=probe_frames,
         probe_faces_skipped=probe_faces_skipped,
         enrollments_skipped=enrollments_skipped,
         matches=matches,
+        matches_records=record_matches,
+        record_enrollments_skipped=record_skipped,
         threshold=settings.face_match_threshold,
         simulated=engine.simulated,
         stage=stage,
@@ -1454,6 +1843,74 @@ def enrollment_thumbnail(
         left, top, right, bottom = 0.0, 0.0, float(width), float(height)
     # A photo-wide stroke can fill a small face. Keep the outline outside
     # the detected region and size it relative to that face instead.
+    face_size = max(1.0, min(right - left, bottom - top))
+    outline = max(1, min(max(2, width // 200), int(face_size / 24)))
+    ImageDraw.Draw(frame).rectangle(
+        [
+            max(0, left - outline),
+            max(0, top - outline),
+            min(width - 1, right + outline),
+            min(height - 1, bottom + outline),
+        ],
+        outline=(240, 191, 36),
+        width=outline,
+    )
+    if not full_size:
+        frame.thumbnail((360, 480))
+    output = io.BytesIO()
+    frame.save(output, format="JPEG", quality=95 if full_size else 85)
+    return Response(
+        output.getvalue(),
+        media_type="image/jpeg",
+        headers={"Cache-Control": "private, no-store"},
+    )
+
+
+@router.get("/faces/record-enrollments/{enrollment_id}/thumbnail")
+def record_enrollment_thumbnail(
+    enrollment_id: uuid.UUID,
+    full_size: bool = True,
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    from app.workspaces.models import Record as WorkspaceRecord
+
+    require_biometric_consent(db, user)
+    enrollment = db.get(FaceRecordEnrollment, enrollment_id)
+    if enrollment is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Enrollment not found.")
+    workspace_member(enrollment.workspace_id, user, db)
+    record = db.get(WorkspaceRecord, enrollment.record_id)
+    if (
+        record is None
+        or record.workspace_id != enrollment.workspace_id
+        or record.status != "active"
+        or not bool(getattr(record, "biometric_authorized", False))
+    ):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, detail="Record biometric access denied."
+        )
+    asset = db.get(MediaAsset, enrollment.media_asset_id)
+    if asset is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Evidence media not found."
+        )
+    try:
+        with Image.open(io.BytesIO(asset.original_bytes)) as picture:
+            frame = ImageOps.exif_transpose(picture).convert("RGB")
+    except Exception:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="Invalid image data."
+        )
+    width, height = frame.size
+    box = enrollment.bounding_box or {}
+    try:
+        left = float(box.get("x", 0.0)) * width
+        top = float(box.get("y", 0.0)) * height
+        right = left + float(box.get("width", 1.0)) * width
+        bottom = top + float(box.get("height", 1.0)) * height
+    except (TypeError, ValueError):
+        left, top, right, bottom = 0.0, 0.0, float(width), float(height)
     face_size = max(1.0, min(right - left, bottom - top))
     outline = max(1, min(max(2, width // 200), int(face_size / 24)))
     ImageDraw.Draw(frame).rectangle(

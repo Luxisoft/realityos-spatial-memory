@@ -6535,6 +6535,167 @@
         ]
       }
     },
+    "/v1/faces/record-enroll": {
+      "post": {
+        "tags": [
+          "faces"
+        ],
+        "summary": "Enroll Record Media",
+        "operationId": "enroll_record_media_v1_faces_record_enroll_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RecordEnrollRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RecordEnrollResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/v1/faces/record-enrollments": {
+      "get": {
+        "tags": [
+          "faces"
+        ],
+        "summary": "List Record Enrollments",
+        "operationId": "list_record_enrollments_v1_faces_record_enrollments_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "workspace_id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Workspace Id"
+            }
+          },
+          {
+            "name": "record_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Record Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/OwnRecordEnrollmentResponse"
+                  },
+                  "title": "Response List Record Enrollments V1 Faces Record Enrollments Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/faces/record-enrollments/{enrollment_id}": {
+      "delete": {
+        "tags": [
+          "faces"
+        ],
+        "summary": "Delete Record Enrollment",
+        "operationId": "delete_record_enrollment_v1_faces_record_enrollments__enrollment_id__delete",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "enrollment_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Enrollment Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/faces/search": {
       "post": {
         "tags": [
@@ -6588,6 +6749,62 @@
         ],
         "summary": "Enrollment Thumbnail",
         "operationId": "enrollment_thumbnail_v1_faces_enrollments__enrollment_id__thumbnail_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "enrollment_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Enrollment Id"
+            }
+          },
+          {
+            "name": "full_size",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": true,
+              "title": "Full Size"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/faces/record-enrollments/{enrollment_id}/thumbnail": {
+      "get": {
+        "tags": [
+          "faces"
+        ],
+        "summary": "Record Enrollment Thumbnail",
+        "operationId": "record_enrollment_thumbnail_v1_faces_record_enrollments__enrollment_id__thumbnail_get",
         "security": [
           {
             "HTTPBearer": []
@@ -7020,6 +7237,11 @@
               }
             ],
             "title": "Probe"
+          },
+          "include_records": {
+            "type": "boolean",
+            "title": "Include Records",
+            "default": true
           }
         },
         "type": "object",
@@ -7950,7 +8172,8 @@
               "evidence",
               "upload",
               "publication",
-              "face_enrollment"
+              "face_enrollment",
+              "face_record_enrollment"
             ],
             "title": "Kind"
           },
@@ -8202,6 +8425,18 @@
             },
             "type": "array",
             "title": "Matches"
+          },
+          "matches_records": {
+            "items": {
+              "$ref": "#/components/schemas/RecordFaceMatch"
+            },
+            "type": "array",
+            "title": "Matches Records"
+          },
+          "record_enrollments_skipped": {
+            "type": "integer",
+            "title": "Record Enrollments Skipped",
+            "default": 0
           },
           "threshold": {
             "type": "number",
@@ -8643,6 +8878,29 @@
             "type": "boolean",
             "title": "Simulated",
             "default": false
+          },
+          "biometric_authorized": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Biometric Authorized"
+          },
+          "biometric_basis": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 200
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Biometric Basis"
           }
         },
         "type": "object",
@@ -9497,6 +9755,53 @@
         ],
         "title": "OwnEnrollmentResponse"
       },
+      "OwnRecordEnrollmentResponse": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "record_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Record Id"
+          },
+          "workspace_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Workspace Id"
+          },
+          "media_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Media Id"
+          },
+          "source": {
+            "type": "string",
+            "title": "Source"
+          },
+          "quality": {
+            "type": "number",
+            "title": "Quality"
+          },
+          "thumbnail_url": {
+            "type": "string",
+            "title": "Thumbnail Url"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "record_id",
+          "workspace_id",
+          "media_id",
+          "source",
+          "quality",
+          "thumbnail_url"
+        ],
+        "title": "OwnRecordEnrollmentResponse"
+      },
       "PinJoin": {
         "properties": {
           "pin": {
@@ -9917,6 +10222,187 @@
           "tts_text"
         ],
         "title": "QueryResponse"
+      },
+      "RecordEnrollRequest": {
+        "properties": {
+          "record_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Record Id"
+          },
+          "media_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Media Id"
+          },
+          "record_media_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Record Media Id"
+          },
+          "biometric_basis": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 200
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Biometric Basis"
+          }
+        },
+        "type": "object",
+        "required": [
+          "record_id"
+        ],
+        "title": "RecordEnrollRequest"
+      },
+      "RecordEnrollResponse": {
+        "properties": {
+          "record_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Record Id"
+          },
+          "media_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Media Id"
+          },
+          "faces_enrolled": {
+            "type": "integer",
+            "title": "Faces Enrolled"
+          },
+          "enrollment_ids": {
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "type": "array",
+            "title": "Enrollment Ids"
+          },
+          "simulated": {
+            "type": "boolean",
+            "title": "Simulated"
+          }
+        },
+        "type": "object",
+        "required": [
+          "record_id",
+          "media_id",
+          "faces_enrolled",
+          "enrollment_ids",
+          "simulated"
+        ],
+        "title": "RecordEnrollResponse"
+      },
+      "RecordFaceMatch": {
+        "properties": {
+          "record_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Record Id"
+          },
+          "workspace_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Workspace Id"
+          },
+          "external_id": {
+            "type": "string",
+            "title": "External Id"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "similarity": {
+            "type": "number",
+            "title": "Similarity"
+          },
+          "record_url": {
+            "type": "string",
+            "title": "Record Url"
+          },
+          "simulated": {
+            "type": "boolean",
+            "title": "Simulated",
+            "default": false
+          },
+          "evidence": {
+            "$ref": "#/components/schemas/RecordFaceMatchEvidence"
+          },
+          "probe_face_index": {
+            "type": "integer",
+            "title": "Probe Face Index"
+          },
+          "probe_box": {
+            "additionalProperties": {
+              "type": "number"
+            },
+            "type": "object",
+            "title": "Probe Box"
+          }
+        },
+        "type": "object",
+        "required": [
+          "record_id",
+          "workspace_id",
+          "external_id",
+          "title",
+          "similarity",
+          "record_url",
+          "evidence",
+          "probe_face_index",
+          "probe_box"
+        ],
+        "title": "RecordFaceMatch"
+      },
+      "RecordFaceMatchEvidence": {
+        "properties": {
+          "enrollment_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Enrollment Id"
+          },
+          "media_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Media Id"
+          },
+          "thumbnail_url": {
+            "type": "string",
+            "title": "Thumbnail Url"
+          },
+          "source": {
+            "type": "string",
+            "title": "Source"
+          }
+        },
+        "type": "object",
+        "required": [
+          "enrollment_id",
+          "media_id",
+          "thumbnail_url",
+          "source"
+        ],
+        "title": "RecordFaceMatchEvidence"
       },
       "RecordQuestion": {
         "properties": {

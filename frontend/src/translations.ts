@@ -253,4 +253,6 @@ export const translations = {
   Level: "Nivel",
   Area: "Área",
   Bin: "Contenedor",
+  "Authorization basis": "Base de autorización",
+  "Enroll portrait for face search": "Enrolar retrato para búsqueda facial",
 } as const;
