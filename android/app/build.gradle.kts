@@ -145,6 +145,7 @@ dependencies {
 val refactoredKotlin = files(
     "src/main/java/com/luxisoft/realityos/RecognitionPhotoUpload.kt",
     "src/testDebug/java/com/luxisoft/realityos/RecognitionPhotoUploadTest.kt",
+    "src/testDebug/java/com/luxisoft/realityos/AppNoticeTest.kt",
     "src/main/java/com/luxisoft/realityos/AccountBiometricSetup.kt",
     "src/main/java/com/luxisoft/realityos/AccountBiometricSetupScreen.kt",
     "src/testDebug/java/com/luxisoft/realityos/AccountBiometricSetupTest.kt",
