@@ -40,7 +40,7 @@ The three primary accounts and their passwords are in the [public access table](
 | Outside the QA group | `qa-hackathon-outsider` | Prepared private profile; initially outside QA, for invitation/removal. |
 | Real email / Facebook | Evaluator's own | Registration/correction use new QA accounts with real inboxes, not the accounts above. |
 
-All four QA accounts have avatars and one initial private synthetic-scene post. The QA group starts without records; its Work posts will be created in G01. In Postman, the 39 scenario requests are under **Server requests → 00 Live scenarios**; the full API catalog has other operations with their own prerequisites.
+All four QA accounts have avatars and one initial private synthetic-scene post. The QA group starts without records; its Work posts will be created in G01. In Postman use the 39 prepared requests in **01 Police**, **02 Nursing** and **03 Memory**. The API guide linked above locates them in the current collection; the full catalog has other operations with their own prerequisites.
 
 **Clinical validity:** the fictional prescriptions cover **November 1–30, 2026 UTC**. Outside this interval expect a validity discrepancy: do not mark a match or change the clock. The organizer must prepare a current QA dataset before rerunning positives. The app sends the current time; technical issues/references are checked in T04.
 
@@ -59,7 +59,7 @@ All four QA accounts have avatars and one initial private synthetic-scene post. 
 ### S — Server and technical session
 
 - [ ] **S01** — Organizer: request GET /health/live and GET /health/ready. Expected: both return 200; save time and responses. A failure blocks dependent tests.
-- [ ] **S02** — Import the public collection from the API guide and select No environment. Under Server requests → 00 Live scenarios, run 01 Police, 02 Nursing and 03 Memory: 13 requests per folder, 39 total. Expected: automatic access, existing workspace records/posts, readable images and relevant answers. Save every request result; the old empty workspace does not test the scenarios.
+- [ ] **S02** — Import the public collection from the API guide and select No environment. Locate and run the 01 Police, 02 Nursing and 03 Memory folders: 13 requests per folder, 39 total. Expected: automatic access, existing workspace records/posts, readable images and relevant answers. Save every request result; the old empty workspace does not test the scenarios.
 - [ ] **S03** — Organizer: verify rotation with POST /v1/auth/refresh and rejection of the previous refresh token in a separate QA session. Expected: new token works and old token is rejected; redact tokens from evidence. Disable automatic renewal on the negative request to test the consumed token.
 
 ### A — Entry and nine prepared accounts

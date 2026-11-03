@@ -40,7 +40,7 @@ Las tres cuentas principales y sus contraseñas están en la [tabla pública de 
 | Fuera del grupo QA | `qa-hackathon-outsider` | Perfil privado preparado; sin acceso inicial a QA, para invitación y retirada. |
 | Correo / Facebook reales | Los del evaluador | Registro y corrección usan cuentas QA nuevas con buzones reales, no las cuentas anteriores. |
 
-Las cuatro cuentas QA tienen avatares y una publicación privada de escena sintética inicial. El grupo QA empieza sin expedientes; sus publicaciones de Trabajo se crearán en G01. En Postman, las 39 consultas de escenarios están en **Server requests → 00 Live scenarios**; el catálogo API completo tiene otras operaciones con requisitos propios.
+Las cuatro cuentas QA tienen avatares y una publicación privada de escena sintética inicial. El grupo QA empieza sin expedientes; sus publicaciones de Trabajo se crearán en G01. En Postman usa las 39 consultas preparadas de **01 Police**, **02 Nursing** y **03 Memory**. La guía API enlazada arriba indica dónde encontrarlas en la colección vigente; el catálogo completo tiene otras operaciones con requisitos propios.
 
 **Vigencia clínica:** el conjunto ficticio tiene prescripciones del **1 al 30 de noviembre de 2026 UTC**. Fuera de ese intervalo se espera discrepancia de vigencia: no marques coincidencia ni cambies el reloj. El responsable debe preparar un conjunto QA vigente antes de repetir positivos. La app envía la hora actual; el detalle de causas y referencias se verifica en T04.
 
@@ -59,7 +59,7 @@ Las cuatro cuentas QA tienen avatares y una publicación privada de escena sint�
 ### S — Servidor y sesión técnica
 
 - [ ] **S01** — Responsable: consulta GET /health/live y GET /health/ready. Esperado: ambos 200; guarda hora y respuesta. Un fallo bloquea las pruebas dependientes.
-- [ ] **S02** — Importa la colección pública de la guía API y deja No environment. Dentro de Server requests → 00 Live scenarios, ejecuta 01 Police, 02 Nursing y 03 Memory: 13 peticiones por carpeta, 39 en total. Esperado: acceso automático, expedientes/publicaciones de los espacios existentes, imágenes legibles y respuestas pertinentes. Guarda resultado de cada petición; no uses el antiguo espacio vacío como prueba de los escenarios.
+- [ ] **S02** — Importa la colección pública de la guía API y deja No environment. Localiza y ejecuta las carpetas 01 Police, 02 Nursing y 03 Memory: 13 peticiones por carpeta, 39 en total. Esperado: acceso automático, expedientes/publicaciones de los espacios existentes, imágenes legibles y respuestas pertinentes. Guarda resultado de cada petición; no uses el antiguo espacio vacío como prueba de los escenarios.
 - [ ] **S03** — Responsable: verifica la rotación con POST /v1/auth/refresh y rechazo del refresh anterior, usando una sesión QA independiente. Esperado: token nuevo válido y anterior rechazado; guarda respuestas sin tokens. Desactiva la auto-renovación en la petición negativa para probar el token consumido.
 
 ### A — Entrada y nueve cuentas preparadas
