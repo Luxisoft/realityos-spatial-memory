@@ -267,3 +267,32 @@ partial update, repeated sync and both fresh/existing migration paths.
 Android: all 220 tests passed, including real PATCH exchanges against MockWebServer, read-only Facebook fields, clearing birthday, header refresh and 320 dp/200% text. EN/ES native screenshots were inspected. The test fixture uses OkHttp for PATCH because the desktop JVM URLConnection rejects that method; production Android transport is unchanged.
 
 Formatting, lint, architecture checks and Debug/Release builds passed. The installable Debug APK was replaced at the standard path. Physical-device and live Facebook verification remain pending.
+
+
+## Postman server/local demo — 2026-11-03
+
+The collection now contains **Consultas servidor** and **Consultas localhost**,
+with 96 declared variables and 324 requests across both destinations. Each
+folder uses independent URLs, credentials, tokens, IDs and write controls.
+The collection works without an environment; the two optional environments
+mirror the corresponding variables. Public test credentials and explicit demo
+user/workspace IDs come from `simulator/postman/demo.json`, at the owner's
+request. Other credentials and session tokens are not exported.
+
+The server demo account was provisioned in its own empty workspace with the
+query role, without membership in existing workspaces. Newman ran the quick
+start plus token refresh against the public API: seven HTTP 200 responses and
+nine assertions passed; the identity, sole workspace, empty result and reuse
+of the new session were verified. No media or email was created.
+
+Validation: 451 backend/gateway tests, 324 offline Postman request-script checks,
+166 write guards, generation drift check, formatter/lint and structure checks
+passed. Tests cover separate session stores, login/refresh failure behavior,
+account collision protection, idempotent provisioning, role denial and workspace
+isolation. No backend/Android source or API contract changed.
+
+Local setup is explicit via `scripts/local/Enable-PostmanDemo.ps1`, uses only
+the isolated local Compose project, and creates different demo credentials.
+Provisioning/login/refresh and permissions were tested in the isolated test
+database; actual execution on Windows Docker Desktop remains pending.
+See [API / Postman](API.md) for the import/run instructions.

@@ -23,6 +23,49 @@ READ_POSTS = {
     "/v1/gallery/evidence/information",
 }
 AUTH_POSTS = {"/v1/auth/login", "/v1/auth/refresh", "/v1/auth/local-login"}
+TARGETS = [
+    ("public", "server", "Consultas servidor", "https://realityos.luxisoft.com"),
+    ("local", "localhost", "Consultas localhost", "http://localhost:8080"),
+]
+DEFAULT_VARIABLES = {
+    "base_url": "https://realityos.luxisoft.com",
+    "email": "",
+    "username": "",
+    "display_name": "",
+    "password": "",
+    "new_email": "",
+    "new_password": "",
+    "access_token": "",
+    "refresh_token": "",
+    "workspace_id": "",
+    "language": "en",
+    "query": "Where were the documents last seen?",
+    "enable_write_requests": "false",
+    "device_id": "",
+    "device_key": "",
+    "integration_key": "",
+    "token": "",
+}
+VARIABLE_DESCRIPTIONS = {
+    "base_url": "API origin, without /v1. / URL del API, sin /v1.",
+    "email": "Public demo email prefilled. Replace locally to use your own account. / Correo demo incluido. Cámbialo localmente para usar tu cuenta.",
+    "username": "Demo username prefilled; use an existing username or email for correction. / Usuario demo incluido; usa tu usuario o correo actual para corregir una cuenta propia.",
+    "display_name": "Demo display name prefilled. / Nombre visible demo incluido.",
+    "password": "Public demo password prefilled. Replace locally to use your own account. / Contraseña pública demo incluida. Cámbiala localmente para usar tu cuenta.",
+    "new_email": "Replacement email for a pending account. / Correo nuevo que reemplaza al pendiente.",
+    "new_password": "New password for recovery, at least 12 characters. / Nueva contraseña de recuperación, mínimo 12 caracteres.",
+    "access_token": "Saved automatically after login/refresh. / Se guarda automáticamente al iniciar o renovar sesión.",
+    "refresh_token": "Saved and rotated automatically after login/refresh. / Se guarda y rota automáticamente al iniciar o renovar sesión.",
+    "workspace_id": "Demo workspace preselected. For your own account, copy an ID from GET /v1/workspaces. / Espacio demo preseleccionado. Para tu cuenta, copia un ID de GET /v1/workspaces.",
+    "user_id": "Demo user ID prefilled. For your own account, copy id from GET /v1/auth/me. / ID del usuario demo incluido. Para tu cuenta, copia id de GET /v1/auth/me.",
+    "language": "Response language: en or es. / Idioma de respuesta: en o es.",
+    "query": "Question for evidence/record searches. / Pregunta para consultar evidencia o expedientes.",
+    "enable_write_requests": "Set true to enable explicit write operations for this target. / Activa true para habilitar escrituras en este destino.",
+    "facebook_access_token": "Your Facebook user token; never a RealityOS session token. / Token de usuario Facebook; no es el token de RealityOS.",
+    "device_key": "Key issued when provisioning this target's device. / Clave entregada al provisionar el dispositivo de este destino.",
+    "integration_key": "Key issued for this target's integration. / Clave de integración emitida en este destino.",
+    "token": "Temporary email action or signed resource token. / Token temporal del correo o recurso firmado.",
+}
 GROUPS = [
     ("auth", "Access / Acceso"),
     ("workspaces", "Workspaces and records / Espacios y expedientes"),
@@ -97,6 +140,8 @@ def example(schema, spec, key="", depth=0):
         return None
     if key == "access_token" and schema.get("title") == "Access Token":
         return "{{access_token}}"
+    if key in {"language", "username", "display_name"}:
+        return "{{" + key + "}}"
     if "default" in schema and schema["default"] is not None:
         return schema["default"]
     if "enum" in schema:
@@ -136,7 +181,9 @@ def example(schema, spec, key="", depth=0):
         return "{{" + key + "}}"
     if schema.get("format") == "uuid":
         return "00000000-0000-4000-8000-000000000001"
-    if key in {"query", "question", "text"}:
+    if key in {"query", "question"}:
+        return "{{query}}"
+    if key == "text":
         return "Where were the documents last seen?"
     return "example-" + (key or "value")
 
@@ -153,8 +200,36 @@ def write(path, content, check):
         file.write_text(content)
 
 
+def target_item(value, prefix, variables):
+    """Namespace references and script storage, including saved response examples."""
+    if isinstance(value, dict):
+        return {k: target_item(v, prefix, variables) for k, v in value.items()}
+    if isinstance(value, list):
+        return [target_item(v, prefix, variables) for v in value]
+    if not isinstance(value, str):
+        return value
+    value = re.sub(r"{{([^}]+)}}", lambda m: "{{" + prefix + "_" + m[1] + "}}", value)
+    value = re.sub(
+        r'(pm\.(?:variables|environment|collectionVariables)\.(?:get|set|has)\(")([^"\n]+)(")',
+        lambda m: m[1] + prefix + "_" + m[2] + m[3],
+        value,
+    )
+    for key in variables:
+        value = value.replace(f"`{key}", f"`{prefix}_{key}")
+    return value
+
+
+def variable_description(key):
+    return VARIABLE_DESCRIPTIONS.get(
+        key,
+        "Copy this identifier from an authorized response for this target. / "
+        "Copia este identificador de una respuesta autorizada de este destino.",
+    )
+
+
 def generate(spec, check=False):
     spanish = json.loads((ROOT / "docs/postman/operation-labels.es.json").read_text())
+    demo = json.loads((ROOT / "simulator/postman/demo.json").read_text())
     # Local routes are intentionally absent from the production contract.
     local = copy.deepcopy(spec)
     login = copy.deepcopy(spec["paths"]["/v1/auth/login"]["post"])
@@ -185,20 +260,7 @@ def generate(spec, check=False):
     folders = {key: [] for key, _ in GROUPS}
     rows = {key: [] for key, _ in GROUPS}
     details = {key: [] for key, _ in GROUPS}
-    all_vars = {
-        "base_url": "https://realityos.luxisoft.com",
-        "email": "",
-        "password": "",
-        "access_token": "",
-        "refresh_token": "",
-        "workspace_id": "",
-        "language": "en",
-        "enable_write_requests": "false",
-        "device_id": "",
-        "device_key": "",
-        "integration_key": "",
-        "token": "",
-    }
+    all_vars = dict(DEFAULT_VARIABLES)
     for path, methods in local["paths"].items():
         for method, op in methods.items():
             if method not in METHODS:
@@ -293,6 +355,14 @@ def generate(spec, check=False):
                         request["body"]["raw"] = request["body"]["raw"].replace(
                             "{{access_token}}", "{{facebook_access_token}}"
                         )
+                    if path == "/v1/auth/change-pending-email":
+                        request["body"]["raw"] = request["body"]["raw"].replace(
+                            "{{email}}", "{{new_email}}"
+                        )
+                    if path == "/v1/auth/reset-password":
+                        request["body"]["raw"] = request["body"]["raw"].replace(
+                            "{{password}}", "{{new_password}}"
+                        )
                     request["header"].append(
                         {"key": "Content-Type", "value": "application/json"}
                     )
@@ -328,10 +398,18 @@ def generate(spec, check=False):
             tests = [
                 'pm.test("Successful response / Respuesta correcta", () => pm.expect(pm.response.code).to.be.below(400));'
             ]
-            if path in AUTH_POSTS:
+            if path in AUTH_POSTS | {"/v1/auth/facebook", "/v1/auth/guest"}:
                 tests += [
                     'pm.test("Login succeeds / Acceso correcto", () => pm.expect(pm.response.code).to.eql(200));',
-                    'if (pm.response.code === 200) { const b = pm.response.json(); if (b.access_token && b.refresh_token) { pm.environment.set("access_token", b.access_token); pm.environment.set("refresh_token", b.refresh_token); } }',
+                    "if (pm.response.code === 200) {",
+                    "  const b = pm.response.json();",
+                    '  if (typeof b.access_token === "string" && b.access_token && typeof b.refresh_token === "string" && b.refresh_token) {',
+                    '    pm.collectionVariables.set("access_token", b.access_token);',
+                    '    pm.collectionVariables.set("refresh_token", b.refresh_token);',
+                    '    if (pm.environment.has("access_token")) pm.environment.set("access_token", b.access_token);',
+                    '    if (pm.environment.has("refresh_token")) pm.environment.set("refresh_token", b.refresh_token);',
+                    "  }",
+                    "}",
                 ]
             events = [
                 {"listen": "test", "script": {"type": "text/javascript", "exec": tests}}
@@ -344,7 +422,7 @@ def generate(spec, check=False):
                         "script": {
                             "type": "text/javascript",
                             "exec": [
-                                'if (pm.environment.get("enable_write_requests") !== "true") { console.warn("Skipped write. Enable enable_write_requests explicitly. / Escritura omitida."); pm.execution.skipRequest(); }'
+                                'if (pm.variables.get("enable_write_requests") !== "true") { console.warn("Skipped write. / Escritura omitida: activa la variable enable_write_requests de este destino."); pm.execution.skipRequest(); }'
                             ],
                         },
                     },
@@ -441,7 +519,7 @@ def generate(spec, check=False):
             "script": {
                 "type": "text/javascript",
                 "exec": [
-                    'if (!pm.environment.get("workspace_id")) { throw new Error("Choose workspace_id from your authorized workspaces. / Selecciona workspace_id explícitamente."); }'
+                    'if (!pm.variables.get("workspace_id")) { throw new Error("Choose workspace_id from your authorized workspaces. / Selecciona workspace_id de este destino explícitamente."); }'
                 ],
             },
         },
@@ -450,32 +528,60 @@ def generate(spec, check=False):
         "info": {
             "name": "RealityOS API · EN / ES",
             "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-            "description": "Import an example environment and enter your credentials locally. Select workspace_id explicitly. / Importa un entorno y completa tus credenciales localmente. Selecciona workspace_id explícitamente. Files must be chosen locally. / Selecciona los archivos desde tu equipo.",
+            "description": "Two independent folders: Consultas servidor (https://realityos.luxisoft.com) and Consultas localhost (http://localhost:8080). All variables, public demo credentials and demo workspace IDs are included; environments are optional. Run 00 Quick start inside the chosen folder to log in, save tokens and query. The demo role is query-only in an empty test workspace; use your own authorized account for writes and real data. Enable the local demo once with scripts/local/Enable-PostmanDemo.ps1. / Dos carpetas independientes con variables, cuenta pública de prueba y espacio demo preconfigurados. Ejecuta 00 Quick start dentro del destino elegido para autenticar, guardar tokens y consultar. La cuenta demo tiene rol de consulta en un espacio vacío; para escrituras y datos propios usa tu cuenta autorizada. En localhost activa primero la demo con scripts/local/Enable-PostmanDemo.ps1. Los tokens de sesión nunca se incluyen en el archivo publicado.",
         },
-        "item": [{"name": "00 Quick start / Inicio rápido", "item": quick}]
-        + [
-            {"name": f"{n:02} {title}", "item": folders[key]}
-            for n, (key, title) in enumerate(GROUPS, 1)
-            if folders[key]
-        ],
+        "item": [],
+        "variable": [],
     }
-    write(
-        "docs/postman/RealityOS.postman_collection.json",
-        json.dumps(collection, indent=2, ensure_ascii=False) + "\n",
-        check,
-    )
-    for realm, url in [
-        ("public", "https://realityos.luxisoft.com"),
-        ("local", "http://localhost:8080"),
-    ]:
+    for realm, prefix, title, url in TARGETS:
+        target_quick = copy.deepcopy(quick)
+        target_folders = [
+            {
+                "name": "00 Quick start / Inicio rápido",
+                "description": "Run this subfolder: health, login, current user, workspaces and query. Demo credentials and workspace are already configured; session tokens are saved automatically. / Ejecuta esta subcarpeta: salud, login, usuario, espacios y consulta. Credenciales y espacio demo ya configurados; los tokens se guardan automáticamente.",
+                "item": target_quick,
+            }
+        ]
+        target_folders += [
+            {"name": f"{n:02} {label}", "item": folders[key]}
+            for n, (key, label) in enumerate(GROUPS, 1)
+            if folders[key] and (realm == "local" or key != "local")
+        ]
+        collection["item"].append(
+            {
+                "name": title,
+                "description": f"{url} · Variables: {prefix}_* · "
+                "Independent credentials, session and resource IDs. / Credenciales, sesión e IDs independientes.",
+                "item": target_item(target_folders, prefix, all_vars),
+            }
+        )
         variables = dict(all_vars, base_url=url)
+        for key in (
+            "email",
+            "username",
+            "password",
+            "display_name",
+            "user_id",
+            "workspace_id",
+        ):
+            variables[key] = demo[prefix][key]
+        collection["variable"].extend(
+            {
+                "key": f"{prefix}_{k}",
+                "value": v,
+                "type": "string",
+                "description": variable_description(k),
+            }
+            for k, v in sorted(variables.items())
+        )
         env = {
-            "name": f"RealityOS {realm} · example",
+            "name": f"RealityOS · {title}",
             "values": [
                 {
-                    "key": k,
+                    "key": f"{prefix}_{k}",
                     "value": v,
                     "enabled": True,
+                    "description": variable_description(k),
                     "type": "secret"
                     if any(s in k for s in ["password", "token", "key"])
                     and k != "enable_write_requests"
@@ -487,9 +593,14 @@ def generate(spec, check=False):
         }
         write(
             f"docs/postman/RealityOS.{realm}.postman_environment.json",
-            json.dumps(env, indent=2) + "\n",
+            json.dumps(env, indent=2, ensure_ascii=False) + "\n",
             check,
         )
+    write(
+        "docs/postman/RealityOS.postman_collection.json",
+        json.dumps(collection, indent=2, ensure_ascii=False) + "\n",
+        check,
+    )
     for lang in ["en", "es"]:
         es = lang == "es"
         suffix = ".es" if es else ""
@@ -501,6 +612,11 @@ def generate(spec, check=False):
                 "Generada del contrato. Los nombres de operaciones y campos conservan los identificadores del API. ✓ = obligatorio. Los ejemplos requieren tus identificadores y archivos; no son respuestas capturadas de producción."
                 if es
                 else "Generated from the contract. Operation and field names preserve API identifiers. ✓ = required. Examples need your own identifiers and files; they are not captured production responses."
+            ),
+            (
+                "Los ejemplos de referencia usan variables sin prefijo. La colección descargable incluye las carpetas Consultas servidor y Consultas localhost y añade respectivamente `server_` o `localhost_` a cada variable, con cuenta y espacio demo preconfigurados."
+                if es
+                else "Reference examples use unprefixed variables. The downloadable collection includes Consultas servidor and Consultas localhost folders and prefixes each variable with `server_` or `localhost_`, with demo credentials and workspace IDs preconfigured."
             ),
             "Bearer = "
             + (

@@ -243,3 +243,31 @@ sincronización repetida y migración sobre bases nuevas/existentes.
 Android: 220 pruebas aprobadas, con PATCH real contra MockWebServer, campos Facebook bloqueados, borrado de fecha, actualización de cabecera y 320 dp/texto al 200 %. Capturas nativas ES/EN revisadas. La prueba usa OkHttp para PATCH porque URLConnection de la JVM de escritorio no admite ese método; el transporte Android de producción no cambia.
 
 Formato, lint, estructura y builds Debug/Release aprobados. APK Debug instalable reemplazado en la ruta habitual. Pendientes: dispositivo físico e inicio real con Facebook.
+
+
+## Demo Postman servidor/local — 2026-11-03
+
+La colección incluye **Consultas servidor** y **Consultas localhost**, con
+96 variables declaradas y 324 solicitudes entre ambos destinos. Cada carpeta
+usa URL, credenciales, tokens, IDs y control de escritura independientes.
+Funciona sin entorno; los dos entornos opcionales reflejan las variables de
+su destino. A petición del propietario se incluyen credenciales públicas de
+prueba e IDs explícitos de usuario/espacio desde `simulator/postman/demo.json`.
+No se exportan otras credenciales ni tokens de sesión.
+
+Se provisionó la cuenta demo del servidor en su propio espacio vacío con rol
+de consulta, sin membresías en espacios existentes. Newman ejecutó el inicio
+rápido y la renovación contra el API público: siete respuestas HTTP 200 y
+nueve aserciones aprobadas; identidad, único espacio, resultado vacío y uso de
+la sesión renovada verificados. No se crearon medios ni se enviaron correos.
+
+Validación: 451 pruebas backend/gateway, scripts de 324 solicitudes Postman,
+166 controles de escritura, regeneración sin diferencias, formato/lint y
+estructura aprobados. Cobertura de sesiones separadas, errores de acceso y
+renovación, colisiones de cuentas, creación idempotente, permisos y aislamiento
+de espacios. Sin cambios de fuentes backend/Android ni contrato API.
+
+La preparación local es explícita con `scripts/local/Enable-PostmanDemo.ps1`,
+usa solo el proyecto Compose local y crea otras credenciales demo. Creación,
+login, renovación y permisos probados con base aislada; la ejecución física en
+Windows Docker Desktop sigue pendiente. Instrucciones en [API / Postman](API.es.md).

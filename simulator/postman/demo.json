@@ -1,0 +1,21 @@
+{
+  "description": "Public Postman demonstration accounts. These credentials are intentionally published, never production operator credentials.",
+  "server": {
+    "user_id": "183cdf56-5dbd-582c-9dba-f93c3636e2c5",
+    "workspace_id": "4c9d6093-ba49-57b6-8043-381d9a519f0f",
+    "email": "postman-demo@realityos.example.test",
+    "username": "postman_demo",
+    "password": "RealityOS-Postman-Demo-2026!",
+    "display_name": "Postman Demo (public test account)",
+    "workspace_name": "Postman Demo - public test workspace"
+  },
+  "localhost": {
+    "user_id": "77195af3-fe47-5a89-8475-23ffc3c05d3c",
+    "workspace_id": "14c0ecd6-14d0-5c0b-9095-1de45e926543",
+    "email": "postman-local@realityos.example.test",
+    "username": "postman_local",
+    "password": "RealityOS-Postman-Local-2026!",
+    "display_name": "Postman Local (test account)",
+    "workspace_name": "Postman Demo - localhost test workspace"
+  }
+}

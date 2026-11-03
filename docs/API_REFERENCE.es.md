@@ -6,6 +6,8 @@
 
 Generada del contrato. Los nombres de operaciones y campos conservan los identificadores del API. ✓ = obligatorio. Los ejemplos requieren tus identificadores y archivos; no son respuestas capturadas de producción.
 
+Los ejemplos de referencia usan variables sin prefijo. La colección descargable incluye las carpetas Consultas servidor y Consultas localhost y añade respectivamente `server_` o `localhost_` a cada variable, con cuenta y espacio demo preconfigurados.
+
 Bearer = sesión de usuario; device = credenciales de dispositivo; integration = clave de integración; signed = enlace temporal; none = sin credenciales de transporte.
 
 ## Acceso
@@ -95,9 +97,9 @@ Respuestas declaradas: `200`.
 ```json
 
 {
-  "username": "example-username",
+  "username": "{{username}}",
   "email": "{{email}}",
-  "display_name": "example-display_name",
+  "display_name": "{{display_name}}",
   "password": "{{password}}"
 }
 
@@ -140,8 +142,8 @@ Respuestas declaradas: `202`, `422`.
 ```json
 
 {
-  "username": "example-username",
-  "email": "{{email}}",
+  "username": "{{username}}",
+  "email": "{{new_email}}",
   "password": "{{password}}"
 }
 
@@ -204,7 +206,7 @@ Respuestas declaradas: `202`, `422`.
 
 {
   "token": "{{token}}",
-  "password": "{{password}}"
+  "password": "{{new_password}}"
 }
 
 ```
@@ -646,8 +648,8 @@ Respuestas declaradas: `200`, `422`.
 ```json
 
 {
-  "username": "example-username",
-  "display_name": "example-display_name"
+  "username": "{{username}}",
+  "display_name": "{{display_name}}"
 }
 
 ```
@@ -670,8 +672,8 @@ Respuestas declaradas: `201`, `422`.
 ```json
 
 {
-  "question": "Where were the documents last seen?",
-  "language": "es"
+  "question": "{{query}}",
+  "language": "{{language}}"
 }
 
 ```
@@ -1210,8 +1212,8 @@ Respuestas declaradas: `202`, `422`.
 
 {
   "workspace_id": "{{workspace_id}}",
-  "question": "Where were the documents last seen?",
-  "language": "en"
+  "question": "{{query}}",
+  "language": "{{language}}"
 }
 
 ```
@@ -1418,7 +1420,7 @@ Respuestas declaradas: `200`, `422`.
 
 {
   "text": "Where were the documents last seen?",
-  "language": "es"
+  "language": "{{language}}"
 }
 
 ```
@@ -1718,7 +1720,7 @@ Respuestas declaradas: `200`, `422`.
 ```json
 
 {
-  "language": "example-language",
+  "language": "{{language}}",
   "text": "Where were the documents last seen?"
 }
 
@@ -1942,8 +1944,8 @@ Respuestas declaradas: `200`.
 ```json
 
 {
-  "language": "example-language",
-  "question": "Where were the documents last seen?"
+  "language": "{{language}}",
+  "question": "{{query}}"
 }
 
 ```
@@ -2156,7 +2158,7 @@ Respuestas declaradas: `200`, `422`.
 ```json
 
 {
-  "language": "en",
+  "language": "{{language}}",
   "items": [
     {
       "evidence_id": "{{evidence_id}}",
@@ -2185,7 +2187,7 @@ Respuestas declaradas: `200`, `422`.
 ```json
 
 {
-  "language": "en",
+  "language": "{{language}}",
   "items": [
     {
       "evidence_id": "{{evidence_id}}",
@@ -2426,8 +2428,8 @@ Respuestas declaradas: `200`, `422`.
 
 {
   "workspace_id": "{{workspace_id}}",
-  "question": "Where were the documents last seen?",
-  "language": "en"
+  "question": "{{query}}",
+  "language": "{{language}}"
 }
 
 ```

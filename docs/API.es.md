@@ -6,28 +6,37 @@
 
 [📥 Colección Postman](https://raw.githubusercontent.com/Luxisoft/realityos-spatial-memory/main/docs/postman/RealityOS.postman_collection.json) · [Entorno público](https://raw.githubusercontent.com/Luxisoft/realityos-spatial-memory/main/docs/postman/RealityOS.public.postman_environment.json) · [Entorno local](https://raw.githubusercontent.com/Luxisoft/realityos-spatial-memory/main/docs/postman/RealityOS.local.postman_environment.json) · [Referencia completa](API_REFERENCE.es.md) · [Índice](README.es.md)
 
-## Probar en cinco pasos
+## Probar con la cuenta incluida
 
-| Paso | Acción | Resultado |
+1. Descarga e importa **RealityOS.postman_collection.json**. El archivo incluye todas las variables: no necesitas importar un entorno ni copiar credenciales para la demo.
+2. Abre **Consultas servidor → 00 Quick start / Inicio rápido** y ejecuta esa subcarpeta con **Run**. Hace login, guarda los tokens, consulta tu usuario, lista los espacios y envía una consulta al espacio demo.
+3. Para localhost, inicia tu instalación y ejecuta una sola vez `powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\local\Enable-PostmanDemo.ps1`. Después ejecuta **Consultas localhost → 00 Quick start / Inicio rápido**. Este paso crea una cuenta local independiente; no copia cuentas ni claves del servidor.
+
+| Configuración incluida | Consultas servidor | Consultas localhost |
 | --- | --- | --- |
-| 1 | Descarga la colección y un entorno. En Postman, **Import → Files**, selecciona ambos JSON y activa el entorno. | Solicitudes organizadas y variables disponibles. |
-| 2 | Completa `email` y `password` localmente. `email` admite también un usuario de evaluación. | Credenciales de tu cuenta confirmada o provisionada. |
-| 3 | Ejecuta **00 Inicio rápido → POST /v1/auth/login**. | Guarda `access_token` y `refresh_token` en el entorno tras un acceso correcto. |
-| 4 | Ejecuta **GET /v1/workspaces** y copia el ID del espacio que quieres probar a `workspace_id`. | Selección explícita de un espacio al que perteneces. |
-| 5 | Envía **POST /v1/queries** con tu pregunta. | Evidencia existente o resultado sin coincidencia; no inicia una captura. |
+| URL | `https://realityos.luxisoft.com` | `http://localhost:8080` |
+| Prefijo de variables | `server_` | `localhost_` |
+| Cuenta pública de prueba | `postman-demo@realityos.example.test` | `postman-local@realityos.example.test` |
+| Contraseña pública de prueba | `RealityOS-Postman-Demo-2026!` | `RealityOS-Postman-Local-2026!` |
+| Espacio | Postman Demo - public test workspace | Postman Demo - localhost test workspace |
+| Rol en ese espacio | Consulta, sin administración ni captura | Consulta, sin administración ni captura |
 
-El registro público requiere confirmar el correo. Las cuentas ficticias del jurado se provisionan por administración: no reciben correo en `example.test`. Solicita la contraseña demo de tu invitación; no uses claves del proveedor como contraseña.
+Los IDs de usuario y espacio ya están configurados. El espacio demo está vacío y una consulta puede devolver que no hay coincidencias; no se inventa evidencia. Las cuentas son compartidas y sus contraseñas están publicadas expresamente para esta demo. Las rutas de escritura, dispositivos, integración y recursos existentes requieren una cuenta con los permisos correspondientes y los IDs/archivos de esa cuenta.
+
+Para usar una cuenta propia, edita **Collection → Variables**: cambia `server_email`, `server_password` y `server_workspace_id` (o sus equivalentes `localhost_`), vacía los tokens anteriores y vuelve a ejecutar login. Copia el nuevo espacio de `GET /v1/workspaces`. Los entornos descargables son opcionales y contienen el mismo conjunto de variables de cada destino; si activas uno, edita sus valores porque prevalecen sobre los de la colección. Los tokens reales se guardan después del login, nunca se publican en el JSON de GitHub. Consulta el [alcance de variables de Postman](https://learning.postman.com/docs/sending-requests/variables/variables/).
+
+El registro de cuentas propias requiere confirmar un correo real. La cuenta demo provisionada no necesita confirmación y `example.test` no recibe correos.
 
 ```mermaid
 sequenceDiagram
     actor U as Usuario
     participant P as Postman
     participant A as API
-    U->>P: Seleccionar entorno y credenciales
+    U->>P: Elegir carpeta servidor o localhost
     P->>A: Login
     A-->>P: Tokens de sesión
     P->>A: Listar espacios autorizados
-    U->>P: Elegir workspace_id
+    U->>P: Usar espacio demo o elegir el propio
     P->>A: Consultar evidencia
     A-->>P: Resultado, fecha y fuente
 ```
@@ -51,27 +60,30 @@ sequenceDiagram
 
 [Todos los métodos, campos y respuestas declaradas →](API_REFERENCE.es.md)
 
-## Servidor y autenticación
+## Variables y autenticación
 
-| Variable / acceso | Uso |
+Todas las variables llevan `server_` o `localhost_`. Cada carpeta referencia exclusivamente su prefijo, incluidos tokens, IDs y controles de escritura. Las rutas locales adicionales solo aparecen dentro de **Consultas localhost → Solo instalación local**.
+
+| Variable (añadir el prefijo) | Valor o uso |
 | --- | --- |
-| `base_url` | `https://realityos.luxisoft.com` o `http://localhost:8080`; **sin `/v1` final**, porque cada solicitud ya contiene su ruta. |
-| `email`, `password` | Solo en tu entorno local de Postman. |
-| `access_token`, `refresh_token` | Se actualizan tras login/renovación; no exportarlos a Git. |
-| `workspace_id` y demás IDs | Copiarlos de respuestas autorizadas; la colección no inventa pertenencia ni elige el primer espacio. |
-| Bearer | `Authorization: Bearer {{access_token}}` para usuarios. |
-| Dispositivo | `X-RealityOS-Device-ID` y `X-RealityOS-Device-Key`; se obtienen al provisionar el dispositivo. |
-| Integración | `X-RealityOS-Integration-Key`; se entrega al crear una conexión autorizada. |
-| Enlace firmado | Contiene un token temporal para un recurso concreto; no sirve como sesión general. |
+| `base_url` | URL preconfigurada, sin `/v1`. Si cambias `LOCAL_HTTP_PORT`, actualiza `localhost_base_url`. |
+| `email`, `username`, `password`, `display_name` | Cuenta demo preconfigurada; sustituibles por tu cuenta. |
+| `access_token`, `refresh_token` | Se guardan por destino después de login y renovación correctos, incluso sin entorno activo. |
+| `user_id`, `workspace_id` | IDs de la cuenta y espacio demo; se mantienen separados por destino. |
+| `query`, `language` | Pregunta de ejemplo e idioma (`en` o `es`), editables. |
+| `new_email`, `new_password` | Destino nuevo o contraseña nueva para corregir/recuperar una cuenta propia; no reemplazan las credenciales actuales. |
+| Otros IDs | Declarados y descritos; completar con respuestas autorizadas. No hay IDs ficticios de medios o expedientes inexistentes. |
+| `device_id`, `device_key`, `integration_key`, `facebook_access_token`, `token` | Se obtienen al provisionar el dispositivo/integración, iniciar Facebook o recibir un enlace; no son credenciales de la demo. |
+| `enable_write_requests` | `false` inicialmente; el control es independiente por destino. |
 
-El entorno local presupone una instalación Windows ya preparada con credenciales propias. Las rutas de la carpeta **Solo instalación local** no existen en producción. [Instalar Windows](DEPLOYMENT_LOCALHOST.es.md).
+[Preparar la instalación Windows](DEPLOYMENT_LOCALHOST.es.md). La colección no instala el backend local.
 
 ## Archivos, ejemplos y ejecución
 
 - En **Body → form-data**, selecciona tu archivo en el campo de tipo File. Activa el campo si es opcional y desactivado. Postman añade el `Content-Type` multipart y su boundary.
 - Consulta por imagen: JPEG/PNG/WebP; consulta de voz: WAV. Capturas admiten imagen y video conforme al contrato. Los CV aceptan PDF/DOCX.
 - Los cuerpos incluidos son plantillas sintéticas: completa los campos y sustituye IDs antes de enviar. Para un rostro, selecciona una foto/video autorizado o un medio existente; una imagen de enrolamiento repetida solo prueba integración.
-- Las escrituras se omiten mientras `enable_write_requests=false`. Actívalo explícitamente para una prueba de captura, enrolamiento o administración. Ejecuta primero una solicitud individual; ejecutar toda la colección incluye operaciones de alta, revocación y borrado.
+- Las escrituras se omiten mientras `server_enable_write_requests=false` / `localhost_enable_write_requests=false`. Actívalo explícitamente para una prueba de captura, enrolamiento o administración. Ejecuta primero una solicitud individual; ejecutar toda la colección incluye operaciones de alta, revocación y borrado.
 - Consultas con IA, transcripción y voz pueden consumir proveedores aunque no creen evidencia. La colección no hace llamadas por el mero hecho de importarla.
 - Un 200 puede contener `found=false`, resultados parciales o `simulated`. Revisa el cuerpo, la fuente y la fecha. La similitud facial no es probabilidad de identidad.
 
