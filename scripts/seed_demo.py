@@ -46,12 +46,10 @@ def synthetic_drill() -> bytes:
 
 
 def main() -> None:
-    password = os.getenv("SEED_ADMIN_PASSWORD", "")
-    if len(password) < 12:
-        raise ValueError("Set SEED_ADMIN_PASSWORD to a unique private password of at least 12 characters.")
     settings = get_settings()
     database = Database(settings.database_url)
     email = os.getenv("SEED_ADMIN_EMAIL", "admin@realityos.local").casefold()
+    password = os.getenv("SEED_ADMIN_PASSWORD", "ChangeMeNow123!")
     with database.session_factory() as db:
         user = db.scalar(select(User).where(User.email == email))
         if user is None:

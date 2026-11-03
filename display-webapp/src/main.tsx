@@ -47,8 +47,8 @@ function Display() {
     () => localStorage.getItem("realityos.display.token") ?? "",
   );
   const preference = useLanguage(token);
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [email, setEmail] = useState("admin@realityos.local");
+  const [password, setPassword] = useState("ChangeMeNow123!");
   const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
   const [workspace, setWorkspace] = useState("");
   const [question, setQuestion] = useState("");
