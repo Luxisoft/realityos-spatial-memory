@@ -594,3 +594,12 @@ Meta de FRONTEND y el ingreso bajo demanda permanecen. `/` y `/display/` devuelv
 El acceso Android muestra Continuar con correo y abre Iniciar sesión; registro,
 recuperación y reenvío son flujos secundarios. Correos HTML/texto y páginas de
 autenticación usan el tema Android y ES/EN. No hay migración.
+
+
+## Acceso por correo Android — revisión visual
+
+Las pantallas de cuenta comparten ahora cabecera de marca, ilustraciones
+vectoriales locales por estado, campos con iconos/autofill y confirmación con
+destinatario, corrección y reenvío. Validación por campo y adaptación al teclado;
+se conservan los contratos y el tema global. Ver UI_DESIGN.md y los resultados
+de validación en IMPLEMENTATION_STATUS.md. Sin cambios de servidor.

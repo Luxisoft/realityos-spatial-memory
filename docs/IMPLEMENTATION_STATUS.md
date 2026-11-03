@@ -1700,3 +1700,26 @@ Rollback de backend: `.runtime/android-auth-20261102-rollback.json`; configuraci
 anterior Nginx: `.runtime/android-auth-20261102-nginx-rollback.conf`. Las webs
 retiradas no deben reactivarse al revertir el backend. Evidencia privada en
 `.runtime/android-auth-20261102/verified.json`.
+
+
+## Rediseño gráfico de cuentas Android — 2026-11-03
+
+Ingreso, registro, recuperación, reenvío y confirmación rediseñados con cabecera
+de marca, ilustraciones vectoriales Canvas, iconos de campos, fondos discretos,
+jerarquía de acciones y estados completos. Se conserva el tema gris/azul. La
+validación explica errores y enfoca el primer campo incorrecto; el botón solo
+se bloquea durante la petición. Autofill, teclado, visibilidad de contraseña,
+corrección del correo y reenvío desde confirmación implementados.
+
+198 pruebas Android aprobadas, incluidas 10 de cuentas; formato y lint aprobados.
+Capturas de vistas Compose con renderizado nativo Robolectric en ES/EN, anchos
+320/390/480 dp, texto al 200 %, estados de carga/error y espacio de teclado
+simulado. Capturas en `android/app/build/outputs/account-design/`, retenidas
+también por CI; lámina de revisión local `.runtime/account-design-review.png`.
+Estos resultados no sustituyen pruebas de teclado/autofill en teléfono físico.
+No se enviaron correos reales. Sin cambios de backend, API o biometría.
+
+Builds Debug y Release finalizados correctamente. APK instalable reemplazado
+en `android/app/build/outputs/apk/debug/app-debug.apk`; SHA-256
+`c7a75fe17d97986956403d9a402afe8cc079fdf178b2e5f13b8f8e23692f8732`.
+La revisión física del teléfono y del proveedor de autofill queda pendiente.

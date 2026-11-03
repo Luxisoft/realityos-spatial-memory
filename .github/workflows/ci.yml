@@ -134,5 +134,6 @@ jobs:
           path: |
             android/app/build/outputs/androidTest-results/
             android/app/build/reports/androidTests/
+            android/app/build/outputs/account-design/
           if-no-files-found: ignore
           retention-days: 7

@@ -41,3 +41,30 @@ profiles reuse the header without owner controls. Resume upload lives inside
 Edit profile; EN/ES is a segmented selector inside the menu, persisted to the
 account with an inline retryable save error. Identity reference photos never
 form the publication grid; explicit phone/glasses photos and MP4s do.
+
+
+## Formularios Android de cuenta — revisión gráfica
+
+Ingreso, registro, recuperación, reenvío y confirmación comparten cabecera con
+regreso y marca, una composición vectorial de observaciones conectadas y un
+símbolo por acción. Los dibujos se renderizan localmente con Canvas e iconos
+vectoriales; no hay bitmaps ni descargas de recursos. La ilustración cede espacio
+al formulario al abrir el teclado. Registro usa una versión más compacta.
+
+El fondo sigue siendo `#262729`, los campos usan `#2D3034`, texto secundario
+`#AAB4AF` y acento `#62A9F8`. Título de 27 sp, campos con iconos y radios de 12 dp,
+acción principal de al menos 56 dp, objetivos táctiles de 48 dp y márgenes de
+24 dp. El texto oscuro del botón azul mejora su legibilidad sin cambiar el
+tema general. Se conserva una sola pantalla de registro.
+
+Los errores aparecen junto al campo al salir o enviar, con foco en el primer
+error. El envío se bloquea únicamente durante la petición. Hay autofill,
+Siguiente/Hecho, visibilidad de contraseña y estados de confirmación con correo
+destinatario, corrección y reenvío. Las respuestas conservan la protección contra
+enumeración de cuentas. Los gráficos son decorativos para TalkBack; los controles
+tienen etiquetas y los mensajes anuncian sus cambios. Textos ES/EN.
+
+`AccountEntryTest` recorre estados reales Compose y genera capturas en
+`android/app/build/outputs/account-design/` con renderizado nativo Robolectric.
+Incluye 320, 390 y 480 dp y texto al 200 %. Son capturas de Android en pruebas,
+no una prueba de teléfono físico.

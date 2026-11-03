@@ -39,4 +39,25 @@
     <string name="account_back_login">Back to sign in</string>
     <string name="account_show_password">Show</string>
     <string name="account_hide_password">Hide</string>
+    <string name="account_login_description">Your memories, your spaces. Pick up where you left off.</string>
+    <string name="account_register_title">Create your account</string>
+    <string name="account_register_description">A place for what matters. Start with your details.</string>
+    <string name="account_recover_title">Recover your access</string>
+    <string name="account_recover_description">Enter your email to request a link to reset your password.</string>
+    <string name="account_confirm_title">Confirm your email</string>
+    <string name="account_resend_description">One more step to get started. Request a new confirmation link.</string>
+    <string name="account_send_link">Send reset link</string>
+    <string name="account_check_inbox">Check your email</string>
+    <string name="account_sent_description">If your account is eligible, a link will arrive at this address.</string>
+    <string name="account_inbox_hint">Check your inbox and spam folder. The link is valid for 30 minutes.</string>
+    <string name="account_edit_email">Change email address</string>
+    <string name="account_send_again">Request another link</string>
+    <string name="account_new_here">New to RealityOS?</string>
+    <string name="account_unconfirmed">Email not confirmed yet?</string>
+    <string name="account_username_hint">3–64 characters. Start with a letter; use letters, numbers, dots, hyphens or underscores.</string>
+    <string name="account_name_error">Enter your name (up to 160 characters).</string>
+    <string name="account_identifier_error">Enter your username or email.</string>
+    <string name="account_email_error">Enter a valid email address.</string>
+    <string name="account_password_error">Enter your password (up to 512 characters).</string>
+    <string name="account_resent_notice">Another link has been requested. Check your email.</string>
 </resources>
