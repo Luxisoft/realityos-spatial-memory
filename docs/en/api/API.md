@@ -10,7 +10,7 @@
 
 ## Server and localhost: Import → Send
 
-**The collection has exactly two top-level folders: Server requests and Localhost requests.** Both include the full catalog and a quick start with URL, username, password, workspace and question prefilled. Server requests also retains the 39 ready queries against the existing jury data.
+**The collection has exactly two top-level folders: Server requests and Localhost requests.** Both include the full catalog and a quick start with URL, username, password, workspace and question prefilled. Server requests also retains the ready queries against the existing jury data.
 
 1. In Postman, click **Import** and paste this link:
 
@@ -29,7 +29,7 @@
 
 These three evaluation accounts and passwords are public with the owner's authorization of November 3, 2026. They retain their existing administrator role in their workspace. The evaluation collection reads existing data. The server and providers are live; the prepared fictional people and scenes retain their recorded provenance.
 
-Each scenario under **Server requests → 00 Live scenarios** covers the current session, login, refresh, workspaces, record lists and details, revisions, gallery posts, image download, profiles and AI queries. Police opens case 1; Nursing opens Ana Solis; Memory opens Luis Moreno. The server contains 47 records and 21 group publications. Responses are fetched from the server when the request is sent.
+Each scenario under **Server requests → 00 Live scenarios** covers the current session, login, refresh, workspaces, record lists and details, revisions, gallery posts, image download, profiles and AI queries. Police opens case 1; Nursing opens Ana Solis; Memory opens Luis Moreno. Responses are fetched from the server when the request is sent.
 
 The optional [server environment](../../postman/RealityOS.public.postman_environment.json) and [localhost environment](../../postman/RealityOS.local.postman_environment.json) contain the values for each destination. Replacing them with your own account is entirely optional. [Use these accounts in Android](../guides/DEMO.md#access).
 
@@ -69,7 +69,7 @@ The `server_` and `localhost_` prefixes separate the destinations. Server scenar
 
 ## Complete reference for integrators
 
-The main collection contains all 354 API templates plus the 39 live scenario queries: 393 total. The full catalog remains inside each destination. The [reference collection](../../postman/RealityOS.reference.postman_collection.json) is also available. Those templates need each operation's own permissions, files and credentials. Its optional environments are [server](../../postman/RealityOS.reference.postman_environment.json) and [localhost](../../postman/RealityOS.local.postman_environment.json). Importing an environment is optional for both folders in the main collection.
+The main collection contains the 176 server operations in each catalog, the two localhost-only operations, quick starts and evaluation scenarios. The full catalog remains inside each destination. The [reference collection](../../postman/RealityOS.reference.postman_collection.json) is also available. Those templates need each operation's own permissions, files and credentials. Its optional environments are [server](../../postman/RealityOS.reference.postman_environment.json) and [localhost](../../postman/RealityOS.local.postman_environment.json). Importing an environment is optional for both folders in the main collection.
 
 Reference writes retain `enable_write_requests=false`. The [Windows installation](../deployment/DEPLOYMENT_LOCALHOST.md) remains optional and is not needed to evaluate the existing server data.
 

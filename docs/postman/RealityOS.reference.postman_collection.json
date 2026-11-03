@@ -4022,7 +4022,7 @@
                       "key": "publish",
                       "type": "text",
                       "disabled": true,
-                      "value": "False"
+                      "value": "false"
                     },
                     {
                       "key": "author_id",
@@ -4807,7 +4807,7 @@
                     "value": "application/json"
                   }
                 ],
-                "description": "Grant Consent\n\nExplicit action (write or provider call). Set `server_enable_write_requests=true` to send.\n\nUse your authorized workspace and role. Provider calls may incur costs.",
+                "description": "Grant Consent\n\nExplicit action (write or provider call). Set `server_enable_write_requests=true` to send.\n\nUse your authorized workspace and role. Provider calls may incur costs.\n\nRead GET /v1/faces/consent first. Set confirm=true only after the account holder accepts biometric enrollment. The example does not grant consent automatically.",
                 "url": {
                   "raw": "{{server_base_url}}/v1/faces/consent",
                   "host": [
@@ -4943,7 +4943,7 @@
                         "value": "application/json"
                       }
                     ],
-                    "description": "Grant Consent\n\nExplicit action (write or provider call). Set `server_enable_write_requests=true` to send.\n\nUse your authorized workspace and role. Provider calls may incur costs.",
+                    "description": "Grant Consent\n\nExplicit action (write or provider call). Set `server_enable_write_requests=true` to send.\n\nUse your authorized workspace and role. Provider calls may incur costs.\n\nRead GET /v1/faces/consent first. Set confirm=true only after the account holder accepts biometric enrollment. The example does not grant consent automatically.",
                     "url": {
                       "raw": "{{server_base_url}}/v1/faces/consent",
                       "host": [
@@ -5316,7 +5316,7 @@
               "request": {
                 "method": "POST",
                 "header": [],
-                "description": "Upload Profile Photo\n\nExplicit action (write or provider call). Set `server_enable_write_requests=true` to send.\n\nUse your authorized workspace and role. Provider calls may incur costs.",
+                "description": "Upload Profile Photo\n\nExplicit action (write or provider call). Set `server_enable_write_requests=true` to send.\n\nUse your authorized workspace and role. Provider calls may incur costs.\n\nAfter consent, select one clear portrait as file. This registers the recognition identity; POST /v1/me/profile/avatar separately sets the visible profile picture.",
                 "url": {
                   "raw": "{{server_base_url}}/v1/faces/profile-photo",
                   "host": [
@@ -5449,7 +5449,7 @@
                   "originalRequest": {
                     "method": "POST",
                     "header": [],
-                    "description": "Upload Profile Photo\n\nExplicit action (write or provider call). Set `server_enable_write_requests=true` to send.\n\nUse your authorized workspace and role. Provider calls may incur costs.",
+                    "description": "Upload Profile Photo\n\nExplicit action (write or provider call). Set `server_enable_write_requests=true` to send.\n\nUse your authorized workspace and role. Provider calls may incur costs.\n\nAfter consent, select one clear portrait as file. This registers the recognition identity; POST /v1/me/profile/avatar separately sets the visible profile picture.",
                     "url": {
                       "raw": "{{server_base_url}}/v1/faces/profile-photo",
                       "host": [
@@ -6346,7 +6346,7 @@
               "request": {
                 "method": "POST",
                 "header": [],
-                "description": "Search Faces\n\nRead or session access.\n\nUse your authorized workspace and role. Provider calls may incur costs.",
+                "description": "Search Faces\n\nRead or session access.\n\nUse your authorized workspace and role. Provider calls may incur costs.\n\nSelect probe as a file. To search an existing authorized media asset instead, disable probe and enable media_id. Consent and workspace membership are required.",
                 "url": {
                   "raw": "{{server_base_url}}/v1/faces/search",
                   "host": [
@@ -6386,14 +6386,14 @@
                     {
                       "key": "probe",
                       "type": "file",
-                      "disabled": true,
+                      "disabled": false,
                       "src": ""
                     },
                     {
                       "key": "include_records",
                       "type": "text",
                       "disabled": true,
-                      "value": "True"
+                      "value": "true"
                     }
                   ]
                 }
@@ -6494,7 +6494,7 @@
                   "originalRequest": {
                     "method": "POST",
                     "header": [],
-                    "description": "Search Faces\n\nRead or session access.\n\nUse your authorized workspace and role. Provider calls may incur costs.",
+                    "description": "Search Faces\n\nRead or session access.\n\nUse your authorized workspace and role. Provider calls may incur costs.\n\nSelect probe as a file. To search an existing authorized media asset instead, disable probe and enable media_id. Consent and workspace membership are required.",
                     "url": {
                       "raw": "{{server_base_url}}/v1/faces/search",
                       "host": [
@@ -6534,14 +6534,14 @@
                         {
                           "key": "probe",
                           "type": "file",
-                          "disabled": true,
+                          "disabled": false,
                           "src": ""
                         },
                         {
                           "key": "include_records",
                           "type": "text",
                           "disabled": true,
-                          "value": "True"
+                          "value": "true"
                         }
                       ]
                     }
@@ -6821,7 +6821,7 @@
               "request": {
                 "method": "POST",
                 "header": [],
-                "description": "Add Reference\n\nExplicit action (write or provider call). Set `server_enable_write_requests=true` to send.\n\nUse your authorized workspace and role. Provider calls may incur costs.",
+                "description": "Add Reference\n\nExplicit action (write or provider call). Set `server_enable_write_requests=true` to send.\n\nUse your authorized workspace and role. Provider calls may incur costs.\n\nAfter consent and the recognition profile photo, send one distinct image per request as file. Each must contain exactly one face matching that profile. Accepted references remain private; they are not publications. GET /v1/faces/setup reports accepted_photos and reference_ids. Repeated files do not increase the count; read detail on a 422.",
                 "url": {
                   "raw": "{{server_base_url}}/v1/faces/reference-photos",
                   "host": [
@@ -7199,7 +7199,7 @@
               "request": {
                 "method": "POST",
                 "header": [],
-                "description": "Complete\n\nExplicit action (write or provider call). Set `server_enable_write_requests=true` to send.\n\nUse your authorized workspace and role. Provider calls may incur costs.",
+                "description": "Complete\n\nExplicit action (write or provider call). Set `server_enable_write_requests=true` to send.\n\nUse your authorized workspace and role. Provider calls may incur costs.\n\nRequires consent, a recognition profile photo, a visible avatar and 3–25 distinct accepted references. Check GET /v1/faces/setup before and after completion.",
                 "url": {
                   "raw": "{{server_base_url}}/v1/faces/setup/complete",
                   "host": [
@@ -13912,7 +13912,7 @@
               "request": {
                 "method": "POST",
                 "header": [],
-                "description": "Upload Avatar\n\nExplicit action (write or provider call). Set `server_enable_write_requests=true` to send.\n\nUse your authorized workspace and role. Provider calls may incur costs.",
+                "description": "Upload Avatar\n\nExplicit action (write or provider call). Set `server_enable_write_requests=true` to send.\n\nUse your authorized workspace and role. Provider calls may incur costs.\n\nSelect the visible profile picture as file (JPEG, PNG or WebP). The API normalizes EXIF orientation. This upload does not enroll a reference face.",
                 "url": {
                   "raw": "{{server_base_url}}/v1/me/profile/avatar",
                   "host": [
@@ -14320,7 +14320,7 @@
                 },
                 "body": {
                   "mode": "raw",
-                  "raw": "{}",
+                  "raw": "{\n  \"allowed\": false\n}",
                   "options": {
                     "raw": {
                       "language": "json"
@@ -14582,7 +14582,7 @@
                 },
                 "body": {
                   "mode": "raw",
-                  "raw": "{}",
+                  "raw": "{\n  \"name\": \"New work group\"\n}",
                   "options": {
                     "raw": {
                       "language": "json"
@@ -15998,7 +15998,7 @@
                     "value": "application/json"
                   }
                 ],
-                "description": "Join\n\nExplicit action (write or provider call). Set `server_enable_write_requests=true` to send.\n\nUse your authorized workspace and role. Provider calls may incur costs.",
+                "description": "Join\n\nExplicit action (write or provider call). Set `server_enable_write_requests=true` to send.\n\nUse your authorized workspace and role. Provider calls may incur costs.\n\nSet invite_code to the code returned by POST /v1/groups/{workspace_id}/invite. For a numeric group PIN, use POST /v1/groups/join-by-pin instead.",
                 "url": {
                   "raw": "{{server_base_url}}/v1/groups/join",
                   "host": [
@@ -16022,7 +16022,7 @@
                 },
                 "body": {
                   "mode": "raw",
-                  "raw": "{}",
+                  "raw": "{\n  \"code\": \"{{server_invite_code}}\"\n}",
                   "options": {
                     "raw": {
                       "language": "json"
@@ -16395,7 +16395,7 @@
                     "value": "application/json"
                   }
                 ],
-                "description": "Share\n\nExplicit action (write or provider call). Set `server_enable_write_requests=true` to send.\n\nUse your authorized workspace and role. Provider calls may incur costs.",
+                "description": "Share\n\nExplicit action (write or provider call). Set `server_enable_write_requests=true` to send.\n\nUse your authorized workspace and role. Provider calls may incur costs.\n\nChoose an existing work group in workspace_id; membership is required. Publications cannot use a private or public destination.",
                 "url": {
                   "raw": "{{server_base_url}}/v1/gallery/{{server_post_id}}/share",
                   "host": [
@@ -16420,7 +16420,7 @@
                 },
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"audience\": \"home\"\n}",
+                  "raw": "{\n  \"audience\": \"work\",\n  \"workspace_id\": \"{{server_workspace_id}}\"\n}",
                   "options": {
                     "raw": {
                       "language": "json"
@@ -17043,7 +17043,7 @@
                 },
                 "body": {
                   "mode": "raw",
-                  "raw": "{}",
+                  "raw": "{\n  \"display_name\": \"{{server_display_name}}\"\n}",
                   "options": {
                     "raw": {
                       "language": "json"
@@ -18644,7 +18644,7 @@
                     "value": "application/json"
                   }
                 ],
-                "description": "Publish\n\nExplicit action (write or provider call). Set `server_enable_write_requests=true` to send.\n\nUse your authorized workspace and role. Provider calls may incur costs.",
+                "description": "Publish\n\nExplicit action (write or provider call). Set `server_enable_write_requests=true` to send.\n\nUse your authorized workspace and role. Provider calls may incur costs.\n\nChoose an existing work group in workspace_id; membership is required. Publications cannot use a private or public destination.",
                 "url": {
                   "raw": "{{server_base_url}}/v1/gallery",
                   "host": [
@@ -18667,7 +18667,7 @@
                 },
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"media_id\": \"{{server_media_id}}\"\n}",
+                  "raw": "{\n  \"media_id\": \"{{server_media_id}}\",\n  \"audience\": \"work\",\n  \"workspace_id\": \"{{server_workspace_id}}\"\n}",
                   "options": {
                     "raw": {
                       "language": "json"
@@ -20457,7 +20457,7 @@
               "request": {
                 "method": "POST",
                 "header": [],
-                "description": "Prepare Publication Upload\n\nExplicit action (write or provider call). Set `server_enable_write_requests=true` to send.\n\nUse your authorized workspace and role. Provider calls may incur costs.",
+                "description": "Prepare Publication Upload\n\nExplicit action (write or provider call). Set `server_enable_write_requests=true` to send.\n\nUse your authorized workspace and role. Provider calls may incur costs.\n\nChoose an existing work group in workspace_id; membership is required. Publications cannot use a private or public destination. Select file as a file, not text. Use a new request_key for each new upload; reuse it only when retrying the same attempt. Poll GET /v1/me/publication-uploads/{upload_id} after 202. Confirm or cancel a duplicate using its returned upload ID.",
                 "url": {
                   "raw": "{{server_base_url}}/v1/me/publication-uploads",
                   "host": [
@@ -20497,13 +20497,13 @@
                     {
                       "key": "audience",
                       "type": "text",
-                      "disabled": true,
+                      "disabled": false,
                       "value": "work"
                     },
                     {
                       "key": "workspace_id",
                       "type": "text",
-                      "disabled": true,
+                      "disabled": false,
                       "value": "{{server_workspace_id}}"
                     },
                     {
@@ -21250,7 +21250,7 @@
                     "value": "application/json"
                   }
                 ],
-                "description": "Import Group Publications\n\nExplicit action (write or provider call). Set `server_enable_write_requests=true` to send.\n\nUse your authorized workspace and role. Provider calls may incur costs.",
+                "description": "Import Group Publications\n\nExplicit action (write or provider call). Set `server_enable_write_requests=true` to send.\n\nUse your authorized workspace and role. Provider calls may incur costs.\n\nChoose an existing work group in workspace_id; membership is required. Publications cannot use a private or public destination. Supply 1–100 IDs of publications owned by this account.",
                 "url": {
                   "raw": "{{server_base_url}}/v1/groups/{{server_workspace_id}}/publications/import",
                   "host": [
@@ -21276,7 +21276,7 @@
                 },
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"publication_ids\": [\n    \"00000000-0000-4000-8000-000000000001\"\n  ]\n}",
+                  "raw": "{\n  \"publication_ids\": [\n    \"{{server_post_id}}\"\n  ]\n}",
                   "options": {
                     "raw": {
                       "language": "json"
@@ -28307,7 +28307,7 @@
                       "key": "publish",
                       "type": "text",
                       "disabled": true,
-                      "value": "False"
+                      "value": "false"
                     },
                     {
                       "key": "author_id",
@@ -29092,7 +29092,7 @@
                     "value": "application/json"
                   }
                 ],
-                "description": "Grant Consent\n\nExplicit action (write or provider call). Set `localhost_enable_write_requests=true` to send.\n\nUse your authorized workspace and role. Provider calls may incur costs.",
+                "description": "Grant Consent\n\nExplicit action (write or provider call). Set `localhost_enable_write_requests=true` to send.\n\nUse your authorized workspace and role. Provider calls may incur costs.\n\nRead GET /v1/faces/consent first. Set confirm=true only after the account holder accepts biometric enrollment. The example does not grant consent automatically.",
                 "url": {
                   "raw": "{{localhost_base_url}}/v1/faces/consent",
                   "host": [
@@ -29228,7 +29228,7 @@
                         "value": "application/json"
                       }
                     ],
-                    "description": "Grant Consent\n\nExplicit action (write or provider call). Set `localhost_enable_write_requests=true` to send.\n\nUse your authorized workspace and role. Provider calls may incur costs.",
+                    "description": "Grant Consent\n\nExplicit action (write or provider call). Set `localhost_enable_write_requests=true` to send.\n\nUse your authorized workspace and role. Provider calls may incur costs.\n\nRead GET /v1/faces/consent first. Set confirm=true only after the account holder accepts biometric enrollment. The example does not grant consent automatically.",
                     "url": {
                       "raw": "{{localhost_base_url}}/v1/faces/consent",
                       "host": [
@@ -29601,7 +29601,7 @@
               "request": {
                 "method": "POST",
                 "header": [],
-                "description": "Upload Profile Photo\n\nExplicit action (write or provider call). Set `localhost_enable_write_requests=true` to send.\n\nUse your authorized workspace and role. Provider calls may incur costs.",
+                "description": "Upload Profile Photo\n\nExplicit action (write or provider call). Set `localhost_enable_write_requests=true` to send.\n\nUse your authorized workspace and role. Provider calls may incur costs.\n\nAfter consent, select one clear portrait as file. This registers the recognition identity; POST /v1/me/profile/avatar separately sets the visible profile picture.",
                 "url": {
                   "raw": "{{localhost_base_url}}/v1/faces/profile-photo",
                   "host": [
@@ -29734,7 +29734,7 @@
                   "originalRequest": {
                     "method": "POST",
                     "header": [],
-                    "description": "Upload Profile Photo\n\nExplicit action (write or provider call). Set `localhost_enable_write_requests=true` to send.\n\nUse your authorized workspace and role. Provider calls may incur costs.",
+                    "description": "Upload Profile Photo\n\nExplicit action (write or provider call). Set `localhost_enable_write_requests=true` to send.\n\nUse your authorized workspace and role. Provider calls may incur costs.\n\nAfter consent, select one clear portrait as file. This registers the recognition identity; POST /v1/me/profile/avatar separately sets the visible profile picture.",
                     "url": {
                       "raw": "{{localhost_base_url}}/v1/faces/profile-photo",
                       "host": [
@@ -30631,7 +30631,7 @@
               "request": {
                 "method": "POST",
                 "header": [],
-                "description": "Search Faces\n\nRead or session access.\n\nUse your authorized workspace and role. Provider calls may incur costs.",
+                "description": "Search Faces\n\nRead or session access.\n\nUse your authorized workspace and role. Provider calls may incur costs.\n\nSelect probe as a file. To search an existing authorized media asset instead, disable probe and enable media_id. Consent and workspace membership are required.",
                 "url": {
                   "raw": "{{localhost_base_url}}/v1/faces/search",
                   "host": [
@@ -30671,14 +30671,14 @@
                     {
                       "key": "probe",
                       "type": "file",
-                      "disabled": true,
+                      "disabled": false,
                       "src": ""
                     },
                     {
                       "key": "include_records",
                       "type": "text",
                       "disabled": true,
-                      "value": "True"
+                      "value": "true"
                     }
                   ]
                 }
@@ -30779,7 +30779,7 @@
                   "originalRequest": {
                     "method": "POST",
                     "header": [],
-                    "description": "Search Faces\n\nRead or session access.\n\nUse your authorized workspace and role. Provider calls may incur costs.",
+                    "description": "Search Faces\n\nRead or session access.\n\nUse your authorized workspace and role. Provider calls may incur costs.\n\nSelect probe as a file. To search an existing authorized media asset instead, disable probe and enable media_id. Consent and workspace membership are required.",
                     "url": {
                       "raw": "{{localhost_base_url}}/v1/faces/search",
                       "host": [
@@ -30819,14 +30819,14 @@
                         {
                           "key": "probe",
                           "type": "file",
-                          "disabled": true,
+                          "disabled": false,
                           "src": ""
                         },
                         {
                           "key": "include_records",
                           "type": "text",
                           "disabled": true,
-                          "value": "True"
+                          "value": "true"
                         }
                       ]
                     }
@@ -31106,7 +31106,7 @@
               "request": {
                 "method": "POST",
                 "header": [],
-                "description": "Add Reference\n\nExplicit action (write or provider call). Set `localhost_enable_write_requests=true` to send.\n\nUse your authorized workspace and role. Provider calls may incur costs.",
+                "description": "Add Reference\n\nExplicit action (write or provider call). Set `localhost_enable_write_requests=true` to send.\n\nUse your authorized workspace and role. Provider calls may incur costs.\n\nAfter consent and the recognition profile photo, send one distinct image per request as file. Each must contain exactly one face matching that profile. Accepted references remain private; they are not publications. GET /v1/faces/setup reports accepted_photos and reference_ids. Repeated files do not increase the count; read detail on a 422.",
                 "url": {
                   "raw": "{{localhost_base_url}}/v1/faces/reference-photos",
                   "host": [
@@ -31484,7 +31484,7 @@
               "request": {
                 "method": "POST",
                 "header": [],
-                "description": "Complete\n\nExplicit action (write or provider call). Set `localhost_enable_write_requests=true` to send.\n\nUse your authorized workspace and role. Provider calls may incur costs.",
+                "description": "Complete\n\nExplicit action (write or provider call). Set `localhost_enable_write_requests=true` to send.\n\nUse your authorized workspace and role. Provider calls may incur costs.\n\nRequires consent, a recognition profile photo, a visible avatar and 3–25 distinct accepted references. Check GET /v1/faces/setup before and after completion.",
                 "url": {
                   "raw": "{{localhost_base_url}}/v1/faces/setup/complete",
                   "host": [
@@ -38197,7 +38197,7 @@
               "request": {
                 "method": "POST",
                 "header": [],
-                "description": "Upload Avatar\n\nExplicit action (write or provider call). Set `localhost_enable_write_requests=true` to send.\n\nUse your authorized workspace and role. Provider calls may incur costs.",
+                "description": "Upload Avatar\n\nExplicit action (write or provider call). Set `localhost_enable_write_requests=true` to send.\n\nUse your authorized workspace and role. Provider calls may incur costs.\n\nSelect the visible profile picture as file (JPEG, PNG or WebP). The API normalizes EXIF orientation. This upload does not enroll a reference face.",
                 "url": {
                   "raw": "{{localhost_base_url}}/v1/me/profile/avatar",
                   "host": [
@@ -38605,7 +38605,7 @@
                 },
                 "body": {
                   "mode": "raw",
-                  "raw": "{}",
+                  "raw": "{\n  \"allowed\": false\n}",
                   "options": {
                     "raw": {
                       "language": "json"
@@ -38867,7 +38867,7 @@
                 },
                 "body": {
                   "mode": "raw",
-                  "raw": "{}",
+                  "raw": "{\n  \"name\": \"New work group\"\n}",
                   "options": {
                     "raw": {
                       "language": "json"
@@ -40283,7 +40283,7 @@
                     "value": "application/json"
                   }
                 ],
-                "description": "Join\n\nExplicit action (write or provider call). Set `localhost_enable_write_requests=true` to send.\n\nUse your authorized workspace and role. Provider calls may incur costs.",
+                "description": "Join\n\nExplicit action (write or provider call). Set `localhost_enable_write_requests=true` to send.\n\nUse your authorized workspace and role. Provider calls may incur costs.\n\nSet invite_code to the code returned by POST /v1/groups/{workspace_id}/invite. For a numeric group PIN, use POST /v1/groups/join-by-pin instead.",
                 "url": {
                   "raw": "{{localhost_base_url}}/v1/groups/join",
                   "host": [
@@ -40307,7 +40307,7 @@
                 },
                 "body": {
                   "mode": "raw",
-                  "raw": "{}",
+                  "raw": "{\n  \"code\": \"{{localhost_invite_code}}\"\n}",
                   "options": {
                     "raw": {
                       "language": "json"
@@ -40680,7 +40680,7 @@
                     "value": "application/json"
                   }
                 ],
-                "description": "Share\n\nExplicit action (write or provider call). Set `localhost_enable_write_requests=true` to send.\n\nUse your authorized workspace and role. Provider calls may incur costs.",
+                "description": "Share\n\nExplicit action (write or provider call). Set `localhost_enable_write_requests=true` to send.\n\nUse your authorized workspace and role. Provider calls may incur costs.\n\nChoose an existing work group in workspace_id; membership is required. Publications cannot use a private or public destination.",
                 "url": {
                   "raw": "{{localhost_base_url}}/v1/gallery/{{localhost_post_id}}/share",
                   "host": [
@@ -40705,7 +40705,7 @@
                 },
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"audience\": \"home\"\n}",
+                  "raw": "{\n  \"audience\": \"work\",\n  \"workspace_id\": \"{{localhost_workspace_id}}\"\n}",
                   "options": {
                     "raw": {
                       "language": "json"
@@ -41328,7 +41328,7 @@
                 },
                 "body": {
                   "mode": "raw",
-                  "raw": "{}",
+                  "raw": "{\n  \"display_name\": \"{{localhost_display_name}}\"\n}",
                   "options": {
                     "raw": {
                       "language": "json"
@@ -42929,7 +42929,7 @@
                     "value": "application/json"
                   }
                 ],
-                "description": "Publish\n\nExplicit action (write or provider call). Set `localhost_enable_write_requests=true` to send.\n\nUse your authorized workspace and role. Provider calls may incur costs.",
+                "description": "Publish\n\nExplicit action (write or provider call). Set `localhost_enable_write_requests=true` to send.\n\nUse your authorized workspace and role. Provider calls may incur costs.\n\nChoose an existing work group in workspace_id; membership is required. Publications cannot use a private or public destination.",
                 "url": {
                   "raw": "{{localhost_base_url}}/v1/gallery",
                   "host": [
@@ -42952,7 +42952,7 @@
                 },
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"media_id\": \"{{localhost_media_id}}\"\n}",
+                  "raw": "{\n  \"media_id\": \"{{localhost_media_id}}\",\n  \"audience\": \"work\",\n  \"workspace_id\": \"{{localhost_workspace_id}}\"\n}",
                   "options": {
                     "raw": {
                       "language": "json"
@@ -44742,7 +44742,7 @@
               "request": {
                 "method": "POST",
                 "header": [],
-                "description": "Prepare Publication Upload\n\nExplicit action (write or provider call). Set `localhost_enable_write_requests=true` to send.\n\nUse your authorized workspace and role. Provider calls may incur costs.",
+                "description": "Prepare Publication Upload\n\nExplicit action (write or provider call). Set `localhost_enable_write_requests=true` to send.\n\nUse your authorized workspace and role. Provider calls may incur costs.\n\nChoose an existing work group in workspace_id; membership is required. Publications cannot use a private or public destination. Select file as a file, not text. Use a new request_key for each new upload; reuse it only when retrying the same attempt. Poll GET /v1/me/publication-uploads/{upload_id} after 202. Confirm or cancel a duplicate using its returned upload ID.",
                 "url": {
                   "raw": "{{localhost_base_url}}/v1/me/publication-uploads",
                   "host": [
@@ -44782,13 +44782,13 @@
                     {
                       "key": "audience",
                       "type": "text",
-                      "disabled": true,
+                      "disabled": false,
                       "value": "work"
                     },
                     {
                       "key": "workspace_id",
                       "type": "text",
-                      "disabled": true,
+                      "disabled": false,
                       "value": "{{localhost_workspace_id}}"
                     },
                     {
@@ -45535,7 +45535,7 @@
                     "value": "application/json"
                   }
                 ],
-                "description": "Import Group Publications\n\nExplicit action (write or provider call). Set `localhost_enable_write_requests=true` to send.\n\nUse your authorized workspace and role. Provider calls may incur costs.",
+                "description": "Import Group Publications\n\nExplicit action (write or provider call). Set `localhost_enable_write_requests=true` to send.\n\nUse your authorized workspace and role. Provider calls may incur costs.\n\nChoose an existing work group in workspace_id; membership is required. Publications cannot use a private or public destination. Supply 1–100 IDs of publications owned by this account.",
                 "url": {
                   "raw": "{{localhost_base_url}}/v1/groups/{{localhost_workspace_id}}/publications/import",
                   "host": [
@@ -45561,7 +45561,7 @@
                 },
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"publication_ids\": [\n    \"00000000-0000-4000-8000-000000000001\"\n  ]\n}",
+                  "raw": "{\n  \"publication_ids\": [\n    \"{{localhost_post_id}}\"\n  ]\n}",
                   "options": {
                     "raw": {
                       "language": "json"
@@ -48679,7 +48679,7 @@
                       "value": "application/json"
                     }
                   ],
-                  "body": "{\n  \"access_token\": \"{{localhost_access_token}}\",\n  \"refresh_token\": \"{{localhost_refresh_token}}\"\n}"
+                  "body": "{\n  \"access_token\": \"{{localhost_access_token}}\",\n  \"refresh_token\": \"{{localhost_refresh_token}}\",\n  \"local_access\": true,\n  \"capture_profile\": {}\n}"
                 }
               ]
             },
@@ -48916,6 +48916,12 @@
       "value": "",
       "type": "string",
       "description": "Key issued for this target's integration."
+    },
+    {
+      "key": "server_invite_code",
+      "value": "",
+      "type": "string",
+      "description": "Invitation code returned by POST /v1/groups/{workspace_id}/invite."
     },
     {
       "key": "server_job_id",
@@ -49216,6 +49222,12 @@
       "value": "",
       "type": "string",
       "description": "Key issued for this target's integration."
+    },
+    {
+      "key": "localhost_invite_code",
+      "value": "",
+      "type": "string",
+      "description": "Invitation code returned by POST /v1/groups/{workspace_id}/invite."
     },
     {
       "key": "localhost_job_id",

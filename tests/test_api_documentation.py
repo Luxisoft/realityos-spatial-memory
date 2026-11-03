@@ -65,6 +65,60 @@ def test_all_contract_operations_have_one_reference_request():
         )
 
 
+def test_primary_catalog_request_fields_match_current_contract():
+    spec = json.loads(CONTRACT.read_text())
+    public = json.loads(
+        (ROOT / "docs/postman/RealityOS.postman_collection.json").read_text()
+    )
+    for target in public["item"]:
+        catalog = {
+            item["name"]: item["request"]
+            for folder in target["item"]
+            if folder["name"] not in {"00 Quick start", "00 Live scenarios"}
+            for item in folder["item"]
+        }
+        for path, methods in spec["paths"].items():
+            for method, operation in methods.items():
+                if method not in {"get", "post", "put", "patch", "delete"}:
+                    continue
+                request = catalog[f"{method.upper()} {path}"]
+                assert request["method"] == method.upper()
+                actual_path = "/" + "/".join(request["url"]["path"])
+                actual_path = re.sub(
+                    r"{{(?:server|localhost)_([^}]+)}}", r"{\1}", actual_path
+                )
+                assert actual_path == path
+                query = {q["key"]: q for q in request["url"].get("query", [])}
+                for parameter in methods.get("parameters", []) + operation.get(
+                    "parameters", []
+                ):
+                    if parameter["in"] == "query":
+                        assert parameter["name"] in query
+                        if parameter.get("required"):
+                            assert not query[parameter["name"]].get("disabled")
+                for mime, content in (
+                    operation.get("requestBody", {}).get("content", {}).items()
+                ):
+                    schema = content.get("schema", {})
+                    if "$ref" in schema:
+                        schema = spec["components"]["schemas"][
+                            schema["$ref"].split("/")[-1]
+                        ]
+                    body = request["body"]
+                    if mime == "application/json":
+                        assert body["mode"] == "raw"
+                        assert (
+                            set(schema.get("required", []))
+                            <= json.loads(body["raw"]).keys()
+                        )
+                    elif mime == "multipart/form-data":
+                        assert body["mode"] == "formdata"
+                        enabled = {
+                            f["key"] for f in body["formdata"] if not f.get("disabled")
+                        }
+                        assert set(schema.get("required", [])) <= enabled
+
+
 def test_all_variables_are_declared_and_isolated_with_only_public_demo_credentials():
     c = collection()
     demo = json.loads((ROOT / "simulator/postman/demo.json").read_text())
@@ -153,6 +207,20 @@ def test_transport_auth_and_uploads_match_their_realm():
         )
 
 
+def test_local_login_example_includes_current_local_response_fields():
+    from app.http.local_access import LocalLoginResponse
+
+    item = next(
+        item
+        for item in items(collection()["item"][1])
+        if item["name"] == "POST /v1/auth/local-login"
+    )
+    response = json.loads(item["response"][0]["body"])
+    parsed = LocalLoginResponse.model_validate(response)
+    assert parsed.local_access is True
+    assert "capture_profile" in response
+
+
 def test_quick_start_uses_the_explicit_demo_workspace_without_enrolling_or_capturing():
     for target in collection()["item"]:
         assert target["item"][0]["name"] == "00 Quick start"
@@ -227,7 +295,11 @@ def test_jury_download_has_all_inputs_for_existing_server_scenarios():
             "record_question",
         }
         assert target["name"] == scenario["name"]
-        assert len(target["item"]) == 13
+        core = [
+            item for item in target["item"] if not item["name"].startswith("Video ")
+        ]
+        assert len(core) == 13
+        assert len({item["name"] for item in core}) == 13
         assert variables[prefix + "base_url"] == "https://realityos.luxisoft.com"
         for key, value in scenario["values"].items():
             assert variables[prefix + key] == value
@@ -236,12 +308,20 @@ def test_jury_download_has_all_inputs_for_existing_server_scenarios():
             assert variables[prefix + key] == ""
         for item in target["item"]:
             request = item["request"]
-            assert request["method"] == "GET" or item["name"] in {
-                "POST /v1/auth/login",
-                "POST /v1/auth/refresh",
-                "POST /v1/workspaces/{workspace_id}/records/search",
-                "POST /v1/queries",
-            }
+            if item["name"].startswith("Video "):
+                assert request["method"] == "POST"
+                assert request["url"]["path"] == ["v1", "queries"]
+            assert (
+                request["method"] == "GET"
+                or item["name"]
+                in {
+                    "POST /v1/auth/login",
+                    "POST /v1/auth/refresh",
+                    "POST /v1/workspaces/{workspace_id}/records/search",
+                    "POST /v1/queries",
+                }
+                or item["name"].startswith("Video ")
+            )
             assert request.get("body", {}).get("mode") != "formdata"
             for ref in re.findall(r"{{([^}]+)}}", json.dumps(request)):
                 assert ref.startswith(prefix)

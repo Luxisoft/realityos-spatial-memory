@@ -10,7 +10,7 @@
 
 ## Servidor y localhost: Import → Send
 
-**La colección tiene exactamente dos carpetas principales: Server requests y Localhost requests.** Ambas incluyen el catálogo completo y un inicio rápido con URL, usuario, contraseña, workspace y pregunta precargados. Server requests conserva además las 39 consultas listas sobre los datos existentes del jurado.
+**La colección tiene exactamente dos carpetas principales: Server requests y Localhost requests.** Ambas incluyen el catálogo completo y un inicio rápido con URL, usuario, contraseña, workspace y pregunta precargados. Server requests conserva además las consultas listas sobre los datos existentes del jurado.
 
 1. En Postman, pulsa **Import** y pega este enlace:
 
@@ -29,7 +29,7 @@
 
 Estas tres cuentas de evaluación y sus contraseñas son públicas por autorización del propietario del 3 de noviembre de 2026. Conservan su rol actual de administrador en su espacio. La colección de evaluación consulta datos existentes. Los proveedores y el servidor son reales; las personas y escenas preparadas conservan su procedencia ficticia.
 
-Cada escenario de **Server requests → 00 Live scenarios** permite probar sesión, login, renovación, espacios, listado y detalle de expedientes, revisiones, publicaciones, descarga de una imagen, perfiles y consultas de IA. Policía abre el caso 1; Enfermería abre Ana Solis; Memoria abre Luis Moreno. El servidor contiene 47 expedientes y 21 publicaciones de grupo. Las respuestas se obtienen del servidor al enviar la petición.
+Cada escenario de **Server requests → 00 Live scenarios** permite probar sesión, login, renovación, espacios, listado y detalle de expedientes, revisiones, publicaciones, descarga de una imagen, perfiles y consultas de IA. Policía abre el caso 1; Enfermería abre Ana Solis; Memoria abre Luis Moreno. Las respuestas se obtienen del servidor al enviar la petición.
 
 Los entornos opcionales de [servidor](../../postman/RealityOS.public.postman_environment.json) y [localhost](../../postman/RealityOS.local.postman_environment.json) contienen las variables de cada destino. Para usar otra cuenta, cambia sus variables; hacerlo es completamente opcional. [Acceso Android con estas cuentas](../guides/DEMO.md#access).
 
@@ -69,7 +69,7 @@ Los prefijos `server_` y `localhost_` separan los destinos. Los escenarios del s
 
 ## Referencia completa para integradores
 
-La colección principal contiene las 354 plantillas API y las 39 consultas de los escenarios: 393 en total. El catálogo completo permanece dentro de cada destino. La [colección de referencia](../../postman/RealityOS.reference.postman_collection.json) también sigue disponible. Esas plantillas requieren los permisos, archivos y credenciales propios de cada operación. Sus entornos opcionales son [servidor](../../postman/RealityOS.reference.postman_environment.json) y [localhost](../../postman/RealityOS.local.postman_environment.json). No es necesario importar entornos para usar las carpetas de la colección principal.
+La colección principal contiene las 176 operaciones del servidor en cada catálogo, las dos operaciones exclusivas de localhost, los inicios rápidos y los escenarios de evaluación. El catálogo completo permanece dentro de cada destino. La [colección de referencia](../../postman/RealityOS.reference.postman_collection.json) también sigue disponible. Esas plantillas requieren los permisos, archivos y credenciales propios de cada operación. Sus entornos opcionales son [servidor](../../postman/RealityOS.reference.postman_environment.json) y [localhost](../../postman/RealityOS.local.postman_environment.json). No es necesario importar entornos para usar las carpetas de la colección principal.
 
 Las escrituras de la referencia conservan `enable_write_requests=false`. La [instalación Windows](../deployment/DEPLOYMENT_LOCALHOST.md) sigue siendo opcional y no se necesita para evaluar los datos del servidor.
 

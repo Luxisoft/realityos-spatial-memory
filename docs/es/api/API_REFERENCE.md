@@ -1804,7 +1804,9 @@ Respuestas declaradas: `200`, `422`.
 
 ```json
 
-{}
+{
+  "allowed": false
+}
 
 ```
 
@@ -1836,7 +1838,9 @@ Respuestas declaradas: `200`, `422`.
 
 ```json
 
-{}
+{
+  "name": "New work group"
+}
 
 ```
 
@@ -2012,7 +2016,9 @@ Respuestas declaradas: `200`, `422`.
 
 ```json
 
-{}
+{
+  "code": "{{invite_code}}"
+}
 
 ```
 
@@ -2070,7 +2076,8 @@ Respuestas declaradas: `200`, `422`.
 ```json
 
 {
-  "audience": "home"
+  "audience": "work",
+  "workspace_id": "{{workspace_id}}"
 }
 
 ```
@@ -2147,7 +2154,9 @@ Respuestas declaradas: `200`.
 
 ```json
 
-{}
+{
+  "display_name": "{{display_name}}"
+}
 
 ```
 
@@ -2325,7 +2334,9 @@ Respuestas declaradas: `200`, `422`.
 ```json
 
 {
-  "media_id": "{{media_id}}"
+  "media_id": "{{media_id}}",
+  "audience": "work",
+  "workspace_id": "{{workspace_id}}"
 }
 
 ```
@@ -2637,7 +2648,7 @@ Respuestas declaradas: `200`, `422`.
 
 {
   "publication_ids": [
-    "00000000-0000-4000-8000-000000000001"
+    "{{post_id}}"
   ]
 }
 

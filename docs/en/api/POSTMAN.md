@@ -8,7 +8,7 @@
 2. Leave **No environment** selected and open **Server requests** or **Localhost requests**.
 3. Under **00 Quick start**, open a request and click **Send**. URL, account, password, workspace and question are prefilled; login and renewal are automatic.
 
-**Server requests → 00 Live scenarios** retains Police, Nursing and Memory with all 39 existing-data queries. Both destinations include the complete catalog: 393 requests in total.
+**Server requests → 00 Live scenarios** retains Police, Nursing and Memory with queries against existing data. Each destination contains the 176 server operations; localhost adds its two exclusive operations. Quick starts and scenarios reuse those operations.
 
 Localhost points to `http://localhost:8080` and uses its own account. The local backend must be running; if its Postman account is missing, run `scripts/local/Enable-PostmanDemo.ps1` once. Server data and credentials are not copied.
 
@@ -20,3 +20,21 @@ Localhost points to `http://localhost:8080` and uses its own account. The local 
 | [Additional reference](../../postman/RealityOS.reference.postman_collection.json) | Copy of the 354 original API templates. |
 
 Advanced file, device and integration operations retain their prerequisites. Replacing values with your own data is optional for quick starts and ready scenarios.
+
+## Profile pictures and references
+
+In the selected destination catalog, use **Facial recognition** and **Profiles and social**. To execute writes, set `server_enable_write_requests` or `localhost_enable_write_requests` to `true` only for the intended destination.
+
+1. Read `GET /v1/faces/consent` and send `POST /v1/faces/consent` with `confirm=true` after accepting consent.
+2. Send the portrait to `POST /v1/faces/profile-photo` to register the face and to `POST /v1/me/profile/avatar` for the visible picture.
+3. Send each reference separately to `POST /v1/faces/reference-photos`: choose **Body → form-data → file → File**. Do not manually add `Content-Type`; Postman builds the multipart boundary.
+4. Read `GET /v1/faces/setup`: `accepted_photos` counts distinct accepted images, not attempts. You need 3–25; each photo must contain exactly one face matching the profile. A duplicate does not increase the count; a 422 explains the reason in `detail`.
+5. Send `POST /v1/faces/setup/complete` and check `complete=true`. References remain private.
+
+## Publications and groups
+
+The publish, share and upload preparation examples include `workspace_id`, which must identify an existing group the account belongs to. To upload images or videos, use `POST /v1/me/publication-uploads`; select `file`, retain the group and use a different `request_key` for each new upload. A 202 requires checking that upload's status. To import your own publications into another group, use `POST /v1/groups/{workspace_id}/publications/import` with their IDs.
+
+## Checking freshness
+
+The catalog is generated from `tests/contracts/openapi.json`. Run `make docs-check` and the tests in `tests/test_api_documentation.py` and `tests/test_postman_current_examples.py`; they check routes, fields, authentication, destination isolation and publication examples. The contract is also compared against the application in `tests/test_architecture_contract.py`. [Server OpenAPI](https://realityos.luxisoft.com/v1/openapi.json).

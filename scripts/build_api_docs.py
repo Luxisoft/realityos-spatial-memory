@@ -11,6 +11,7 @@ import re
 from pathlib import Path
 
 from build_jury_postman import publish
+from postman_examples import JSON_EXAMPLES, REQUEST_NOTES, customize_form
 
 ROOT = Path(__file__).resolve().parents[1]
 METHODS = {"get", "post", "put", "patch", "delete", "head", "options"}
@@ -70,6 +71,7 @@ VARIABLE_DESCRIPTIONS = {
     "device_key": "Key issued when provisioning this target's device.",
     "integration_key": "Key issued for this target's integration.",
     "token": "Temporary email action or signed resource token.",
+    "invite_code": "Invitation code returned by POST /v1/groups/{workspace_id}/invite.",
 }
 GROUPS = [
     ("auth", "Access / Acceso"),
@@ -239,6 +241,17 @@ def generate(spec, check=False):
     local = copy.deepcopy(spec)
     login = copy.deepcopy(spec["paths"]["/v1/auth/login"]["post"])
     login["summary"] = "Local login (local realm only)"
+    local_response = copy.deepcopy(local["components"]["schemas"]["TokenResponse"])
+    local_response["title"] = "LocalLoginResponse"
+    local_response["properties"].update(
+        local_access={"type": "boolean", "const": True},
+        capture_profile={"type": "object", "additionalProperties": {"type": "string"}},
+    )
+    local_response["required"] += ["local_access", "capture_profile"]
+    local["components"]["schemas"]["LocalLoginResponse"] = local_response
+    login["responses"]["200"]["content"]["application/json"]["schema"] = {
+        "$ref": "#/components/schemas/LocalLoginResponse"
+    }
     local["paths"]["/v1/auth/local-login"] = {"post": login}
     local["paths"]["/v1/auth/local-session"] = {
         "get": {
@@ -284,6 +297,8 @@ def generate(spec, check=False):
                 else "Read or session access."
             )
             description += "\n\nUse your authorized workspace and role. Provider calls may incur costs."
+            if name in REQUEST_NOTES:
+                description += "\n\n" + REQUEST_NOTES[name]
             request = {
                 "method": method.upper(),
                 "header": [],
@@ -351,7 +366,9 @@ def generate(spec, check=False):
                     request["body"] = {
                         "mode": "raw",
                         "raw": json.dumps(
-                            example(body_schema, local), indent=2, ensure_ascii=False
+                            JSON_EXAMPLES.get(name, example(body_schema, local)),
+                            indent=2,
+                            ensure_ascii=False,
                         ),
                         "options": {"raw": {"language": "json"}},
                     }
@@ -384,10 +401,18 @@ def generate(spec, check=False):
                             "type": "file" if binary else "text",
                             "disabled": key not in body_schema.get("required", []),
                         }
+                        value = example(schema, local, key)
                         field["src" if binary else "value"] = (
-                            "" if binary else str(example(schema, local, key))
+                            ""
+                            if binary
+                            else (
+                                str(value).lower()
+                                if isinstance(value, bool)
+                                else str(value)
+                            )
                         )
                         fields.append(field)
+                    customize_form(name, fields)
                     kind = "formdata" if mime == "multipart/form-data" else "urlencoded"
                     request["body"] = {"mode": kind, kind: fields}
             for p, s in body_schema.get("properties", {}).items():
