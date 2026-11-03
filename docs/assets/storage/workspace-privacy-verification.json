@@ -42,8 +42,37 @@
   "active_connections": 13,
   "licensed_scenes": 48,
   "videos": 12,
-  "android_tests": 226,
-  "apk_sha256": "e835a29b0d38bc47f03266f728921980ce0355c2fa4da89db3449e3a99483395",
+  "android_tests": 228,
+  "apk_sha256": "2666a4ee7a15decca18311a28f8d3072e05afe22823b2cae04167a46d78953bc",
   "device_tested": false,
-  "indexing": "queued with the configured real provider"
+  "indexing": "queued with the configured real provider",
+  "media_audit": [
+    {
+      "scenario": "security",
+      "images": 12,
+      "videos": 4,
+      "hashes_verified": 16,
+      "thumbnails_verified": 16,
+      "video_range_verified": 4
+    },
+    {
+      "scenario": "hospital",
+      "images": 12,
+      "videos": 4,
+      "hashes_verified": 16,
+      "thumbnails_verified": 16,
+      "video_range_verified": 4
+    },
+    {
+      "scenario": "memory",
+      "images": 12,
+      "videos": 4,
+      "hashes_verified": 16,
+      "thumbnails_verified": 16,
+      "video_range_verified": 4
+    }
+  ],
+  "backend_gateway_tests": 499,
+  "ci_backend_verification": "https://github.com/Luxisoft/realityos-spatial-memory/actions/runs/41709265025",
+  "external_avatars_receive_session_token": false
 }

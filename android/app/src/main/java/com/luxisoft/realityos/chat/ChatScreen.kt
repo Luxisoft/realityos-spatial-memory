@@ -574,7 +574,7 @@ private fun ChatBubble(
                     DatabaseImage(
                         model = coil.request.ImageRequest.Builder(context)
                             .data(authorizedMediaUrl(path))
-                            .addHeader("Authorization", "Bearer ${SocialSession.token}")
+                            .authorizeMedia(authorizedMediaUrl(path))
                             .build(),
                         contentDescription = localizedText(R.string.ui_evidence),
                         modifier = Modifier.fillMaxWidth().height(160.dp)
@@ -592,7 +592,7 @@ private fun ChatBubble(
                                 DatabaseImage(
                                     model = coil.request.ImageRequest.Builder(context)
                                         .data(authorizedMediaUrl(thumb.boxedUrl.ifBlank { thumb.thumbnailUrl }))
-                                        .addHeader("Authorization", "Bearer ${SocialSession.token}")
+                                        .authorizeMedia(authorizedMediaUrl(thumb.boxedUrl.ifBlank { thumb.thumbnailUrl }))
                                         .build(),
                                     contentDescription = thumb.caption.ifBlank { localizedText(R.string.ui_matching_publication) },
                                     modifier = Modifier.size(96.dp)

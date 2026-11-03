@@ -18,8 +18,8 @@ Actualizado el **3 de noviembre de 2026**. Un build o una comprobación HTTP no 
 ## Entrega verificada
 
 - Imagen local: `realityos-backend:workspace-privacy-20261103`; API, worker y scheduler usan el runtime conservado. PostgreSQL está en **`20261103_0036`**. Actualización → reversión → actualización aprobadas sobre un esquema PostgreSQL temporal; actualización productiva, salud y comparación exacta de OpenAPI público aprobadas.
-- La suite backend/gateway contiene **499 pruebas**. La revisión final dirigida aprobó **13 pruebas**, incluidos contrato corregido, pérdida de membresía y privacidad de referencias. Android aprobó **226 pruebas**, formato/lint y builds Debug/Release. Documentación, estructura y Postman validados.
-- APK instalable: `android/app/build/outputs/apk/debug/app-debug.apk`; SHA-256 `e835a29b0d38bc47f03266f728921980ce0355c2fa4da89db3449e3a99483395`.
+- CI aprobó las **499 pruebas backend/gateway**, incluidos contrato corregido, pérdida de membresía y privacidad de referencias. Android aprobó **228 pruebas**, formato/lint y builds Debug/Release. Documentación, estructura y Postman validados.
+- APK instalable: `android/app/build/outputs/apk/debug/app-debug.apk`; SHA-256 `2666a4ee7a15decca18311a28f8d3072e05afe22823b2cae04167a46d78953bc`.
 - Rollback de imagen: `.runtime/workspace-privacy-20261103-rollback.json`. Diario de visibilidad demo: `.runtime/real-scenes-20261103-visibility.json`. El snapshot técnico `pre-workspace-privacy-20261103.dump` caduca mediante mantenimiento tras 24 horas, o una bajo presión de disco; no es un respaldo oficial y no se envió a R2.
 - Producción conserva Meta directo con gateway de respaldo, claves privadas y la excepción aislada de ingreso Windows/Debug. El mantenimiento protege imágenes activas y rollback.
 - [Comprobante de API real](../../assets/storage/workspace-privacy-verification.json): las tres cuentas de jurados accedieron, descargaron avatar y media nueva, consultaron expedientes y exploraron su bucket por autor. Las consultas a otro grupo devolvieron `403`; publicar en privado devolvió `422`.

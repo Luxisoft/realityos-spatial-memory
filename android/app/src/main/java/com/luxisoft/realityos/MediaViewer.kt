@@ -48,7 +48,7 @@ internal fun DefaultViewerVideo(mediaUrl: String, authToken: String?, startPosit
     var attempt by remember(mediaUrl) { mutableIntStateOf(0) }
     val player = remember(mediaUrl, token, attempt) {
         val dataSource = androidx.media3.datasource.DefaultHttpDataSource.Factory()
-            .setDefaultRequestProperties(mapOf("Authorization" to "Bearer $token"))
+            .setDefaultRequestProperties(mediaAuthorization(mediaUrl, token))
         val source = androidx.media3.exoplayer.source.ProgressiveMediaSource.Factory(dataSource)
             .createMediaSource(androidx.media3.common.MediaItem.fromUri(mediaUrl))
         androidx.media3.exoplayer.ExoPlayer.Builder(context).build().apply {
@@ -169,11 +169,11 @@ internal fun MediaViewerScreen(
     var imageAttempt by remember(mediaUrl) { mutableIntStateOf(0) }
     val fullImageRequest = remember(context, mediaUrl, authToken, imageAttempt) {
         coil.request.ImageRequest.Builder(context).data(mediaUrl).setParameter("retry", imageAttempt)
-            .apply { authToken?.let { addHeader("Authorization", "Bearer $it") } }.build()
+            .authorizeMedia(mediaUrl, authToken).build()
     }
     val backdropRequest = remember(context, backdrop, authToken) {
         coil.request.ImageRequest.Builder(context).data(backdrop)
-            .apply { authToken?.let { addHeader("Authorization", "Bearer $it") } }.build()
+            .authorizeMedia(backdrop, authToken).build()
     }
 
     BoxWithConstraints(

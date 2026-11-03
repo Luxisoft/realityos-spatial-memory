@@ -253,7 +253,7 @@ internal fun profileMediaUrl(path: String): String {
 
 internal fun profileImageRequest(context: android.content.Context, path: String): coil.request.ImageRequest = coil.request.ImageRequest.Builder(context)
     .data(profileMediaUrl(path))
-    .addHeader("Authorization", "Bearer ${SocialSession.token}")
+    .authorizeMedia(profileMediaUrl(path))
     .build()
 
 @Composable

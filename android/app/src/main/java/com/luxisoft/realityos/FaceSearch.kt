@@ -226,7 +226,7 @@ internal fun FaceSearch(onBack: () -> Unit, onOpenProfile: (String) -> Unit = {}
                         coil.compose.AsyncImage(
                             model = coil.request.ImageRequest.Builder(context)
                                 .data(faceEvidenceUrl(match.optString("picture_url")))
-                                .addHeader("Authorization", "Bearer ${SocialSession.token}").build(),
+                                .authorizeMedia(faceEvidenceUrl(match.optString("picture_url"))).build(),
                             contentDescription = match.optString("display_name"),
                             contentScale = ContentScale.Crop, modifier = Modifier.size(56.dp))
                     },
@@ -246,7 +246,7 @@ internal fun FaceSearch(onBack: () -> Unit, onOpenProfile: (String) -> Unit = {}
                         coil.compose.AsyncImage(
                             model = coil.request.ImageRequest.Builder(context)
                                 .data(faceEvidenceUrl(evidence.getString("thumbnail_url")))
-                                .addHeader("Authorization", "Bearer ${SocialSession.token}").build(),
+                                .authorizeMedia(faceEvidenceUrl(evidence.getString("thumbnail_url"))).build(),
                             contentDescription = match.optString("title"),
                             contentScale = ContentScale.Crop, modifier = Modifier.size(56.dp))
                     },

@@ -18,8 +18,8 @@ Updated **November 3, 2026**. A build or HTTP check does not approve physical-de
 ## Verified release
 
 - Local image: `realityos-backend:workspace-privacy-20261103`; API, worker and scheduler use the preserved runtime. PostgreSQL is at **`20261103_0036`**. Upgrade → downgrade → upgrade passed on a temporary PostgreSQL schema; the production update, readiness and exact public OpenAPI comparison passed.
-- Backend/gateway suite contains **499 tests**. The final targeted run passed **13 tests**, including the corrected contract, membership loss and reference-photo privacy. Android passed **226 tests**, formatting/lint and Debug/Release builds. Documentation, structure and Postman validation passed.
-- Installable APK: `android/app/build/outputs/apk/debug/app-debug.apk`; SHA-256 `e835a29b0d38bc47f03266f728921980ce0355c2fa4da89db3449e3a99483395`.
+- CI passed the **499 backend/gateway tests**, including the corrected contract, membership loss and reference-photo privacy. Android passed **228 tests**, formatting/lint and Debug/Release builds. Documentation, structure and Postman validation passed.
+- Installable APK: `android/app/build/outputs/apk/debug/app-debug.apk`; SHA-256 `2666a4ee7a15decca18311a28f8d3072e05afe22823b2cae04167a46d78953bc`.
 - Image rollback: `.runtime/workspace-privacy-20261103-rollback.json`. Demo visibility journal: `.runtime/real-scenes-20261103-visibility.json`. The technical `pre-workspace-privacy-20261103.dump` expires through server maintenance after 24 hours, or one hour under disk pressure; it is not an official backup and was not uploaded to R2.
 - Production retains direct Meta with gateway fallback, private keys and the isolated Windows/Debug login exception. Server maintenance protects active images and the release rollback.
 - [Live API receipt](../../assets/storage/workspace-privacy-verification.json): all three jury accounts could sign in, download avatars and new media, read their records and browse their author-specific bucket. Cross-group requests returned `403`; private publication attempts returned `422`.
