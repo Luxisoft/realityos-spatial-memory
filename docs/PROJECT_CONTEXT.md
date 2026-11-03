@@ -540,3 +540,22 @@ Rollback web anterior a esta entrega: `.runtime/workspace-data-web-rollback.json
 Estos overlays revierten código; no revierten la limpieza de datos. El snapshot
 técnico de migración caduca a las 24 horas y no se envió a R2. Comprobantes y
 hash del APK: `.runtime/workspace-data-final-verification.json`.
+
+
+## Revisión integral de espacios — 2026-11-02
+
+La segunda revisión corrigió recuperación de notas/relaciones antiguas, límites
+del contexto de IA, revocación de conectores, descarga HTTPS con IP fijada,
+validación de relaciones clínicas, renovación de sesión Android, selección del
+espacio al arrancar, paginación y respuestas tardías entre expedientes.
+Motor biométrico intacto. Ver la matriz de alcance en `WORKSPACE_DATA.md`.
+
+Pasaron 388 pruebas Python/gateway en el checkout de producción y 182 Android,
+ktlint/lint y APK Debug. Pruebas de navegador sintéticas y verificación del sitio
+público aprobadas. API/worker `workspace-audit-20261102-r2`; web publicada por
+CI `41555644134`. Salud 200, OpenAPI y Alembic `20261102_0031` verificados.
+Rollback backend: `.runtime/workspace-audit-20261102-rollback.json`; web:
+`.runtime/web-7a975e1ef6286a01192e4fd75a27a2e45d12dca3/rollback.json`.
+Pendientes externos: recepción de correo en destinatario autorizado, fuente
+institucional real y QA física de teléfono/gafas. No se declara validación
+completa de esos recorridos.

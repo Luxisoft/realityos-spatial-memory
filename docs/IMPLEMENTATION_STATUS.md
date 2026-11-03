@@ -1509,3 +1509,56 @@ Rollback web anterior a esta entrega: `.runtime/workspace-data-web-rollback.json
 Estos overlays revierten código; no revierten la limpieza de datos. El snapshot
 técnico de migración caduca a las 24 horas y no se envió a R2. Comprobantes y
 hash del APK: `.runtime/workspace-data-final-verification.json`.
+
+
+## Segunda auditoría de cuentas y espacios — 2026-11-02
+
+Se reprodujeron fallos antes de corregirlos. La búsqueda contextual ahora filtra
+y ordena antes de limitar, incorpora notas y relaciones de la misma fuente y
+respeta los ocho contextos admitidos por el proveedor; indica contexto parcial
+cuando corresponde. La desactivación del creador y la revocación durante una
+descarga bloquean escrituras. HTTPS fija la dirección pública validada sin perder
+verificación TLS del dominio. Se validan formato real de imágenes, autor en
+reintentos, persona vinculada a registros clínicos y fechas incompletas.
+
+Android renueva la sesión de cuenta normal al restaurarla y selecciona el único
+espacio laboral al arrancar. Web/Android permiten paginar registros y restringen
+el editor de notas según rol. La web descarta fotos tardías de otro expediente
+y conserva el paciente/borrador actual si termina una nota anterior. Se corrigió
+el desbordamiento móvil. El encabezado global y la ocultación de referencias
+Facebook conservan sus regresiones. El motor biométrico no fue modificado.
+
+Validación: 388 pruebas Python/gateway en el checkout de producción, ruff y
+arquitectura; 182 pruebas Android, ktlint, lint y APK Debug. Chromium local y CI
+comprueban 51 registros sintéticos paginados, permisos, respuestas tardías y
+ancho de 390 px. CI `41555644134` publicó correctamente la web; el primer intento
+`41555452449` se detuvo antes de publicar porque no arrancó el navegador del
+runner, corregido prefiriendo Chrome. En el sitio público se verificaron
+formulario de registro, acceso real, expediente y retrato autenticado. Un primer
+intento local sufrió `ERR_NETWORK_CHANGED`; la repetición completa pasó.
+
+Los nueve accesos de trabajadores, nueve avatares distintos y 18 rechazos entre
+espacios se verificaron contra producción. Permanecen tres grupos con tres
+miembros, 47 registros, 27 adjuntos, nueve notas y 21 publicaciones indexadas sin
+error. Dos consultas con Meta real recuperaron antecedentes y observaciones de
+memoria. Se conservaron 136 enrolamientos y 22 consentimientos, además del hash
+del módulo facial protegido.
+
+API/worker: `realityos-backend:workspace-audit-20261102-r2`.
+Web: `realityos-frontend:workspace-7a975e1ef628`. Salud 200, OpenAPI coincidente,
+Alembic `20261102_0031`, entorno/proveedores/límites preservados. Esta revisión
+no necesitó migración ni nuevo dump. Rollback backend:
+`.runtime/workspace-audit-20261102-rollback.json`; rollback web:
+`.runtime/web-7a975e1ef6286a01192e4fd75a27a2e45d12dca3/rollback.json`.
+Comprobantes privados: `.runtime/workspace-audit-final-verification.json`,
+`.runtime/workspace-audit-live.json`, `.runtime/workspace-audit-search-live.json`
+y `.runtime/workspace-audit-ui-verification.json`.
+
+Límites pendientes: no se enviaron confirmaciones/recuperaciones a un destinatario
+real autorizado; las pruebas SMTP controladas y la autenticación TLS no prueban
+entrega. No se conectó una institución externa: la API recibió el conjunto del
+jurado por HTTP real y la descarga se probó con transporte controlado y HTTPS
+real, pero falta un origen institucional. QA física de teléfono/gafas pendiente.
+La comparación de medicación continúa siendo manual de campos; no hay OCR de
+envases. Los nuevos registros de personas no están enlazados automáticamente
+al buscador facial existente. Los seis videos son escenas estáticas simuladas.

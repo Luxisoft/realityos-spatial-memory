@@ -159,7 +159,8 @@ controlado; no equivalen a recepción de un correo real.
 
 La prueba de navegador usa 51 registros sintéticos para comprobar paginación,
 permisos del editor de notas y que una foto recibida tarde no aparezca en el perfil
-de otro paciente. También comprueba la vista móvil de 390 píxeles. El conjunto
+de otro paciente, ni que guardar una nota anterior borre el borrador de otro
+expediente. También comprueba la vista móvil de 390 píxeles. El conjunto
 instalado conserva 47 registros; los 51 de esa prueba no se cargan en producción.
 
 Pendientes de validación externa: recepción de confirmación y recuperación en un
@@ -168,3 +169,14 @@ y pruebas físicas con teléfono y Ray-Ban. La importación HTTP del conjunto de
 sí se ejecutó contra la API real. La conexión de estos nuevos registros de personas
 al reconocimiento facial y la lectura automática de envases no están implementadas;
 el módulo biométrico existente permanece sin cambios por indicación del propietario.
+
+| Parte del plan | Verificación y límite |
+| --- | --- |
+| Perfil global, correo visible, detalles plegables y gafas bajo Facebook | Componente compartido conservado; pruebas Compose del encabezado incluidas en la suite Android. Falta QA física. |
+| Referencias Facebook internas y publicaciones de trabajo | Suite de permisos y visibilidad aprobada; motor biométrico sin cambios. |
+| Registro, acceso, confirmación y recuperación | Pruebas de API, transporte SMTP y renovación de sesión aprobadas; recepción real aún pendiente. |
+| Jurado y limpieza anterior | Tres grupos ficticios con tres trabajadores cada uno; nueve avatares distintos, 47 registros, 27 adjuntos y 21 publicaciones indexadas. |
+| API y aislamiento | Importación real por HTTP; pruebas de revisiones, reintentos, revocación, archivos, paginación y accesos entre grupos. |
+| Historial de personas y casos | Registros relacionados y notas disponibles en los expedientes y en la búsqueda contextual; respuestas con Meta real verificadas. |
+| Medicación | Comparación manual de campos y validación de relaciones/fechas; sin OCR de envases ni autorización automática. |
+| Memoria | Búsqueda de observaciones autorizadas y referencia a última ubicación observada; dataset sintético, sin prueba de captura física continua. |
