@@ -31,13 +31,16 @@ The three prepared scenarios retain **47 records, 27 attachments and six enrolle
 
 Postman retains **Server requests** and **Localhost requests**, **393 total requests** and the **39 walkthrough requests using existing data**. Only the three authorized jury accounts have public passwords; other accounts and credentials remain in private files.
 
+**R2 prepared:** 426 resources uploaded and read-back/SHA-256 verified; 14 connections for nine scenario and four QA accounts. The QA administrator also has the social directory/workshop. API checks covered originals and previews per account, video `206`, PDF, cross-account rejection `404` and unauthenticated access `401`. Unsigned S3 access was rejected (`400`, `Authorization`). [Receipt](../../assets/storage/demo-verification.json) · [App entry](../guides/STORAGE_CONNECTIONS.md). Luxisoft credentials reused with owner authorization retain their permissions; the application never returns them and performs read operations.
+
+**Third-party review completed:** 93 Python packages and 210 Android dependencies inventoried. Closing `buffalo_l` rights and DAT terms requires the evidence listed in [Third parties](THIRD_PARTY.md).
+
 <a id="next-steps"></a>
 
 ## Remaining acceptance work
 
 | Pending | Required evidence |
 | --- | --- |
-| Real R2 | Supply private bucket credentials, upload/read-back verify the **426 inventoried synthetic resources**, and prepare connections for nine scenario accounts and four QA accounts. A local inventory does not prove remote upload. |
 | App acceptance | Execute the checklist's **89 acceptance cases and six closure steps** against an identified APK/server; retain results and captures. |
 | Phone and external providers | Complete camera, permissions, audio, real email, real Facebook and Live demo walkthroughs. Unit tests do not approve these runs. |
 | Hardware and Windows | Physical glasses and a complete Windows/Docker installation require their own evidence. Simulated Display and Windows script tests have a different scope. |

@@ -59,10 +59,9 @@ The guide places kickoff on **October 26** and building on **October 27–Novemb
 
 ## Provenance and licenses
 
-- **Project code:** [Apache 2.0](../../../LICENSE). Third-party models and SDKs are not original team contributions.
-- **InsightFace:** code is MIT, while downloaded weights have separate non-commercial research conditions. The [Dockerfile](../../../backend/Dockerfile) includes `buffalo_l`; the reviewed documentation contains no record of an additional license. Confirm submission/deployment rights rather than assuming Apache/MIT covers them. [Provider source](https://github.com/deepinsight/insightface#license).
-- **DAT:** its [license](https://github.com/meta/meta-wearables-dat-android/blob/main/LICENSE) refers to developer terms and acceptable use. The [policy](https://wearables.developer.meta.com/acceptable-use-policy) requires sign-in in this review; account-based verification remains pending.
-- **Graphics and data:** [prompts and provenance](GRAPHICS.md), [synthetic directory](../testing/SOCIAL_DIRECTORY.md) and [workspace fixtures](../guides/WORKSPACE_DATA.md). Graphics are conceptual and contain no real patients or records. Generation provenance is not blanket permission for trademarks or third-party resources; verify video provenance before submission too.
+**Review completed:** [third parties, assets and usage rights](THIRD_PARTY.md), including 93 Python packages and 210 Android dependencies, versions and license sources. Project-owned code retains [Apache 2.0](../../../LICENSE).
+
+**Authorization evidence outstanding:** use of InsightFace `buffalo_l` weights and the DAT terms/policy available through the Meta account. The third-party guide identifies the exact missing evidence. Video provenance and voice rights are closed with the final material. A documentary review does not establish authorization for those uses.
 
 **Outstanding:** three-minute recording, team/track, actual demo-output review, model rights and applicable terms, and submission receipt. Documentation is prepared to review these items; full eligibility or approval is not claimed.
 

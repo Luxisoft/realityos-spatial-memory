@@ -1,0 +1,31 @@
+{
+  "verified_at": "2026-11-03T16:40:07.636831+00:00",
+  "bucket": "realityos-demo",
+  "resources": 426,
+  "total_bytes": 369945457,
+  "remote_sha256_verified": 426,
+  "prefix_counts": {
+    "police": 31,
+    "nursing": 31,
+    "memory": 31,
+    "qa": 6,
+    "social-directory": 327
+  },
+  "prepared_accounts": 13,
+  "prepared_connections": 14,
+  "api_previews_and_checksums_verified_for_all_accounts": true,
+  "social_directory_objects_verified_through_api": 327,
+  "http_checks": {
+    "cross_account_list": 404,
+    "cross_account_content": 404,
+    "anonymous_api": 401,
+    "anonymous_r2": 400,
+    "anonymous_r2_authorization_rejected": true,
+    "video_range": 206,
+    "video_preview": true,
+    "pdf_checksum": true,
+    "credentials_not_returned": true
+  },
+  "manual_app_checklist_executed_by_this_preparation": false,
+  "source_manifest_sha256": "a51e5432bd8347dc1317cc557b8305e5bcd82ce17b546918e62e5da9e94bc96c"
+}

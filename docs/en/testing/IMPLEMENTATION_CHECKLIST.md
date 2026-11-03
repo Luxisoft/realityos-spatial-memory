@@ -169,6 +169,8 @@ All four QA accounts have avatars and one initial private synthetic-scene post. 
 
 ### K — R2/S3 buckets — accounts and data prepared by the operator
 
+R2 preparation completed: 426 remote resources verified and ready connections for all 13 accounts. QA admin also has **Directorio social y taller (QA)**. [Preparation receipt](../../assets/storage/demo-verification.json). The following cases remain pending until executed in the app.
+
 - [ ] **K01** — Sign in with each scenario account and the four QA accounts: Profile → My connections shows its prepared source and Test connection succeeds. Missing setup is BLOCKED; the operator follows the [R2 guide](../guides/STORAGE_CONNECTIONS.md), without asking evaluators to find keys.
 - [ ] **K02** — As QA admin, create a disposable connection using list/read keys and a limited folder. Reopening never reveals keys. Invalid credentials show a clear error; rotate keys and test again.
 - [ ] **K03** — Browse folders and pages; preview a photo and MP4, zoom and seek. Playback and return work; unsupported formats are identified.

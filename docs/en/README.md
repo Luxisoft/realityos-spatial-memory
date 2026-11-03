@@ -58,6 +58,8 @@ The regular app already connects to the server. [Windows local](deployment/DEPLO
 
 [Connect an R2/S3 bucket →](guides/STORAGE_CONNECTIONS.md)
 
+Scenario and QA accounts already have their test bucket connected under **Profile → My connections**; resources are uploaded and verified in R2.
+
 ## Platform capabilities
 
 | Capability | What it provides |

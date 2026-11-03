@@ -59,10 +59,9 @@ La guía sitúa el kickoff el **26 de octubre** y la construcción del **27 de o
 
 ## Procedencia y licencias
 
-- **Código del proyecto:** [Apache 2.0](../../../LICENSE). Modelos y SDK de terceros no son aportaciones originales del equipo.
-- **InsightFace:** el código es MIT, pero los pesos descargados tienen condiciones separadas para investigación no comercial. El [Dockerfile](../../../backend/Dockerfile) incorpora `buffalo_l`; no se encontró constancia de una licencia adicional en la documentación revisada. Confirmar derechos para la entrega y el despliegue, sin asumir que Apache/MIT los cubre. [Fuente del proveedor](https://github.com/deepinsight/insightface#license).
-- **DAT:** su [licencia](https://github.com/meta/meta-wearables-dat-android/blob/main/LICENSE) remite a términos de desarrollador y uso aceptable. La [política](https://wearables.developer.meta.com/acceptable-use-policy) exige sesión en esta revisión; falta contrastarla con la cuenta del proyecto.
-- **Gráficos y datos:** [prompts y procedencia](../../en/project/GRAPHICS.md), [directorio sintético](../testing/SOCIAL_DIRECTORY.md) y [fixtures por espacio](../guides/WORKSPACE_DATA.md). Los gráficos son conceptuales y no contienen pacientes ni expedientes reales. La procedencia de generación no equivale a autorización general de marcas o de recursos de terceros; verificar también los videos antes de la entrega.
+**Revisión realizada:** [terceros, recursos y derechos de uso](THIRD_PARTY.md), con inventario de 93 paquetes Python y 210 dependencias Android, versiones y fuentes de licencia. El código propio conserva [Apache 2.0](../../../LICENSE).
+
+**Autorizaciones pendientes de evidencia:** uso de los pesos InsightFace `buffalo_l` y términos/política DAT disponibles con la cuenta Meta. La guía de terceros indica exactamente qué constancia falta. La procedencia de los videos y los derechos de la voz se cierran con el material final. La revisión documental no equivale a autorización de esos usos.
 
 **Pendientes de cierre:** video de tres minutos, equipo/track, revisión de salidas de la demo, derechos de modelos y términos aplicables, y comprobante de envío. La documentación queda preparada para revisar esos puntos; no se declara aprobación ni elegibilidad completa.
 

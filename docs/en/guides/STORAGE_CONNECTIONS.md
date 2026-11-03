@@ -30,13 +30,21 @@ S3 SigV4 requests validate HTTPS/public addresses and pin the connection IP whil
 
 ## Demo preparation and acceptance
 
-`scripts/prepare_bucket_demo.py` defaults to an offline inventory in `.runtime/bucket-demo-manifest.json`. Use `--upload --credentials-file /private/r2.json` to upload and verify synthetic resources by reading them back and comparing SHA-256. `--create-bucket` creates the configured bucket when needed. Private configuration fields: `endpoint`, `bucket`, `region`, `access_key`, `secret_key`. Preparation needs write credentials; evaluator connections need read/list only.
+**Prepared in production on November 3, 2026:** 426 synthetic resources uploaded to the private `realityos-demo` bucket, all read-back verified with SHA-256. The nine scenario accounts and four QA accounts already have their sources under **Profile → My connections**. Open `Demo police`, `Demo nursing`, `Demo memory` or `Demo qa` for your account; no key configuration or phone downloads are needed.
+
+The `qa-hackathon-admin` account also has **Directorio social y taller (QA)** with 327 browsable resources. Total: 14 private connections for 13 accounts. Originals, previews, HTTP video ranges, PDF and cross-account access rejection were verified. [Public receipt without secrets](../../assets/storage/demo-verification.json). This preparation does not mark manual Android cases as executed.
+
+Existing Luxisoft credentials were reused at the owner’s instruction. They are encrypted per connection and never returned to clients. They retain their original permissions, including writes; they are not described as a read-only R2 token. The app connector performs read/list operations only and enforces each connection’s folder. New connections should use read/list credentials limited to the bucket.
+
+### Repeat preparation
+
+`scripts/prepare_bucket_demo.py` defaults to an offline inventory in `.runtime/bucket-demo-manifest.json`. Use `--upload --credentials-file /private/r2.json` to upload and verify synthetic resources by reading them back and comparing SHA-256. `--create-bucket` creates the configured bucket when needed. Private configuration fields: `endpoint`, `bucket`, `region`, `access_key`, `secret_key`. Preparation needs write credentials; new evaluator connections should use read/list credentials limited to the bucket.
 
 Prefixes: `demo/v1/police/`, `nursing/`, `memory/`, `qa/`. Existing scenarios remain intact; personal/Facebook media is excluded. Scenario JSON files describe fixtures and are not automatically imported as records by the media browser.
 
 QA acceptance: connect, test, preview, import image/video, wait for analysis, search, repeat import, change an object, synchronize and disconnect. Repeat from another account to verify connection isolation. Real R2 and physical-device checks require recorded execution; see [implementation status](../project/IMPLEMENTATION_STATUS.md).
 
-After upload verification, the operator runs `scripts/connect_demo_buckets.py --apply --read-credentials-file /private/r2-readonly.json` in the backend environment with `DATABASE_URL` and `STORAGE_ENCRYPTION_KEY`. This prepares private connections for the nine existing scenario accounts and four QA accounts. Without `--apply` it only checks accounts. It is idempotent and does not create accounts, posts, memberships or enrollments. Use list/read credentials with the same JSON format as the upload configuration. Evaluators receive ready connections in **My connections**.
+After upload verification, the operator runs `scripts/connect_demo_buckets.py --apply --read-credentials-file /private/r2-readonly.json` in the backend environment with `DATABASE_URL` and `STORAGE_ENCRYPTION_KEY`. This prepares private connections for the nine existing scenario accounts and four QA accounts. Without `--apply` it only checks accounts. It is idempotent and does not create accounts, posts, memberships or enrollments. Use list/read credentials with the same JSON format as the upload configuration. Evaluators receive ready connections in **My connections**. To reproduce the additional connection, sign in as QA admin and add another connection to the same bucket with folder `demo/v1/social-directory/` and name **Directorio social y taller (QA)**.
 
 The local inventory contains **426 synthetic resources**, including social directory and workshop media under `demo/v1/social-directory/`; the count depends on generated media available on the host. The manifest records every SHA-256. Existing database originals and scenarios remain available.
 

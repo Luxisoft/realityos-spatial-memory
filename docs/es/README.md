@@ -58,6 +58,8 @@ La app habitual ya conecta al servidor. [Windows local](deployment/DEPLOYMENT_LO
 
 [Conectar un bucket R2/S3 →](guides/STORAGE_CONNECTIONS.md)
 
+Las cuentas de escenario y QA ya tienen el bucket de prueba conectado en **Perfil → Mis conexiones**; sus recursos están cargados y verificados en R2.
+
 ## Capacidades de la plataforma
 
 | Capacidad | Qué aporta |

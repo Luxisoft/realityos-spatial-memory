@@ -31,13 +31,16 @@ Los tres escenarios preparados conservan **47 registros, 27 adjuntos y seis retr
 
 Postman mantiene **Server requests** y **Localhost requests**, **393 solicitudes** en total y los **39 recorridos sobre datos existentes**. Solo las tres cuentas del jurado autorizadas tienen contraseñas públicas; otras cuentas y credenciales permanecen en archivos privados.
 
+**R2 preparado:** 426 recursos cargados y verificados por lectura remota/SHA-256; 14 conexiones para las nueve cuentas de escenario y cuatro QA. El administrador QA dispone también del directorio social/taller. API: originales y previews por cuenta, video `206`, PDF, rechazo entre cuentas `404` y sin sesión `401`. El endpoint S3 rechaza la petición sin firma (`400`, `Authorization`). [Comprobante](../../assets/storage/demo-verification.json) · [Entrada desde la app](../guides/STORAGE_CONNECTIONS.md). Las claves Luxisoft reutilizadas por autorización del propietario conservan sus permisos; la aplicación no las devuelve y usa operaciones de lectura.
+
+**Revisión de terceros realizada:** inventario de 93 paquetes Python y 210 dependencias Android. El cierre de derechos de `buffalo_l` y términos DAT necesita la evidencia indicada en [Terceros](THIRD_PARTY.md).
+
 <a id="next-steps"></a>
 
 ## Pendientes de cierre
 
 | Pendiente | Evidencia necesaria |
 | --- | --- |
-| R2 real | Proporcionar credenciales privadas del bucket; cargar/verificar los **426 recursos sintéticos inventariados** y preparar las conexiones de las nueve cuentas de escenario y cuatro QA. El inventario local no acredita una carga remota. |
 | Aceptación de la app | Ejecutar los **89 casos de aceptación y seis de cierre** del checklist con el APK y servidor identificados; conservar resultados y capturas. |
 | Teléfono y proveedores externos | Completar cámara, permisos, audio, correo real, Facebook real y los recorridos Live de la demo. No se marcan aprobados por las pruebas unitarias. |
 | Hardware y Windows | Gafas físicas y una instalación completa Windows/Docker requieren su propia evidencia. El Display simulado y los tests de scripts Windows tienen un alcance distinto. |

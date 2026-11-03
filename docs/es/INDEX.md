@@ -49,6 +49,7 @@
 ## Proyecto y entrega
 
 - [Gráficos y procedencia](project/GRAPHICS.md)
+- [Terceros, recursos y derechos de uso](project/THIRD_PARTY.md)
 - [Entrega y revisión de requisitos](project/HACKATHON.md)
 - [Estado vigente de implementación](project/IMPLEMENTATION_STATUS.md)
 - [Contexto del proyecto](project/PROJECT_CONTEXT.md)

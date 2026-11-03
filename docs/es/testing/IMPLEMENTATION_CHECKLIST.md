@@ -169,6 +169,8 @@ Las cuatro cuentas QA tienen avatares y una publicación privada de escena sint�
 
 ### K — Buckets R2/S3 — cuentas y datos preparados por el responsable
 
+Preparación R2 completada: 426 recursos remotos verificados y conexiones listas para las 13 cuentas. QA admin tiene además **Directorio social y taller (QA)**. [Comprobante de preparación](../../assets/storage/demo-verification.json). Los casos siguientes permanecen pendientes hasta ejecutarlos en la app.
+
 - [ ] **K01** — Entra con cada cuenta de escenario y las cuatro QA: Perfil → Mis conexiones muestra su conexión preparada; Comprobar acceso funciona. Si falta, BLOQUEADO y el responsable ejecuta la preparación de la [guía R2](../guides/STORAGE_CONNECTIONS.md); el evaluador no busca claves.
 - [ ] **K02** — Con QA admin, crea una conexión propia de prueba con claves de lectura/listado, carpeta limitada y nombre reconocible. Vuelve a abrirla: las claves no se muestran. Credenciales inválidas producen error claro; corrígelas con Editar claves y vuelve a comprobar.
 - [ ] **K03** — Explora carpetas y páginas. Abre una foto y un MP4, amplía y busca otro instante del video. Esperado: vista previa autorizada, reproducción y regreso a la misma conexión; formatos incompatibles identificados.

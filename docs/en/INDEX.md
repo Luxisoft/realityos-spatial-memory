@@ -49,6 +49,7 @@
 ## Project and submission
 
 - [Graphics and provenance](project/GRAPHICS.md)
+- [Third parties, assets and usage rights](project/THIRD_PARTY.md)
 - [Submission requirements and review](project/HACKATHON.md)
 - [Current implementation status](project/IMPLEMENTATION_STATUS.md)
 - [Project context](project/PROJECT_CONTEXT.md)
