@@ -13,6 +13,7 @@ from fastapi import HTTPException
 from sqlalchemy import update
 
 from app.accounts.models import AccountAttempt, AccountChallenge
+from app.accounts.presentation import language, mail_content
 
 
 def utc(value):
@@ -48,22 +49,18 @@ def throttle(db, request, identity, action):
             raise HTTPException(429, "Too many attempts. Try again in 15 minutes.")
 
 
-def send_mail(settings, recipient, purpose, token):
+def send_mail(settings, recipient, purpose, lang, token):
     if not settings.smtp_host or not settings.smtp_from:
         raise HTTPException(503, "Email delivery is not configured.")
     path = "verify" if purpose == "verify" else "reset"
-    url = f"{str(settings.auth_public_url).rstrip('/')}/v1/auth/{path}#token={token}"
+    url = f"{str(settings.auth_public_url).rstrip('/')}/v1/auth/{path}?lang={lang}#token={token}"
     message = EmailMessage()
     message["From"] = settings.smtp_from
     message["To"] = recipient
-    message["Subject"] = "RealityOS — " + (
-        "Confirmar correo" if purpose == "verify" else "Restablecer contraseña"
-    )
-    message.set_content(
-        f"Abre este enlace para continuar:\n\n{url}\n\n"
-        "El enlace vence en 30 minutos y solo se puede usar una vez.\n"
-        "Si no solicitaste esta operación, ignora este correo."
-    )
+    subject, text, html = mail_content(purpose, url, lang)
+    message["Subject"] = subject
+    message.set_content(text)
+    message.add_alternative(html, subtype="html")
     try:
         context = ssl.create_default_context()
         if settings.smtp_port == 465:
@@ -83,7 +80,7 @@ def send_mail(settings, recipient, purpose, token):
         raise HTTPException(503, "Email delivery failed. Please retry.") from exc
 
 
-async def challenge(db, settings, user, purpose):
+async def challenge(db, settings, user, purpose, accept_language=None):
     token = secrets.token_urlsafe(32)
     now = datetime.now(UTC)
     db.execute(
@@ -103,7 +100,14 @@ async def challenge(db, settings, user, purpose):
     )
     db.add(row)
     db.flush()
-    await asyncio.to_thread(send_mail, settings, user.email, purpose, token)
+    await asyncio.to_thread(
+        send_mail,
+        settings,
+        user.email,
+        purpose,
+        language(accept_language, user.preferred_language),
+        token,
+    )
 
 
 def consume(db, token, purpose):

@@ -61,12 +61,11 @@ anuncia que todo está listo.
 
 | Aplicación | Dirección por defecto |
 | --- | --- |
-| Panel | `http://localhost:8080` |
-| Display web | `http://localhost:8080/display/` |
+| App | Android Debug local |
 | Contrato API | `http://localhost:8080/v1/openapi.json` |
 | Salud | `http://localhost:8080/health/ready` |
 
-Entra con el correo y contraseña que elegiste. Son una cuenta real en tu base
+Entra desde Android con el correo y contraseña que elegiste. Son una cuenta real en tu base
 local; no una identidad Facebook inventada. No se pide reconocimiento facial
 para entrar con ella. No se registran consentimientos ni capturas faciales
 automáticamente. Las funciones faciales mantienen sus permisos/consentimientos

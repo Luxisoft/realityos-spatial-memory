@@ -29,10 +29,8 @@ Invariantes no negociables (ver `AGENTS.md` y `docs/REALITYOS_MISSION.md`):
 | `backend/app/` | API y contratos compartidos: `http`, `providers`, `processing`, `social_features`; fachadas compatibles y módulo biométrico aislado | Python, FastAPI, SQLAlchemy, Celery/Redis |
 | `backend/alembic/versions/` | Migraciones históricas; head productivo verificado `20261031_0029` | Alembic, PostgreSQL |
 | `meta-gateway/` | Servicio de egress restringido a Meta (no proxy general) | FastAPI, ~150 líneas |
-| `frontend/src/` | Panel admin React (Home/Register/Query/Objects/Map/Intelligence/Devices) | React 18 + TS + Vite |
-| `display-webapp/src/` | Demo de consulta 600×600 para Display | React + TS + Vite |
 | `android/` | Host nativo DAT 1.0.1 para Ray-Ban Display + galería social (v0.1.6, code 7) | Kotlin, Compose, CameraX, DAT, Mock Device Kit (solo Debug) |
-| `infrastructure/` | Compose (postgres, redis, api, worker, frontend, display, proxy Nginx) + despliegue gateway/Nginx/TLS | Docker Compose, Nginx |
+| `infrastructure/` | Compose (postgres, redis, api, worker, proxy Nginx) + despliegue gateway/Nginx/TLS | Docker Compose, Nginx |
 | `tests/` + `gateway-tests/` | Regresiones backend/gateway, social agrupado por funcionalidad y contrato OpenAPI congelado | pytest |
 | `scripts/` | `seed_demo.py`, `import_manual_photos.py`, `backup-postgres.sh`, `chunk_large_video_asset.py` | — |
 | `.runtime/` | Ignorado por Git: capturas manuales privadas, dumps, release/rollback JSON | — |
@@ -135,8 +133,6 @@ Trabajo en curso **sin commitear** (ver `git status`):
 
 ```bash
 make install | lint | test | api | migrate | seed | compose-up | gateway-api | runtime-dirs
-npm --prefix frontend run build
-npm --prefix display-webapp run build
 (cd android && ANDROID_HOME=/opt/android-sdk ./gradlew :app:assembleDebug)
 ```
 
@@ -586,3 +582,15 @@ Migración `20261103_0032` aplicada en producción; api/worker usan
 del mismo espacio). 6 retratos del jurado enrolados por API; sonda viva Ana
 Solis → expediente similitud 1.0. Ver `IMPLEMENTATION_STATUS.md` y
 `WORKSPACE_DATA.md`.
+
+
+## Android como única app — 2026-11-02
+
+Por instrucción del propietario se retiran el panel web y la web Display, sus
+fuentes, builds y publicación. Las referencias web anteriores son históricas.
+Android conserva el Display nativo DAT y todos sus endpoints. La API, el gateway
+Meta de FRONTEND y el ingreso bajo demanda permanecen. `/` y `/display/` devuelven
+410; `/v1/auth/verify` y `/v1/auth/reset` permanecen para los enlaces de correo.
+El acceso Android muestra Continuar con correo y abre Iniciar sesión; registro,
+recuperación y reenvío son flujos secundarios. Correos HTML/texto y páginas de
+autenticación usan el tema Android y ES/EN. No hay migración.

@@ -1,30 +1,14 @@
-# Dirección visual: panel y Display
+# Identidad visual Android y autenticación
 
-**Público y trabajo principal.** Operadores de taller y jurados deben poder
-comprobar, en segundos, que una respuesta procede de una observación real y no
-de una conjetura.
+Android es la única app. El panel web y la web Display fueron retirados por
+instrucción del propietario. Las páginas de confirmación y recuperación, y los
+correos HTML con alternativa de texto, usan el tema de `RealityTheme.kt`.
 
-**Tokens.** Papel de inventario `#F1F0EA`; tinta `#17211F`; azul de
-calibración `#2355D9`; amarillo de evidencia `#F0BF24`; óxido de alerta
-`#A95030`; niebla `#D7DDD7`.
-
-**Tipografía.** Una pila condensada de sistema para títulos (`Arial Narrow`,
-`Roboto Condensed`) recuerda etiquetas de almacén; una sans de sistema legible
-para tareas; una monoespaciada para IDs, fecha y confianza.
-
-**Layout.** El panel funciona como una hoja de inspección: una barra vertical
-para decidir modo, una cabecera que declara espacio y estado, y una placa de
-evidencia grande. Display elimina la navegación y conserva solo pregunta,
-fotografía, última observación y acción de audio.
-
-**Firma.** La *placa de evidencia* enmarca la foto con una regla de coordenadas
-y una etiqueta de integridad: convierte el resaltado y el hash en parte de la
-lectura, no en decoración. Esta elección evita la estética genérica de dashboard
-y hace visible la promesa del producto.
-
-**Accesibilidad.** Foco visible, contraste alto, controles de teclado, no se
-depende solo de color y se respeta `prefers-reduced-motion`.
-
+Fondo `#262729`, texto `#F4F7F5`, acento `#62A9F8`, bordes `#363D45`,
+tipografía sans del sistema y radios de 12 px. Los formularios tienen etiquetas
+visibles, foco accesible, mensajes de estado y traducciones ES/EN.
+El botón Continuar con correo abre ingreso, con enlaces para registro,
+recuperación y reenvío. No se cambia el tema general Android.
 
 ## Native Meta Display and Android host — 2026-10-31
 

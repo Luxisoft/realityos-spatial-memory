@@ -9,6 +9,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.accounts.models import AccountChallenge, PasswordAccount
+from app.accounts.presentation import action_page, language
 from app.accounts.service import challenge, consume, throttle
 from app.dependencies import get_current_user, get_db
 from app.device_profiles import issue_capture_profile
@@ -67,7 +68,9 @@ async def register(payload: Registration, request: Request, db: Session = Depend
     except IntegrityError:
         db.rollback()
         raise HTTPException(409, "This email or username cannot be registered.")
-    await challenge(db, request.app.state.settings, user, "verify")
+    await challenge(
+        db, request.app.state.settings, user, "verify", request.headers.get("accept-language")
+    )
     return {"status": "confirmation_sent"}
 
 
@@ -77,7 +80,9 @@ async def resend(payload: EmailRequest, request: Request, db: Session = Depends(
     user = db.scalar(select(User).where(User.email == payload.email.strip().casefold()))
     account = db.get(PasswordAccount, user.id) if user else None
     if account and not account.verified_at:
-        await challenge(db, request.app.state.settings, user, "verify")
+        await challenge(
+            db, request.app.state.settings, user, "verify", request.headers.get("accept-language")
+        )
     return {"status": "If eligible, a confirmation email has been sent."}
 
 
@@ -96,7 +101,9 @@ async def forgot(payload: EmailRequest, request: Request, db: Session = Depends(
     user = db.scalar(select(User).where(User.email == payload.email.strip().casefold()))
     account = db.get(PasswordAccount, user.id) if user else None
     if account and account.verified_at and user.is_active:
-        await challenge(db, request.app.state.settings, user, "reset")
+        await challenge(
+            db, request.app.state.settings, user, "reset", request.headers.get("accept-language")
+        )
     return {"status": "If eligible, a recovery email has been sent."}
 
 
@@ -132,38 +139,21 @@ async def capture_profile(
     return issue_capture_profile(db, request.app.state.settings, user, account=True)
 
 
-async def action_page(action: str):
-    if action not in {"verify", "reset"}:
-        raise HTTPException(404)
-    reset = action == "reset"
-    title = "Restablecer contraseña" if reset else "Confirmar correo"
-    endpoint = "reset-password" if reset else "confirm-email"
-    password = (
-        '<label>Nueva contraseña<input id="password" type="password" minlength="12" maxlength="512" autocomplete="new-password" required></label>'
-        if reset
-        else ""
-    )
-    nonce = __import__("secrets").token_urlsafe(20)
-    return HTMLResponse(
-        f'''<!doctype html><html lang="es"><meta charset="utf-8"><meta name="viewport" content="width=device-width">
-<title>RealityOS — {title}</title><body><main><h1>RealityOS</h1><h2>{title}</h2>
-<form>{password}<button>Continuar</button></form><p role="status" id="status"></p></main>
-<script nonce="{nonce}">const token=new URLSearchParams(location.hash.slice(1)).get('token');history.replaceState(null,'',location.pathname);
-document.querySelector('form').onsubmit=async e=>{{e.preventDefault();let body={{token}};let password=document.querySelector('#password');if(password)body.password=password.value;
-try{{let r=await fetch('/v1/auth/{endpoint}',{{method:'POST',headers:{{'Content-Type':'application/json'}},body:JSON.stringify(body)}});document.querySelector('#status').textContent=r.ok?'Listo. Vuelve a la aplicación para iniciar sesión.':'Enlace inválido o vencido. Solicita uno nuevo.';if(r.ok)document.querySelector('form').remove();}}catch{{document.querySelector('#status').textContent='No se pudo conectar. Intenta de nuevo.';}}}};</script></body></html>''',
-        headers={
-            "Cache-Control": "no-store",
-            "Referrer-Policy": "no-referrer",
-            "Content-Security-Policy": f"default-src 'none'; script-src 'nonce-{nonce}'; connect-src 'self'; form-action 'self'; frame-ancestors 'none'",
-        },
-    )
-
-
 @router.get("/auth/verify", response_class=HTMLResponse, include_in_schema=False)
-async def verify_page():
-    return await action_page("verify")
+async def verify_page(request: Request):
+    return action_page(
+        "verify",
+        language(
+            request.query_params.get("lang"), language(request.headers.get("accept-language"))
+        ),
+    )
 
 
 @router.get("/auth/reset", response_class=HTMLResponse, include_in_schema=False)
-async def reset_page():
-    return await action_page("reset")
+async def reset_page(request: Request):
+    return action_page(
+        "reset",
+        language(
+            request.query_params.get("lang"), language(request.headers.get("accept-language"))
+        ),
+    )

@@ -45,27 +45,6 @@ jobs:
       - run: pytest -q gateway-tests
       - run: docker build --file meta-gateway/Dockerfile --tag realityos-meta-gateway:ci .
 
-  web:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: npm
-          cache-dependency-path: |
-            frontend/package-lock.json
-            display-webapp/package-lock.json
-      - run: npm --prefix frontend ci
-      - run: npm --prefix frontend run format:check
-      - run: npm --prefix frontend run build
-      - run: npm --prefix display-webapp ci
-      - run: npm --prefix display-webapp run format:check
-      - run: npm --prefix display-webapp run build
-      - run: node tests/web/language.test.cjs
-      - run: npm --prefix frontend audit --omit=dev
-      - run: npm --prefix display-webapp audit --omit=dev
-
   windows-local-scripts:
     runs-on: windows-latest
     steps:

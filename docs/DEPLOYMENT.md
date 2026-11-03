@@ -95,3 +95,15 @@ no prueba `/v1/`. Además cachea la IP del contenedor API: tras recrear el API
 hay que reiniciar el gateway (`systemctl --user restart
 backend-demand-realityos.service`) o todo `/v1/` se cuelga con 000. Verificar
 siempre un endpoint `/v1/` real (p. ej. `openapi.json`) tras cada despliegue.
+
+
+## Retirada de las aplicaciones web
+
+Compose de servidor y Windows local incluyen solo API, worker, PostgreSQL, Redis
+y proxy. La API sirve las páginas de correo; el resto de rutas de navegador
+responde 410. `retire_web.py` elimina exclusivamente los contenedores
+`infrastructure-frontend-1` y `infrastructure-display-1`, comprobando etiquetas
+de propiedad. Ejecutarlo después de validar y activar el proxy actualizado.
+`preserve_backend_runtime.py` regenera la configuración de Nginx bajo demanda
+desde la plantilla actual, conservando el socket y el entorno privado.
+FRONTEND sigue siendo el host del gateway Meta y no se retira.

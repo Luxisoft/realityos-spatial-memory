@@ -116,12 +116,14 @@ Admin / Android / Display -> FastAPI -> PostgreSQL metadata + BYTEA
   enrollments and authorized person-record portraits are searched per
   workspace with boxed evidence; group photos are never auto-enrolled.
 - **Wearables:** native DAT host for Meta Ray-Ban Display (Register/Query
-  screens, capture, voice query, routed TTS) plus a 600×600 Display web demo.
+  screens, capture, voice query, routed TTS). Android is the only app.
+
+Browser applications have been retired. Only email confirmation and password reset
+pages remain on the server; the former panel and `/display/` return HTTP 410.
 
 ## Repository map
 
 - `backend/` — FastAPI API + Celery worker, Alembic migrations, providers.
-- `frontend/` — browser panel. `display-webapp/` — Display UI demo.
 - `android/` — phone app and wearables code; Debug APK under
   `app/build/outputs/apk/debug/`.
 - `meta-gateway/` — restricted Meta egress service (allowlisted routes only).
@@ -134,8 +136,6 @@ Admin / Android / Display -> FastAPI -> PostgreSQL metadata + BYTEA
 ```bash
 make lint
 make test
-npm --prefix frontend run build
-npm --prefix display-webapp run build
 (cd android && ANDROID_HOME=/opt/android-sdk ./gradlew :app:assembleDebug)
 ```
 

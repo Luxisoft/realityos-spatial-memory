@@ -38,8 +38,6 @@ architecture-check:
 
 format-check:
 	.venv/bin/ruff format --check backend/app/http backend/app/providers backend/app/processing backend/app/social_features backend/app/routes.py backend/app/meta.py backend/app/services.py backend/app/social.py tests/social tests/test_architecture_contract.py tests/conftest.py scripts/check_structure.py
-	npm --prefix frontend run format:check
-	npm --prefix display-webapp run format:check
 	cd android && ./gradlew :app:ktlintCheck
 
 android-check:

@@ -271,11 +271,14 @@ def test_smtp_transport_confirmation_and_reset_links(client, monkeypatch, port):
     def token_from_last():
         link = next(
             line
-            for line in deliveries[-1].get_content().splitlines()
+            for line in deliveries[-1]
+            .get_body(preferencelist=("plain",))
+            .get_content()
+            .splitlines()
             if line.startswith("https:")
         )
         parsed = urlsplit(link)
-        assert not parsed.query
+        assert parse_qs(parsed.query) == {"lang": ["es"]}
         return parsed, parse_qs(parsed.fragment)["token"][0]
 
     parsed, token = token_from_last()
@@ -304,3 +307,63 @@ def test_smtp_transport_confirmation_and_reset_links(client, monkeypatch, port):
     assert len(deliveries) == 2
     assert calls.count("tls") == (2 if port == 587 else 0)
     assert calls.count("login") == 2
+
+
+@pytest.mark.parametrize(
+    "lang,title", [("es", "Restablecer contraseña"), ("en", "Reset password")]
+)
+def test_action_page_language_security_and_confirmation(client, lang, title):
+    response = client.get("/v1/auth/reset?lang=" + lang)
+    assert response.status_code == 200
+    assert title in response.text
+    assert 'id="confirmation"' in response.text
+    assert "#262729" in response.text and "#62A9F8" in response.text
+    assert response.headers["cache-control"] == "no-store"
+    assert response.headers["referrer-policy"] == "no-referrer"
+    assert "style-src 'nonce-" in response.headers["content-security-policy"]
+    assert "history.replaceState" in response.text
+    verify = client.get("/v1/auth/verify?lang=" + lang)
+    assert 'id="password"' not in verify.text
+    assert '<html lang="' + lang + '"' in verify.text
+
+
+def test_mail_language_preference_and_fallback(client, monkeypatch):
+    from app.models import User
+    from sqlalchemy import select
+
+    sent, payload = signup(client, monkeypatch)
+    assert sent[-1][-2] == "es"
+    with client.app.state.database.session_factory() as db:
+        user = db.scalar(select(User).where(User.email == payload["email"]))
+        user.preferred_language = "en"
+        db.commit()
+    for header, expected in [
+        ({}, "en"),
+        ({"Accept-Language": "es-CO,en;q=0.5"}, "es"),
+        ({"Accept-Language": "fr"}, "en"),
+    ]:
+        assert (
+            client.post(
+                "/v1/auth/resend-confirmation",
+                json={"email": payload["email"]},
+                headers=header,
+            ).status_code
+            == 202
+        )
+        assert sent[-1][-2] == expected
+
+
+def test_html_mail_has_matching_plain_action_and_escaped_link():
+    from app.accounts.presentation import language, mail_content
+
+    subject, plain, html = mail_content(
+        "verify", "https://example.test/v1/auth/verify?lang=en#token=synthetic", "en"
+    )
+    assert subject == "RealityOS — Confirm email"
+    assert "30 minutes" in plain and "30 minutes" in html
+    assert "#262729" in html and "#62A9F8" in html
+    assert "https://example.test/v1/auth/verify?lang=en#token=synthetic" in plain
+    assert language("en;q=0,es;q=0.8") == "es"
+    assert language("es;q=0.1,en;q=0.9") == "en"
+    assert language("invalid", "en") == "en"
+    assert language(None) == "es"

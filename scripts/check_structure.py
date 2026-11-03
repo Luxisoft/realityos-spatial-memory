@@ -9,8 +9,6 @@ ROOTS = (
     "meta-gateway",
     "tests",
     "gateway-tests",
-    "frontend/src",
-    "display-webapp/src",
     "android/app/src",
     "scripts",
 )

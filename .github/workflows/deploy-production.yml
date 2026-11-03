@@ -252,11 +252,13 @@ jobs:
             sudo docker compose --env-file .env --env-file /opt/realityos/runtime.env -f infrastructure/docker-compose.yml -f infrastructure/docker-compose.production.yml -f "$runtime_overlay" pull api worker
             sudo docker compose --env-file .env --env-file /opt/realityos/runtime.env -f infrastructure/docker-compose.yml -f infrastructure/docker-compose.production.yml -f "$runtime_overlay" up -d --no-build api worker
             sudo docker compose --env-file .env --env-file /opt/realityos/runtime.env -f infrastructure/docker-compose.yml -f infrastructure/docker-compose.production.yml -f "$runtime_overlay" exec -T api alembic upgrade head
-            # Browser apps are deliberately built on the target from the same
-            # synchronized commit. They do not receive the Meta API key.
-            sudo docker compose --env-file .env --env-file /opt/realityos/runtime.env -f infrastructure/docker-compose.yml -f infrastructure/docker-compose.production.yml -f "$runtime_overlay" build frontend display
-            sudo docker compose --env-file .env --env-file /opt/realityos/runtime.env -f infrastructure/docker-compose.yml -f infrastructure/docker-compose.production.yml -f "$runtime_overlay" up -d --no-build frontend display proxy
+            if test -f .runtime/backend-demand.json; then
+              systemctl --user restart backend-demand-realityos.service
+            fi
+            # Keep API ingress while retiring the browser applications.
+            sudo docker compose --env-file .env --env-file /opt/realityos/runtime.env -f infrastructure/docker-compose.yml -f infrastructure/docker-compose.production.yml -f "$runtime_overlay" up -d --no-build proxy
             sudo docker compose --env-file .env --env-file /opt/realityos/runtime.env -f infrastructure/docker-compose.yml -f infrastructure/docker-compose.production.yml -f "$runtime_overlay" exec -T proxy nginx -s reload
+            sudo python3 scripts/deploy/retire_web.py
             sudo docker compose --env-file .env --env-file /opt/realityos/runtime.env -f infrastructure/docker-compose.yml -f infrastructure/docker-compose.production.yml -f "$runtime_overlay" exec -T api alembic current
             sudo docker compose --env-file .env --env-file /opt/realityos/runtime.env -f infrastructure/docker-compose.yml -f infrastructure/docker-compose.production.yml -f "$runtime_overlay" exec -T api python -c "import urllib.request; urllib.request.urlopen(\"http://localhost:8000/health/ready\")"
             sudo docker compose --env-file .env --env-file /opt/realityos/runtime.env -f infrastructure/docker-compose.yml -f infrastructure/docker-compose.production.yml -f "$runtime_overlay" exec -T api python -c "import json, urllib.request; paths=json.load(urllib.request.urlopen(\"http://localhost:8000/v1/openapi.json\"))[\"paths\"]; assert all(p in paths for p in [\"/v1/device/jobs/{job_id}\", \"/v1/auth/facebook\", \"/v1/gallery\", \"/v1/assistant\"]), \"Android API contract missing from OpenAPI\""

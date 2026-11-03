@@ -1674,3 +1674,29 @@ sincronizar. Fix de una palabra en committed compose: stop medido 600 s/137 →
 reiniciado, `/v1/openapi.json` público 200. Rollback de versión: bajar a
 `0032` desde una imagen con `0033` y luego GHCR:99a83e0; restauración de
 config: `.runtime/face-records-r2-rollback.json`.
+
+
+## Android como única app y auth por correo — 2026-11-02
+
+Implementado Continuar con correo → Iniciar sesión, con registro, recuperación,
+reenvío y regreso separados, validación y estados de carga, conservando el tema
+Android. Correos multipart HTML/texto y páginas mínimas de confirmación y cambio
+de contraseña en ES/EN con estilos equivalentes y CSP por nonce.
+Panel web y web Display retirados de fuentes, Compose, CI y producción; sus
+rutas devuelven 410. API, gateway FRONTEND y Display nativo conservados.
+
+Validación: 406 pruebas backend/gateway (dos comprobaciones dependientes del
+cwd repetidas correctamente desde raíz), 191 Android, lint, formato, builds
+Debug/Release, scripts PowerShell y 12 escenarios Chromium ES/EN a 390/1280 px.
+APK único reconstruido en `android/app/build/outputs/apk/debug/app-debug.apk`.
+Recepción de correo real y QA física de teléfono/gafas siguen pendientes; no se
+enviaron correos de prueba.
+
+API/worker desplegados como `realityos-backend:android-auth-20261102`. Verificados
+salud real de API, contrato OpenAPI exacto, worker, páginas de correo 200 y rutas
+web 410 en dominio público. Alembic `20261103_0033` sin migración nueva.
+Entorno privado, límites y socket de activación bajo demanda preservados.
+Rollback de backend: `.runtime/android-auth-20261102-rollback.json`; configuración
+anterior Nginx: `.runtime/android-auth-20261102-nginx-rollback.conf`. Las webs
+retiradas no deben reactivarse al revertir el backend. Evidencia privada en
+`.runtime/android-auth-20261102/verified.json`.

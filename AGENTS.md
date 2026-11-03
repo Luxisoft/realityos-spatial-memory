@@ -30,8 +30,8 @@ configuration and non-code files, or when the graph is unavailable.
 ## Structure and commands
 
 - Keep shared backend contracts in `backend/`; API and worker must not diverge.
-- Keep browser UI in `frontend/`, Display UI in `display-webapp/`, and phone
-  and Wearables code in `android/`.
+- Android is the only app; phone and native Wearables code live in `android/`.
+  Keep email action pages in the backend. Browser panel and web Display are retired.
 - Keep the restricted Meta egress service in `meta-gateway/`; it must remain an
   allowlisted gateway, never a general-purpose proxy.
 - Store synthetic fixtures only in `simulator/`; never commit credentials or
@@ -84,7 +84,7 @@ apply migrations, restart api/worker with a
 image), preserve the gateway runtime, then verify `/health/ready`, the OpenAPI
 contract and the Alembic version. Report the result and the rollback path.
 Docker commands need in-session user approval; request it as part of the
-deploy. Frontend/display rebuilds follow the CI path unless asked otherwise.
+deploy. The browser panel and web Display are retired; do not redeploy their services.
 Owner storage correction (2026-10-29): do not dump PostgreSQL for ordinary code
 or UI releases. Only a schema/data migration requiring reversal may create a
 technical `pre-*.dump` snapshot in `.runtime/`; it expires after 24 hours (one

@@ -72,7 +72,7 @@ internal fun FacebookAccessScreen(busy: Boolean, error: String, consentChecked: 
             }
             Spacer(Modifier.height(10.dp))
             OutlinedButton(onClick = onGuest, enabled = !busy, modifier = Modifier.fillMaxWidth().widthIn(max = 560.dp).heightIn(min = 56.dp)) {
-                Text(stringResource(R.string.account_register))
+                Text(stringResource(R.string.account_access))
             }
             Spacer(Modifier.height(10.dp))
             TextButton(onClick = onWelcome, enabled = !busy) { Text(stringResource(R.string.facebook_access_welcome)) }

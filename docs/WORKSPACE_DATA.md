@@ -158,8 +158,8 @@ La herramienta protege las tablas de identidad y biometría y conserva medios us
 por publicaciones de espacios ajenos a la selección. No admite espacios personales.
 La migración de cuentas y registros es `20261102_0031`.
 
-La publicación web aislada usa el workflow manual `Publish workspace web`: valida y
-construye el frontend en CI, publica solo su imagen y conserva el checkout y backend.
+El panel y la web Display están retirados. Los formularios de cuentas y expedientes
+se utilizan desde Android; las verificaciones web históricas no describen una app vigente.
 
 ## Alcance de la revisión del 2 de noviembre de 2026
 
@@ -201,3 +201,10 @@ durante la carga o el guardado de un expediente: las respuestas obsoletas no
 reabren el paciente anterior ni modifican el borrador del siguiente. Salir de la
 pantalla no revierte una nota que el servidor ya haya recibido. Estas pruebas
 usan respuestas controladas y no sustituyen QA física de captura con las gafas.
+
+
+Las solicitudes de registro, reenvío y recuperación aceptan `Accept-Language`
+ES/EN; el respaldo es la preferencia de cuenta y después español. Los correos
+son multipart HTML/texto y conservan enlaces de un uso con token en fragmento.
+Las páginas mínimas `/v1/auth/verify` y `/v1/auth/reset` permanecen con el mismo
+tema Android; `?lang=es|en` selecciona su idioma. Sin cambio del cuerpo REST.

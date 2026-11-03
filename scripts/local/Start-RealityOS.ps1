@@ -37,16 +37,26 @@ $disk = Invoke-LocalDocker $root @('run', '--rm', '--entrypoint', 'df', 'python:
 $lastRow = ($disk -split "`n")[-1].Trim() -split '\s+'
 if ([double]$lastRow[3] * 1KB -lt 25GB) { throw 'El disco Linux de Docker necesita al menos 25 GiB libres.' }
 Write-Host 'Construyendo la instalacion local. La primera descarga de modelos puede tardar.'
-Invoke-LocalCompose $root @('build', 'api', 'frontend', 'display')
+Invoke-LocalCompose $root @('build', 'api')
 Invoke-LocalCompose $root @('run', '--rm', '--no-deps', 'api', 'python', '/scripts/local/check_runtime.py', '--providers')
 Invoke-LocalCompose $root @('up', '-d', '--wait', '--wait-timeout', '120', 'postgres', 'redis')
 Invoke-LocalCompose $root @('run', '--rm', '--no-deps', 'api', 'alembic', 'upgrade', 'head')
 Invoke-LocalCompose $root @('run', '--rm', '--no-deps', 'api', 'python', '/scripts/local/bootstrap.py')
 Invoke-LocalCompose $root @('up', '-d', '--wait', '--wait-timeout', '3600')
+# Retire only browser containers belonging to the isolated local project.
+foreach ($service in @('frontend', 'display')) {
+    $retired = Invoke-LocalDocker $root @('ps', '-aq', '--filter', 'label=com.docker.compose.project=realityos-local', '--filter', "label=com.docker.compose.service=$service") -Quiet
+    foreach ($containerId in ($retired -split "`n")) {
+        if ($containerId.Trim()) {
+            Invoke-LocalDocker $root @('stop', $containerId.Trim())
+            Invoke-LocalDocker $root @('rm', $containerId.Trim())
+        }
+    }
+}
 try {
     Invoke-LocalCompose $root @('exec', '-T', 'api', 'python', '/scripts/local/check_runtime.py', '--speech')
 } catch {
     throw 'No se pudo verificar la voz real. Revisa ElevenLabs y la conexion, y ejecuta el diagnostico local; no se uso un modelo simulado.'
 }
-Write-Host "Listo: http://localhost:$($values.LOCAL_HTTP_PORT) | Display: /display/ | API: /v1/"
+Write-Host "Listo: API http://localhost:$($values.LOCAL_HTTP_PORT)/v1/ | App: Android"
 Write-Host "Cuenta local: $($values.LOCAL_ACCOUNT_EMAIL). Usa la contrasena que elegiste."

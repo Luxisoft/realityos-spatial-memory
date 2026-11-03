@@ -119,7 +119,16 @@ if __name__ == "__main__":
     demand_path = runtime_root / "backend-demand.json"
     if demand_path.is_file():
         demand = json.loads(demand_path.read_text())
+        # Regenerate from the current API-only proxy template, retaining activation.
+        # Validation below prevents binding arbitrary runtime paths.
         preserve_demand_runtime(preserved, demand, runtime_root)
+        template = (
+            runtime_root.parent / "infrastructure/nginx/default.conf"
+        ).read_text()
+        Path(demand["nginx_conf"]).write_text(
+            "upstream backend_demand_api { server unix:/run/backend-demand/api.sock; }\n"
+            + template.replace("http://api:8000", "http://backend_demand_api")
+        )
         preserve_demand_runtime(rollback, demand, runtime_root)
     save(args.output, preserved)
     save(args.rollback, rollback)

@@ -145,6 +145,7 @@ internal object SocialSession {
     }
     private fun requestOnce(path: String, method: String, payload: JSONObject?, mayRefresh: Boolean, timeoutMillis: Int = 30000): String {
         val connection = openJsonConnection(path)
+        if (path in setOf("auth/register", "auth/resend-confirmation", "auth/forgot-password")) connection.setRequestProperty("Accept-Language", AccountRequestLanguage.value)
         connection.setRequestProperty("X-Client-Version", BuildConfig.VERSION_NAME)
         connection.connectTimeout = minOf(15000, timeoutMillis)
         connection.readTimeout = timeoutMillis
