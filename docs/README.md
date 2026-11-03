@@ -31,3 +31,5 @@
 
 [Datos sintéticos / Synthetic data](../simulator/social-directory/README.md) · [Gráficos / Graphics](assets/readme/PROMPTS.md)
 Historical references retain their original text and dates; they are not current deployment recipes. `PROJECT_CONTEXT.md` is the internal agent map, not a user guide.
+
+[Connect your bucket and resources](STORAGE_CONNECTIONS.md)

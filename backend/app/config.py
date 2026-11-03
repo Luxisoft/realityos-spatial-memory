@@ -19,6 +19,8 @@ class Settings(BaseSettings):
     environment: str = "development"
     local_login_enabled: bool = False
     test_worker_provisioning_enabled: bool = False
+    storage_encryption_key: SecretStr = SecretStr("")
+    storage_max_download_bytes: int = Field(default=64 * 1024 * 1024, ge=1024)
     integration_source_hosts: str = ""
     integration_encryption_key: SecretStr = SecretStr("")
     smtp_host: str = ""

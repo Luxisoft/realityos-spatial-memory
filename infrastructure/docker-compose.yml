@@ -37,6 +37,8 @@ services:
       - ../.env
       - path: ../.env.facebook
         required: false
+      - path: ../.env.storage
+        required: false
     environment:
       DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-realityos}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-realityos}
       REDIS_URL: redis://redis:6379/0
@@ -59,7 +61,10 @@ services:
     build:
       context: ..
       dockerfile: backend/Dockerfile
-    env_file: ../.env
+    env_file:
+      - ../.env
+      - path: ../.env.storage
+        required: false
     environment:
       DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-realityos}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-realityos}
       REDIS_URL: redis://redis:6379/0
@@ -73,6 +78,24 @@ services:
         condition: service_healthy
     restart: unless-stopped
     networks: [internal, egress]
+
+  scheduler:
+    image: ${REALITYOS_BACKEND_IMAGE:-realityos-backend:local}
+    env_file:
+      - ../.env
+      - path: ../.env.storage
+        required: false
+    environment:
+      DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-realityos}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-realityos}
+      REDIS_URL: redis://redis:6379/0
+    command: ["celery", "-A", "app.tasks.celery_app", "beat", "--loglevel=WARNING", "--schedule=/tmp/storage-beat"]
+    mem_limit: 256m
+    cpus: 0.25
+    depends_on:
+      api:
+        condition: service_healthy
+    restart: unless-stopped
+    networks: [internal]
 
   proxy:
     image: nginx:1.27-alpine

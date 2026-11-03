@@ -14,7 +14,7 @@ if (!(Test-Path -LiteralPath $path)) {
 $values = Get-LocalEnvironment $root
 Assert-LocalConfiguration $values
 $updates = @{}
-foreach ($key in @('POSTGRES_PASSWORD', 'JWT_SECRET', 'DEVICE_CREDENTIAL_PEPPER')) {
+foreach ($key in @('POSTGRES_PASSWORD', 'JWT_SECRET', 'DEVICE_CREDENTIAL_PEPPER', 'STORAGE_ENCRYPTION_KEY')) {
     if (!$values[$key]) { $updates[$key] = New-LocalSecret }
 }
 if (!$values.MODEL_API_KEY) { $updates.MODEL_API_KEY = Read-LocalSecret 'Clave Meta propia (no se muestra)' }

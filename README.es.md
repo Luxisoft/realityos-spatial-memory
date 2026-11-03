@@ -57,6 +57,8 @@ Importa [la colección pública](https://raw.githubusercontent.com/Luxisoft/real
 
 La app habitual ya conecta al servidor. [Windows local](docs/DEPLOYMENT_LOCALHOST.es.md) es una instalación adicional que empieza vacía.
 
+[Conectar un bucket R2/S3 →](docs/STORAGE_CONNECTIONS.es.md)
+
 ## Capacidades de la plataforma
 
 | Capacidad | Qué aporta |

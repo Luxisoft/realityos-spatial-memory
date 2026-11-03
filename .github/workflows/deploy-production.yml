@@ -200,7 +200,7 @@ jobs:
       - name: Synchronize versioned deployment files
         run: |
           rsync -az \
-            --exclude .env --exclude .env.facebook --exclude .env.elevenlabs --exclude .runtime --exclude android/local.properties \
+            --exclude .env --exclude .env.storage --exclude .env.facebook --exclude .env.elevenlabs --exclude .runtime --exclude android/local.properties \
             --exclude .git --exclude .venv --exclude node_modules --exclude dist --exclude android --exclude docs \
             -e 'ssh -i ~/.ssh/realityos' \
             ./ "$REALITYOS_USER@$REALITYOS_HOST:$REALITYOS_DEPLOY_PATH/"
@@ -249,8 +249,8 @@ jobs:
             runtime_overlay="$realityos_deploy_path/.runtime/ci-preserved-runtime.json"
             rollback_overlay="$realityos_deploy_path/.runtime/ci-runtime-rollback.json"
             sudo python3 scripts/deploy/preserve_backend_runtime.py --output "$runtime_overlay" --rollback "$rollback_overlay"
-            sudo docker compose --env-file .env --env-file /opt/realityos/runtime.env -f infrastructure/docker-compose.yml -f infrastructure/docker-compose.production.yml -f "$runtime_overlay" pull api worker
-            sudo docker compose --env-file .env --env-file /opt/realityos/runtime.env -f infrastructure/docker-compose.yml -f infrastructure/docker-compose.production.yml -f "$runtime_overlay" up -d --no-build api worker
+            sudo docker compose --env-file .env --env-file /opt/realityos/runtime.env -f infrastructure/docker-compose.yml -f infrastructure/docker-compose.production.yml -f "$runtime_overlay" pull api worker scheduler
+            sudo docker compose --env-file .env --env-file /opt/realityos/runtime.env -f infrastructure/docker-compose.yml -f infrastructure/docker-compose.production.yml -f "$runtime_overlay" up -d --no-build api worker scheduler
             sudo docker compose --env-file .env --env-file /opt/realityos/runtime.env -f infrastructure/docker-compose.yml -f infrastructure/docker-compose.production.yml -f "$runtime_overlay" exec -T api alembic upgrade head
             if test -f .runtime/backend-demand.json; then
               systemctl --user restart backend-demand-realityos.service

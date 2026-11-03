@@ -30,7 +30,7 @@ Invariantes no negociables (ver `AGENTS.md` y `docs/REALITYOS_MISSION.md`):
 | `backend/alembic/versions/` | Migraciones históricas; head productivo verificado `20261031_0029` | Alembic, PostgreSQL |
 | `meta-gateway/` | Servicio de egress restringido a Meta (no proxy general) | FastAPI, ~150 líneas |
 | `android/` | Host nativo DAT 1.0.1 para Ray-Ban Display + galería social (v0.1.6, code 7) | Kotlin, Compose, CameraX, DAT, Mock Device Kit (solo Debug) |
-| `infrastructure/` | Compose (postgres, redis, api, worker, proxy Nginx) + despliegue gateway/Nginx/TLS | Docker Compose, Nginx |
+| `infrastructure/` | Compose (postgres, redis, api, worker, scheduler, proxy Nginx) + despliegue gateway/Nginx/TLS | Docker Compose, Nginx |
 | `tests/` + `gateway-tests/` | Regresiones backend/gateway, social agrupado por funcionalidad y contrato OpenAPI congelado | pytest |
 | `scripts/` | `seed_demo.py`, `import_manual_photos.py`, `backup-postgres.sh`, `chunk_large_video_asset.py` | — |
 | `.runtime/` | Ignorado por Git: capturas manuales privadas, dumps, release/rollback JSON | — |
@@ -720,3 +720,8 @@ el inicio rápido servidor usa Memoria y el local mantiene su cuenta propia.
 Catorce pruebas y scripts/esquema/regeneración aprobados, más acceso y lecturas
 reales del servidor. Localhost validado con cliente de pruebas, sin ejecución
 física de Windows. Sin cambios de backend, datos, permisos ni Android.
+
+
+Conexiones R2/S3 (2026-11-03): nuevo módulo `backend/app/storage` y pantalla Android Mis conexiones. Importa copias a BYTEA con credenciales privadas por cuenta, origen y sincronización. Migración `20261103_0035`, servicio scheduler y guía `docs/STORAGE_CONNECTIONS.es.md`. Ver IMPLEMENTATION_STATUS para validación y pendientes externos; inventario demo offline no equivale a carga R2.
+
+Conexiones: 21 regresiones específicas y 222 pruebas Android aprobadas; Debug/Release compilados. Inventario ampliado a 426 recursos sintéticos y preparador de conexiones para nueve cuentas de escenario + cuatro QA. Checklist vigente: 89 casos y seis de cierre. R2 real, pruebas físicas y despliegue local pendientes de sus requisitos; ver estado antes de afirmar aceptación.

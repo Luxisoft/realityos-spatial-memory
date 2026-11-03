@@ -355,3 +355,11 @@ y expedientes del servidor real respondieron 200 con los IDs esperados (tres
 aserciones Newman, cero fallos). No se ejecutó Windows físico en esta corrección;
 localhost requiere su backend y cuenta preparados. Sin cambios de contrato,
 datos del servidor ni Android.
+
+## Conexiones privadas R2/S3 — 2026-11-03
+
+Implementados conectores por cuenta, secretos cifrados, explorador paginado, descargas limitadas, importaciones con procedencia/reintentos y sincronización manual o programada. Android añade Perfil → Mis conexiones, selección de destino, vistas previas, importación, consultas y reemplazo del CV. Se reutilizan publicaciones, duplicados y consentimiento biométrico; los originales importados siguen en BYTEA.
+
+Migración aditiva `20261103_0035`; planificador Celery Beat en instalaciones servidor/local. Postman conserva sus dos destinos y ahora incluye 393 solicitudes. Guía: [STORAGE_CONNECTIONS](STORAGE_CONNECTIONS.es.md).
+
+Validación ejecutada: 474 regresiones backend/gateway (21 del conector), 222 pruebas unitarias Android, ktlint, lint sin errores, compilaciones Debug/Release, contrato/Postman y DDL PostgreSQL offline (tres tablas aditivas). El checklist ES/EN incorpora K01–K12: 89 casos de aceptación y seis de cierre. Despliegue local preparado; requiere la autorización Docker indicada en AGENTS.md. Inventario offline de 426 recursos sintéticos preparado en `.runtime/bucket-demo-manifest.json`. La carga y lectura real de R2 requieren credenciales del bucket y todavía no se han ejecutado. Pruebas físicas de Android pendientes. No confundir el inventario offline con una migración R2 completada.

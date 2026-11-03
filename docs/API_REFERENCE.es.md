@@ -1039,6 +1039,7 @@ Respuestas declaradas: `200`, `422`.
 | `GET /v1/media/{media_id}` | Obtener medio autorizado | bearer | `media_id` | — |
 | `GET /v1/observations/{observation_id}/highlighted` | Ver observación señalada | bearer | `observation_id` | — |
 | `GET /v1/media/{media_id}/highlighted` | Obtener medio señalado | bearer | `media_id` | — |
+| `GET /v1/me/storage-connections/{connection_id}/objects` | Objects | bearer | `connection_id` | — |
 | `GET /v1/profiles/{user_id}/media` | Paginar medios del perfil | bearer | `user_id` | — |
 | `GET /v1/gallery/{post_id}/media` | Obtener medio autorizado | bearer | `post_id` | — |
 
@@ -1322,6 +1323,20 @@ Respuestas declaradas: `200`, `422`.
 
 <details>
 
+<summary>GET /v1/me/storage-connections/{connection_id}/objects</summary>
+
+| Campo | Ubicación | Obligatorio | Tipo | Restricciones |
+| --- | --- | --- | --- | --- |
+| `connection_id` | path | ✓ | `string` | `{}` |
+| `prefix` | query | — | `string` | `{"default": ""}` |
+| `cursor` | query | — | `string / null` | `{}` |
+
+Respuestas declaradas: `200`, `422`.
+
+</details>
+
+<details>
+
 <summary>GET /v1/profiles/{user_id}/media</summary>
 
 | Campo | Ubicación | Obligatorio | Tipo | Restricciones |
@@ -1351,6 +1366,20 @@ Respuestas declaradas: `200`, `422`.
 | Operación | Identificador descriptivo | Acceso | Campos obligatorios | Manual |
 | --- | --- | --- | --- | --- |
 | `POST /v1/tts` | Generar respuesta hablada | bearer | `text`, `language` | ✓ |
+| `GET /v1/me/storage-connections` | Listar conexiones | bearer | — | — |
+| `POST /v1/me/storage-connections` | Create | bearer | `name`, `endpoint`, `bucket` | ✓ |
+| `PUT /v1/me/storage-connections/{connection_id}` | Update | bearer | `connection_id`, `name`, `endpoint`, `bucket` | ✓ |
+| `DELETE /v1/me/storage-connections/{connection_id}` | Disconnect | bearer | `connection_id` | ✓ |
+| `POST /v1/me/storage-connections/{connection_id}/test` | Test | bearer | `connection_id` | ✓ |
+| `GET /v1/me/storage-connections/{connection_id}/content` | Content | bearer | `connection_id`, `key` | — |
+| `POST /v1/me/storage-connections/{connection_id}/cv` | Cv | bearer | `connection_id`, `key` | ✓ |
+| `POST /v1/me/storage-connections/{connection_id}/imports` | Start Import | bearer | `connection_id`, `request_key`, `keys` | ✓ |
+| `GET /v1/me/storage-connections/{connection_id}/imports` | Imports | bearer | `connection_id` | — |
+| `POST /v1/me/storage-connections/{connection_id}/imports/{run_id}/retry` | Retry | bearer | `connection_id`, `run_id` | ✓ |
+| `GET /v1/me/storage-connections/{connection_id}/syncs` | Syncs | bearer | `connection_id` | — |
+| `POST /v1/me/storage-connections/{connection_id}/syncs` | Create Sync | bearer | `connection_id` | ✓ |
+| `POST /v1/me/storage-connections/{connection_id}/syncs/{rule_id}/run` | Run Sync | bearer | `connection_id`, `rule_id` | ✓ |
+| `DELETE /v1/me/storage-connections/{connection_id}/syncs/{rule_id}` | Stop Sync | bearer | `connection_id`, `rule_id` | ✓ |
 | `POST /v1/me/profile/avatar` | Cambiar avatar | bearer | `file` | ✓ |
 | `GET /v1/me/social-capabilities` | Consultar capacidades sociales | bearer | — | — |
 | `GET /v1/groups/{workspace_id}/members` | Listar miembros | bearer | `workspace_id` | — |
@@ -1424,6 +1453,249 @@ Respuestas declaradas: `200`, `422`.
 }
 
 ```
+
+Respuestas declaradas: `200`, `422`.
+
+</details>
+
+<details>
+
+<summary>GET /v1/me/storage-connections</summary>
+
+| Campo | Ubicación | Obligatorio | Tipo | Restricciones |
+| --- | --- | --- | --- | --- |
+| — | — | — | — | — |
+
+Respuestas declaradas: `200`.
+
+</details>
+
+<details>
+
+<summary>POST /v1/me/storage-connections</summary>
+
+| Campo | Ubicación | Obligatorio | Tipo | Restricciones |
+| --- | --- | --- | --- | --- |
+| `name` | body | ✓ | `string` | `{"maxLength": 160, "minLength": 2}` |
+| `provider` | body | — | `string` | `{"enum": ["r2", "s3"], "default": "r2"}` |
+| `endpoint` | body | ✓ | `string` | `{"maxLength": 2048}` |
+| `bucket` | body | ✓ | `string` | `{"pattern": "^[a-z0-9][a-z0-9.-]{1,61}[a-z0-9]$"}` |
+| `region` | body | — | `string` | `{"pattern": "^[a-zA-Z0-9-]{1,80}$", "default": "auto"}` |
+| `prefix` | body | — | `string` | `{"maxLength": 1024, "default": ""}` |
+| `access_key` | body | — | `string / null` | `{}` |
+| `secret_key` | body | — | `string / null` | `{}` |
+
+```json
+
+{
+  "name": "example-name",
+  "endpoint": "example-endpoint",
+  "bucket": "example-bucket"
+}
+
+```
+
+Respuestas declaradas: `201`, `422`.
+
+</details>
+
+<details>
+
+<summary>PUT /v1/me/storage-connections/{connection_id}</summary>
+
+| Campo | Ubicación | Obligatorio | Tipo | Restricciones |
+| --- | --- | --- | --- | --- |
+| `connection_id` | path | ✓ | `string` | `{}` |
+| `name` | body | ✓ | `string` | `{"maxLength": 160, "minLength": 2}` |
+| `provider` | body | — | `string` | `{"enum": ["r2", "s3"], "default": "r2"}` |
+| `endpoint` | body | ✓ | `string` | `{"maxLength": 2048}` |
+| `bucket` | body | ✓ | `string` | `{"pattern": "^[a-z0-9][a-z0-9.-]{1,61}[a-z0-9]$"}` |
+| `region` | body | — | `string` | `{"pattern": "^[a-zA-Z0-9-]{1,80}$", "default": "auto"}` |
+| `prefix` | body | — | `string` | `{"maxLength": 1024, "default": ""}` |
+| `access_key` | body | — | `string / null` | `{}` |
+| `secret_key` | body | — | `string / null` | `{}` |
+
+```json
+
+{
+  "name": "example-name",
+  "endpoint": "example-endpoint",
+  "bucket": "example-bucket"
+}
+
+```
+
+Respuestas declaradas: `200`, `422`.
+
+</details>
+
+<details>
+
+<summary>DELETE /v1/me/storage-connections/{connection_id}</summary>
+
+| Campo | Ubicación | Obligatorio | Tipo | Restricciones |
+| --- | --- | --- | --- | --- |
+| `connection_id` | path | ✓ | `string` | `{}` |
+
+Respuestas declaradas: `200`, `422`.
+
+</details>
+
+<details>
+
+<summary>POST /v1/me/storage-connections/{connection_id}/test</summary>
+
+| Campo | Ubicación | Obligatorio | Tipo | Restricciones |
+| --- | --- | --- | --- | --- |
+| `connection_id` | path | ✓ | `string` | `{}` |
+
+Respuestas declaradas: `200`, `422`.
+
+</details>
+
+<details>
+
+<summary>GET /v1/me/storage-connections/{connection_id}/content</summary>
+
+| Campo | Ubicación | Obligatorio | Tipo | Restricciones |
+| --- | --- | --- | --- | --- |
+| `connection_id` | path | ✓ | `string` | `{}` |
+| `key` | query | ✓ | `string` | `{"maxLength": 1024}` |
+| `preview` | query | — | `boolean` | `{"default": false}` |
+
+Respuestas declaradas: `200`, `422`.
+
+</details>
+
+<details>
+
+<summary>POST /v1/me/storage-connections/{connection_id}/cv</summary>
+
+| Campo | Ubicación | Obligatorio | Tipo | Restricciones |
+| --- | --- | --- | --- | --- |
+| `connection_id` | path | ✓ | `string` | `{}` |
+| `key` | body | ✓ | `string` | `{"maxLength": 1024, "minLength": 1}` |
+
+```json
+
+{
+  "key": "example-key"
+}
+
+```
+
+Respuestas declaradas: `200`, `422`.
+
+</details>
+
+<details>
+
+<summary>POST /v1/me/storage-connections/{connection_id}/imports</summary>
+
+| Campo | Ubicación | Obligatorio | Tipo | Restricciones |
+| --- | --- | --- | --- | --- |
+| `connection_id` | path | ✓ | `string` | `{}` |
+| `request_key` | body | ✓ | `string` | `{"maxLength": 128, "minLength": 1}` |
+| `keys` | body | ✓ | `array` | `{}` |
+| `audience` | body | — | `string` | `{"enum": ["home", "work"], "default": "home"}` |
+| `workspace_id` | body | — | `string / null` | `{}` |
+
+```json
+
+{
+  "request_key": "example-request_key",
+  "keys": [
+    "example-keys"
+  ]
+}
+
+```
+
+Respuestas declaradas: `202`, `422`.
+
+</details>
+
+<details>
+
+<summary>GET /v1/me/storage-connections/{connection_id}/imports</summary>
+
+| Campo | Ubicación | Obligatorio | Tipo | Restricciones |
+| --- | --- | --- | --- | --- |
+| `connection_id` | path | ✓ | `string` | `{}` |
+
+Respuestas declaradas: `200`, `422`.
+
+</details>
+
+<details>
+
+<summary>POST /v1/me/storage-connections/{connection_id}/imports/{run_id}/retry</summary>
+
+| Campo | Ubicación | Obligatorio | Tipo | Restricciones |
+| --- | --- | --- | --- | --- |
+| `connection_id` | path | ✓ | `string` | `{}` |
+| `run_id` | path | ✓ | `string` | `{}` |
+
+Respuestas declaradas: `200`, `422`.
+
+</details>
+
+<details>
+
+<summary>GET /v1/me/storage-connections/{connection_id}/syncs</summary>
+
+| Campo | Ubicación | Obligatorio | Tipo | Restricciones |
+| --- | --- | --- | --- | --- |
+| `connection_id` | path | ✓ | `string` | `{}` |
+
+Respuestas declaradas: `200`, `422`.
+
+</details>
+
+<details>
+
+<summary>POST /v1/me/storage-connections/{connection_id}/syncs</summary>
+
+| Campo | Ubicación | Obligatorio | Tipo | Restricciones |
+| --- | --- | --- | --- | --- |
+| `connection_id` | path | ✓ | `string` | `{}` |
+| `prefix` | body | — | `string` | `{"maxLength": 1024, "default": ""}` |
+| `audience` | body | — | `string` | `{"enum": ["home", "work"], "default": "home"}` |
+| `workspace_id` | body | — | `string / null` | `{}` |
+| `interval_minutes` | body | — | `integer` | `{"enum": [15, 60, 1440], "default": 60}` |
+| `enabled` | body | — | `boolean` | `{"default": false}` |
+
+```json
+
+{}
+
+```
+
+Respuestas declaradas: `201`, `422`.
+
+</details>
+
+<details>
+
+<summary>POST /v1/me/storage-connections/{connection_id}/syncs/{rule_id}/run</summary>
+
+| Campo | Ubicación | Obligatorio | Tipo | Restricciones |
+| --- | --- | --- | --- | --- |
+| `connection_id` | path | ✓ | `string` | `{}` |
+| `rule_id` | path | ✓ | `string` | `{}` |
+
+Respuestas declaradas: `202`, `422`.
+
+</details>
+
+<details>
+
+<summary>DELETE /v1/me/storage-connections/{connection_id}/syncs/{rule_id}</summary>
+
+| Campo | Ubicación | Obligatorio | Tipo | Restricciones |
+| --- | --- | --- | --- | --- |
+| `connection_id` | path | ✓ | `string` | `{}` |
+| `rule_id` | path | ✓ | `string` | `{}` |
 
 Respuestas declaradas: `200`, `422`.
 

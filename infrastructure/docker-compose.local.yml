@@ -54,6 +54,11 @@ services:
     command: [celery, -A, app.tasks.celery_app, worker, --loglevel=INFO, --concurrency=1]
     depends_on:
       api: {condition: service_healthy}
+  scheduler:
+    <<: *backend
+    command: [celery, -A, app.tasks.celery_app, beat, --loglevel=WARNING, --schedule=/tmp/storage-beat]
+    depends_on:
+      api: {condition: service_healthy}
   proxy:
     image: nginx:1.27-alpine
     ports: ["127.0.0.1:${LOCAL_HTTP_PORT:-8080}:80"]

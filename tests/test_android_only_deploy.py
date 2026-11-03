@@ -11,7 +11,15 @@ def test_compose_has_api_ingress_without_browser_services():
     for name in ("docker-compose.yml", "docker-compose.local.yml"):
         config = yaml.safe_load((ROOT / "infrastructure" / name).read_text())
         services = config["services"]
-        assert set(services) == {"api", "worker", "proxy", "postgres", "redis"}
+        assert set(services) == {
+            "api",
+            "worker",
+            "proxy",
+            "postgres",
+            "redis",
+            "scheduler",
+        }
+        assert "beat" in services["scheduler"]["command"]
         assert "api" in services["proxy"]["depends_on"]
     for name in ("default.conf", "local.conf"):
         config = (ROOT / "infrastructure/nginx" / name).read_text()

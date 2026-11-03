@@ -43,7 +43,7 @@ def application_environment(container, image):
 
 def runtime_overlays(inspect):
     preserved, rollback = {}, {}
-    for service in ("api", "worker"):
+    for service in ("api", "worker", "scheduler"):
         try:
             container = inspect("infrastructure-" + service + "-1")
         except subprocess.CalledProcessError:

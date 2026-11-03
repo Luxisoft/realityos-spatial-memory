@@ -9,6 +9,7 @@ description = "RealityOS spatial-memory API and processing contracts"
 requires-python = ">=3.12,<3.14"
 dependencies = [
   "alembic>=1.14,<2",
+  "boto3>=1.35,<2",
   "anyio>=4.4,<4.10",
   "celery[redis]>=5.4,<6",
   "cryptography>=43,<47",

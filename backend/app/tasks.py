@@ -12,6 +12,8 @@ from app.services import process_job
 settings = get_settings()
 celery_app = Celery("realityos", broker=settings.redis_url, backend=settings.redis_url)
 celery_app.conf.update(
+    imports=("app.storage.tasks",),
+    beat_schedule={"storage-sync": {"task": "realityos.storage_tick", "schedule": 60.0}},
     task_serializer="json",
     result_serializer="json",
     accept_content=["json"],

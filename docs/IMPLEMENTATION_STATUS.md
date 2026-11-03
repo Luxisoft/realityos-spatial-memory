@@ -386,3 +386,11 @@ passed. Real-server automatic login, user, workspaces and record listing returne
 200 with the expected existing IDs (three Newman assertions, zero failures).
 No Windows installation was run during this correction; localhost needs its local
 backend and account prepared. No server contract, data or Android change.
+
+## Private R2/S3 connections — 2026-11-03
+
+Implemented account-owned connections, encrypted credentials, paginated browsing, bounded downloads, imports with provenance/retries and manual/scheduled synchronization. Android adds Profile → My connections, destination selection, previews, imports, queries and CV replacement. Existing publication, duplicate and biometric consent flows remain in use; imported originals stay in BYTEA.
+
+Additive migration `20261103_0035`; Celery Beat scheduler for server/local installations. Postman retains both destinations and now contains 393 requests. Guide: [STORAGE_CONNECTIONS](STORAGE_CONNECTIONS.md).
+
+Executed validation: 474 backend/gateway regressions (21 connector tests), 222 Android unit tests, ktlint, lint with no errors, Debug/Release builds, contract/Postman checks and offline PostgreSQL DDL (three additive tables). ES/EN acceptance includes K01–K12: 89 acceptance cases and six closure steps. Local deployment is prepared and requires the Docker approval specified in AGENTS.md. An offline inventory of 426 synthetic resources is prepared in `.runtime/bucket-demo-manifest.json`. Real R2 upload/read-back requires bucket credentials and has not run yet. Physical Android tests remain pending. The offline inventory is not a completed R2 migration.

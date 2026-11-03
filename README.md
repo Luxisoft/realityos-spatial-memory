@@ -57,6 +57,8 @@ Import [the public collection](https://raw.githubusercontent.com/Luxisoft/realit
 
 The regular app already connects to the server. [Windows local](docs/DEPLOYMENT_LOCALHOST.md) is an additional installation that starts empty.
 
+[Connect an R2/S3 bucket →](docs/STORAGE_CONNECTIONS.md)
+
 ## Platform capabilities
 
 | Capability | What it provides |

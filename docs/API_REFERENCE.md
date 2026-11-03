@@ -1039,6 +1039,7 @@ Declared responses: `200`, `422`.
 | `GET /v1/media/{media_id}` | Get Media | bearer | `media_id` | — |
 | `GET /v1/observations/{observation_id}/highlighted` | Highlighted Observation | bearer | `observation_id` | — |
 | `GET /v1/media/{media_id}/highlighted` | Highlighted Media | bearer | `media_id` | — |
+| `GET /v1/me/storage-connections/{connection_id}/objects` | Objects | bearer | `connection_id` | — |
 | `GET /v1/profiles/{user_id}/media` | Profile Media Page | bearer | `user_id` | — |
 | `GET /v1/gallery/{post_id}/media` | Media | bearer | `post_id` | — |
 
@@ -1322,6 +1323,20 @@ Declared responses: `200`, `422`.
 
 <details>
 
+<summary>GET /v1/me/storage-connections/{connection_id}/objects</summary>
+
+| Field | Location | Required | Type | Constraints |
+| --- | --- | --- | --- | --- |
+| `connection_id` | path | ✓ | `string` | `{}` |
+| `prefix` | query | — | `string` | `{"default": ""}` |
+| `cursor` | query | — | `string / null` | `{}` |
+
+Declared responses: `200`, `422`.
+
+</details>
+
+<details>
+
 <summary>GET /v1/profiles/{user_id}/media</summary>
 
 | Field | Location | Required | Type | Constraints |
@@ -1351,6 +1366,20 @@ Declared responses: `200`, `422`.
 | Operation | Summary | Access | Required fields | Manual |
 | --- | --- | --- | --- | --- |
 | `POST /v1/tts` | Speech Audio | bearer | `text`, `language` | ✓ |
+| `GET /v1/me/storage-connections` | Connections | bearer | — | — |
+| `POST /v1/me/storage-connections` | Create | bearer | `name`, `endpoint`, `bucket` | ✓ |
+| `PUT /v1/me/storage-connections/{connection_id}` | Update | bearer | `connection_id`, `name`, `endpoint`, `bucket` | ✓ |
+| `DELETE /v1/me/storage-connections/{connection_id}` | Disconnect | bearer | `connection_id` | ✓ |
+| `POST /v1/me/storage-connections/{connection_id}/test` | Test | bearer | `connection_id` | ✓ |
+| `GET /v1/me/storage-connections/{connection_id}/content` | Content | bearer | `connection_id`, `key` | — |
+| `POST /v1/me/storage-connections/{connection_id}/cv` | Cv | bearer | `connection_id`, `key` | ✓ |
+| `POST /v1/me/storage-connections/{connection_id}/imports` | Start Import | bearer | `connection_id`, `request_key`, `keys` | ✓ |
+| `GET /v1/me/storage-connections/{connection_id}/imports` | Imports | bearer | `connection_id` | — |
+| `POST /v1/me/storage-connections/{connection_id}/imports/{run_id}/retry` | Retry | bearer | `connection_id`, `run_id` | ✓ |
+| `GET /v1/me/storage-connections/{connection_id}/syncs` | Syncs | bearer | `connection_id` | — |
+| `POST /v1/me/storage-connections/{connection_id}/syncs` | Create Sync | bearer | `connection_id` | ✓ |
+| `POST /v1/me/storage-connections/{connection_id}/syncs/{rule_id}/run` | Run Sync | bearer | `connection_id`, `rule_id` | ✓ |
+| `DELETE /v1/me/storage-connections/{connection_id}/syncs/{rule_id}` | Stop Sync | bearer | `connection_id`, `rule_id` | ✓ |
 | `POST /v1/me/profile/avatar` | Upload Avatar | bearer | `file` | ✓ |
 | `GET /v1/me/social-capabilities` | Capabilities | bearer | — | — |
 | `GET /v1/groups/{workspace_id}/members` | Members | bearer | `workspace_id` | — |
@@ -1424,6 +1453,249 @@ Declared responses: `200`, `422`.
 }
 
 ```
+
+Declared responses: `200`, `422`.
+
+</details>
+
+<details>
+
+<summary>GET /v1/me/storage-connections</summary>
+
+| Field | Location | Required | Type | Constraints |
+| --- | --- | --- | --- | --- |
+| — | — | — | — | — |
+
+Declared responses: `200`.
+
+</details>
+
+<details>
+
+<summary>POST /v1/me/storage-connections</summary>
+
+| Field | Location | Required | Type | Constraints |
+| --- | --- | --- | --- | --- |
+| `name` | body | ✓ | `string` | `{"maxLength": 160, "minLength": 2}` |
+| `provider` | body | — | `string` | `{"enum": ["r2", "s3"], "default": "r2"}` |
+| `endpoint` | body | ✓ | `string` | `{"maxLength": 2048}` |
+| `bucket` | body | ✓ | `string` | `{"pattern": "^[a-z0-9][a-z0-9.-]{1,61}[a-z0-9]$"}` |
+| `region` | body | — | `string` | `{"pattern": "^[a-zA-Z0-9-]{1,80}$", "default": "auto"}` |
+| `prefix` | body | — | `string` | `{"maxLength": 1024, "default": ""}` |
+| `access_key` | body | — | `string / null` | `{}` |
+| `secret_key` | body | — | `string / null` | `{}` |
+
+```json
+
+{
+  "name": "example-name",
+  "endpoint": "example-endpoint",
+  "bucket": "example-bucket"
+}
+
+```
+
+Declared responses: `201`, `422`.
+
+</details>
+
+<details>
+
+<summary>PUT /v1/me/storage-connections/{connection_id}</summary>
+
+| Field | Location | Required | Type | Constraints |
+| --- | --- | --- | --- | --- |
+| `connection_id` | path | ✓ | `string` | `{}` |
+| `name` | body | ✓ | `string` | `{"maxLength": 160, "minLength": 2}` |
+| `provider` | body | — | `string` | `{"enum": ["r2", "s3"], "default": "r2"}` |
+| `endpoint` | body | ✓ | `string` | `{"maxLength": 2048}` |
+| `bucket` | body | ✓ | `string` | `{"pattern": "^[a-z0-9][a-z0-9.-]{1,61}[a-z0-9]$"}` |
+| `region` | body | — | `string` | `{"pattern": "^[a-zA-Z0-9-]{1,80}$", "default": "auto"}` |
+| `prefix` | body | — | `string` | `{"maxLength": 1024, "default": ""}` |
+| `access_key` | body | — | `string / null` | `{}` |
+| `secret_key` | body | — | `string / null` | `{}` |
+
+```json
+
+{
+  "name": "example-name",
+  "endpoint": "example-endpoint",
+  "bucket": "example-bucket"
+}
+
+```
+
+Declared responses: `200`, `422`.
+
+</details>
+
+<details>
+
+<summary>DELETE /v1/me/storage-connections/{connection_id}</summary>
+
+| Field | Location | Required | Type | Constraints |
+| --- | --- | --- | --- | --- |
+| `connection_id` | path | ✓ | `string` | `{}` |
+
+Declared responses: `200`, `422`.
+
+</details>
+
+<details>
+
+<summary>POST /v1/me/storage-connections/{connection_id}/test</summary>
+
+| Field | Location | Required | Type | Constraints |
+| --- | --- | --- | --- | --- |
+| `connection_id` | path | ✓ | `string` | `{}` |
+
+Declared responses: `200`, `422`.
+
+</details>
+
+<details>
+
+<summary>GET /v1/me/storage-connections/{connection_id}/content</summary>
+
+| Field | Location | Required | Type | Constraints |
+| --- | --- | --- | --- | --- |
+| `connection_id` | path | ✓ | `string` | `{}` |
+| `key` | query | ✓ | `string` | `{"maxLength": 1024}` |
+| `preview` | query | — | `boolean` | `{"default": false}` |
+
+Declared responses: `200`, `422`.
+
+</details>
+
+<details>
+
+<summary>POST /v1/me/storage-connections/{connection_id}/cv</summary>
+
+| Field | Location | Required | Type | Constraints |
+| --- | --- | --- | --- | --- |
+| `connection_id` | path | ✓ | `string` | `{}` |
+| `key` | body | ✓ | `string` | `{"maxLength": 1024, "minLength": 1}` |
+
+```json
+
+{
+  "key": "example-key"
+}
+
+```
+
+Declared responses: `200`, `422`.
+
+</details>
+
+<details>
+
+<summary>POST /v1/me/storage-connections/{connection_id}/imports</summary>
+
+| Field | Location | Required | Type | Constraints |
+| --- | --- | --- | --- | --- |
+| `connection_id` | path | ✓ | `string` | `{}` |
+| `request_key` | body | ✓ | `string` | `{"maxLength": 128, "minLength": 1}` |
+| `keys` | body | ✓ | `array` | `{}` |
+| `audience` | body | — | `string` | `{"enum": ["home", "work"], "default": "home"}` |
+| `workspace_id` | body | — | `string / null` | `{}` |
+
+```json
+
+{
+  "request_key": "example-request_key",
+  "keys": [
+    "example-keys"
+  ]
+}
+
+```
+
+Declared responses: `202`, `422`.
+
+</details>
+
+<details>
+
+<summary>GET /v1/me/storage-connections/{connection_id}/imports</summary>
+
+| Field | Location | Required | Type | Constraints |
+| --- | --- | --- | --- | --- |
+| `connection_id` | path | ✓ | `string` | `{}` |
+
+Declared responses: `200`, `422`.
+
+</details>
+
+<details>
+
+<summary>POST /v1/me/storage-connections/{connection_id}/imports/{run_id}/retry</summary>
+
+| Field | Location | Required | Type | Constraints |
+| --- | --- | --- | --- | --- |
+| `connection_id` | path | ✓ | `string` | `{}` |
+| `run_id` | path | ✓ | `string` | `{}` |
+
+Declared responses: `200`, `422`.
+
+</details>
+
+<details>
+
+<summary>GET /v1/me/storage-connections/{connection_id}/syncs</summary>
+
+| Field | Location | Required | Type | Constraints |
+| --- | --- | --- | --- | --- |
+| `connection_id` | path | ✓ | `string` | `{}` |
+
+Declared responses: `200`, `422`.
+
+</details>
+
+<details>
+
+<summary>POST /v1/me/storage-connections/{connection_id}/syncs</summary>
+
+| Field | Location | Required | Type | Constraints |
+| --- | --- | --- | --- | --- |
+| `connection_id` | path | ✓ | `string` | `{}` |
+| `prefix` | body | — | `string` | `{"maxLength": 1024, "default": ""}` |
+| `audience` | body | — | `string` | `{"enum": ["home", "work"], "default": "home"}` |
+| `workspace_id` | body | — | `string / null` | `{}` |
+| `interval_minutes` | body | — | `integer` | `{"enum": [15, 60, 1440], "default": 60}` |
+| `enabled` | body | — | `boolean` | `{"default": false}` |
+
+```json
+
+{}
+
+```
+
+Declared responses: `201`, `422`.
+
+</details>
+
+<details>
+
+<summary>POST /v1/me/storage-connections/{connection_id}/syncs/{rule_id}/run</summary>
+
+| Field | Location | Required | Type | Constraints |
+| --- | --- | --- | --- | --- |
+| `connection_id` | path | ✓ | `string` | `{}` |
+| `rule_id` | path | ✓ | `string` | `{}` |
+
+Declared responses: `202`, `422`.
+
+</details>
+
+<details>
+
+<summary>DELETE /v1/me/storage-connections/{connection_id}/syncs/{rule_id}</summary>
+
+| Field | Location | Required | Type | Constraints |
+| --- | --- | --- | --- | --- |
+| `connection_id` | path | ✓ | `string` | `{}` |
+| `rule_id` | path | ✓ | `string` | `{}` |
 
 Declared responses: `200`, `422`.
 

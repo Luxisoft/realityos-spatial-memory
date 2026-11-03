@@ -24,15 +24,16 @@ internal fun WorkspaceRecords(
     workspaceId: String,
     canWrite: Boolean,
     onBack: () -> Unit,
+    initialRecordId: String? = null,
     request: suspend (String, JSONObject?) -> String = { path, payload ->
         if (payload == null) SocialSession.request(path) else SocialSession.request(path, payload)
     }
 ) {
-    key(workspaceId) { WorkspaceRecordsContent(workspaceId, canWrite, onBack, request) }
+    key(workspaceId) { WorkspaceRecordsContent(workspaceId, canWrite, onBack, request, initialRecordId) }
 }
 
 @Composable
-private fun WorkspaceRecordsContent(workspaceId: String, canWrite: Boolean, onBack: () -> Unit, request: suspend (String, JSONObject?) -> String) {
+private fun WorkspaceRecordsContent(workspaceId: String, canWrite: Boolean, onBack: () -> Unit, request: suspend (String, JSONObject?) -> String, initialRecordId: String?) {
     var query by remember { mutableStateOf("") }
     var rows by remember { mutableStateOf<List<JSONObject>>(emptyList()) }
     var selected by remember { mutableStateOf<JSONObject?>(null) }
@@ -89,6 +90,7 @@ private fun WorkspaceRecordsContent(workspaceId: String, canWrite: Boolean, onBa
             }
         }
     }
+    LaunchedEffect(workspaceId, initialRecordId) { initialRecordId?.let { open(it) } }
     LaunchedEffect(workspaceId, refresh, offset) {
         listBusy = true
         try {

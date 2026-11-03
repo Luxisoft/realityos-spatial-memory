@@ -58,6 +58,8 @@ internal fun ProfileScreen(
     var publishMenuExpanded by remember { mutableStateOf(false) }
     var pendingPhoto by remember { mutableStateOf<PendingPublishPhoto?>(null) }
     var showNoteDialog by remember { mutableStateOf(false) }
+    var storageOpen by remember(profile?.optString("user_id")) { mutableStateOf(false) }
+    LaunchedEffect(active) { if (!active) storageOpen = false }
     var captureUri by remember { mutableStateOf<Uri?>(null) }
     LaunchedEffect(selectedMedia) { onViewerChange(selectedMedia != null) }
 
@@ -191,6 +193,15 @@ internal fun ProfileScreen(
         }
     }
 
+    if (storageOpen && ownProfile) {
+        key(profile?.optString("user_id")) {
+            StorageConnectionsScreen {
+                storageOpen = false
+                loadMedia(reset = true)
+            }
+        }
+        return
+    }
     Box(Modifier.fillMaxSize()) {
         Column(Modifier.fillMaxSize()) {
             if (sharedProfile == null && selectedMedia == null) {
@@ -203,6 +214,7 @@ internal fun ProfileScreen(
             ) {
                 if (busy) item { LinearProgressIndicator(Modifier.fillMaxWidth()) }
                 if (error.isNotBlank()) item { Text(error, color = MaterialTheme.colorScheme.error) }
+                if (ownProfile) item { OutlinedButton(onClick = { storageOpen = true }) { Text(localizedText(R.string.storage_title)) } }
                 if (current != null) {
                     if (!ownProfile) {
                         item {

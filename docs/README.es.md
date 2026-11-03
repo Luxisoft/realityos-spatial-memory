@@ -31,3 +31,5 @@
 
 [Datos sintéticos / Synthetic data](../simulator/social-directory/README.es.md) · [Gráficos / Graphics](assets/readme/PROMPTS.md)
 Las referencias históricas conservan sus textos originales y fechas; no son recetas de despliegue actual. `PROJECT_CONTEXT.md` es el mapa interno para agentes, no una guía de usuario.
+
+[Conectar tu bucket y recursos](STORAGE_CONNECTIONS.es.md)

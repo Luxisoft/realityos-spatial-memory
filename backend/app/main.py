@@ -31,6 +31,9 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         allow_headers=["Authorization", "Content-Type"],
     )
     app.include_router(router, prefix=runtime_settings.api_prefix)
+    from app.storage.routes import router as storage_router
+
+    app.include_router(storage_router, prefix=runtime_settings.api_prefix)
     from app.workspaces import clinical, media, provisioning, search, sync  # noqa: F401
     from app.workspaces.routes import router as workspace_data_router
 

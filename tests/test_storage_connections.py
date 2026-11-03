@@ -1,0 +1,481 @@
+import hashlib
+import io
+import uuid
+
+import pytest
+from app.models import User
+from app.security import hash_password
+from app.storage.client import BucketClient, check_key, endpoint_address
+from app.storage.models import StorageConnection, StorageImport, StorageSync
+from fastapi import HTTPException
+from PIL import Image
+from pydantic import SecretStr
+from sqlalchemy import select
+
+BASE = "/v1/me/storage-connections"
+
+
+@pytest.fixture
+def source(client, auth_headers, monkeypatch):
+    client.app.state.settings.storage_encryption_key = SecretStr(
+        "test-storage-encryption-key"
+    )
+    monkeypatch.setattr(
+        "app.storage.routes.endpoint_address",
+        lambda url: ("storage.example", "1.1.1.1"),
+    )
+    body = {
+        "name": "My bucket",
+        "provider": "s3",
+        "endpoint": "https://storage.example",
+        "bucket": "my-bucket",
+        "region": "us-east-1",
+        "prefix": "photos",
+        "access_key": "private-access",
+        "secret_key": "private-secret",
+    }
+    response = client.post(BASE, headers=auth_headers, json=body)
+    assert response.status_code == 201, response.text
+    result = response.json()
+    assert "secret" not in response.text and "private-access" not in response.text
+    with client.app.state.database.session_factory() as db:
+        row = db.get(StorageConnection, uuid.UUID(result["id"]))
+        assert "private-secret" not in row.secret
+    return result
+
+
+def image_bytes():
+    out = io.BytesIO()
+    Image.new("RGB", (80, 80), "red").save(out, "PNG")
+    return out.getvalue()
+
+
+@pytest.fixture
+def remote(monkeypatch):
+    calls = []
+
+    def download(self, key):
+        check_key(self.connection, key)
+        raw = image_bytes()
+        calls.append(key)
+        return (
+            raw,
+            "image/png",
+            {"key": key, "sha256": hashlib.sha256(raw).hexdigest(), "etag": '"one"'},
+        )
+
+    monkeypatch.setattr(BucketClient, "download", download)
+    return calls
+
+
+def test_import_retry_preserves_original_and_idempotency(
+    client, auth_headers, source, remote
+):
+    path = BASE + "/" + source["id"] + "/imports"
+    body = {"request_key": "first", "keys": ["photos/a.png"]}
+    r = client.post(path, headers=auth_headers, json=body)
+    assert r.status_code == 202, r.text
+    assert r.json()["items"][0]["status"] == "published", r.text
+    assert client.post(path, headers=auth_headers, json=body).json() == r.json()
+    assert len(remote) == 1
+    assert (
+        client.post(
+            path, headers=auth_headers, json={**body, "keys": ["photos/b.png"]}
+        ).status_code
+        == 409
+    )
+    later = client.post(
+        path, headers=auth_headers, json={**body, "request_key": "second"}
+    ).json()
+    assert later["items"][0]["publication_id"] == r.json()["items"][0]["publication_id"]
+
+
+def test_other_account_cannot_access_connections_or_media(
+    client, auth_headers, source, remote
+):
+    with client.app.state.database.session_factory() as db:
+        db.add(
+            User(
+                email="other@x.test",
+                display_name="Other",
+                password_hash=hash_password("VerySecurePass123!"),
+            )
+        )
+        db.commit()
+    token = client.post(
+        "/v1/auth/login",
+        json={"email": "other@x.test", "password": "VerySecurePass123!"},
+    ).json()["access_token"]
+    headers = {"Authorization": "Bearer " + token}
+    assert client.get(BASE, headers=headers).json() == []
+    for suffix in ["/objects", "/content?key=photos/a.png", "/imports", "/syncs"]:
+        assert (
+            client.get(BASE + "/" + source["id"] + suffix, headers=headers).status_code
+            == 404
+        )
+    assert not remote
+
+
+def test_destination_and_prefix_checked_before_download(
+    client, auth_headers, source, remote
+):
+    path = BASE + "/" + source["id"] + "/imports"
+    for body in [
+        {"keys": ["photos-other/a.png"]},
+        {"keys": ["photos/../private/a.png"]},
+        {"keys": ["photos/./a.png"]},
+        {
+            "keys": ["photos/a.png"],
+            "audience": "work",
+            "workspace_id": str(uuid.uuid4()),
+        },
+    ]:
+        r = client.post(path, headers=auth_headers, json={"request_key": "bad", **body})
+        assert r.status_code in {403, 404, 422}
+    assert remote == []
+
+
+def test_remote_content_ranges_are_private_and_bounded(
+    client, auth_headers, source, remote
+):
+    path = BASE + "/" + source["id"] + "/content?key=photos/a.png"
+    response = client.get(path, headers=auth_headers | {"Range": "bytes=2-8"})
+    assert response.status_code == 206
+    assert response.content == image_bytes()[2:9]
+    assert response.headers["Content-Range"] == f"bytes 2-8/{len(image_bytes())}"
+    assert response.headers["Cache-Control"] == "private, no-store"
+    assert (
+        client.get(path, headers=auth_headers | {"Range": "bytes=999999-"}).status_code
+        == 416
+    )
+
+
+def test_disconnect_retains_copies_and_cancels_sync(
+    client, auth_headers, source, remote
+):
+    path = BASE + "/" + source["id"]
+    run = client.post(
+        path + "/imports",
+        headers=auth_headers,
+        json={"request_key": "one", "keys": ["photos/a.png"]},
+    ).json()
+    client.post(path + "/syncs", headers=auth_headers, json={"enabled": True})
+    assert client.request("DELETE", path, headers=auth_headers).status_code == 200
+    assert client.get(path + "/objects", headers=auth_headers).status_code == 404
+    with client.app.state.database.session_factory() as db:
+        assert db.get(StorageImport, uuid.UUID(run["id"])).status == "completed"
+        assert not db.scalar(select(StorageSync)).enabled
+        assert db.get(StorageConnection, uuid.UUID(source["id"])).secret == ""
+
+
+@pytest.mark.parametrize(
+    "url",
+    [
+        "http://example.com",
+        "https://user:pw@example.com",
+        "https://example.com:8443",
+        "https://example.com/path",
+        "https://example.com?foo=1",
+    ],
+)
+def test_unsafe_endpoint(url):
+    with pytest.raises(HTTPException):
+        endpoint_address(url)
+
+
+def test_private_dns_and_mixed_answers_rejected(monkeypatch):
+    monkeypatch.setattr(
+        "socket.getaddrinfo",
+        lambda *a, **kw: [(None, None, None, None, ("127.0.0.1", 443))],
+    )
+    with pytest.raises(HTTPException):
+        endpoint_address("https://example.com")
+
+
+def test_failed_download_is_retryable_without_extra_publication(
+    client, auth_headers, source, remote, monkeypatch
+):
+    download = BucketClient.download
+
+    def fail(*a):
+        raise HTTPException(502, "secret upstream must not be stored")
+
+    monkeypatch.setattr(BucketClient, "download", fail)
+    path = BASE + "/" + source["id"] + "/imports"
+    run = client.post(
+        path,
+        headers=auth_headers,
+        json={"request_key": "retry", "keys": ["photos/a.png"]},
+    ).json()
+    assert run["status"] == "attention" and "secret upstream" not in str(run)
+    monkeypatch.setattr(BucketClient, "download", download)
+    r = client.post(path + "/" + run["id"] + "/retry", headers=auth_headers)
+    assert r.status_code == 200, r.text
+    assert r.json()["items"][0]["status"] == "published"
+
+
+def test_sync_continuation_and_unchanged_page(
+    client, auth_headers, source, remote, monkeypatch
+):
+    monkeypatch.setattr(
+        BucketClient,
+        "objects",
+        lambda *a, **kw: {
+            "items": [
+                {
+                    "key": "photos/a.png",
+                    "etag": "one",
+                    "size": 12,
+                    "modified_at": "today",
+                }
+            ],
+            "next_cursor": None,
+        },
+    )
+    path = BASE + "/" + source["id"]
+    rule = client.post(
+        path + "/syncs", headers=auth_headers, json={"enabled": False}
+    ).json()
+    first = client.post(
+        path + "/syncs/" + rule["id"] + "/run", headers=auth_headers
+    ).json()
+    second = client.post(
+        path + "/syncs/" + rule["id"] + "/run", headers=auth_headers
+    ).json()
+    assert first["import_id"] == second["import_id"]
+
+
+def test_membership_removed_after_download_prevents_publication(
+    client, auth_headers, source, remote, monkeypatch
+):
+    from app.models import WorkspaceMember
+    from sqlalchemy import delete
+
+    workspace = client.post(
+        "/v1/workspaces", headers=auth_headers, json={"name": "Temporary group"}
+    ).json()["id"]
+    original = BucketClient.download
+
+    def revoked(bucket, key):
+        result = original(bucket, key)
+        with client.app.state.database.session_factory() as db:
+            db.execute(
+                delete(WorkspaceMember).where(
+                    WorkspaceMember.workspace_id == uuid.UUID(workspace)
+                )
+            )
+            db.commit()
+        return result
+
+    monkeypatch.setattr(BucketClient, "download", revoked)
+    result = client.post(
+        BASE + "/" + source["id"] + "/imports",
+        headers=auth_headers,
+        json={
+            "request_key": "revoked",
+            "keys": ["photos/a.png"],
+            "audience": "work",
+            "workspace_id": workspace,
+        },
+    ).json()
+    assert result["items"][0]["status"] == "failed"
+    assert not result["items"][0].get("publication_id")
+
+
+def test_content_preview_is_ephemeral(client, auth_headers, source, remote):
+    from app.models import MediaAsset
+    from sqlalchemy import func
+
+    response = client.get(
+        BASE + "/" + source["id"] + "/content?key=photos/a.png&preview=true",
+        headers=auth_headers,
+    )
+    assert (
+        response.status_code == 200
+        and response.headers["cache-control"] == "private, no-store"
+    )
+    with client.app.state.database.session_factory() as db:
+        assert db.scalar(select(func.count()).select_from(MediaAsset)) == 0
+
+
+def test_download_uses_head_precondition_and_limits(
+    client, auth_headers, source, monkeypatch
+):
+    calls = []
+
+    def request(self, method, key, **kwargs):
+        calls.append((method, kwargs))
+        return (b"" if method == "HEAD" else b"image"), {
+            "content-length": "5",
+            "etag": '"a"',
+        }
+
+    monkeypatch.setattr(BucketClient, "request", request)
+    with client.app.state.database.session_factory() as db:
+        row = db.get(StorageConnection, uuid.UUID(source["id"]))
+        bucket = BucketClient(row, client.app.state.settings)
+        raw, mime, metadata = bucket.download("photos/a.png")
+        assert raw == b"image" and mime == "image/png"
+        assert calls[1][1]["etag"] == '"a"'
+        assert metadata["sha256"] == hashlib.sha256(raw).hexdigest()
+
+
+def test_listing_pagination_unicode_and_xml_rejection(
+    client, auth_headers, source, monkeypatch
+):
+    xml = b'<ListBucketResult xmlns="http://s3.amazonaws.com/doc/2006-03-01/"><Contents><Key>photos%2Fni%C3%B1o.png</Key><Size>12</Size><ETag>one</ETag><LastModified>today</LastModified></Contents><NextContinuationToken>opaque</NextContinuationToken></ListBucketResult>'
+    monkeypatch.setattr(BucketClient, "request", lambda *a, **kw: (xml, {}))
+    path = BASE + "/" + source["id"] + "/objects"
+    r = client.get(path, headers=auth_headers)
+    assert r.json()["items"][0]["key"] == "photos/niño.png"
+    assert r.json()["next_cursor"] == "opaque"
+    xml = b'<!DOCTYPE x [<!ENTITY test "bad">]><x/>'
+    assert client.get(path, headers=auth_headers).status_code == 502
+
+
+def test_s3_transport_pins_ip_but_signs_hostname(
+    client, auth_headers, source, monkeypatch
+):
+    from contextlib import contextmanager
+
+    seen = {}
+
+    class Reply:
+        status_code = 200
+
+        def __init__(self):
+            self.headers = {"content-length": "2"}
+
+        def iter_bytes(self):
+            yield b"ok"
+
+    class Transport:
+        def __init__(self, **kwargs):
+            assert kwargs["follow_redirects"] is False and kwargs["trust_env"] is False
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *args):
+            pass
+
+        @contextmanager
+        def stream(self, method, url, **kwargs):
+            seen.update(url=url, **kwargs)
+            yield Reply()
+
+    monkeypatch.setattr(
+        "app.storage.client.endpoint_address",
+        lambda endpoint: ("storage.example", "1.1.1.1"),
+    )
+    monkeypatch.setattr("app.storage.client.httpx.Client", Transport)
+    with client.app.state.database.session_factory() as db:
+        row = db.get(StorageConnection, uuid.UUID(source["id"]))
+        BucketClient(row, client.app.state.settings).request("GET", "photos/niño.png")
+    assert seen["url"].host == "1.1.1.1"
+    assert seen["headers"]["Host"] == "storage.example"
+    assert seen["headers"]["Authorization"].startswith("AWS4-HMAC-SHA256 ")
+    assert seen["extensions"]["sni_hostname"] == "storage.example"
+
+
+def test_scheduler_recovers_expired_jobs_but_respects_pause_and_live_lease(
+    client, auth_headers, source, remote, monkeypatch
+):
+    from datetime import timedelta
+
+    from app.storage import tasks
+    from app.storage.service import now, process_import
+
+    path = BASE + "/" + source["id"]
+    jobs = []
+    for index in range(3):
+        result = client.post(
+            path + "/imports",
+            headers=auth_headers,
+            json={"request_key": f"recovery-{index}", "keys": ["photos/a.png"]},
+        ).json()
+        jobs.append(uuid.UUID(result["id"]))
+    client.post(path + "/syncs", headers=auth_headers, json={"enabled": False})
+    with client.app.state.database.session_factory() as db:
+        for index, job_id in enumerate(jobs):
+            job = db.get(StorageImport, job_id)
+            job.status = "pending" if index == 0 else "running"
+            job.lease_until = now() + timedelta(minutes=-1 if index == 1 else 30)
+        db.commit()
+        count = len(remote)
+        process_import(db, jobs[2], client.app.state.settings)
+        assert len(remote) == count
+    dispatched = []
+    monkeypatch.setattr(tasks, "get_settings", lambda: client.app.state.settings)
+    monkeypatch.setattr(
+        tasks, "dispatch", lambda run, settings: dispatched.append(run.id)
+    )
+    monkeypatch.setattr(
+        tasks, "sync_page", lambda *args: pytest.fail("Paused rule executed")
+    )
+    tasks.storage_tick()
+    assert set(dispatched) == set(jobs[:2])
+
+
+def test_demo_connections_require_accounts_and_are_idempotent(
+    client, source, monkeypatch
+):
+    import importlib.util
+    from pathlib import Path
+
+    from app.accounts.models import PasswordAccount
+
+    spec = importlib.util.spec_from_file_location(
+        "connect_demo",
+        Path(__file__).resolve().parents[1] / "scripts/connect_demo_buckets.py",
+    )
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    credentials = {
+        "endpoint": "https://demo.r2.cloudflarestorage.com",
+        "bucket": "private-demo",
+        "access_key": "read-key",
+        "secret_key": "read-secret",
+    }
+    monkeypatch.setattr(
+        BucketClient, "objects", lambda *args: {"items": [{"key": "fixture.png"}]}
+    )
+    with client.app.state.database.session_factory() as db:
+        with pytest.raises(ValueError, match="Prepare the existing demo account"):
+            module.prepare(db, client.app.state.settings, credentials)
+        for usernames in module.PRINCIPALS.values():
+            for username in usernames:
+                user = User(
+                    email=username + "@test.example",
+                    display_name=username,
+                    password_hash="unused-test-hash",
+                )
+                db.add(user)
+                db.flush()
+                db.add(PasswordAccount(user_id=user.id, username=username))
+        db.commit()
+        assert len(module.prepare(db, client.app.state.settings)) == 13
+        before = len(list(db.scalars(select(StorageConnection))))
+        module.prepare(db, client.app.state.settings, credentials)
+        db.commit()
+        module.prepare(db, client.app.state.settings, credentials)
+        db.commit()
+        assert len(list(db.scalars(select(StorageConnection)))) == before + 13
+
+
+def test_invalid_credentials_are_never_echoed_in_validation_response(
+    client, auth_headers
+):
+    response = client.post(
+        BASE,
+        headers=auth_headers,
+        json={
+            "name": "Invalid",
+            "endpoint": "https://example.com",
+            "bucket": "demo-bucket",
+            "access_key": "secret-that-must-not-return",
+        },
+    )
+    assert response.status_code == 422
+    assert "secret-that-must-not-return" not in response.text
+    assert "input" not in response.json()["detail"][0]

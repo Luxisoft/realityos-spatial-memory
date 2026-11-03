@@ -4,7 +4,7 @@
 
 [← Proyecto](../README.es.md) · [Imágenes listas para la cámara](QA_VISUAL_FIXTURES.es.md) · [Acceso y escenarios](DEMO.es.md#access) · [Postman](API.es.md#quick-start) · [Entrega](HACKATHON.es.md)
 
-**Empieza con P01.** Sigue P → S → A → C → F → R → M → O → B → G → V → D → U → T → H. Prueba en **teléfono Android físico y Display con Mock Device Kit**, correo real y Facebook real. Cámara del teléfono apuntando a las imágenes abiertas en la computadora. Gafas físicas y Windows local quedan fuera de esta ejecución.
+**Empieza con P01.** Sigue P → S → A → C → F → R → M → O → B → G → V → D → U → T → K → H. Prueba en **teléfono Android físico y Display con Mock Device Kit**, correo real y Facebook real. Cámara del teléfono apuntando a las imágenes abiertas en la computadora. Gafas físicas y Windows local quedan fuera de esta ejecución.
 
 ## Cómo marcar y guardar resultados
 
@@ -167,26 +167,41 @@ Las cuatro cuentas QA tienen avatares y una publicación privada de escena sint�
 - [ ] **T06** — Proveedores: conserva evidencia de Muse/SAM/transcripción Live y WAV ElevenLabs autenticado; sin sesión se rechaza TTS. Ante fallo, no hay caída silenciosa a mock ni audio antiguo. Mock solo en pruebas aisladas, determinista y rotulado. No cambies producción a mock para aprobar.
 - [ ] **T07** — Seguridad y errores: verifica claves de proveedor/JWT/DB ausentes del APK y evidencias; regresiones de 409, 422 y 429 en entorno aislado para no bloquear cuentas demo. Guarda resultados sin secretos. Confirma aislamiento de biometría respecto al registro de objetos.
 
+### K — Buckets R2/S3 — cuentas y datos preparados por el responsable
+
+- [ ] **K01** — Entra con cada cuenta de escenario y las cuatro QA: Perfil → Mis conexiones muestra su conexión preparada; Comprobar acceso funciona. Si falta, BLOQUEADO y el responsable ejecuta la preparación de la [guía R2](STORAGE_CONNECTIONS.es.md); el evaluador no busca claves.
+- [ ] **K02** — Con QA admin, crea una conexión propia de prueba con claves de lectura/listado, carpeta limitada y nombre reconocible. Vuelve a abrirla: las claves no se muestran. Credenciales inválidas producen error claro; corrígelas con Editar claves y vuelve a comprobar.
+- [ ] **K03** — Explora carpetas y páginas. Abre una foto y un MP4, amplía y busca otro instante del video. Esperado: vista previa autorizada, reproducción y regreso a la misma conexión; formatos incompatibles identificados.
+- [ ] **K04** — Selecciona una imagen y video de QA → Mi perfil privado → Importar selección → confirmar. Espera Publicado, vuelve al perfil y abre ambos. Abre con otra cuenta: el recurso privado sigue restringido.
+- [ ] **K05** — Importa otra imagen al grupo QA; sus miembros pueden abrirla y una cuenta ajena no. Retira la pertenencia antes de una nueva importación: el servidor la rechaza y no publica en el grupo.
+- [ ] **K06** — Repite K04 sin cambiar archivos: no genera publicaciones adicionales. Un archivo inválido o demasiado grande falla sin impedir revisar los demás; corrige el recurso y usa Reintentar fallidos. Conserva evidencia del rechazo y recuperación.
+- [ ] **K07** — Configura sincronización manual de una carpeta QA. Actualizar ahora recorre páginas; repetir no duplica. El responsable añade una imagen y después cambia una existente: la actualización importa la nueva y conserva la revisión de duplicados/originales. El borrado remoto no borra publicaciones.
+- [ ] **K08** — Activa cada 15 minutos, añade un recurso QA y espera un ciclo real. Esperado: aparece sin pulsar actualizar. Pausa, añade otro y verifica que no se importa automáticamente; Actualizar ahora sigue disponible.
+- [ ] **K09** — Selecciona una escena preparada → Usar para buscar objeto, en el espacio correcto. Abre la evidencia autorizada y prueba una imagen sin coincidencias. La consulta no crea publicaciones ni nueva evidencia.
+- [ ] **K10** — Con Clínica, selecciona el retrato de Ana y su espacio → Usar para buscar persona → consentimiento explícito → candidato → expediente. Repite con QA reader sin consentimiento y rechaza otorgarlo: no busca ni enrola caras automáticamente. Con QA admin prueba candidato de usuario y abrir perfil.
+- [ ] **K11** — En QA, elige cv-v1.pdf → Usar como CV y confirma. Repite con cv-v2.pdf: el CV privado se sustituye, no aparece como publicación pública. Con otra cuenta sigue restringido.
+- [ ] **K12** — Desconecta la conexión desechable de K02: ya no permite listar, descargar o sincronizar, pero las publicaciones importadas siguen abriendo. Cambia de cuenta y confirma que no aparece la conexión anterior ni sus claves. Repite los textos principales en ES y EN.
+
 ### H — Cierre y envío de hackathon
 
 - [ ] **H01** — Confirma en el portal fecha/hora límite, categoría, track, equipo y requisitos de participación vigentes. Guarda comprobante. La referencia recibida indica 4 nov 2026, 21:00 EST/Bogotá; no sustituye la comprobación del portal.
 - [ ] **H02** — Revisa repositorio público, licencia del proyecto, derechos de pesos InsightFace, términos DAT y procedencia de recursos. Esperado: decisiones documentadas por el responsable, sin declarar derechos pendientes como aprobados.
-- [ ] **H03** — Comprueba todos los casos P–T: sin pendientes, fallos ni bloqueos; evidencias correspondientes a la versión probada. Si cambió código/servidor, repite casos afectados y entrada → expediente → búsqueda → Display.
+- [ ] **H03** — Comprueba todos los casos P–T y K: sin pendientes, fallos ni bloqueos; evidencias correspondientes a la versión probada. Si cambió código/servidor, repite casos afectados y entrada → expediente → búsqueda → Display.
 - [ ] **H04** — Graba el video real de tres minutos con los recorridos aprobados y las aportaciones del evento. Incluye búsqueda facial real con consentimiento, expediente, evidencia/SAM y Display simulado identificado como tal. Revisa las respuestas clínicas que se vean.
 - [ ] **H05** — Abre el enlace del video sin sesión; revisa duración, audio, ausencia de secretos/notificaciones y enlaces de README. Esperado: el jurado puede ver la grabación; los videos conceptuales no la reemplazan.
 - [ ] **H06** — Envía en el portal y guarda recibo, hora, proyecto y enlaces entregados. Esperado: confirmación de envío. Un push a GitHub o tener todas las pruebas aprobadas no es el envío.
 
 ## Resultado final
 
-Hay **77 casos de aceptación P–T** y **6 de cierre/envío H**. Cobertura aprobada = casos P–T aprobados / 77 × 100. Ejecutar un caso fallido cuenta como ejecutado, pero no como aprobado. Toda variante de un caso debe pasar; un bloqueador conserva su lugar en el denominador.
+Hay **89 casos de aceptación P–T y K** y **6 de cierre/envío H**. Cobertura aprobada = casos P–T y K aprobados / 89 × 100. Ejecutar un caso fallido cuenta como ejecutado, pero no como aprobado. Toda variante de un caso debe pasar; un bloqueador conserva su lugar en el denominador.
 
-- **Pruebas aprobadas:** 77/77, con evidencia y cero fallos/bloqueos/pendientes.
+- **Pruebas aprobadas:** 89/89, con evidencia y cero fallos/bloqueos/pendientes.
 - **Entrega preparada:** pruebas aprobadas y H01–H05 completos.
 - **Candidatura enviada:** H06 completo con recibo del portal.
 
 Texto de cierre, solo cuando corresponda:
 
-> El 100 % de los 77 casos de aceptación definidos para la versión [APK/hash], servidor [release], teléfono [modelo/Android] y Display simulado fue ejecutado y aprobado el [fecha], con evidencia [registro]. No incluye gafas físicas ni Windows local.
+> El 100 % de los 89 casos de aceptación definidos para la versión [APK/hash], servidor [release], teléfono [modelo/Android] y Display simulado fue ejecutado y aprobado el [fecha], con evidencia [registro]. No incluye gafas físicas ni Windows local.
 
 Las comprobaciones de preparación realizadas por el responsable se documentan aparte; esta plantilla no afirma que la sesión manual ya se haya ejecutado. El recibo del portal es la evidencia de envío. [Portal oficial](https://cerebralvalley.ai/e/meta-ai-developer-hackathon/hackathon/submit).
 

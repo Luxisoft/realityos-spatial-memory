@@ -4,7 +4,7 @@
 
 [← Project](../README.md) · [Camera-ready visual cards](QA_VISUAL_FIXTURES.md) · [Access and scenarios](DEMO.md#access) · [Postman](API.md#quick-start) · [Submission](HACKATHON.md)
 
-**Start at P01.** Follow P → S → A → C → F → R → M → O → B → G → V → D → U → T → H. Test a **physical Android phone and Display with Mock Device Kit**, real email and real Facebook. Point the phone camera at the images open on the computer. Physical glasses and Windows local are outside this run.
+**Start at P01.** Follow P → S → A → C → F → R → M → O → B → G → V → D → U → T → K → H. Test a **physical Android phone and Display with Mock Device Kit**, real email and real Facebook. Point the phone camera at the images open on the computer. Physical glasses and Windows local are outside this run.
 
 ## Marking and recording results
 
@@ -167,26 +167,41 @@ All four QA accounts have avatars and one initial private synthetic-scene post. 
 - [ ] **T06** — Providers: retain evidence of Live Muse/SAM/transcription and authenticated ElevenLabs WAV; unauthenticated TTS is rejected. Failures must not silently fall back to mock or old audio. Mock is deterministic/labeled in isolated tests only. Do not switch production to mock to pass.
 - [ ] **T07** — Security/errors: verify provider/JWT/DB secrets are absent from APK and evidence; test 409, 422 and 429 in isolation to avoid locking demo accounts. Save redacted results. Confirm biometrics remains isolated from object registration.
 
+### K — R2/S3 buckets — accounts and data prepared by the operator
+
+- [ ] **K01** — Sign in with each scenario account and the four QA accounts: Profile → My connections shows its prepared source and Test connection succeeds. Missing setup is BLOCKED; the operator follows the [R2 guide](STORAGE_CONNECTIONS.md), without asking evaluators to find keys.
+- [ ] **K02** — As QA admin, create a disposable connection using list/read keys and a limited folder. Reopening never reveals keys. Invalid credentials show a clear error; rotate keys and test again.
+- [ ] **K03** — Browse folders and pages; preview a photo and MP4, zoom and seek. Playback and return work; unsupported formats are identified.
+- [ ] **K04** — Import a QA image and video into My private profile. Wait for Published and open both from the profile. Another account remains denied access to private media.
+- [ ] **K05** — Import another image into QA work group: members can open it and outsiders cannot. Remove membership before a new import: the server rejects it without publishing.
+- [ ] **K06** — Repeat K04 with unchanged files: no extra posts. An invalid or oversized resource fails independently; fix it and Retry failed. Preserve evidence of rejection and recovery.
+- [ ] **K07** — Configure manual sync for a QA folder. Update now advances pages; repeating does not duplicate. The operator adds a file and replaces one: new content imports while duplicate review and originals are preserved. Remote deletion never deletes posts.
+- [ ] **K08** — Enable a 15-minute schedule, add a QA resource and wait for a real cycle. It imports without Update now. Pause, add another and confirm automatic import stops; manual update remains available.
+- [ ] **K09** — Select a prepared scene → Search object in the correct space. Open authorized evidence and try an image without matches. Queries create no posts or new evidence.
+- [ ] **K10** — In Nursing, select Ana and the clinical space → Search person → explicit consent → candidate → record. As QA reader, decline consent: no search or automatic enrollment occurs. As QA admin, test a user candidate and open its profile.
+- [ ] **K11** — In QA, select cv-v1.pdf → Use as CV and confirm. Repeat with cv-v2.pdf: the private CV is replaced without a public post; another account cannot access it.
+- [ ] **K12** — Disconnect the disposable K02 connection: listing, downloads and sync stop; imported posts still open. Switch accounts: the previous connection and keys remain hidden. Repeat main text states in ES and EN.
+
 ### H — Hackathon closure and submission
 
 - [ ] **H01** — Confirm current deadline/timezone, category, track, team and participation requirements in the portal. Save proof. The supplied reference says November 4, 2026, 21:00 EST/Bogotá; it does not replace portal confirmation.
 - [ ] **H02** — Review public repository, project license, InsightFace weight rights, DAT terms and asset provenance. Expected: documented organizer decisions; unresolved rights are not marked approved.
-- [ ] **H03** — Check every P–T case: no pending, failed or blocked cases, with evidence for the tested release. After code/server changes, repeat affected cases and entry → record → search → Display.
+- [ ] **H03** — Check every P–T and K case: no pending, failed or blocked cases, with evidence for the tested release. After code/server changes, repeat affected cases and entry → record → search → Display.
 - [ ] **H04** — Record the real three-minute video with passed journeys and event contributions. Include actual consented face search, record, evidence/SAM and explicitly labeled simulated Display. Review any visible clinical answers.
 - [ ] **H05** — Open the video link while signed out; check duration, audio, absence of secrets/notifications and README links. Expected: evaluators can view the recording; concept videos are not substitutes.
 - [ ] **H06** — Submit in the portal and save receipt, time, project and delivered links. Expected: submission confirmation. A GitHub push or passing all tests is not submission.
 
 ## Final result
 
-There are **77 acceptance cases P–T** and **6 closure/submission cases H**. Passed coverage = passed P–T cases / 77 × 100. Executing a failed case counts as executed, not passed. Every variant must pass; blocked cases remain in the denominator.
+There are **89 acceptance cases P–T and K** and **6 closure/submission cases H**. Passed coverage = passed P–T and K cases / 89 × 100. Executing a failed case counts as executed, not passed. Every variant must pass; blocked cases remain in the denominator.
 
-- **Tests passed:** 77/77, with evidence and no failures/blocks/pending cases.
+- **Tests passed:** 89/89, with evidence and no failures/blocks/pending cases.
 - **Submission prepared:** tests passed and H01–H05 complete.
 - **Application submitted:** H06 complete with portal receipt.
 
 Closure statement, only when supported:
 
-> 100% of the 77 acceptance cases defined for version [APK/hash], server [release], phone [model/Android] and simulated Display were executed and passed on [date], with evidence [record]. Physical glasses and Windows local are excluded.
+> 100% of the 89 acceptance cases defined for version [APK/hash], server [release], phone [model/Android] and simulated Display were executed and passed on [date], with evidence [record]. Physical glasses and Windows local are excluded.
 
 Organizer preparation checks are documented separately; this template does not claim the manual run has happened. The portal receipt proves submission. [Official portal](https://cerebralvalley.ai/e/meta-ai-developer-hackathon/hackathon/submit).
 
