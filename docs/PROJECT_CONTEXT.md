@@ -710,3 +710,13 @@ medios, aislamiento y candidato de usuario comprobados por HTTP; evidencia en
 `.runtime/acceptance-readiness.json`. Los 83 pasos manuales siguen pendientes
 en `.runtime/acceptance-run.csv`. No se cambió código, contrato ni esquema;
 no hubo nuevo build/despliegue. Ver `IMPLEMENTATION_STATUS.es.md`.
+
+
+Corrección de estructura Postman (2026-11-03): conservar siempre las dos carpetas
+principales Server requests y Localhost requests. La descarga principal incluye
+363 solicitudes (200 servidor y 163 local) y 143 variables independientes. Los
+39 ejemplos existentes viven dentro de Server requests → 00 Live scenarios;
+el inicio rápido servidor usa Memoria y el local mantiene su cuenta propia.
+Catorce pruebas y scripts/esquema/regeneración aprobados, más acceso y lecturas
+reales del servidor. Localhost validado con cliente de pruebas, sin ejecución
+física de Windows. Sin cambios de backend, datos, permisos ni Android.

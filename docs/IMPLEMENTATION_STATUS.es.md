@@ -334,3 +334,24 @@ registro de ejecución pendiente en `.runtime/acceptance-run.csv`.
 Sin cambios de código backend/Android, contrato ni esquema; no se reconstruyó
 ni desplegó una imagen o APK por esta documentación. Continúan pendientes las
 pruebas manuales de teléfono, correo, Facebook y Display y el envío al portal.
+
+
+## Carpetas Postman servidor/local restauradas — 2026-11-03
+
+La colección principal vuelve a tener exactamente dos carpetas: Server requests
+(200 solicitudes) y Localhost requests (163), con el catálogo completo y los
+inicios rápidos precargados. URL, cuentas, tokens y espacios son independientes.
+El inicio rápido servidor usa la cuenta existente de Memoria; las 39 consultas
+del jurado permanecen en Server requests → 00 Live scenarios. Localhost conserva
+su cuenta propia en http://localhost:8080 y el preparador Enable-PostmanDemo.ps1
+vuelve a indicar la colección principal. Los entornos opcionales reflejan cada
+destino y no son necesarios para importar la colección.
+
+Pasaron 14 pruebas, incluido el inicio rápido local generado ejecutado contra el
+cliente de prueba de la aplicación, permisos, aislamiento y ambos catálogos.
+Se comprobaron offline los 363 scripts, separación de destinos, esquema,
+regeneración, formato/lint y arquitectura. Login automático, usuario, espacios
+y expedientes del servidor real respondieron 200 con los IDs esperados (tres
+aserciones Newman, cero fallos). No se ejecutó Windows físico en esta corrección;
+localhost requiere su backend y cuenta preparados. Sin cambios de contrato,
+datos del servidor ni Android.

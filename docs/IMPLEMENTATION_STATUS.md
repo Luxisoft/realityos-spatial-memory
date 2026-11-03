@@ -365,3 +365,24 @@ Private evidence: `.runtime/acceptance-readiness.json`; access cards:
 No backend/Android source, contract or schema changed; no image or APK was
 rebuilt or deployed for these documentation changes. Manual phone, email,
 Facebook and Display tests and the portal submission remain pending.
+
+
+## Postman server/local folders restored — 2026-11-03
+
+The main collection again has exactly two top-level folders: Server requests
+(200 requests) and Localhost requests (163). Both retain the complete catalog and
+their prefilled quick starts, with independent URLs, credentials, tokens and
+workspace IDs. The server quick start uses the existing Memory evaluation account;
+all 39 prepared jury queries remain under Server requests → 00 Live scenarios.
+Localhost retains its separate account at http://localhost:8080; the established
+Enable-PostmanDemo.ps1 setup now points back to the primary collection. The public
+and local optional environments mirror their own destination's variables.
+
+Validation: 14 tests passed, including execution of the generated local quick-start
+requests against the application test client, permission/workspace isolation and
+regressions for both complete catalogs. Offline scripts checked all 363 requests
+and destination separation; schema, generation, lint/format and architecture checks
+passed. Real-server automatic login, user, workspaces and record listing returned
+200 with the expected existing IDs (three Newman assertions, zero failures).
+No Windows installation was run during this correction; localhost needs its local
+backend and account prepared. No server contract, data or Android change.

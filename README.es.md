@@ -51,7 +51,7 @@ Los tres escenarios contienen **47 registros, 27 adjuntos y seis retratos de per
 <details>
 <summary><strong>Solo quiero probar la API con Postman</strong></summary>
 
-Importa [la colección pública](https://raw.githubusercontent.com/Luxisoft/realityos-spatial-memory/main/docs/postman/RealityOS.postman_collection.json), abre **01 Police**, **02 Nursing** o **03 Memory** y pulsa **Send**. Las 39 peticiones incluyen las tres cuentas existentes, contraseñas, workspace, IDs y preguntas. Login y renovación son automáticos; se consultan los datos actuales del servidor. [Guía y cuentas públicas →](docs/API.es.md#quick-start)
+Importa [la colección pública](https://raw.githubusercontent.com/Luxisoft/realityos-spatial-memory/main/docs/postman/RealityOS.postman_collection.json), abre **Server requests** o **Localhost requests → 00 Quick start** y pulsa **Send**. Los escenarios Police, Nursing y Memory están en **Server requests → 00 Live scenarios**. Las 39 peticiones incluyen las tres cuentas existentes, contraseñas, workspace, IDs y preguntas. Login y renovación son automáticos; se consultan los datos actuales del servidor. [Guía y cuentas públicas →](docs/API.es.md#quick-start)
 
 </details>
 

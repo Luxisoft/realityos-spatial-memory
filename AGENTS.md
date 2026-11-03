@@ -77,6 +77,12 @@ Do not replace their preconfigured access with an empty workspace or require a
 private credential handoff. Provider, integration, database, JWT and other account
 credentials remain private; session tokens are obtained at request time.
 
+Owner correction (2026-11-03): the primary Postman download must keep exactly
+two top-level folders, `Server requests` and `Localhost requests`, with their
+full request catalogs and independent preconfigured credentials and variables.
+Nest the live jury scenarios inside the server folder; do not replace these two
+destinations with scenario folders or move localhost out to a separate collection.
+
 Owner preference (2026-11-01): commit and push project changes directly to
 `main`. Do not create feature branches or draft PRs unless the owner explicitly
 requests them. Run the relevant checks before pushing; `main` triggers CI and

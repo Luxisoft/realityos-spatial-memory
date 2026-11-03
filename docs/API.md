@@ -8,9 +8,9 @@
 
 <a id="quick-start"></a>
 
-## Test existing server data: Import → Send
+## Server and localhost: Import → Send
 
-**The public collection contains 39 ready requests against the current server and its three workspaces.** Usernames, passwords, workspace IDs, record IDs, publication IDs and questions are already configured. No data entry, token copying, file selection or initial login request is needed.
+**The collection has exactly two top-level folders: Server requests and Localhost requests.** Both include the full catalog and a quick start with URL, username, password, workspace and question prefilled. Server requests also retains the 39 ready queries against the existing jury data.
 
 1. In Postman, click **Import** and paste this link:
 
@@ -18,7 +18,7 @@
    https://raw.githubusercontent.com/Luxisoft/realityos-spatial-memory/main/docs/postman/RealityOS.postman_collection.json
    ```
 
-2. Leave **No environment** selected. Open **01 Police**, **02 Nursing** or **03 Memory**.
+2. Leave **No environment** selected. Open **Server requests → 00 Quick start** or **Localhost requests → 00 Quick start**. For the three existing scenarios: **Server requests → 00 Live scenarios → 01 Police / 02 Nursing / 03 Memory**.
 3. Open any request and click **Send**. Sign-in and renewal run automatically. Use **Run** to execute an entire scenario folder.
 
 | Folder | Included username | Included password | Existing workspace |
@@ -29,9 +29,18 @@
 
 These three evaluation accounts and passwords are public with the owner's authorization of November 3, 2026. They retain their existing administrator role in their workspace. The evaluation collection reads existing data. The server and providers are live; the prepared fictional people and scenes retain their recorded provenance.
 
-Each folder covers the current session, login, refresh, workspaces, record lists and details, revisions, gallery posts, image download, profiles and AI queries. Police opens case 1; Nursing opens Ana Solis; Memory opens Luis Moreno. The server contains 47 records and 21 group publications. Responses are fetched from the server when the request is sent.
+Each scenario under **Server requests → 00 Live scenarios** covers the current session, login, refresh, workspaces, record lists and details, revisions, gallery posts, image download, profiles and AI queries. Police opens case 1; Nursing opens Ana Solis; Memory opens Luis Moreno. The server contains 47 records and 21 group publications. Responses are fetched from the server when the request is sent.
 
-The [public environment](postman/RealityOS.public.postman_environment.json) is optional and contains the same values. Replacing them with your own account is entirely optional. [Use these accounts in Android](DEMO.md#access).
+The optional [server environment](postman/RealityOS.public.postman_environment.json) and [localhost environment](postman/RealityOS.local.postman_environment.json) contain the values for each destination. Replacing them with your own account is entirely optional. [Use these accounts in Android](DEMO.md#access).
+
+## Prefilled destinations
+
+| Top-level folder | URL | Account and workspace |
+| --- | --- | --- |
+| Server requests | `https://realityos.luxisoft.com` | Quick start uses the existing Memory account. The three live scenarios retain their accounts and data. |
+| Localhost requests | `http://localhost:8080` | `postman-local@realityos.example.test`, password `RealityOS-Postman-Local-2026!` and its local workspace are prefilled. |
+
+The local backend must be running. If that installation does not yet have the Postman account, run `powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\local\Enable-PostmanDemo.ps1` once; then click Send. This uses the established local account setup and does not copy server data or keys. A collection cannot start a backend on another computer.
 
 ## Choose an operation
 
@@ -54,13 +63,13 @@ The [public environment](postman/RealityOS.public.postman_environment.json) is o
 
 ## Variables and authentication
 
-The `security_`, `hospital_` and `memory_` prefixes keep accounts, sessions and resource IDs separate. All required values are included. Only tokens and `session_identity` start empty: scripts obtain them automatically before sending a protected request. Authentication failure stops the request. Changing the account or API origin starts a new session.
+The `server_` and `localhost_` prefixes separate the destinations. Server scenarios retain `security_`, `hospital_` and `memory_`. Quick starts and live scenarios have their inputs prefilled and their sessions remain separate. Only tokens and `session_identity` start empty: scripts obtain them automatically before sending a protected request. Authentication failure stops the request. Changing the account or API origin starts a new session.
 
 `query` is the visual question and `record_question` searches records; `language=en` requests English AI answers. Observations report when something was last seen. A response without matches does not fabricate evidence.
 
 ## Complete reference for integrators
 
-The [reference collection](postman/RealityOS.reference.postman_collection.json) preserves all 324 server and localhost requests, including writes, devices and integrations. Those templates need each operation's own permissions, files and credentials. Its optional environments are [server](postman/RealityOS.reference.postman_environment.json) and [localhost](postman/RealityOS.local.postman_environment.json). They are not needed to run the public jury collection.
+The main collection contains all 324 original requests plus the 39 live scenario queries: 363 total. The full catalog remains inside each destination. The [reference collection](postman/RealityOS.reference.postman_collection.json) is also available. Those templates need each operation's own permissions, files and credentials. Its optional environments are [server](postman/RealityOS.reference.postman_environment.json) and [localhost](postman/RealityOS.local.postman_environment.json). Importing an environment is optional for both folders in the main collection.
 
 Reference writes retain `enable_write_requests=false`. The [Windows installation](DEPLOYMENT_LOCALHOST.md) remains optional and is not needed to evaluate the existing server data.
 

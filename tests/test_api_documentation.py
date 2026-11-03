@@ -197,9 +197,22 @@ def test_jury_download_has_all_inputs_for_existing_server_scenarios():
     environment = json.loads(
         (ROOT / "docs/postman/RealityOS.public.postman_environment.json").read_text()
     )
-    assert {v["key"]: v["value"] for v in environment["values"]} == variables
-    assert len(public["item"]) == 3
-    for target, scenario in zip(public["item"], fixture["scenarios"], strict=True):
+    assert {v["key"]: v["value"] for v in environment["values"]} == {
+        key: value
+        for key, value in variables.items()
+        if not key.startswith("localhost_")
+    }
+    assert [folder["name"] for folder in public["item"]] == [
+        "Server requests",
+        "Localhost requests",
+    ]
+    scenarios = next(
+        folder["item"]
+        for folder in public["item"][0]["item"]
+        if folder["name"] == "00 Live scenarios"
+    )
+    assert len(scenarios) == 3
+    for target, scenario in zip(scenarios, fixture["scenarios"], strict=True):
         prefix = scenario["prefix"] + "_"
         assert set(scenario["values"]) == {
             "email",
@@ -242,3 +255,34 @@ def test_jury_download_has_all_inputs_for_existing_server_scenarios():
             key.startswith(prefix) and key.endswith(("integration_key", "device_key"))
             for key in variables
         )
+
+
+def test_primary_collection_preserves_both_catalogs_and_local_defaults():
+    public = json.loads(
+        (ROOT / "docs/postman/RealityOS.postman_collection.json").read_text()
+    )
+    reference = collection()
+    values = {v["key"]: v["value"] for v in public["variable"]}
+    for target, expected in zip(public["item"], reference["item"], strict=True):
+        assert [
+            f for f in target["item"] if f["name"] != "00 Live scenarios"
+        ] == expected["item"]
+        refs = set(re.findall(r"{{([^}]+)}}", json.dumps(target)))
+        assert refs <= values.keys()
+        if target["name"] == "Localhost requests":
+            assert all(key.startswith("localhost_") for key in refs)
+        else:
+            assert not any(key.startswith("localhost_") for key in refs)
+    local_env = json.loads(
+        (ROOT / "docs/postman/RealityOS.local.postman_environment.json").read_text()
+    )
+    assert {v["key"]: v["value"] for v in local_env["values"]} == {
+        key: value for key, value in values.items() if key.startswith("localhost_")
+    }
+    fixture = json.loads((ROOT / "simulator/postman/jury.json").read_text())
+    memory = next(s["values"] for s in fixture["scenarios"] if s["prefix"] == "memory")
+    for key in ("email", "password", "workspace_id", "record_id", "post_id"):
+        assert values["server_" + key] == memory[key]
+    assert values["server_base_url"] == "https://realityos.luxisoft.com"
+    assert values["localhost_base_url"] == "http://localhost:8080"
+    assert values["localhost_password"] != values["server_password"]

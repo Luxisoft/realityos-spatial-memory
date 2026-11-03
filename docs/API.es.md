@@ -8,9 +8,9 @@
 
 <a id="quick-start"></a>
 
-## Probar los datos existentes: Import → Send
+## Servidor y localhost: Import → Send
 
-**La colección pública incluye 39 solicitudes listas contra el servidor actual y sus tres espacios.** Usuario, contraseña, workspace, expediente, publicación y preguntas ya están configurados. No hace falta escribir datos, copiar tokens, seleccionar archivos ni ejecutar un login previo.
+**La colección tiene exactamente dos carpetas principales: Server requests y Localhost requests.** Ambas incluyen el catálogo completo y un inicio rápido con URL, usuario, contraseña, workspace y pregunta precargados. Server requests conserva además las 39 consultas listas sobre los datos existentes del jurado.
 
 1. En Postman, pulsa **Import** y pega este enlace:
 
@@ -18,7 +18,7 @@
    https://raw.githubusercontent.com/Luxisoft/realityos-spatial-memory/main/docs/postman/RealityOS.postman_collection.json
    ```
 
-2. Deja seleccionado **No environment**. Abre **01 Police**, **02 Nursing** o **03 Memory**.
+2. Deja seleccionado **No environment**. Abre **Server requests → 00 Quick start** o **Localhost requests → 00 Quick start**. Para los tres escenarios existentes: **Server requests → 00 Live scenarios → 01 Police / 02 Nursing / 03 Memory**.
 3. Abre cualquier petición y pulsa **Send**. El acceso y la renovación son automáticos. Puedes usar **Run** para ejecutar una carpeta completa.
 
 | Carpeta | Usuario incluido | Contraseña incluida | Espacio existente |
@@ -29,9 +29,18 @@
 
 Estas tres cuentas de evaluación y sus contraseñas son públicas por autorización del propietario del 3 de noviembre de 2026. Conservan su rol actual de administrador en su espacio. La colección de evaluación consulta datos existentes. Los proveedores y el servidor son reales; las personas y escenas preparadas conservan su procedencia ficticia.
 
-Cada carpeta permite probar sesión, login, renovación, espacios, listado y detalle de expedientes, revisiones, publicaciones, descarga de una imagen, perfiles y consultas de IA. Policía abre el caso 1; Enfermería abre Ana Solis; Memoria abre Luis Moreno. El servidor contiene 47 expedientes y 21 publicaciones de grupo. Las respuestas se obtienen del servidor al enviar la petición.
+Cada escenario de **Server requests → 00 Live scenarios** permite probar sesión, login, renovación, espacios, listado y detalle de expedientes, revisiones, publicaciones, descarga de una imagen, perfiles y consultas de IA. Policía abre el caso 1; Enfermería abre Ana Solis; Memoria abre Luis Moreno. El servidor contiene 47 expedientes y 21 publicaciones de grupo. Las respuestas se obtienen del servidor al enviar la petición.
 
-El [entorno público](postman/RealityOS.public.postman_environment.json) es opcional y contiene los mismos valores. Para usar otra cuenta, cambia sus variables; hacerlo es completamente opcional. [Acceso Android con estas cuentas](DEMO.es.md#access).
+Los entornos opcionales de [servidor](postman/RealityOS.public.postman_environment.json) y [localhost](postman/RealityOS.local.postman_environment.json) contienen las variables de cada destino. Para usar otra cuenta, cambia sus variables; hacerlo es completamente opcional. [Acceso Android con estas cuentas](DEMO.es.md#access).
+
+## Destinos precargados
+
+| Carpeta principal | URL | Cuenta y espacio |
+| --- | --- | --- |
+| Server requests | `https://realityos.luxisoft.com` | El inicio rápido usa la cuenta existente de Memoria. Los tres escenarios conservan sus cuentas y datos. |
+| Localhost requests | `http://localhost:8080` | `postman-local@realityos.example.test`, contraseña `RealityOS-Postman-Local-2026!` y su workspace local están precargados. |
+
+Para localhost debe estar iniciado el backend local. Si esa instalación aún no tiene la cuenta Postman, ejecuta una vez `powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\local\Enable-PostmanDemo.ps1`; después basta Send. El script prepara la cuenta local existente del flujo de instalación; no copia datos ni claves del servidor. La colección no puede iniciar por sí misma el backend de otro equipo.
 
 ## Qué operación necesito
 
@@ -54,13 +63,13 @@ El [entorno público](postman/RealityOS.public.postman_environment.json) es opci
 
 ## Variables y autenticación
 
-Los prefijos `security_`, `hospital_` y `memory_` mantienen separadas las cuentas, sesiones e IDs. Todos los valores necesarios están incluidos. Solo los tokens y `session_identity` empiezan vacíos: el script los obtiene automáticamente antes de enviar una petición protegida. Un fallo de autenticación detiene la petición. Cambiar la cuenta o URL inicia otra sesión.
+Los prefijos `server_` y `localhost_` separan los destinos. Los escenarios del servidor conservan `security_`, `hospital_` y `memory_`. Los inicios rápidos y escenarios tienen sus valores precargados; las sesiones se mantienen separadas. Solo los tokens y `session_identity` empiezan vacíos: el script los obtiene automáticamente antes de enviar una petición protegida. Un fallo de autenticación detiene la petición. Cambiar la cuenta o URL inicia otra sesión.
 
 `query` es la pregunta visual y `record_question` consulta expedientes; `language=en` solicita respuestas de IA en inglés. Las observaciones indican «visto por última vez». Una respuesta sin coincidencias no inventa evidencia.
 
 ## Referencia completa para integradores
 
-La [colección de referencia](postman/RealityOS.reference.postman_collection.json) conserva las 324 solicitudes de servidor y localhost del contrato, incluidas operaciones de escritura, dispositivos e integraciones. Esas plantillas requieren los permisos, archivos y credenciales propios de cada operación. Sus entornos opcionales son [servidor](postman/RealityOS.reference.postman_environment.json) y [localhost](postman/RealityOS.local.postman_environment.json). No hacen falta para ejecutar la colección pública del jurado.
+La colección principal contiene las 324 solicitudes originales y las 39 consultas de los escenarios: 363 en total. El catálogo completo permanece dentro de cada destino. La [colección de referencia](postman/RealityOS.reference.postman_collection.json) también sigue disponible. Esas plantillas requieren los permisos, archivos y credenciales propios de cada operación. Sus entornos opcionales son [servidor](postman/RealityOS.reference.postman_environment.json) y [localhost](postman/RealityOS.local.postman_environment.json). No es necesario importar entornos para usar las carpetas de la colección principal.
 
 Las escrituras de la referencia conservan `enable_write_requests=false`. La [instalación Windows](DEPLOYMENT_LOCALHOST.es.md) sigue siendo opcional y no se necesita para evaluar los datos del servidor.
 

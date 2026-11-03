@@ -51,7 +51,7 @@ The three scenarios contain **47 records, 27 attachments and six enrolled person
 <details>
 <summary><strong>I only want to try the API with Postman</strong></summary>
 
-Import [the public collection](https://raw.githubusercontent.com/Luxisoft/realityos-spatial-memory/main/docs/postman/RealityOS.postman_collection.json), open **01 Police**, **02 Nursing** or **03 Memory**, and click **Send**. All 39 requests include existing accounts, passwords, workspace IDs, resource IDs and questions. Login and renewal are automatic; requests use the current server data. [Guide and public accounts →](docs/API.md#quick-start)
+Import [the public collection](https://raw.githubusercontent.com/Luxisoft/realityos-spatial-memory/main/docs/postman/RealityOS.postman_collection.json), open **Server requests** or **Localhost requests → 00 Quick start**, and click **Send**. Police, Nursing and Memory remain under **Server requests → 00 Live scenarios**. All 39 requests include existing accounts, passwords, workspace IDs, resource IDs and questions. Login and renewal are automatic; requests use the current server data. [Guide and public accounts →](docs/API.md#quick-start)
 
 </details>
 

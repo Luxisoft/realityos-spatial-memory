@@ -696,7 +696,9 @@ def generate(spec, check=False):
             + "\n",
             check,
         )
-    return publish(folders, ROOT, write, target_item, variable_description, check)
+    return publish(
+        folders, ROOT, write, target_item, variable_description, check, collection
+    )
 
 
 def nav(stem, es):

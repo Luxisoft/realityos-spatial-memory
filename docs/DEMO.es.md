@@ -38,7 +38,7 @@ Comprobación HTTP del 3 de noviembre de 2026: las nueve cuentas acceden, sus av
 | --- | --- |
 | No sé dónde entrar | Usa la app Android y **Continuar con correo → Iniciar sesión**. La dirección del servidor en el navegador no abre una app web. |
 | El acceso no funciona | Usa usuario y contraseña de la misma fila de la tabla pública. Estas cuentas ya están confirmadas y sus direcciones `example.test` no reciben correos de recuperación. |
-| Solo veo Postman Demo o un espacio vacío | Importa la colección pública actual y abre Police, Nursing o Memory; las tres cuentas y espacios ya están configurados. |
+| Solo veo Postman Demo o un espacio vacío | Importa la colección pública actual y abre Server requests → 00 Live scenarios → Police, Nursing o Memory; las tres cuentas y espacios ya están configurados. |
 | No aparece mi foto, publicaciones o grupo | El responsable debe completar la cuenta antes de la prueba; el evaluador no tiene que preparar los datos. |
 
 <a id="handoff"></a>

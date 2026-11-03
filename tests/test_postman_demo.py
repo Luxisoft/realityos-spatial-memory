@@ -2,8 +2,10 @@
 
 import importlib.util
 import json
+import re
 import uuid
 from pathlib import Path
+from urllib.parse import urlsplit
 
 import pytest
 from app.models import MediaAsset, Role, User, Workspace, WorkspaceMember
@@ -138,3 +140,44 @@ def test_other_targets_credentials_and_disabled_local_setup_are_rejected(client)
         with pytest.raises(ValueError, match="installation"):
             MODULE.provision(db, settings, "localhost", DEMO)
         assert db.get(User, uuid.UUID(DEMO["localhost"]["user_id"])) is None
+
+
+def test_published_localhost_quick_start_runs_with_its_preconfigured_values(client):
+    settings = client.app.state.settings
+    settings.environment = "local"
+    settings.local_login_enabled = True
+    with client.app.state.database.session_factory() as db:
+        MODULE.provision(db, settings, "localhost", DEMO)
+        db.commit()
+    collection = json.loads(
+        (ROOT / "docs/postman/RealityOS.postman_collection.json").read_text()
+    )
+    values = {v["key"]: v["value"] for v in collection["variable"]}
+    target = next(f for f in collection["item"] if f["name"] == "Localhost requests")
+    quick = next(f["item"] for f in target["item"] if f["name"] == "00 Quick start")
+    for item in quick:
+        request = json.loads(
+            re.sub(
+                r"{{([^}]+)}}",
+                lambda match: values[match[1]],
+                json.dumps(item["request"]),
+            )
+        )
+        url = urlsplit(request["url"]["raw"])
+        assert url.netloc == "localhost:8080"
+        headers = {}
+        if request["auth"]["type"] == "bearer":
+            headers["Authorization"] = "Bearer " + request["auth"]["bearer"][0]["value"]
+        options = {"headers": headers}
+        if request.get("body", {}).get("mode") == "raw":
+            options["json"] = json.loads(request["body"]["raw"])
+        response = client.request(request["method"], url.path, **options)
+        assert response.status_code == 200, (item["name"], response.text)
+        if url.path == "/v1/auth/login":
+            values["localhost_access_token"] = response.json()["access_token"]
+        elif url.path == "/v1/workspaces":
+            assert [w["id"] for w in response.json()] == [
+                values["localhost_workspace_id"]
+            ]
+        elif url.path == "/v1/auth/me":
+            assert response.json()["id"] == values["localhost_user_id"]

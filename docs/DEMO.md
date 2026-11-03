@@ -38,7 +38,7 @@ HTTP check on November 3, 2026: all nine accounts sign in, their avatars respond
 | --- | --- |
 | I do not know where to sign in | Use the Android app and **Continue with email → Sign in**. Opening the server address in a browser does not launch a web app. |
 | Sign-in fails | Use the username and password from the same row of the public table. These accounts are already confirmed; their `example.test` addresses cannot receive recovery email. |
-| I only see Postman Demo or an empty workspace | Import the current public collection and open Police, Nursing or Memory; all three accounts and workspaces are already configured. |
+| I only see Postman Demo or an empty workspace | Import the current public collection and open Server requests → 00 Live scenarios → Police, Nursing or Memory; all three accounts and workspaces are already configured. |
 | My photo, posts or group are missing | The organizer must complete the account before the test; evaluators do not prepare the data. |
 
 <a id="handoff"></a>

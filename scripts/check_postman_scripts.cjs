@@ -125,7 +125,9 @@ for (const [index, target] of c.item.entries()) {
   }
   assert.throws(() => execute(query, 'prerequest', cached, {}, 200, {}, [{ code: 503 }]), /Session validation failed/);
 }
-for (const [index, target] of jury.item.entries()) {
+const scenarios = jury.item[0].item.find(folder => folder.name === '00 Live scenarios').item;
+assert.deepEqual(jury.item.map(folder => folder.name), ['Server requests', 'Localhost requests']);
+for (const [index, target] of scenarios.entries()) {
   const prefix = ['security_', 'hospital_', 'memory_'][index];
   for (const item of target.item) {
     const result = execute(item, 'prerequest');
@@ -144,4 +146,29 @@ for (const [index, target] of jury.item.entries()) {
     for (const call of result.calls) assert.equal(call.url, 'https://realityos.luxisoft.com/v1/auth/login');
   }
 }
-console.log(`PASS: ${walk(jury.item).length} jury requests resolve on Send with no manual inputs; ${walk(c.item).length} reference scripts; ${guards} write guards; automatic login/refresh; isolated scenario sessions. No HTTP requests.`);
+for (const [index, target] of jury.item.entries()) {
+  const prefix = index ? 'localhost_' : 'server_';
+  const origin = index ? 'http://localhost:8080' : 'https://realityos.luxisoft.com';
+  const quick = target.item.find(folder => folder.name === '00 Quick start').item;
+  for (const item of quick) {
+    const result = execute(item, 'prerequest');
+    assert(!result.skipped);
+    const values = { ...defaults, ...result.collection, ...result.local };
+    const request = JSON.parse(JSON.stringify(item.request).replace(/{{([^}]+)}}/g, (_, key) => {
+      assert(key.startsWith(prefix));
+      assert(values[key], 'Unfilled quick-start input: ' + key);
+      return values[key];
+    }));
+    assert(request.url.raw.startsWith(origin + '/'));
+    for (const call of result.calls) {
+      assert.equal(call.url, origin + '/v1/auth/login');
+      assert.equal(JSON.parse(call.body.raw).email, defaults[prefix + 'email']);
+    }
+  }
+  for (const item of walk(target.item)) {
+    for (const event of item.event || []) {
+      new vm.Script(event.script.exec.join('\n'));
+    }
+  }
+}
+console.log(`PASS: both destinations with prefilled quick starts; ${walk(scenarios).length} live scenario requests; ${walk(jury.item).length} total requests; ${guards} reference write guards; isolated server/local sessions. No HTTP requests.`);
