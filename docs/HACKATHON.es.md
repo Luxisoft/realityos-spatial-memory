@@ -3,45 +3,65 @@
   <a href="HACKATHON.es.md"><img src="assets/readme/language-es-active.svg" alt="Español — seleccionado" height="32"></a>
 </p>
 
-# RealityOS — entrega de hackathon
+# Entrega y revisión de requisitos
 
 [← Proyecto](../README.es.md) · [Guion de demo](DEMO.es.md) · [Estado técnico](IMPLEMENTATION_STATUS.md)
 
-## Propuesta para el jurado
+**Fuente:** guía completa de participantes aportada por el propietario el 3 de noviembre de 2026, publicada en [Event Details](https://cerebralvalley.ai/e/meta-ai-developer-hackathon/details), y [bases oficiales](https://cerebralvalley.ai/e/meta-ai-developer-hackathon/waiver). La guía no prescribe una plantilla de README. Esta revisión organiza las evidencias que necesita el jurado y distingue requisitos de participación, entrega y documentación.
 
-RealityOS conecta lo que una persona ve con información que puede consultar: reconocimiento facial hacia perfiles y expedientes autorizados, búsqueda contextual y memoria visual trazable. Android y el Display nativo de gafas Meta dan acceso por imagen, video, texto y voz. Los casos policial, enfermería, social y memoria muestran distintas aplicaciones de esos componentes.
+## Requisitos y evidencia
 
-**Tema propuesto:** *Build for Your World*. Es una propuesta de encaje, no una afirmación de la categoría registrada. El track y los integrantes deben coincidir con la inscripción del equipo. [Evento oficial](https://cerebralvalley.ai/e/meta-ai-developer-hackathon)
-
-## Evidencia por criterio
-
-Los pesos proceden de las [bases oficiales de Meta y Cerebral Valley](https://cerebralvalley.ai/e/meta-ai-developer-hackathon/waiver), consultadas el **3 de noviembre de 2026**.
-
-| Criterio | Qué muestra el proyecto | Dónde comprobarlo |
-| --- | --- | --- |
-| Impacto · 30 % | Resolver la separación entre persona, contexto y evidencia en cuatro recorridos concretos. | [Casos](../README.es.md#cases) y [pasos de evaluación](DEMO.es.md). No se presentan métricas de impacto no medidas. |
-| Uso de Meta AI · 25 % | Muse Spark interpreta imagen/contexto, SAM señala evidencia y Muse Voice Transcribe procesa voz; DAT conecta la experiencia con gafas. | [Contratos Meta](META_INTEGRATION.md), [proveedores](../backend/app/providers/) y [Android](../android/README.es.md). InsightFace y ElevenLabs se identifican por separado. |
-| Profundidad técnica · 20 % | BYTEA, permisos por espacio, enrolamiento explícito, importaciones versionadas, worker idempotente y evidencia persistida. | [Arquitectura](ARCHITECTURE.md), [API](API.md), [pruebas](../tests/) y [ejecuciones automáticas](https://github.com/Luxisoft/realityos-spatial-memory/actions/workflows/ci.yml). |
-| Demo · 25 % | APK instalable, cuentas, datos sintéticos y recorrido con resultados comprobables. | [Guion](DEMO.es.md). Los videos conceptuales existentes no sustituyen la grabación final del software funcionando. |
-
-## Material de entrega y estado
-
-| Elemento | Estado del repositorio |
+| Requisito de la guía | Evidencia / estado |
 | --- | --- |
-| Explicación y acceso al código | README EN/ES, diagramas y repositorio público con licencia Apache 2.0. |
-| Qué se construyó | [Historial público](https://github.com/Luxisoft/realityos-spatial-memory/commits/main/), iniciado el 26 de octubre de 2026, y [registro de implementación](IMPLEMENTATION_STATUS.md). No se atribuyen al equipo los modelos, SDK o dependencias de terceros. |
-| Instalación y acceso de evaluación | [APK/compilación](../android/README.es.md#build), cuentas demo y guías de servidor/Windows. Las contraseñas demo se entregan con la invitación; las claves de servicios son privadas. |
-| Demo funcional y video | Guion preparado; falta añadir el enlace público de la grabación final del producto. La portada es una simulación gráfica. |
-| Equipo y track | Confirmar representante, integrantes y selección registrada. Las bases contemplan una entrega por equipo en un único track. |
-| Fuentes y derechos | Código bajo [Apache 2.0](../LICENSE), fixtures sintéticos y [procedencia de gráficos](assets/readme/PROMPTS.md). La licencia del proyecto no sustituye las licencias de modelos/SDK/otros componentes. |
-| Registro de entrega | No hay comprobante de envío al portal dentro del repositorio. Publicar en GitHub no realiza esa entrega. |
+| Resolver uno de los problemas propuestos | **Encaje documentado:** Build for Your World, mediante capacidades reutilizables de reconocimiento, contexto y memoria. Los cuatro escenarios son ejemplos independientes. La categoría inscrita debe confirmarse. |
+| Incorporar modelos Meta | **Implementado:** Muse Spark 1.3, SAM 3.1 y Muse Voice Transcribe, con [contratos](META_INTEGRATION.md) y [proveedores](../backend/app/providers/). DAT es la interfaz de gafas; InsightFace y ElevenLabs son componentes distintos. No se exige usar todos los modelos enumerados en la guía. |
+| Repositorio público / open source | **Verificado:** GitHub informa `PUBLIC` y licencia [Apache 2.0](../LICENSE). Las dependencias conservan sus propias condiciones. |
+| Trabajo nuevo y aportaciones identificables | **Desglose disponible abajo.** Hay una base anterior al período de construcción indicado; no se presenta todo el repositorio como nuevo. |
+| Video accesible de tres minutos | **Pendiente:** enlace a una grabación real centrada en aportaciones del evento. Los videos conceptuales no satisfacen por sí solos esta evidencia. [Guion de 180 segundos](DEMO.es.md#video). |
+| Máximo cuatro participantes; representante y todos los integrantes declarados | **Pendiente de datos de inscripción.** No se deduce el equipo a partir de autores de Git ni se publica información privada. |
+| Participantes admitidos y elegibles; bases aceptadas | **Comprobación en la inscripción:** aceptación, restricciones geográficas y de sanciones, afiliaciones excluidas y aceptación de bases. El repositorio no acredita esas condiciones personales. |
+| Un proyecto por equipo y un track | **Pendiente de confirmación en CV:** Indie Developer o Startups, sin inventar la selección. |
+| Enviar antes del 4 de noviembre, 21:00 EST | **Pendiente de comprobante:** [portal CV](https://cerebralvalley.ai/e/meta-ai-developer-hackathon/hackathon/submit). Equivale a las 21:00 de Bogotá. Publicar en GitHub no envía la candidatura. |
+| Derechos de uso y cumplimiento de políticas | **Revisión abierta:** ver exclusiones y licencias abajo. No se declara cumplimiento integral. |
 
-La página pública fija el cierre en **4 de noviembre de 2026, 21:00 ET** (21:00 en Bogotá). El [portal de entrega](https://cerebralvalley.ai/e/meta-ai-developer-hackathon/hackathon/submit) es independiente de GitHub. [Calendario oficial](https://cerebralvalley.ai/e/meta-ai-developer-hackathon)
+La guía distingue una primera fase de viabilidad y uso de Meta, una evaluación de 0–10 y una final con cinco proyectos por track. El texto recibido omite la tabla de puntuaciones; los pesos previamente publicados en las bases son impacto 30 %, herramientas Meta 25 %, profundidad técnica 20 % y demo 25 %. Las evidencias están en [capacidades y modelos](../README.es.md#architecture), [pruebas](../tests/) y [validaciones fechadas](IMPLEMENTATION_STATUS.md).
 
-## Alcance de esta revisión
+<a id="contributions"></a>
 
-Se verificaron la página pública y las bases. La [guía detallada de participantes](https://cerebralvalley.ai/e/meta-ai-developer-hackathon/details) redirige al inicio de sesión; sus requisitos adicionales, campos del formulario y formato/duración exacta del video **aún no están verificados**. Completar esa revisión con la cuenta participante antes de enviar. Esta matriz no declara elegibilidad ni cumplimiento integral.
+## Base y aportaciones del evento
 
-Las pruebas técnicas documentadas no sustituyen validación física de teléfono/gafas, integración institucional real ni evaluación representativa de reconocimiento. El comparador clínico coteja campos explícitos; no prescribe. El alcance del conjunto policial se detalla en el [guion](DEMO.es.md).
+La guía sitúa el kickoff el **26 de octubre** y la construcción del **27 de octubre al 4 de noviembre**. Se adopta conservadoramente el segundo intervalo, con fechas convertidas a **America/New_York (ET)**. Los timestamps de Git ayudan a localizar aportaciones; no prueban por sí solos cuándo se escribió cada línea ni determinan elegibilidad.
+
+| Parte | Referencia revisable | Cómo presentarla |
+| --- | --- | --- |
+| Base hasta el 26, 23:49 ET | [`3ab8c63`](https://github.com/Luxisoft/realityos-spatial-memory/commit/3ab8c63) | Plataforma inicial, captura/consulta de objetos, despliegue, gateway y búsqueda ya existentes. Identificar como base. |
+| Video acotado desde el 27, 00:01 ET | [`5bb0607`](https://github.com/Luxisoft/realityos-spatial-memory/commit/5bb0607) | Nuevas capacidades de video; el commit figura como 26, 23:01 en Bogotá, pero ya es 27 en ET. |
+| Segmentación y gafas, 27 de octubre ET | [`a35c9ac`](https://github.com/Luxisoft/realityos-spatial-memory/commit/a35c9ac) · [`8babc43`](https://github.com/Luxisoft/realityos-spatial-memory/commit/8babc43) | Refinamiento SAM y host Android/DAT con captura y voz. |
+| Biometría, social y localización, commit del 1 de noviembre ET | [`052471e`](https://github.com/Luxisoft/realityos-spatial-memory/commit/052471e) | Consentimiento/enrolamiento/búsqueda facial, perfiles y experiencia social. El commit agrupa trabajo: el registro técnico documenta sus verificaciones. |
+| Expedientes y búsqueda facial de personas, 2 de noviembre ET | [`7f5f79d`](https://github.com/Luxisoft/realityos-spatial-memory/commit/7f5f79d) · [`99a83e0`](https://github.com/Luxisoft/realityos-spatial-memory/commit/99a83e0) | Registros versionados, relaciones, adjuntos y enlace explícito de retratos a expedientes. |
+
+[Comparación de la base con el estado auditado](https://github.com/Luxisoft/realityos-spatial-memory/compare/3ab8c63...39e2722). La demo debe señalar las aportaciones concretas; usar la base para ejecutarlas no convierte esa base en trabajo nuevo. La guía contempla productos existentes para startups; no consta el track de este proyecto ni una resolución del organizador sobre la frontera kickoff/construcción.
+
+## Revisión de proyectos excluidos
+
+| Exclusión | Resultado de la revisión |
+| --- | --- |
+| IA que genere consejo médico | El [comparador](../backend/app/workspaces/clinical.py) coteja campos y no llama a un modelo; exige revisión profesional y no registra administraciones. La [consulta contextual](../backend/app/workspaces/search.py) prohíbe prescribir o autorizar medicación en su instrucción. Esto no demuestra que toda respuesta generada sea segura: falta revisar las salidas reales de la demo clínica. Mantener el caso como consulta de registros y discrepancias, sin consejo terapéutico. |
+| RAG básico o analizador simple de imágenes | El proyecto incluye enrolamiento facial, evidencia visual persistida, segmentación, captura DAT e integración versionada. La demo debe demostrar estas implementaciones; una explicación o un chat aislado no sustituye la evidencia técnica. La decisión de admisión es del jurado. |
+| Chatbot educativo simple; selección laboral; nutrición; personalidad; deporte | No son las funciones presentadas. Un perfil o CV autorizado no se describe como evaluación de personalidad ni selección de candidatos laborales. |
+| Política o guerra | Los ejemplos documentados no son políticos ni militares. El escenario policial describe expedientes y evidencia autorizados, no predicción criminal ni decisiones automáticas. |
+| Violaciones legales, éticas o de plataforma | Existen controles de espacio, consentimiento y candidatos sujetos a confirmación. Estos controles no equivalen a aprobación del organizador o del proveedor; confirmar condiciones aplicables, especialmente para biometría y gafas. |
+| Código, datos o recursos sin derechos | Ver revisión de procedencia y licencias siguiente. No se ha cerrado una auditoría de todos los componentes transitivos. |
+
+<a id="rights"></a>
+
+## Procedencia y licencias
+
+- **Código del proyecto:** [Apache 2.0](../LICENSE). Modelos y SDK de terceros no son aportaciones originales del equipo.
+- **InsightFace:** el código es MIT, pero los pesos descargados tienen condiciones separadas para investigación no comercial. El [Dockerfile](../backend/Dockerfile) incorpora `buffalo_l`; no se encontró constancia de una licencia adicional en la documentación revisada. Confirmar derechos para la entrega y el despliegue, sin asumir que Apache/MIT los cubre. [Fuente del proveedor](https://github.com/deepinsight/insightface#license).
+- **DAT:** su [licencia](https://github.com/meta/meta-wearables-dat-android/blob/main/LICENSE) remite a términos de desarrollador y uso aceptable. La [política](https://wearables.developer.meta.com/acceptable-use-policy) exige sesión en esta revisión; falta contrastarla con la cuenta del proyecto.
+- **Gráficos y datos:** [prompts y procedencia](assets/readme/PROMPTS.md), [directorio sintético](../simulator/social-directory/README.es.md) y [fixtures por espacio](WORKSPACE_DATA.md). Los gráficos son conceptuales y no contienen pacientes ni expedientes reales. La procedencia de generación no equivale a autorización general de marcas o de recursos de terceros; verificar también los videos antes de la entrega.
+
+**Pendientes de cierre:** video de tres minutos, equipo/track, revisión de salidas de la demo, derechos de modelos y términos aplicables, y comprobante de envío. La documentación queda preparada para revisar esos puntos; no se declara aprobación ni elegibilidad completa.
 
 [← Proyecto](../README.es.md) · [English](HACKATHON.md)

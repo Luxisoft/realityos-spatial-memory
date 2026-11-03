@@ -5,7 +5,7 @@
 
 # Recorridos de evaluación
 
-**Entrada → candidato o evidencia → contexto autorizado → resultado comprobable por el jurado.**
+Estos recorridos son ejemplos independientes de las capacidades de RealityOS. No forman una secuencia entre organizaciones ni agotan sus usos posibles. Cada prueba usa los datos y permisos de su propio espacio.
 
 [← Proyecto](../README.es.md) · [Entrega de hackathon](HACKATHON.es.md) · [Android](../android/README.es.md)
 
@@ -66,9 +66,22 @@ El directorio sintético es independiente; no implica que todas sus cuentas est�
 
 La función recupera información registrada; no diagnostica ni trata condiciones de memoria. «Visto por última vez» no significa «sigue allí». [Video conceptual](../demo-video/memory.mp4)
 
-## Grabar la demo del producto
+<a id="video"></a>
 
-Graba Android funcionando: espacio elegido, búsqueda rostro→expediente, contexto y evidencia de un objeto. Incluye un caso sin coincidencia o un límite de permisos. Identifica si usas vista previa del teléfono o gafas físicas. Mantén separados los videos conceptuales de la grabación real y confirma duración/formato en el portal de participantes.
+## Grabar la demo de tres minutos
+
+**Enlace a la grabación final: pendiente.** La guía exige un video accesible de tres minutos que destaque únicamente las funciones construidas durante la hackathon. Identifica la [base previa y las aportaciones nuevas](HACKATHON.es.md#contributions); los videos conceptuales son material auxiliar.
+
+| Tiempo | Qué mostrar en el producto | Evidencia |
+| --- | --- | --- |
+| 0:00–0:15 | Problema, alcance y qué se añadió durante el evento. | Distinguir la base existente de las funciones que se van a demostrar. |
+| 0:15–1:15 | Espacio autorizado, retrato de prueba, candidato facial y apertura del expediente. | Consentimiento, evidencia y similitud; confirmación humana del candidato. |
+| 1:15–1:50 | Notas, relaciones y adjuntos del expediente. | Fuente, versión y contexto consultable. |
+| 1:50–2:25 | Refinamiento SAM y evidencia de video añadidos durante el evento. | Fotograma, geometría y fecha de última observación; la consulta de objetos original es parte de la base. |
+| 2:25–2:45 | Interacción Android/DAT que pueda ejecutarse realmente. | Indicar teléfono, gafas físicas o simulador; rotular cualquier simulación. |
+| 2:45–3:00 | Un límite de permisos y el desglose de aportaciones. | Recurso restringido, enlace público al código y commits. |
+
+Ensaya el recorrido antes de grabar. Elige un espacio con datos preparados y oculta secretos, notificaciones y datos ajenos a la demo. No presentes una escena conceptual como ejecución real ni afirmes una prueba con gafas físicas si solo se usó el teléfono. Comprueba que el enlace final abra sin solicitar acceso y añádelo al README y a la candidatura.
 
 | Evidencia documentada | Pendiente |
 | --- | --- |

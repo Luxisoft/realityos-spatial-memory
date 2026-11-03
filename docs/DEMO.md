@@ -5,7 +5,7 @@
 
 # Evaluation walkthroughs
 
-**Input → candidate or evidence → authorized context → a result the evaluator can inspect.**
+These walkthroughs are independent examples of RealityOS capabilities. They are not a sequence across organizations or an exhaustive list of uses. Each test uses its own workspace's data and permissions.
 
 [← Project](../README.md) · [Hackathon delivery](HACKATHON.md) · [Android](../android/README.md)
 
@@ -66,9 +66,22 @@ The synthetic directory is independent; it does not imply all its accounts are a
 
 The feature retrieves recorded information; it does not diagnose or treat memory conditions. “Last seen” does not mean “still there”. [Concept video](../demo-video/memory.mp4)
 
-## Record the product demo
+<a id="video"></a>
 
-Record Android running: selected workspace, face→record lookup, context and object evidence. Include a no-match case or a permission boundary. Identify whether you use phone preview or physical glasses. Keep concept videos separate from the real recording, and confirm duration/format in the participant portal.
+## Record the three-minute demo
+
+**Final recording link: pending.** The guide requires an accessible three-minute video highlighting only features built during the Hackathon. Identify the [existing baseline and new contributions](HACKATHON.md#contributions); concept videos are supporting material.
+
+| Time | What to show in the product | Evidence |
+| --- | --- | --- |
+| 0:00–0:15 | Problem, scope and what was added during the event. | Distinguish the existing baseline from the features about to be demonstrated. |
+| 0:15–1:15 | Authorized workspace, test portrait, facial candidate and record opening. | Consent, evidence and similarity; human confirmation of the candidate. |
+| 1:15–1:50 | Record notes, relationships and attachments. | Source, version and queryable context. |
+| 1:50–2:25 | SAM refinement and video evidence added during the event. | Frame, geometry and last-observed date; original object lookup belongs to the baseline. |
+| 2:25–2:45 | Android/DAT interaction that can actually run. | Identify phone, physical glasses or simulator; label any simulation. |
+| 2:45–3:00 | A permission boundary and the contribution breakdown. | Restricted resource, public code link and commits. |
+
+Rehearse before recording. Choose a workspace with prepared data and hide secrets, notifications and unrelated information. Do not present a conceptual scene as a real execution or claim a physical-glasses test when only the phone was used. Verify that the final link opens without requesting access and add it to the README and submission.
 
 | Documented evidence | Pending |
 | --- | --- |

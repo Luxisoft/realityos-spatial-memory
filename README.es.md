@@ -7,8 +7,8 @@
 
 # RealityOS
 
-**Reconocimiento facial, expedientes conectados y memoria visual en Android y gafas Meta Ray-Ban.**
-Relaciona una persona con su perfil o expediente autorizado, consulta su contexto y recupera evidencia de objetos y eventos por foto, video, texto o voz.
+**Una plataforma de reconocimiento facial, contexto autorizado y memoria visual para Android y gafas Meta.**
+Permite encontrar personas y objetos, consultar información relacionada y recuperar evidencia por foto, video, texto o voz. Sus capacidades se aplican a distintos entornos, según los datos y permisos de cada espacio.
 
 <p align="center">
   <img src="docs/assets/readme/banner-es.png" width="896" alt="Logo de RealityOS; una mujer con gafas Ray-Ban utiliza un teléfono para una búsqueda facial biométrica de otra persona. Demostración simulada.">
@@ -23,22 +23,30 @@ Relaciona una persona con su perfil o expediente autorizado, consulta su context
   · <a href="LICENSE">Apache 2.0</a> · <a href="README.md">English</a>
 </p>
 
+## Capacidades de la plataforma
+
+| Capacidad | Qué aporta |
+| --- | --- |
+| **Reconocimiento facial** | Busca candidatos entre usuarios o expedientes autorizados a partir de una foto o video. |
+| **Expedientes e integración** | Importa registros versionados, relaciona personas y eventos, y conserva notas y adjuntos con su fuente. |
+| **Contexto social** | Consulta perfiles, publicaciones y grupos según su visibilidad. |
+| **Memoria visual** | Encuentra objetos en evidencia almacenada y muestra dónde y cuándo se observaron. |
+| **Interacción multimodal** | Ofrece captura explícita y consultas por imagen, texto o voz desde Android y Display nativo. |
+
 <a id="cases"></a>
 
-## Qué resuelve
+## Ejemplos de aplicación
 
-En un encuentro presencial, la imagen de una persona, su expediente y los hechos observados suelen estar separados. RealityOS conecta esos contextos: **quién podría ser, qué información autorizada existe y qué evidencia respalda la respuesta**. Mantiene el reconocimiento facial, los expedientes y la búsqueda de objetos como módulos distintos dentro de la misma experiencia.
+**Son ejemplos independientes, no una lista cerrada de lo que puede hacer RealityOS.** Cada organización configura sus datos y espacios; estos escenarios no comparten información entre sí por defecto.
 
-![Diagrama de los casos policial, enfermería, social y memoria: entrada, capacidades utilizadas y resultado.](docs/assets/readme/use-cases-es.svg)
+| Vista previa | Ejemplo | Qué permite hacer | Resultado |
+| --- | --- | --- | --- |
+| <a href="demo-video/policial_case.mp4"><img src="docs/assets/readme/example-police.png" width="160" height="90" alt="Profesional revisando un expediente en una tableta"></a> | **Policial** | Revisar un caso y consultar una persona previamente enrolada. | Contexto autorizado, notas y evidencia para revisión humana. |
+| <a href="demo-video/nurse_case.mp4"><img src="docs/assets/readme/example-nursing.png" width="160" height="90" alt="Enfermera y paciente consultando un expediente"></a> | **Enfermería** | Localizar el expediente de un paciente y comparar campos registrados. | Historial y discrepancias de datos para verificación profesional. |
+| <a href="demo-video/profile_found.mp4"><img src="docs/assets/readme/example-social.png" width="160" height="90" alt="Dos personas consultando un perfil compartido"></a> | **Social** | Encontrar un perfil autorizado a partir de un rostro. | Información y publicaciones que el usuario puede consultar. |
+| <a href="demo-video/memory.mp4"><img src="docs/assets/readme/example-memory.png" width="160" height="90" alt="Persona recuperando una foto de un objeto observado"></a> | **Memoria** | Preguntar dónde se observó un objeto por última vez. | Foto o fotograma señalado, ubicación, fecha y fuente. |
 
-| Caso | Recorrido concreto | Resultado y alcance actual |
-| --- | --- | --- |
-| **Policial** | Consultar una persona previamente enrolada y abrir su contexto autorizado; relacionar casos, eventos, notas y evidencia del turno. | Candidatos faciales y expedientes consultables. El conjunto policial actual prueba casos y objetos; los retratos enrolados de evaluación están en los espacios clínico y de memoria. Las alertas policiales automáticas siguen pendientes. |
-| **Enfermería** | Buscar por retrato a **Ana Solis**, confirmar identidad, abrir atención y prescripción; comparar la etiqueta ficticia de **20 mg** con la prescripción de **10 mg**. | Expediente e historial relacionados, discrepancias de campos, vigencia, alergias y administraciones previas. Los campos observados se introducen explícitamente; no hay OCR de envases ni prescripción automática. |
-| **Social** | Buscar una cara autorizada, abrir su perfil y preguntar qué información o publicaciones ha compartido. | Perfil, contexto y medios visibles según permisos; grupos, comentarios y relaciones disponibles en la app. Las referencias importadas de Facebook tienen visibilidad restringida. |
-| **Memoria** | Abrir el expediente de **Luis Moreno** o preguntar «¿Dónde se vieron mis documentos por última vez?». | Recordatorios y eventos relacionados; foto o fotograma señalado, fuente, fecha y ubicación observada. No afirma que el objeto siga allí. |
-
-[Pasos de prueba y resultados esperados por caso →](docs/DEMO.es.md)
+Las miniaturas y los videos enlazados son conceptuales. [Pruebas disponibles y alcance de cada conjunto de datos →](docs/DEMO.es.md)
 
 <a id="biometrics"></a>
 
@@ -46,35 +54,29 @@ En un encuentro presencial, la imagen de una persona, su expediente y los hechos
 
 **InsightFace compara una foto o video de consulta con enrolamientos autorizados del espacio.** Devuelve candidatos ordenados por similitud, con evidencia facial, y permite abrir el perfil de usuario o el expediente de persona correspondiente.
 
-![Diagrama técnico: autorización y retrato → embedding InsightFace → índice del espacio; consulta por foto o video → calidad → similitud coseno → candidatos y contexto.](docs/assets/readme/biometric-flow-es.svg)
+![Flujo visual de búsqueda facial: foto, representación facial, índice autorizado, candidatos y contexto.](docs/assets/readme/face-lookup.svg)
 
-| Contrato | Función |
-| --- | --- |
-| `POST /v1/faces/consent` · `/faces/enroll` | Consentimiento versionado y enrolamiento de medios propios. |
-| `POST /v1/faces/record-enroll` | Enrolar explícitamente un retrato de un expediente autorizado, con base trazable. |
-| `POST /v1/faces/search` | Buscar con foto, video o medio autorizado; la sonda subida es efímera. |
-| `matches` · `matches_records` | Resultados separados para usuarios y expedientes; evidencias y enlaces sujetos a permisos. |
+**1. Foto/video → 2. Representación facial → 3. Comparación con enrolamientos autorizados → 4. Candidatos → 5. Perfil o expediente.**
 
-La similitud **no es una probabilidad de identidad**: el profesional confirma al candidato. Una persona importada no se convierte en cuenta ni se enrola automáticamente. Este módulo permanece separado del registro y consulta de objetos. [Contrato y filtros →](docs/API.md)
+El enrolamiento se realiza antes, de forma explícita. La búsqueda usa InsightFace y devuelve `matches` para usuarios y `matches_records` para expedientes. La sonda subida es efímera; los resultados se limitan al espacio y a la autorización vigente.
+
+La similitud no es probabilidad de identidad: el profesional confirma al candidato. La biometría permanece separada del procesamiento de objetos. [Contrato facial y permisos →](docs/API.md)
 
 <a id="architecture"></a>
 
 ## Arquitectura y uso de Meta AI
 
 ```mermaid
-flowchart TB
-    A[Android · Kotlin / Compose] --> API[FastAPI · autenticación y permisos por espacio]
-    G[Gafas Meta Ray-Ban · DAT nativo] --> A
-    API --> F[Biometría · InsightFace]
-    API --> R[Expedientes · perfiles · social]
-    API --> Q[Consultas de evidencia]
-    F --> DB[(PostgreSQL · originales BYTEA + metadatos)]
-    R --> DB
-    Q --> DB
-    API --> W[Registro / publicación explícitos · Redis + Celery]
-    W --> M[Muse Spark + SAM]
-    M --> DB
-    API --> V[Muse Voice Transcribe / ElevenLabs]
+flowchart LR
+    A[Android + DAT] --> B[API · permisos por espacio]
+    B --> C[Biometría]
+    B --> D[Expedientes y perfiles]
+    B --> E[Memoria visual]
+    C --> F[(PostgreSQL BYTEA)]
+    D --> F
+    E --> F
+    E --> G[Worker · Muse Spark + SAM]
+    G --> F
 ```
 
 | Tecnología | Aporte al producto | Implementación |
@@ -84,6 +86,8 @@ flowchart TB
 | **Muse Voice Transcribe** | Convierte consultas de voz en texto. | [Integración Meta](docs/META_INTEGRATION.md) |
 | **Meta Wearables DAT** | Conecta cámara, voz y Display nativo de las gafas con Android. | [Android y gafas](android/README.es.md) |
 | **InsightFace / ElevenLabs** | Reconocimiento facial local / respuestas habladas desde el servidor. Son componentes independientes de los modelos Meta. | [API facial](docs/API.md) · [TTS](docs/TTS.md) |
+
+El worker procesa capturas/publicaciones explícitas; consultar evidencia no lo activa.
 
 La API de expedientes importa personas, casos, atenciones, objetos, prescripciones, alergias y administraciones mediante lotes versionados, relaciones y adjuntos. Los conectores HTTPS usan un contrato explícito. [Integración de datos →](docs/WORKSPACE_DATA.md)
 
@@ -110,21 +114,6 @@ El conjunto contiene **47 registros, 27 adjuntos y seis retratos de personas enr
 [▶ Policial](demo-video/policial_case.mp4) · [▶ Enfermería](demo-video/nurse_case.mp4) · [▶ Personas / social](demo-video/profile_found.mp4) · [▶ Memoria](demo-video/memory.mp4)
 
 Estos videos y la portada son representaciones conceptuales; no sustituyen una grabación de la app funcionando. Los videos existentes contienen texto en inglés. La prueba HTTP de reconocimiento sobre Ana Solis está documentada; la validación física de teléfono/gafas, las fuentes institucionales reales y la demo final grabada siguen pendientes. [Estado verificado →](docs/IMPLEMENTATION_STATUS.md)
-
-<a id="hackathon"></a>
-
-## Meta Global AI Developer Hackathon
-
-El proyecto se presenta como **memoria contextual asistida por visión**, con casos del mundo real y uso combinado de modelos Meta. Su encaje propuesto es *Build for Your World*; la selección de track y los datos del equipo deben coincidir con la inscripción.
-
-| Criterio oficial | Evidencia en RealityOS |
-| --- | --- |
-| Impacto · 30 % | Cuatro recorridos concretos que conectan personas, información y evidencia. |
-| Herramientas Meta · 25 % | Muse Spark + SAM + transcripción, con responsabilidades distintas y DAT como interfaz. |
-| Profundidad técnica · 20 % | API, procesamiento, biometría aislada, permisos, trazabilidad y pruebas automatizadas. |
-| Demo · 25 % | APK instalable, cuentas y guion reproducible; falta enlazar la grabación final del producto. |
-
-Fuentes: [evento](https://cerebralvalley.ai/e/meta-ai-developer-hackathon) y [bases oficiales](https://cerebralvalley.ai/e/meta-ai-developer-hackathon/waiver), consultadas el 3 de noviembre de 2026. [Requisitos, evidencias y pendientes de entrega →](docs/HACKATHON.es.md)
 
 <a id="install"></a>
 
@@ -155,6 +144,18 @@ make android-check
 ```
 
 </details>
+
+<a id="hackathon"></a>
+
+## Construido durante la hackathon
+
+El repositorio distingue la **base previa al 27 de octubre (ET)** de las aportaciones posteriores: video y segmentación avanzada, Android/DAT, reconocimiento facial, perfiles sociales e integración de expedientes. [Cambios y commits de referencia →](docs/HACKATHON.es.md#contributions)
+
+**Meta Global AI Developer Hackathon · encaje propuesto: Build for Your World.** El uso de modelos Meta y los ejemplos muestran la aplicación práctica; el track registrado debe confirmarse con la inscripción.
+
+La guía exige repositorio público y una **demo accesible de tres minutos** centrada en lo construido durante el evento. El enlace al video final sigue pendiente; los videos conceptuales anteriores no lo sustituyen.
+
+[Requisitos, revisión de exclusiones y pendientes →](docs/HACKATHON.es.md) · [Guía del evento](https://cerebralvalley.ai/e/meta-ai-developer-hackathon/details)
 
 <a id="docs"></a>
 

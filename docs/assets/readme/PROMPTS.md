@@ -9,12 +9,15 @@ Las portadas se generaron y localizaron con la herramienta integrada de imágene
 | Asset / Recurso | Purpose / Función |
 | --- | --- |
 | [banner-en.png](banner-en.png) · [banner-es.png](banner-es.png) | Compact biometric-search header / Portada compacta de búsqueda biométrica. |
-| [use-cases-en.svg](use-cases-en.svg) · [use-cases-es.svg](use-cases-es.svg) | Police, nursing, social and memory / Policial, enfermería, social y memoria. |
-| [biometric-flow-en.svg](biometric-flow-en.svg) · [biometric-flow-es.svg](biometric-flow-es.svg) | Enrollment, search and candidate lookup / Enrolamiento, búsqueda y candidatos. |
+| [example-police.png](example-police.png) | Independent police scenario / Ejemplo policial independiente. |
+| [example-nursing.png](example-nursing.png) | Independent nursing scenario / Ejemplo de enfermería independiente. |
+| [example-social.png](example-social.png) | Independent social scenario / Ejemplo social independiente. |
+| [example-memory.png](example-memory.png) | Independent memory scenario / Ejemplo de memoria independiente. |
+| [face-lookup.svg](face-lookup.svg) | Text-free facial lookup schematic / Esquema de búsqueda facial sin texto incrustado. |
 
-The PNG masters preserve the generated resolution. READMEs limit header width to 896 px; with the generated aspect ratio this is under 300 px high, and scales down on narrower screens. Body diagrams are editable SVG source, drawn directly from the documented contracts; no generated decorative objects. Mermaid diagrams remain in the Markdown source. Language buttons are local SVGs.
+The PNG masters preserve the generated resolution. READMEs limit header width to 896 px; with the generated aspect ratio this is under 300 px high, and scales down on narrower screens. Thumbnails display at up to 160 × 90 px, adapting to the table width. Their fictional scenes contain no embedded text, so both languages use the same assets with localized alt text and table descriptions. The SVG schematic uses icons and arrows; its explanation and the Mermaid architecture remain editable Markdown. Language buttons are local SVGs.
 
-Los PNG conservan la resolución generada. Los README limitan la portada a 896 px de ancho: con su proporción queda por debajo de 300 px de alto y se reduce en pantallas estrechas. Los diagramas del cuerpo son SVG editables, dibujados a partir de los contratos documentados. Los diagramas Mermaid permanecen en el Markdown. Los botones de idioma son SVG locales.
+Los PNG conservan la resolución generada. Los README limitan la portada a 896 px de ancho: con su proporción queda por debajo de 300 px de alto y se reduce en pantallas estrechas. Las miniaturas se muestran hasta 160 × 90 px, adaptándose al ancho de la tabla. Sus escenas ficticias no llevan texto incrustado: ambos idiomas comparten recursos con textos alternativos y tablas localizados. El esquema SVG usa iconos y flechas; su explicación y la arquitectura Mermaid permanecen como Markdown editable. Los botones de idioma son SVG locales.
 
 ## English header prompt / Prompt de portada en inglés
 
@@ -28,8 +31,14 @@ Create an original professional software-project README banner for RealityOS. Us
 Create the Spanish localization of this exact compact RealityOS README banner. Preserve the existing app logo exactly, the two fictional adults, the woman with Ray-Ban smart glasses, the biometric bounding boxes, smartphone composition, lighting, deep navy and blue colors, opaque background and wide aspect ratio. It will be displayed at 900 x 300 pixels maximum. Keep every "RealityOS" wordmark and Ray-Ban branding unchanged. Replace "Facial recognition" with exactly "Reconocimiento facial". Replace "Connected records. Spatial memory." with exactly "Expedientes conectados. Memoria espacial." Use clean line wrapping if necessary, without overlapping the woman's face. Replace "Simulated demonstration" with exactly "Demostración simulada". In the phone replace "Face search" with exactly "Búsqueda facial", "Candidate" with exactly "Candidato", and "Open record" with exactly "Ver expediente". All explanatory text in Spanish with correct accents. No new elements, no percentages, no extra text. Keep it a restrained professional software README header.
 ```
 
-## Diagram specification / Especificación de diagramas
+## Thumbnail prompts / Prompts de miniaturas
 
-Use native SVG, white cards on a light background, dark technical typography and blue/teal/purple service accents. Show directed edges and short labels. The use-case diagram has one row for each actor, input, capability and result. The biometric diagram separates authorized enrollment from read-only search, connects the workspace index to cosine-similarity ranking, and distinguishes `matches` from `matches_records`. Keep English and Spanish layouts equivalent. Do not merge biometric processing with the object pipeline or represent similarity as an identity probability.
+The four thumbnails were generated with Codex's **built-in image generation**, without external reference photos. Exact prompts are preserved in [THUMBNAIL_PROMPTS.json](THUMBNAIL_PROMPTS.json). They request fictional adults, realistic scenes, a coherent navy/blue palette, no text or logos, and a simple composition readable at thumbnail size. These are illustrative previews, not product screenshots or evidence of a completed device test.
 
-SVG nativo, tarjetas blancas sobre fondo claro, tipografía técnica oscura y acentos azul/verde/morado. Flechas dirigidas y etiquetas cortas. Una fila por caso de uso: entrada, capacidades y resultado. Separar enrolamiento autorizado y búsqueda biométrica; conectar el índice del espacio con el ranking por similitud coseno; distinguir `matches` de `matches_records`. Mantener composiciones equivalentes EN/ES. El procesamiento de objetos permanece separado de la biometría; la similitud no representa probabilidad de identidad.
+Las cuatro miniaturas se generaron con **generación de imágenes integrada de Codex**, sin fotos externas de referencia. Los prompts exactos están en [THUMBNAIL_PROMPTS.json](THUMBNAIL_PROMPTS.json). Solicitan adultos ficticios, escenas realistas, paleta azul coherente, ausencia de textos y logos y una composición legible a tamaño de miniatura. Son vistas conceptuales, no capturas del producto ni evidencia de una prueba en dispositivo.
+
+## Diagram specification / Especificación del diagrama
+
+Use native SVG with five icon groups linked by directed arrows: input portrait, facial representation, authorized workspace index, ranked candidates and profile/record lookup. No visible text, paragraphs or decorative objects in the SVG. Keep enrollment explicit and prior to lookup in the surrounding explanation; describe `matches` and `matches_records` there. Mermaid shows separate biometric, record/profile and object-processing components. Similarity is not an identity probability. The four example scenes have no connecting arrows.
+
+SVG nativo con cinco grupos de iconos enlazados por flechas: retrato de entrada, representación facial, índice autorizado del espacio, candidatos ordenados y perfil/expediente. Sin texto visible, párrafos ni objetos decorativos en el SVG. Explicar fuera de la imagen el enrolamiento explícito previo y los campos `matches` y `matches_records`. Mermaid muestra por separado biometría, expedientes/perfiles y procesamiento de objetos. La similitud no es probabilidad de identidad. Las cuatro escenas de ejemplo no están conectadas mediante flechas.
