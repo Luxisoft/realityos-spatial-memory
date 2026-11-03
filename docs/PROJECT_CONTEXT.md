@@ -727,3 +727,6 @@ Conexiones R2/S3 (2026-11-03): nuevo módulo `backend/app/storage` y pantalla An
 Conexiones: 21 regresiones específicas y 222 pruebas Android aprobadas; Debug/Release compilados. Inventario ampliado a 426 recursos sintéticos y preparador de conexiones para nueve cuentas de escenario + cuatro QA. Checklist vigente: 89 casos y seis de cierre. R2 real y pruebas físicas pendientes de sus requisitos; ver estado antes de afirmar aceptación.
 
 Despliegue del conector verificado por CI (`81a69d2`, run `41666700365`): API/worker/scheduler activos, Alembic `20261103_0035 (head)`, HTTPS readiness 200 y OpenAPI idéntico al contrato. Tres cuentas del jurado consultan conexiones con 200; listas vacías hasta disponer de las credenciales R2. Rollback privado: `.runtime/storage-connections-20261103-rollback.json`.
+
+
+Auditoría del conector (2026-11-03): corregidas firma S3 con espacios, reimportación tras cancelar, estado general después de confirmar duplicados y apertura del resultado seleccionado en Android. Sin migración ni contrato nuevo. Ver IMPLEMENTATION_STATUS para validación, despliegue y pendientes de R2/teléfono.

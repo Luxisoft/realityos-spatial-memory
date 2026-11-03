@@ -41,3 +41,5 @@ After upload verification, the operator runs `scripts/connect_demo_buckets.py --
 The local inventory contains **426 synthetic resources**, including social directory and workshop media under `demo/v1/social-directory/`; the count depends on generated media available on the host. The manifest records every SHA-256. Existing database originals and scenarios remain available.
 
 Provider references: [Cloudflare R2 S3 API](https://developers.cloudflare.com/r2/api/s3/api/) and [boto3 configuration](https://developers.cloudflare.com/r2/examples/aws/boto3/).
+
+A new import lets you review a file again after cancelling its duplicate candidate; replaying the original request preserves that cancellation. Once all pending files are confirmed, the import is reported as completed. Folder names containing spaces, Unicode and reserved characters retain correct S3 signing.

@@ -86,7 +86,7 @@ class BucketClient:
         row = self.connection
         host, address = endpoint_address(row.endpoint)
         path = "/" + row.bucket + ("/" + quote(key, safe="/~-._") if key else "")
-        url = f"https://{host}{path}" + ("?" + urlencode(query) if query else "")
+        url = f"https://{host}{path}" + ("?" + urlencode(query, quote_via=quote) if query else "")
         headers = {"Host": host}
         if etag:
             headers["If-Match"] = etag

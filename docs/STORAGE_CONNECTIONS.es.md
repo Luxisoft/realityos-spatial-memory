@@ -45,3 +45,5 @@ Después de verificar la carga, el responsable ejecuta `scripts/connect_demo_buc
 La preparación local inventaría **426 recursos sintéticos**; la cifra depende de los medios generados presentes en el host. El manifiesto identifica cada archivo y su SHA-256. No se borran originales de la base de datos ni se sustituyen escenarios por conexiones vacías.
 
 Referencia del proveedor: [API S3 de Cloudflare R2](https://developers.cloudflare.com/r2/api/s3/api/) y [configuración de boto3](https://developers.cloudflare.com/r2/examples/aws/boto3/).
+
+Una importación nueva permite volver a revisar un archivo cuyo duplicado cancelaste; repetir la solicitud original conserva la cancelación. Al confirmar todos los archivos pendientes, la importación se muestra completada. Las carpetas con espacios, Unicode y caracteres reservados conservan la firma S3 correcta.

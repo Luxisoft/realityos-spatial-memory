@@ -79,13 +79,31 @@ def import_json(db, run):
                     publication_id=str(upload.result_id) if upload.result_id else None,
                 )
         items.append(item)
+    status = run.status
+    if status in {"completed", "attention"}:
+        status = "completed" if all(i["status"] == "published" for i in items) else "attention"
     return {
         "id": str(run.id),
-        "status": run.status,
+        "status": status,
         "items": items,
         "audience": run.audience,
         "workspace_id": str(run.workspace_id) if run.workspace_id else None,
     }
+
+
+def upload_request_key(db, owner_id, identity):
+    # Follow cancelled attempts without changing their history. Each successor
+    # has a stable key, so concurrent/repeated imports reuse the same candidate.
+    key = hashlib.sha256(identity.encode()).hexdigest()
+    while previous := db.scalar(
+        select(PublicationUpload).where(
+            PublicationUpload.owner_id == owner_id, PublicationUpload.request_key == key
+        )
+    ):
+        if previous.status != "cancelled":
+            break
+        key = hashlib.sha256(f"{key}:{previous.id}".encode()).hexdigest()
+    return key
 
 
 def process_import(db, run_id, settings):
@@ -123,7 +141,7 @@ def process_import(db, run_id, settings):
                     str(run.workspace_id),
                 ]
             )
-            request_key = hashlib.sha256(identity.encode()).hexdigest()
+            request_key = upload_request_key(db, user.id, identity)
             upload = asyncio.run(
                 candidate(
                     request,

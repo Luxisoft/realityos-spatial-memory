@@ -39,7 +39,7 @@ internal fun StorageConnectionsScreen(onClose: () -> Unit) {
     var confirmation by remember { mutableStateOf<String?>(null) }
     var preview by remember { mutableStateOf<JSONObject?>(null) }
     var result by remember { mutableStateOf<JSONObject?>(null) }
-    var evidence by remember { mutableStateOf<List<GalleryThumb>?>(null) }
+    var evidence by remember { mutableStateOf<StorageEvidenceSelection?>(null) }
     var openProfile by remember { mutableStateOf<String?>(null) }
     var resultWorkspace by remember { mutableStateOf("") }
     var openRecord by remember { mutableStateOf<String?>(null) }
@@ -122,8 +122,8 @@ internal fun StorageConnectionsScreen(onClose: () -> Unit) {
         FaceSearch(onBack = { faceManagement = false })
         return
     }
-    evidence?.let { values ->
-        SearchEvidenceCarousel(values, 0) { evidence = null }
+    evidence?.let { selection ->
+        StorageEvidenceViewer(selection) { evidence = null }
         return
     }
     preview?.let { item ->
@@ -269,15 +269,7 @@ internal fun StorageConnectionsScreen(onClose: () -> Unit) {
                         DatabaseImage(profileImageRequest(context, authorizedMediaUrl(url)), response.optString("message"), Modifier.fillMaxWidth().height(220.dp))
                     }
                     if (thumbs.isEmpty() && response.optText("highlighted_media_url") == null) Text(localizedText(R.string.storage_no_results))
-                    thumbs.forEach { thumb ->
-                        TextButton(onClick = {
-                            when {
-                                thumb.profileUserId.isNotBlank() -> openProfile = thumb.profileUserId
-                                thumb.recordId.isNotBlank() -> openRecord = thumb.recordId
-                                else -> evidence = thumbs
-                            }
-                        }) { Text(thumb.caption + (thumb.confidence?.let { " · ${(it * 100).toInt()}%" } ?: "")) }
-                    }
+                    StorageResultButtons(thumbs, onProfile = { openProfile = it }, onRecord = { openRecord = it }, onEvidence = { evidence = it })
                 }
             }
             items(rules, key = { it.getString("id") }) { rule ->
@@ -378,5 +370,25 @@ internal fun StorageConnectionsScreen(onClose: () -> Unit) {
                 }
             }) { Text(localizedText(R.string.storage_confirm)) }
         }, dismissButton = { TextButton(onClick = { confirmation = null }) { Text(localizedText(R.string.storage_back)) } })
+    }
+}
+
+internal data class StorageEvidenceSelection(val items: List<GalleryThumb>, val index: Int)
+
+@Composable
+internal fun StorageEvidenceViewer(selection: StorageEvidenceSelection, onClose: () -> Unit) {
+    SearchEvidenceCarousel(selection.items, selection.index, onClose)
+}
+
+@Composable
+internal fun StorageResultButtons(thumbs: List<GalleryThumb>, onProfile: (String) -> Unit, onRecord: (String) -> Unit, onEvidence: (StorageEvidenceSelection) -> Unit) {
+    thumbs.forEachIndexed { index, thumb ->
+        TextButton(onClick = {
+            when {
+                thumb.profileUserId.isNotBlank() -> onProfile(thumb.profileUserId)
+                thumb.recordId.isNotBlank() -> onRecord(thumb.recordId)
+                else -> onEvidence(StorageEvidenceSelection(thumbs, index))
+            }
+        }) { Text(thumb.caption + (thumb.confidence?.let { " · ${(it * 100).toInt()}%" } ?: "")) }
     }
 }

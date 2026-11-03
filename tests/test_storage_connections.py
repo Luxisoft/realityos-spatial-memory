@@ -90,6 +90,221 @@ def test_import_retry_preserves_original_and_idempotency(
     assert later["items"][0]["publication_id"] == r.json()["items"][0]["publication_id"]
 
 
+def test_cancelled_duplicate_can_be_imported_again_without_losing_history(
+    client, auth_headers, source, remote
+):
+    path = BASE + "/" + source["id"] + "/imports"
+
+    def start(request_key, key):
+        response = client.post(
+            path,
+            headers=auth_headers,
+            json={
+                "request_key": request_key,
+                "keys": [key],
+            },
+        )
+        assert response.status_code == 202, response.text
+        return response.json()
+
+    start("original", "photos/a.png")
+    cancelled_ids = []
+    for attempt in range(2):
+        run = start(f"cancel-{attempt}", "photos/b.png")
+        item = run["items"][0]
+        assert item["status"] == "duplicate"
+        assert item["upload_id"] not in cancelled_ids
+        cancelled_ids.append(item["upload_id"])
+        assert (
+            client.post(
+                "/v1/me/publication-uploads/" + item["upload_id"] + "/cancel",
+                headers=auth_headers,
+            ).status_code
+            == 200
+        )
+        # Replaying the same request must not restart a cancelled decision.
+        replay = start(f"cancel-{attempt}", "photos/b.png")
+        assert replay["items"][0]["status"] == "cancelled"
+
+    fresh = start("fresh", "photos/b.png")
+    item = fresh["items"][0]
+    assert item["status"] == "duplicate" and item["upload_id"] not in cancelled_ids
+    assert start("fresh", "photos/b.png") == fresh
+    assert (
+        start("another-request", "photos/b.png")["items"][0]["upload_id"]
+        == item["upload_id"]
+    )
+    assert (
+        client.post(
+            "/v1/me/publication-uploads/" + item["upload_id"] + "/confirm",
+            headers=auth_headers,
+        ).status_code
+        == 200
+    )
+    later = start("after-publication", "photos/b.png")
+    assert later["status"] == "completed"
+    assert later["items"][0]["upload_id"] == item["upload_id"]
+    runs = client.get(path, headers=auth_headers).json()
+    for previous in runs:
+        if previous["items"][0]["upload_id"] in cancelled_ids:
+            assert previous["items"][0]["status"] == "cancelled"
+
+
+def test_confirmed_import_status_is_refreshed_without_writing_on_read(
+    client, auth_headers, source, remote
+):
+    from app.social_features.evidence_models import PublicationUpload
+    from sqlalchemy import event
+
+    path = BASE + "/" + source["id"] + "/imports"
+    client.post(
+        path,
+        headers=auth_headers,
+        json={"request_key": "first", "keys": ["photos/a.png"]},
+    )
+    run = client.post(
+        path,
+        headers=auth_headers,
+        json={
+            "request_key": "duplicates",
+            "keys": ["photos/b.png", "photos/c.png"],
+        },
+    ).json()
+    with client.app.state.database.session_factory() as db:
+        stored = db.get(StorageImport, uuid.UUID(run["id"]))
+        original_items = stored.items
+    for index, item in enumerate(run["items"]):
+        # The second duplicate targets an older media revision; retry its analysis
+        # through the existing upload API before confirming replacement.
+        if index == 1:
+            assert (
+                client.post(
+                    "/v1/me/publication-uploads/" + item["upload_id"] + "/retry",
+                    headers=auth_headers,
+                ).status_code
+                == 200
+            )
+        assert (
+            client.post(
+                "/v1/me/publication-uploads/" + item["upload_id"] + "/confirm",
+                headers=auth_headers,
+            ).status_code
+            == 200
+        )
+        statements = []
+        engine = client.app.state.database.engine
+
+        def record_sql(
+            conn, cursor, statement, parameters, context, many, recorded=statements
+        ):
+            recorded.append(statement.lstrip().split()[0].upper())
+
+        event.listen(engine, "before_cursor_execute", record_sql)
+        try:
+            result = next(
+                r
+                for r in client.get(path, headers=auth_headers).json()
+                if r["id"] == run["id"]
+            )
+        finally:
+            event.remove(engine, "before_cursor_execute", record_sql)
+        assert not {"INSERT", "UPDATE", "DELETE"}.intersection(statements)
+        assert result["status"] == ("attention" if index == 0 else "completed")
+    with client.app.state.database.session_factory() as db:
+        stored = db.get(StorageImport, uuid.UUID(run["id"]))
+        assert stored.status == "attention"
+        assert stored.items == original_items
+        assert all(
+            db.get(PublicationUpload, uuid.UUID(i["upload_id"])).status == "published"
+            for i in stored.items
+        )
+
+
+def test_candidate_reuse_is_scoped_to_destination(client, auth_headers, source, remote):
+    path = BASE + "/" + source["id"] + "/imports"
+    ids = []
+    for index in range(2):
+        workspace = client.post(
+            "/v1/workspaces", headers=auth_headers, json={"name": f"Group {index}"}
+        ).json()["id"]
+        result = client.post(
+            path,
+            headers=auth_headers,
+            json={
+                "request_key": f"group-{index}",
+                "keys": ["photos/a.png"],
+                "audience": "work",
+                "workspace_id": workspace,
+            },
+        ).json()
+        assert result["status"] == "completed"
+        ids.append(result["items"][0]["upload_id"])
+    assert len(set(ids)) == 2
+
+
+@pytest.mark.parametrize(
+    ("prefix", "encoded"),
+    [
+        ("photos/my pictures/", "photos%2Fmy%20pictures%2F"),
+        ("photos/niño/", "photos%2Fni%C3%B1o%2F"),
+        ("photos/a+b#%/", "photos%2Fa%2Bb%23%25%2F"),
+    ],
+)
+def test_listing_signs_and_sends_the_same_s3_encoded_query(
+    client, source, monkeypatch, prefix, encoded
+):
+    from datetime import UTC, datetime
+
+    import httpx
+    from botocore.auth import S3SigV4Auth
+    from botocore.awsrequest import AWSRequest
+    from botocore.credentials import Credentials
+
+    monkeypatch.setattr(
+        "botocore.auth.get_current_datetime", lambda: datetime(2026, 11, 3, tzinfo=UTC)
+    )
+    monkeypatch.setattr(
+        "app.storage.client.endpoint_address",
+        lambda url: ("storage.example", "1.1.1.1"),
+    )
+    query = f"list-type=2&prefix={encoded}&max-keys=100&encoding-type=url&delimiter=%2F&continuation-token=a%2Bb%2F%3D"
+    expected = AWSRequest(
+        method="GET",
+        url="https://storage.example/my-bucket?" + query,
+        headers={"Host": "storage.example"},
+    )
+    S3SigV4Auth(
+        Credentials("private-access", "private-secret"), "s3", "us-east-1"
+    ).add_auth(expected)
+    seen = []
+
+    def upstream(request):
+        seen.append(request)
+        assert request.url.host == "1.1.1.1"
+        assert request.url.query.decode() == query
+        assert request.headers["Host"] == "storage.example"
+        assert request.headers["Authorization"] == expected.headers["Authorization"]
+        assert request.extensions["sni_hostname"] == "storage.example"
+        return httpx.Response(200, content=b"<ListBucketResult/>")
+
+    original_client = httpx.Client
+    monkeypatch.setattr(
+        "app.storage.client.httpx.Client",
+        lambda **kwargs: original_client(
+            transport=httpx.MockTransport(upstream), **kwargs
+        ),
+    )
+    with client.app.state.database.session_factory() as db:
+        row = db.get(StorageConnection, uuid.UUID(source["id"]))
+        assert (
+            BucketClient(row, client.app.state.settings).objects(prefix, "a+b/=")[
+                "items"
+            ]
+            == []
+        )
+    assert len(seen) == 1
+
+
 def test_other_account_cannot_access_connections_or_media(
     client, auth_headers, source, remote
 ):
