@@ -128,7 +128,7 @@ internal fun RealityViewModel.executePersonTextQuery(question: String) {
         try {
             val language = RealityExperienceStore(app).syncAccountLanguage().languageTag
             val raw = withContext(Dispatchers.IO) {
-                JSONObject(SocialSession.request("profiles/search", JSONObject().put("question", question).put("language", language)))
+                JSONObject(SocialSession.searchWorkspaceRecords((SocialSession.workWorkspaceId ?: SocialSession.workspaceId).orEmpty(), JSONObject().put("question", question).put("language", language)))
             }
             if (!metaController.generation.accepts(revision) || !metaController.authenticated()) return@launch
             val responseLanguage = raw.optText("response_language") ?: language

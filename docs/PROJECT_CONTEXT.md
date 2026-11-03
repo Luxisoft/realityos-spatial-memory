@@ -499,3 +499,29 @@ comprobaciones HTTP reales aprobadas, conservando referencias internas,
 biometría, entorno, límites y arranque bajo demanda. Rollback:
 `.runtime/compact-profile-20261102-rollback.json`. QA física pendiente; ver
 IMPLEMENTATION_STATUS.md.
+
+
+## Cuentas e integración por espacios — 2026-11-02
+
+Registro por usuario/correo, confirmación y recuperación; acceso Android normal
+independiente del Debug local. API REST de registros versionados, relaciones,
+notas, adjuntos BYTEA, publicación e indexación por espacio; conexión HTTPS de
+contrato explícito y credenciales cifradas. Formularios web/Android y comparación
+de campos de medicación sin registrar administraciones. Ver WORKSPACE_DATA.md.
+
+Migración productiva `20261102_0031`; nueve cuentas de trabajadores, tres espacios
+con tres miembros, 47 registros y 27 adjuntos importados por HTTPS. Eliminados los
+cinco espacios anteriores mediante inventario y respaldo técnico de 24 horas.
+Biometría intacta: 136 enrolamientos y 22 consentimientos conservados. Las personas
+importadas no se convierten en usuarios ni se enlazan automáticamente al buscador
+facial existente. Credenciales del jurado solo en `.runtime/` privado.
+
+Verificados 21 escenarios HTTP y dos respuestas contextuales de Meta real; 375
+pruebas Python/gateway pasan en una ejecución completa, además de nueve
+regresiones posteriores de adjuntos y contrato. Android: 179 pruebas, lint y APK
+Debug final. Backend desplegado, timeout real de 120 s y llamadas a correo/IA
+fuera del hilo de peticiones. Adjuntos con visor de fotos/videos y rangos HTTP.
+Pendientes al escribir: final de indexación visual, publicación web por el workflow
+`Publish workspace web`, recepción real de correos (falta destinatario autorizado)
+y QA física de teléfono/gafas. SMTP TLS/autenticación comprobados; no se han enviado
+correos de prueba. Rollback base: `.runtime/workspace-data-20261102-rollback.json`.

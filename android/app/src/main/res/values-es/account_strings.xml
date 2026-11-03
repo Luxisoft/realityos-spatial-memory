@@ -1,0 +1,32 @@
+<resources>
+    <string name="account_access">Cuenta por correo</string>
+    <string name="account_register">Crear cuenta</string>
+    <string name="account_login">Iniciar sesión</string>
+    <string name="account_recover">Recuperar contraseña</string>
+    <string name="account_name">Nombre completo</string>
+    <string name="account_username">Usuario</string>
+    <string name="account_identifier">Usuario o correo</string>
+    <string name="account_password_hint">Al menos 12 caracteres</string>
+    <string name="account_email_sent">Revisa tu correo para continuar. Si no llega, reintenta o contacta al administrador.</string>
+    <string name="account_failed">No se pudo completar. Revisa tus datos y la confirmación de correo e inténtalo de nuevo.</string>
+    <string name="account_send">Enviar correo</string>
+    <string name="account_resend">Reenviar confirmación</string>
+    <string name="account_back">Volver</string>
+    <string name="records_title">Registros del espacio</string>
+    <string name="records_search">Buscar registros</string>
+    <string name="records_empty">No se encontraron registros</string>
+    <string name="records_simulated">Datos ficticios de prueba</string>
+    <string name="records_related">Registros relacionados</string>
+    <string name="records_timeline">Cronología</string>
+    <string name="records_note">Añadir nota</string>
+    <string name="records_save">Guardar nota</string>
+    <string name="records_video">Abrir video</string>
+    <string name="medication_compare">Comparar campos de medicación</string>
+    <string name="medication_ingredient">Ingrediente observado</string>
+    <string name="medication_concentration">Concentración observada</string>
+    <string name="medication_confirmed">Confirmé la identidad del paciente</string>
+    <string name="medication_fields_match">Los campos revisados coinciden con la prescripción registrada.</string>
+    <string name="medication_discrepancy">Se encontró una discrepancia. Revisa la prescripción, las alergias y las administraciones.</string>
+    <string name="medication_incomplete">Falta información para completar esta comparación.</string>
+    <string name="medication_review">Requiere revisión profesional. No se ha registrado ninguna administración.</string>
+</resources>

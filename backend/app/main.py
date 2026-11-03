@@ -31,6 +31,14 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         allow_headers=["Authorization", "Content-Type"],
     )
     app.include_router(router, prefix=runtime_settings.api_prefix)
+    from app.workspaces import clinical, media, provisioning, search, sync  # noqa: F401
+    from app.workspaces.routes import router as workspace_data_router
+
+    app.include_router(workspace_data_router, prefix=runtime_settings.api_prefix)
+    from app.accounts import avatar  # noqa: F401
+    from app.accounts.routes import router as accounts_router
+
+    app.include_router(accounts_router, prefix=runtime_settings.api_prefix)
     if runtime_settings.environment == "local" and runtime_settings.local_login_enabled:
         from app.http.local_access import router as local_router
 

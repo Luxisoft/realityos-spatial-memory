@@ -42,6 +42,9 @@ internal object SocialSession {
     // True only between a fresh Facebook login and capture/verification: it must
     // survive the login-gate -> host-shell SocialGallery instance switch.
     var freshLogin by mutableStateOf(false)
+    var passwordAccount by mutableStateOf(false)
+    var passwordAccountConfirmed by mutableStateOf(false)
+    val accountEntryAllowed: Boolean get() = passwordAccount && passwordAccountConfirmed
     var localAccount by mutableStateOf(false)
     var localAccountConfirmed by mutableStateOf(false)
     val localEntryAllowed: Boolean get() = LocalAccessPolicy.canSkipFaceEntry(
@@ -51,6 +54,7 @@ internal object SocialSession {
     // One-shot notice for the login screen: denial/expiry messages are set in the
     // host-shell instance but shown in the login-gate instance after the switch.
     var loginNotice: String? = null
+    var workWorkspaceId: String? = null
     var workspaceId: String? = null
     var profilePictureUrl by mutableStateOf<String?>(null)
     fun initialize(context: android.content.Context) {
@@ -73,6 +77,8 @@ internal object SocialSession {
         }
         localAccount = BuildConfig.LOCAL_DEVELOPMENT && preferences?.getBoolean("local_account", false) == true
         localAccountConfirmed = false
+        passwordAccount = preferences?.getBoolean("password_account", false) == true
+        passwordAccountConfirmed = false
         token = preferences?.getString("access", null)
         refreshToken = preferences?.getString("refresh", null)
         workspaceId = preferences?.getString("workspace", null)
@@ -83,6 +89,10 @@ internal object SocialSession {
         token = response.getString("access_token")
         refreshToken = response.getString("refresh_token")
         isGuest = response.optBoolean("is_guest")
+        if (response.has("password_account")) {
+            passwordAccount = response.optBoolean("password_account")
+            passwordAccountConfirmed = passwordAccount
+        }
         if (response.has("local_access")) {
             localAccount = LocalAccessPolicy.canSkipFaceEntry(
                 BuildConfig.DEBUG, BuildConfig.LOCAL_DEVELOPMENT,
@@ -91,6 +101,7 @@ internal object SocialSession {
             localAccountConfirmed = localAccount
         }
         preferences?.edit()?.putString("access", token)?.putString("refresh", refreshToken)
+            ?.putBoolean("password_account", passwordAccount)
             ?.putBoolean("local_account", localAccount)
             ?.putString("session_api_base", BuildConfig.DEFAULT_REALITYOS_API_BASE_URL)
             ?.putString("facebook_app_id", BuildConfig.FACEBOOK_APP_ID)
@@ -98,10 +109,13 @@ internal object SocialSession {
     }
     fun clear() {
         active = false; token = null; refreshToken = null; workspaceId = null; isGuest = false
+        workWorkspaceId = null
         profilePictureUrl = null
         freshLogin = false
         localAccount = false
         localAccountConfirmed = false
+        passwordAccount = false
+        passwordAccountConfirmed = false
         loginNotice = null
         preferences?.edit()?.clear()?.apply()
     }
@@ -109,6 +123,10 @@ internal object SocialSession {
     fun request(path: String, payload: JSONObject? = null): String {
         return requestJson(path, if (payload == null) "GET" else "POST", payload)
     }
+    fun searchWorkspaceRecords(workspaceId: String, payload: JSONObject): String = requestOnce(
+        "workspaces/$workspaceId/records/search", "POST", payload, true, 180000,
+    )
+
     fun chatTranslations(payload: JSONObject? = null, ids: List<Int> = emptyList()): String = requestOnce(
         if (payload != null) "chat/history/prepare" else "chat/history/translations?ids=${ids.joinToString(",")}",
         if (payload != null) "POST" else "GET", payload, true, 5000,
@@ -240,6 +258,7 @@ fun SocialGallery(
     val scope = rememberCoroutineScope()
     var authenticated by remember { mutableStateOf(SocialSession.token != null) }
     var loginBusy by remember { mutableStateOf(false) }
+    var showRecords by remember { mutableStateOf(false) }
     var groupId by remember { mutableStateOf<String?>(null) }
     var posts by remember(audience, groupId) { mutableStateOf<List<JSONObject>>(emptyList()) }
     var error by remember { mutableStateOf("") }
@@ -381,7 +400,7 @@ fun SocialGallery(
         val iCanInvite = currentGroup != null && GroupAdminPolicy.canInvite(currentGroup.optString("role"), currentGroup.optBoolean("can_invite"))
         bar.showInvite = groupId != null && iCanInvite
         bar.showAdmin = groupId != null && iCanInvite
-        bar.onSelect = { groupId = it }
+        bar.onSelect = { groupId = it; SocialSession.workWorkspaceId = it }
         bar.onPublish = {
             if (groupId == null) error = localizedText(R.string.ui_select_a_workspace_to_publish)
             else workPublishMenu = true
@@ -405,7 +424,12 @@ fun SocialGallery(
         }
         bar.onAdmin = { showAdministration = true }
     }
+    var showAccountEntry by remember { mutableStateOf(false) }
     if (!authenticated) {
+        if (showAccountEntry) {
+            AccountEntry(viewModel, onSuccess = { authenticated = true }, onBack = { showAccountEntry = false })
+            return
+        }
         if (LocalAccountEntry(viewModel, onSuccess = { authenticated = true })) return
         LaunchedEffect(Unit) {
             SocialSession.loginNotice?.let { error = it; SocialSession.loginNotice = null }
@@ -421,13 +445,19 @@ fun SocialGallery(
                         authenticated = true
                     }
                 })
-        }, onGuest = {
-            startGuestAccess(context, scope, viewModel,
-                onBusy = { loginBusy = it }, onError = { error = it }, onSuccess = {
-                    SocialSession.freshLogin = false
-                    authenticated = true
-                })
+        }, onGuest = { showAccountEntry = true
         }, onWelcome = onWelcome)
+        return
+    }
+    if (SocialSession.passwordAccount && !SocialSession.passwordAccountConfirmed) {
+        LaunchedEffect(Unit) {
+            try {
+                val confirmed = withContext(Dispatchers.IO) { JSONObject(SocialSession.request("auth/account-session")).optBoolean("password_account") }
+                check(confirmed)
+                SocialSession.passwordAccountConfirmed = true
+            } catch (_: Exception) { SocialSession.clear(); authenticated = false }
+        }
+        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { CircularProgressIndicator() }
         return
     }
     if (BuildConfig.LOCAL_DEVELOPMENT && SocialSession.localAccount && !SocialSession.localAccountConfirmed) {
@@ -449,7 +479,7 @@ fun SocialGallery(
         return
     }
     LaunchedEffect(authenticated) {
-        if (authenticated && !SocialSession.isGuest && !SocialSession.localEntryAllowed && (faceCaptureDone == null || identityVerified == null)) {
+        if (authenticated && !SocialSession.isGuest && !SocialSession.localEntryAllowed && !SocialSession.accountEntryAllowed && (faceCaptureDone == null || identityVerified == null)) {
             try {
                 val status = withContext(Dispatchers.IO) { JSONObject(SocialSession.request("faces/consent")) }
                 if (resumedSession && !status.optBoolean("consented") && !faceConsentAsk) faceConsentAsk = true
@@ -459,7 +489,7 @@ fun SocialGallery(
             } catch (e: Exception) { /* Face search stays unavailable until consent succeeds. */ }
         }
     }
-    if (!SocialSession.isGuest && !SocialSession.localEntryAllowed && (faceCaptureDone != true || identityVerified != true || deniedLastTime)) {
+    if (!SocialSession.isGuest && !SocialSession.localEntryAllowed && !SocialSession.accountEntryAllowed && (faceCaptureDone != true || identityVerified != true || deniedLastTime)) {
         if (faceCaptureDone == null || identityVerified == null) Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { CircularProgressIndicator() }
         else FaceCaptureScreen(hasCapture = faceCaptureDone == true && !deniedLastTime,
             onDone = { faceCaptureDone = true; identityVerified = true; deniedLastTime = false; SocialSession.freshLogin = false },
@@ -493,10 +523,21 @@ fun SocialGallery(
             moderator = withContext(Dispatchers.IO) { JSONObject(SocialSession.request("me/social-capabilities")).optBoolean("moderator") }
             val resultGroups = withContext(Dispatchers.IO) { JSONArray(SocialSession.request("workspaces")) }
             groups = (0 until resultGroups.length()).map { resultGroups.getJSONObject(it) }.filter { !it.getString("name").startsWith("home:") }
+            if (groupId == null && groups.size == 1) {
+                groupId = groups.first().getString("id")
+                SocialSession.workWorkspaceId = groupId
+            }
         } catch (e: Exception) { if (e is kotlinx.coroutines.CancellationException) throw e; error = e.message.orEmpty() }
         finally { groupsLoading = false }
     }
+    if (showRecords && groupId != null) {
+        WorkspaceRecords(groupId!!, onBack = { showRecords = false })
+        return
+    }
     Column(Modifier.fillMaxSize()) {
+        if (audience == "work" && groupId != null) {
+            TextButton(onClick = { showRecords = true }, modifier = Modifier.fillMaxWidth()) { Text(stringResource(R.string.records_title)) }
+        }
         if (moderator && audience == "public") Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
             IconButton(onClick = { showAdministration = true }) { Icon(Icons.Filled.Flag, contentDescription = localizedText(R.string.ui_review_reports)) }
         }

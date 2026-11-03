@@ -468,6 +468,13 @@ def search_profiles(
     from app.meta import MetaProviderError, build_meta_client
     from app.social_features.gallery import _publication_payload
 
+    if not user.is_guest:
+        if payload.user_id is None:
+            payload = payload.model_copy(update={"user_id": user.id})
+        elif payload.user_id != user.id:
+            raise HTTPException(
+                410, "Use the workspace records search with an authorized workspace."
+            )
     if user.is_guest:
         teammate_ids = select(WorkspaceMember.user_id).where(
             WorkspaceMember.workspace_id.in_(

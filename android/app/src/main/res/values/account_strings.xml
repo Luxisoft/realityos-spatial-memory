@@ -1,0 +1,32 @@
+<resources>
+    <string name="account_access">Email account</string>
+    <string name="account_register">Create account</string>
+    <string name="account_login">Sign in</string>
+    <string name="account_recover">Recover password</string>
+    <string name="account_name">Full name</string>
+    <string name="account_username">Username</string>
+    <string name="account_identifier">Username or email</string>
+    <string name="account_password_hint">At least 12 characters</string>
+    <string name="account_email_sent">Check your email to continue. If it does not arrive, retry or contact your administrator.</string>
+    <string name="account_failed">Could not complete the request. Check your details and email confirmation, then retry.</string>
+    <string name="account_send">Send email</string>
+    <string name="account_resend">Resend confirmation</string>
+    <string name="account_back">Back</string>
+    <string name="records_title">Workspace records</string>
+    <string name="records_search">Search records</string>
+    <string name="records_empty">No records found</string>
+    <string name="records_simulated">Synthetic test data</string>
+    <string name="records_related">Related records</string>
+    <string name="records_timeline">Timeline</string>
+    <string name="records_note">Add note</string>
+    <string name="records_save">Save note</string>
+    <string name="records_video">Open video</string>
+    <string name="medication_compare">Compare medication fields</string>
+    <string name="medication_ingredient">Observed ingredient</string>
+    <string name="medication_concentration">Observed concentration</string>
+    <string name="medication_confirmed">I confirmed the patient identity</string>
+    <string name="medication_fields_match">The reviewed fields match the recorded prescription.</string>
+    <string name="medication_discrepancy">Discrepancy found. Review the prescription, allergies and administration history.</string>
+    <string name="medication_incomplete">Not enough information to complete this comparison.</string>
+    <string name="medication_review">Professional review required. No administration has been recorded.</string>
+</resources>

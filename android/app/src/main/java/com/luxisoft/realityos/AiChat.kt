@@ -68,7 +68,7 @@ internal fun AiChat(
     val resources = LocalResources.current
     val scope = rememberCoroutineScope()
     val guestsBlocked = SocialSession.isGuest
-    var workspaceId by remember { mutableStateOf(SocialSession.workspaceId.orEmpty()) }
+    var workspaceId by remember { mutableStateOf((SocialSession.workWorkspaceId ?: SocialSession.workspaceId).orEmpty()) }
     var input by remember { mutableStateOf("") }
     var busy by remember { mutableStateOf(false) }
     var routing by remember { mutableStateOf(false) }
@@ -412,7 +412,7 @@ internal fun AiChat(
             try {
                 val requestLanguage = experienceStore.syncAccountLanguage().languageTag
                 val response = withContext(Dispatchers.IO) {
-                    JSONObject(SocialSession.request("profiles/search", JSONObject().put("question", text).put("language", requestLanguage)))
+                    JSONObject(SocialSession.searchWorkspaceRecords(workspaceId, JSONObject().put("question", text).put("language", requestLanguage)))
                 }
                 val answer = response.optText("answer")?.ifBlank { chatText(R.string.chat_no_answer) } ?: chatText(R.string.chat_no_answer)
                 pushAi(answer, message = ChatMessage(role = ChatRole.AI, text = answer, speakText = answer, responseLanguage = response.optText("response_language") ?: requestLanguage))

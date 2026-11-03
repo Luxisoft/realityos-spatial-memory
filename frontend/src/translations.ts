@@ -1,5 +1,50 @@
 // System text only; user content retains its original form.
 export const translations = {
+  "Compare medication fields": "Comparar campos de medicación",
+  "Recorded prescription": "Prescripción registrada",
+  Select: "Seleccionar",
+  "Observed ingredient": "Ingrediente observado",
+  "Observed concentration": "Concentración observada",
+  "I confirmed the patient identity": "Confirmé la identidad del paciente",
+  Compare: "Comparar",
+  "Professional review required. No administration has been recorded.":
+    "Requiere revisión profesional. No se ha registrado ninguna administración.",
+
+  "Check your email to continue.": "Revisa tu correo para continuar.",
+  "Sign in": "Iniciar sesión",
+  "Create account": "Crear cuenta",
+  "Recover access": "Recuperar acceso",
+  Name: "Nombre",
+  Username: "Usuario",
+  "Username or email": "Usuario o correo",
+  "Loading\u2026": "Cargando…",
+  Continue: "Continuar",
+  "Recover password": "Recuperar contraseña",
+  "Resend confirmation": "Reenviar confirmación",
+  "Workspace records": "Registros del espacio",
+  "People, cases and recorded events from your connected sources.":
+    "Personas, expedientes y acontecimientos de las fuentes conectadas.",
+  "Search records": "Buscar registros",
+  "No records found.": "No se encontraron registros.",
+  "Related records": "Registros relacionados",
+  Timeline: "Cronología",
+  "Add note": "Añadir nota",
+  "Save note": "Guardar nota",
+  Attachments: "Archivos adjuntos",
+  "Unable to open attachment": "No se pudo abrir el archivo",
+  "Open attachment": "Abrir archivo",
+  Connections: "Conexiones",
+  "Import completed. Refresh the records to view changes.":
+    "Importación completada. Actualiza los registros para ver los cambios.",
+  "Sync now": "Sincronizar ahora",
+  "Connection name": "Nombre de la conexión",
+  "Source URL (optional)": "URL de origen (opcional)",
+  "Source token (optional)": "Token de origen (opcional)",
+  "Create connection": "Crear conexión",
+  "Copy this credential now. It is shown only once.":
+    "Copia esta credencial. Solo se muestra una vez.",
+  Dismiss: "Cerrar",
+
   "Stop audio": "Detener audio",
   "Using this device's voice for this response.":
     "Se usará la voz de este dispositivo para esta respuesta.",

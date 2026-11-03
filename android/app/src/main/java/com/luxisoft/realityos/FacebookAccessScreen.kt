@@ -47,7 +47,6 @@ internal fun FacebookAccessScreen(busy: Boolean, error: String, consentChecked: 
                 Spacer(Modifier.height(12.dp))
                 Text(stringResource(R.string.facebook_access_title), style = MaterialTheme.typography.displaySmall)
                 Spacer(Modifier.height(12.dp))
-                Text(stringResource(R.string.facebook_access_body), style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 if (error.isNotBlank()) {
                     Spacer(Modifier.height(20.dp))
                     Surface(shape = MaterialTheme.shapes.medium, color = MaterialTheme.colorScheme.errorContainer) {
@@ -67,16 +66,16 @@ internal fun FacebookAccessScreen(busy: Boolean, error: String, consentChecked: 
                     CircularProgressIndicator(Modifier.size(20.dp), strokeWidth = 2.dp)
                     Spacer(Modifier.width(12.dp))
                 }
+                Icon(painterResource(R.drawable.ic_meta), contentDescription = "Meta", modifier = Modifier.size(24.dp))
+                Spacer(Modifier.width(8.dp))
                 Text(stringResource(if (busy) R.string.facebook_access_connecting else R.string.facebook_access_continue))
             }
             Spacer(Modifier.height(10.dp))
             OutlinedButton(onClick = onGuest, enabled = !busy, modifier = Modifier.fillMaxWidth().widthIn(max = 560.dp).heightIn(min = 56.dp)) {
-                Text(stringResource(R.string.guest_access_continue))
+                Text(stringResource(R.string.account_register))
             }
             Spacer(Modifier.height(10.dp))
             TextButton(onClick = onWelcome, enabled = !busy) { Text(stringResource(R.string.facebook_access_welcome)) }
-            Text(stringResource(R.string.facebook_access_note), style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(bottom = 10.dp))
         }
     }
 }

@@ -1,0 +1,211 @@
+{
+  "workspace_name": "Pacific Ridge Police Department",
+  "workers": [
+    "alex-rivera",
+    "maya-johnson",
+    "daniel-kim"
+  ],
+  "batch": {
+    "request_key": "jury-security-v1",
+    "records": [
+      {
+        "external_id": "security-case-1",
+        "kind": "case",
+        "title": "Pacific Ridge Police Department — Caso de prueba 1",
+        "data": {
+          "description": "Expediente ficticio para evaluación del software.",
+          "reference": "security-case-1",
+          "status": "open"
+        },
+        "related_ids": [],
+        "version": 1,
+        "status": "active",
+        "authorized": true,
+        "simulated": true,
+        "occurred_at": "2026-11-02T09:00:00-05:00"
+      },
+      {
+        "external_id": "security-event-1",
+        "kind": "event",
+        "title": "Observación de turno 1",
+        "data": {
+          "note": "Linterna amarilla y destornillador rojo vistos en mesa de evidencias.",
+          "last_seen_location": "evidence-desk"
+        },
+        "related_ids": [
+          "security-case-1"
+        ],
+        "version": 1,
+        "status": "active",
+        "authorized": true,
+        "simulated": true,
+        "occurred_at": "2026-11-02T09:00:00-05:00"
+      },
+      {
+        "external_id": "security-object-1",
+        "kind": "object",
+        "title": "Linterna amarilla",
+        "data": {
+          "last_seen_location": "evidence-desk"
+        },
+        "related_ids": [
+          "security-event-1"
+        ],
+        "version": 1,
+        "status": "active",
+        "authorized": true,
+        "simulated": true,
+        "occurred_at": "2026-11-02T09:00:00-05:00"
+      },
+      {
+        "external_id": "security-case-2",
+        "kind": "case",
+        "title": "Pacific Ridge Police Department — Caso de prueba 2",
+        "data": {
+          "description": "Expediente ficticio para evaluación del software.",
+          "reference": "security-case-2",
+          "status": "open"
+        },
+        "related_ids": [],
+        "version": 1,
+        "status": "active",
+        "authorized": true,
+        "simulated": true,
+        "occurred_at": "2026-11-02T09:00:00-05:00"
+      },
+      {
+        "external_id": "security-event-2",
+        "kind": "event",
+        "title": "Observación de turno 2",
+        "data": {
+          "note": "Linterna amarilla y destornillador rojo vistos en mesa de evidencias.",
+          "last_seen_location": "evidence-desk"
+        },
+        "related_ids": [
+          "security-case-2"
+        ],
+        "version": 1,
+        "status": "active",
+        "authorized": true,
+        "simulated": true,
+        "occurred_at": "2026-11-02T10:00:00-05:00"
+      },
+      {
+        "external_id": "security-object-2",
+        "kind": "object",
+        "title": "Destornillador rojo",
+        "data": {
+          "last_seen_location": "evidence-desk"
+        },
+        "related_ids": [
+          "security-event-2"
+        ],
+        "version": 1,
+        "status": "active",
+        "authorized": true,
+        "simulated": true,
+        "occurred_at": "2026-11-02T10:00:00-05:00"
+      },
+      {
+        "external_id": "security-case-3",
+        "kind": "case",
+        "title": "Pacific Ridge Police Department — Caso de prueba 3",
+        "data": {
+          "description": "Expediente ficticio para evaluación del software.",
+          "reference": "security-case-3",
+          "status": "open"
+        },
+        "related_ids": [],
+        "version": 1,
+        "status": "active",
+        "authorized": true,
+        "simulated": true,
+        "occurred_at": "2026-11-02T09:00:00-05:00"
+      },
+      {
+        "external_id": "security-event-3",
+        "kind": "event",
+        "title": "Observación de turno 3",
+        "data": {
+          "note": "Linterna amarilla y destornillador rojo vistos en mesa de evidencias.",
+          "last_seen_location": "evidence-desk"
+        },
+        "related_ids": [
+          "security-case-3"
+        ],
+        "version": 1,
+        "status": "active",
+        "authorized": true,
+        "simulated": true,
+        "occurred_at": "2026-11-02T11:00:00-05:00"
+      },
+      {
+        "external_id": "security-object-3",
+        "kind": "object",
+        "title": "Carpeta negra",
+        "data": {
+          "last_seen_location": "evidence-desk"
+        },
+        "related_ids": [
+          "security-event-3"
+        ],
+        "version": 1,
+        "status": "active",
+        "authorized": true,
+        "simulated": true,
+        "occurred_at": "2026-11-02T11:00:00-05:00"
+      }
+    ]
+  },
+  "attachments": [
+    {
+      "record": "security-event-1",
+      "path": "assets/evidence-desk.png",
+      "external_id": "photo-1",
+      "publish": true,
+      "author": "alex-rivera"
+    },
+    {
+      "record": "security-event-2",
+      "path": "assets/evidence-desk.png",
+      "external_id": "photo-2",
+      "publish": true,
+      "author": "maya-johnson"
+    },
+    {
+      "record": "security-event-3",
+      "path": "assets/evidence-desk.png",
+      "external_id": "photo-3",
+      "publish": true,
+      "author": "daniel-kim"
+    },
+    {
+      "record": "security-event-2",
+      "path": "assets/evidence-desk-view-2.png",
+      "external_id": "photo-view-2",
+      "publish": true,
+      "author": "maya-johnson"
+    },
+    {
+      "record": "security-event-3",
+      "path": "assets/evidence-desk-view-3.png",
+      "external_id": "photo-view-3",
+      "publish": true,
+      "author": "daniel-kim"
+    },
+    {
+      "record": "security-event-1",
+      "path": "assets/evidence-desk-1.mp4",
+      "external_id": "video-1",
+      "publish": true,
+      "author": "alex-rivera"
+    },
+    {
+      "record": "security-event-2",
+      "path": "assets/evidence-desk-2.mp4",
+      "external_id": "video-2",
+      "publish": true,
+      "author": "maya-johnson"
+    }
+  ]
+}

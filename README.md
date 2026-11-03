@@ -116,10 +116,10 @@ the same observation reuse its idempotent job.
                                       |-> Redis + Celery -> Mock or Meta API
 
 Evidence is scoped to a workspace. A query says “last seen”; it does not assert
-that an item remains in place. No customer media, credentials or generated
-images are included in the repository.
+that an item remains in place. Customer media and credentials stay outside Git.
+Fictional generated evaluation assets are isolated in `simulator/workspaces/`.
 
-Human logins are administrative only. A device identifies itself with
+User access follows workspace membership and roles. A device identifies itself with
 `X-RealityOS-Device-ID` and authorizes uploads with its separate
 `X-RealityOS-Device-Key`; its public ID is provenance, not a human identity.
 Only workspace administrators can inspect device/operator labels or analytics.
@@ -138,3 +138,31 @@ URL; it never receives the device key or Model API key.
 - [Security](docs/SECURITY.md)
 
 Licensed under [Apache License 2.0](LICENSE).
+
+## Evaluación con espacios de trabajo
+
+La aplicación usa registro por usuario/correo y contraseña, conserva Facebook y
+ofrece una API REST para importar registros y medios por espacio. Consulte
+[cuentas, API y escenarios](docs/WORKSPACE_DATA.md).
+
+| Espacio ficticio | Cuenta del jurado | Otros trabajadores |
+| --- | --- | --- |
+| Pacific Ridge Police Department | `alex-rivera` | `maya-johnson`, `daniel-kim` |
+| California Valley Medical Center | `elena-marquez` | `mateo-rios`, `sarah-chen` |
+| Sonoran Neurological Institute | `noah-brooks` | `lucia-vega`, `owen-patel` |
+
+Las contraseñas se entregan de forma privada. En el host, el operador autorizado
+puede recuperarlas de `.runtime/jury-workspace-credentials.json`; no se publican
+en este repositorio. Las direcciones `@jury.example.test` no reciben correo y no
+se presentan como verificadas. El flujo normal de registro confirma correos reales.
+
+Pruebas sugeridas: buscar la linterna amarilla o el destornillador rojo; consultar
+`Ana Solis` y su expediente; comparar `DEMO MEDICINE` de `20 mg` con la prescripción
+ficticia de `10 mg`; consultar dónde se vieron los documentos de `Luis Moreno`.
+Las respuestas deben mostrar evidencia, fuentes y fechas, respetando el espacio
+seleccionado. Los pacientes son registros importados, no cuentas de acceso.
+
+Datos, retratos y escenas son ficticios y están identificados como pruebas.
+El almacenamiento, API y procesamiento utilizan el circuito real. Los MP4 del
+conjunto son escenas estáticas simuladas. El reconocimiento biométrico existente
+no se modifica ni se conecta automáticamente a estas personas importadas.

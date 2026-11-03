@@ -73,7 +73,7 @@ def create_access_token(user_id: uuid.UUID, settings: Settings) -> str:
     payload = {
         "sub": str(user_id),
         "typ": "access",
-        "iat": now,
+        "iat": now.timestamp(),
         "exp": now + timedelta(minutes=settings.access_token_minutes),
     }
     return jwt.encode(payload, settings.jwt_secret, algorithm=settings.jwt_algorithm)
@@ -83,7 +83,7 @@ def create_refresh_token(user_id: uuid.UUID, settings: Settings) -> tuple[str, s
     now = datetime.now(UTC)
     expires_at = now + timedelta(days=settings.refresh_token_days)
     jti = secrets.token_urlsafe(32)
-    payload = {"sub": str(user_id), "typ": "refresh", "jti": jti, "iat": now, "exp": expires_at}
+    payload = {"sub": str(user_id), "typ": "refresh", "jti": jti, "iat": now.timestamp(), "exp": expires_at}
     return (
         jwt.encode(payload, settings.jwt_secret, algorithm=settings.jwt_algorithm),
         jti,
@@ -113,7 +113,7 @@ def create_display_evidence_token(
         "sub": str(observation_id),
         "did": str(device_id),
         "typ": "display_evidence",
-        "iat": now,
+        "iat": now.timestamp(),
         "exp": now + timedelta(minutes=settings.display_evidence_token_minutes),
     }
     return jwt.encode(payload, settings.jwt_secret, algorithm=settings.jwt_algorithm)

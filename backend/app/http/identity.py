@@ -173,7 +173,15 @@ async def list_device_zones(
 async def login(
     payload: LoginRequest, request: Request, db: Session = Depends(get_db)
 ) -> TokenResponse:
-    user = db.scalar(select(User).where(User.email == payload.email.casefold()))
+    from app.accounts.models import PasswordAccount
+    from app.accounts.service import throttle
+
+    throttle(db, request, payload.email, "login")
+    identifier = payload.email.strip().casefold()
+    user = db.scalar(select(User).where(User.email == identifier))
+    if user is None:
+        account = db.scalar(select(PasswordAccount).where(PasswordAccount.username == identifier))
+        user = db.get(User, account.user_id) if account else None
     if (
         user is None
         or not user.is_active

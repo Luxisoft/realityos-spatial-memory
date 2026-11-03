@@ -10,9 +10,11 @@ import { Home } from "./features/home/Home";
 import { Register } from "./features/captures/Register";
 import { Query } from "./features/queries/Query";
 
+import { Records } from "./features/records/Records";
 import "./styles.css";
 
 type Page =
+  | "registros"
   | "inicio"
   | "registrar"
   | "consultar"
@@ -34,6 +36,7 @@ function App() {
   const token = tokens?.access_token ?? "";
   const preference = useLanguage(token);
   const pages: { id: Page; label: string }[] = [
+    { id: "registros", label: t("Workspace records") },
     { id: "inicio", label: t("Home") },
     { id: "registrar", label: t("Register") },
     { id: "consultar", label: t("Query") },
@@ -118,6 +121,14 @@ function App() {
           </div>
         </header>
         {error && <p className="error">{error}</p>}
+        {page === "registros" && (
+          <Records
+            key={workspaceId}
+            token={token}
+            workspaceId={workspaceId}
+            admin={workspace?.role === "admin"}
+          />
+        )}
         {page === "inicio" && (
           <Home
             workspace={workspace}

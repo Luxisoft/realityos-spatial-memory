@@ -50,6 +50,16 @@ async def get_current_user(
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED, detail="Inactive or unknown user."
         )
+    from app.accounts.models import PasswordAccount
+    from app.accounts.service import utc
+
+    account = db.get(PasswordAccount, user.id)
+    if (
+        account
+        and account.revoked_before
+        and float(payload.get("iat", 0)) <= utc(account.revoked_before).timestamp()
+    ):
+        raise HTTPException(401, "Session revoked. Sign in again.")
     return user
 
 
@@ -85,7 +95,9 @@ async def get_current_device(
     if (
         device is None
         or device.status != DeviceStatus.ACTIVE
-        or not verify_device_credential(credential, device.credential_hash, request.app.state.settings)
+        or not verify_device_credential(
+            credential, device.credential_hash, request.app.state.settings
+        )
     ):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,

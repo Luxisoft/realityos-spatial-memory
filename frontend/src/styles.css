@@ -377,3 +377,37 @@ dd {
   color: #d55242;
   max-width: 20rem;
 }
+
+.record-layout {
+  display: grid;
+  grid-template-columns: minmax(15rem, 1fr) minmax(20rem, 2fr);
+  gap: 1.5rem;
+  margin-block: 1.5rem;
+}
+.record-layout > div > button {
+  display: block;
+  width: 100%;
+  margin-bottom: 0.5rem;
+  text-align: left;
+  padding: 0.8rem;
+}
+.record-layout article {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.record-layout dt {
+  font-size: 0.8rem;
+  opacity: 0.7;
+}
+.record-layout dd {
+  margin: 0.2rem 0 1rem;
+}
+.record-layout textarea {
+  width: 100%;
+  min-height: 6rem;
+}
+@media (max-width: 800px) {
+  .record-layout {
+    grid-template-columns: 1fr;
+  }
+}

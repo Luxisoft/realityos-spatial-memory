@@ -11,7 +11,9 @@ from alembic import context
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
 from app import models  # noqa: F401
+from app.accounts import models as account_models  # noqa: F401
 from app.db import Base
+from app.workspaces import models as workspace_models  # noqa: F401
 
 config = context.config
 config.set_main_option(

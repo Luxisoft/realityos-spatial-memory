@@ -18,6 +18,15 @@ class Settings(BaseSettings):
 
     environment: str = "development"
     local_login_enabled: bool = False
+    test_worker_provisioning_enabled: bool = False
+    integration_source_hosts: str = ""
+    integration_encryption_key: SecretStr = SecretStr("")
+    smtp_host: str = ""
+    smtp_port: int = 587
+    smtp_username: str = ""
+    smtp_password: SecretStr = SecretStr("")
+    smtp_from: str = ""
+    auth_public_url: AnyHttpUrl = "https://realityos.luxisoft.com"
     facebook_app_id: str | None = None
     facebook_app_secret: str | None = None
     social_moderator_facebook_ids: str = ""
