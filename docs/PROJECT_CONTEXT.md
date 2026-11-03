@@ -516,12 +516,27 @@ Biometría intacta: 136 enrolamientos y 22 consentimientos conservados. Las pers
 importadas no se convierten en usuarios ni se enlazan automáticamente al buscador
 facial existente. Credenciales del jurado solo en `.runtime/` privado.
 
-Verificados 21 escenarios HTTP y dos respuestas contextuales de Meta real; 375
-pruebas Python/gateway pasan en una ejecución completa, además de nueve
-regresiones posteriores de adjuntos y contrato. Android: 179 pruebas, lint y APK
-Debug final. Backend desplegado, timeout real de 120 s y llamadas a correo/IA
-fuera del hilo de peticiones. Adjuntos con visor de fotos/videos y rangos HTTP.
-Pendientes al escribir: final de indexación visual, publicación web por el workflow
-`Publish workspace web`, recepción real de correos (falta destinatario autorizado)
-y QA física de teléfono/gafas. SMTP TLS/autenticación comprobados; no se han enviado
-correos de prueba. Rollback base: `.runtime/workspace-data-20261102-rollback.json`.
+Verificados 21 escenarios HTTP, dos respuestas contextuales y búsquedas de objetos
+con Meta real. Las 21 publicaciones terminaron de indexarse, sin errores; la
+consulta final de linterna devolvió cinco coincidencias señalizadas. Pasan 375
+pruebas Python/gateway en una ejecución completa y nueve regresiones posteriores
+de adjuntos/contrato. Android: 179 pruebas, lint y APK Debug final.
+
+API/worker: `realityos-backend:workspace-data-20261102-r3`, con salud 200,
+OpenAPI coincidente y runtime/proveedores/límites conservados. Panel publicado
+por el workflow `Publish workspace web`, ejecución `41552026075` exitosa;
+Chromium verificó formulario de registro, acceso real, grupo, expediente y retrato
+con autenticación, sin errores JavaScript. Lectura parcial MP4 verificada (206).
+Credenciales de las tres cuentas del jurado: `.runtime/jury-access.json` privado.
+
+Pendientes: recepción real de confirmación/recuperación (falta destinatario
+autorizado) y QA física de teléfono/gafas. SMTP TLS/autenticación comprobados;
+no se han enviado correos de prueba. Las personas importadas no se enlazan al
+buscador facial y la comparación clínica sigue siendo explícita de campos.
+Los MP4 de evaluación son escenas estáticas sintéticas, rotuladas como tales.
+
+Rollback de imagen backend: `.runtime/workspace-data-20261102-rollback.json`.
+Rollback web anterior a esta entrega: `.runtime/workspace-data-web-rollback.json`.
+Estos overlays revierten código; no revierten la limpieza de datos. El snapshot
+técnico de migración caduca a las 24 horas y no se envió a R2. Comprobantes y
+hash del APK: `.runtime/workspace-data-final-verification.json`.

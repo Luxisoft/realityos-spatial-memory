@@ -152,8 +152,10 @@ ofrece una API REST para importar registros y medios por espacio. Consulte
 | Sonoran Neurological Institute | `noah-brooks` | `lucia-vega`, `owen-patel` |
 
 Las contraseñas se entregan de forma privada. En el host, el operador autorizado
-puede recuperarlas de `.runtime/jury-workspace-credentials.json`; no se publican
-en este repositorio. Las direcciones `@jury.example.test` no reciben correo y no
+puede recuperar las tres cuentas del jurado de `.runtime/jury-access.json`.
+El inventario de nueve cuentas e integraciones queda en
+`.runtime/jury-workspace-credentials.json`; no se publica en este repositorio.
+Las direcciones `@jury.example.test` no reciben correo y no
 se presentan como verificadas. El flujo normal de registro confirma correos reales.
 
 Pruebas sugeridas: buscar la linterna amarilla o el destornillador rojo; consultar
