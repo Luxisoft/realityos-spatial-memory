@@ -1,0 +1,91 @@
+{
+  "generator": "Codex built-in image_gen",
+  "content": "AI-generated fictional test-account portraits requested by the repository owner",
+  "common_prompt": "Use case: identity-preserve. Asset type: individual synthetic test-account portrait, not a collage. Image 1 is the authoritative identity reference of a fictional adult man. Generate a NEW photorealistic photograph of exactly that SAME person: preserve facial geometry, eyes, nose, mouth, ears, jawline, skin tone, age, skin marks, hairline and facial hair. Keep realistic visible pores and natural texture. One person, one clearly visible face, eyes open, no glasses, no hat, no face obstruction, no other people or reflected faces. Upright square 1024 x 1024 photograph, full head and upper chest, face large and in sharp focus, gentle natural lighting, correct anatomy. No captions, text, collage, watermark or logos. Dress him in ordinary casual clothing; no uniforms, badges, work clothing or professional attire.",
+  "images": [
+    {
+      "path": "alex-rivera/00-profile.png",
+      "account": "alex-rivera",
+      "role": "profile",
+      "identity_reference": "simulator/workspaces/assets/alex-rivera.png",
+      "scene_prompt": "Primary profile portrait: seated near a bright apartment window against a softly blurred pale sage wall. Straight-on eye-level view, relaxed closed-mouth smile, plain light gray crew-neck cotton T-shirt. Keep his short dark hair, neatly combed with a modest side part. Soft even daylight, neutral color balance, face occupies about 55% of image height."
+    },
+    {
+      "path": "noah-brooks/00-profile.png",
+      "account": "noah-brooks",
+      "role": "profile",
+      "identity_reference": "simulator/workspaces/assets/noah-brooks.png",
+      "scene_prompt": "Primary profile portrait: near a bright apartment window against a softly blurred warm beige wall. Straight-on eye-level view, relaxed closed-mouth smile, plain muted rust crew-neck cotton T-shirt. Keep his short tight curls neatly defined and preserve the same salt-and-pepper beard. Soft even daylight, neutral color balance, face occupies about 55% of image height."
+    },
+    {
+      "path": "alex-rivera/01-reference-park.png",
+      "account": "alex-rivera",
+      "role": "reference",
+      "identity_reference": "simulator/workspaces/assets/alex-rivera.png",
+      "scene_prompt": "A different new photograph in a leafy park on a bright overcast morning. He wears a plain olive-green casual zip hoodie over a white T-shirt. Head turned about 25 degrees toward the left of the frame, both eyes clearly visible, body angled, looking toward the camera with a relaxed slight smile. Eye-level head-and-shoulders composition. His short dark hair is casually tousled by a light breeze, forehead unobstructed. Green foliage blurred in the distance, soft natural light on the whole face."
+    },
+    {
+      "path": "alex-rivera/02-reference-cafe.png",
+      "account": "alex-rivera",
+      "role": "reference",
+      "identity_reference": "simulator/workspaces/assets/alex-rivera.png",
+      "scene_prompt": "A different new photograph seated at an outdoor cafe with softly blurred warm terracotta walls and cream details, no other people. Plain cobalt-blue crew-neck T-shirt. Turn his head about 30 degrees toward the right of the frame in a clear three-quarter view, both eyes visible; looking toward the lens with a natural small smile. Head and upper chest fill the square, eye-level perspective. Short dark hair brushed back smoothly with a slightly lifted front, same hairline and hair color. Balanced warm afternoon light, no harsh facial shadows."
+    },
+    {
+      "path": "noah-brooks/01-reference-park.png",
+      "account": "noah-brooks",
+      "role": "reference",
+      "identity_reference": "simulator/workspaces/assets/noah-brooks.png",
+      "scene_prompt": "A different new photograph in a leafy park on a bright overcast morning. He wears a plain teal casual sweatshirt. Head turned about 25 degrees toward the left of the frame, both eyes clearly visible, shoulders angled, looking toward the camera with a relaxed slight smile. Eye-level head-and-shoulders composition. His same short tight curls are styled with a little more volume on top; preserve his exact hairline and salt-and-pepper beard. Fresh green foliage blurred in the distance, soft natural light on the whole face."
+    },
+    {
+      "path": "noah-brooks/02-reference-library.png",
+      "account": "noah-brooks",
+      "role": "reference",
+      "identity_reference": "simulator/workspaces/assets/noah-brooks.png",
+      "scene_prompt": "A different new photograph seated at home near a bookcase and a sunlit pale blue wall, background softly blurred. Plain sand-beige knitted crew-neck sweater, casual weekend clothing. Turn his head about 30 degrees toward the right of the frame in a clear three-quarter view, both eyes visible, calm neutral mouth and gaze near the lens. Head and upper chest fill the square, eye-level perspective. Short curls brushed forward and neatly shaped at the sides, same hairline, same hair color, same salt-and-pepper beard. Gentle window illumination, no harsh shadows."
+    },
+    {
+      "path": "alex-rivera/03-reference-home.png",
+      "account": "alex-rivera",
+      "role": "reference",
+      "identity_reference": "simulator/workspaces/assets/alex-rivera.png",
+      "scene_prompt": "A different new photograph in a cozy living room with a softly blurred bookcase. Plain mustard-yellow casual knitted crew-neck sweater. Seated with relaxed shoulders, face near frontal but turned 10 degrees, chin slightly lowered, looking up gently to a camera about 8 degrees above eye level. A natural broader smile with a little upper teeth visible, still the same face and age. Short dark hair styled in a distinct neat side part, slightly softer fringe at the front but forehead and eyebrows visible. Soft window daylight, head and upper chest, no other people."
+    },
+    {
+      "path": "alex-rivera/04-reference-waterfront.png",
+      "account": "alex-rivera",
+      "role": "reference",
+      "identity_reference": "simulator/workspaces/assets/alex-rivera.png",
+      "scene_prompt": "A different new photograph at a quiet waterfront promenade, blurred blue water and pale sky. Casual light-wash denim overshirt open over a plain white T-shirt, no badges. Head turned 35 degrees toward the left of the frame in a three-quarter/profile-leaning view, both eyes visible and looking back toward the lens. Camera slightly below eye level by about 5 degrees, relaxed neutral mouth. Short dark hair gently swept back by sea breeze, slightly lifted at the front, same hairline. Bright soft late-afternoon light with warm highlights and balanced face illumination. Full head and upper chest, face sharply focused."
+    },
+    {
+      "path": "alex-rivera/05-reference-courtyard.png",
+      "account": "alex-rivera",
+      "role": "reference",
+      "identity_reference": "simulator/workspaces/assets/alex-rivera.png",
+      "scene_prompt": "A different new photograph in a sunlit residential courtyard with a softly blurred off-white wall, potted greenery and warm orange details. Plain burgundy casual cotton crew-neck T-shirt. Body angled 25 degrees but face almost frontal, head gently tilted about 5 degrees, relaxed smile, gaze into the lens. Camera at eye level with a slightly wider upper-chest framing, still a large sharp face. Short dark hair arranged with a side sweep in the opposite direction from a classic side part, natural texture, hairline unchanged and eyebrows unobstructed. Open-shade daylight, realistic colors and skin texture."
+    },
+    {
+      "path": "noah-brooks/03-reference-cafe.png",
+      "account": "noah-brooks",
+      "role": "reference",
+      "identity_reference": "simulator/workspaces/assets/noah-brooks.png",
+      "scene_prompt": "A different new photograph at an empty outdoor cafe with softly blurred cream walls and warm wood furniture. Plain white crew-neck T-shirt under an open casual forest-green overshirt, no uniform details. Seated comfortably, near-frontal face turned 10 degrees, chin slightly lowered, looking toward a camera about 8 degrees above eye level. A natural broader smile with a little upper teeth visible, exact same face, age and beard. His short curls are a little looser and fluffier on top while the hairline and natural color remain unchanged. Soft bright daylight, full head and upper chest, no other people."
+    },
+    {
+      "path": "noah-brooks/04-reference-waterfront.png",
+      "account": "noah-brooks",
+      "role": "reference",
+      "identity_reference": "simulator/workspaces/assets/noah-brooks.png",
+      "scene_prompt": "A different new photograph beside a quiet lake with softly blurred blue water and pale sky. A plain mustard-yellow casual cotton T-shirt. Head turned about 35 degrees toward the left of the frame in a three-quarter/profile-leaning view, both eyes visible, looking back toward the lens. Camera slightly below eye level by about 5 degrees, relaxed neutral mouth. Short tightly defined curls with tidier closely shaped sides; exact same hairline, beard and skin marks. Bright soft late-afternoon light with warm highlights and evenly illuminated facial details. Full head and upper chest, sharply focused face."
+    },
+    {
+      "path": "noah-brooks/05-reference-courtyard.png",
+      "account": "noah-brooks",
+      "role": "reference",
+      "identity_reference": "simulator/workspaces/assets/noah-brooks.png",
+      "scene_prompt": "A different new photograph in a relaxed residential courtyard with softly blurred terracotta brick and leafy plants. Plain plum-purple casual crew-neck shirt. Body angled about 25 degrees but face near frontal, head gently tilted 5 degrees, warm small smile, gaze into the lens. Camera eye-level, slightly wider upper-chest portrait while face remains large and sharp. Short curls styled into more individually defined tiny coils on top, same natural hair color and hairline, same salt-and-pepper beard. Open-shade daylight, natural warm color palette, no uniforms or other people."
+    }
+  ]
+}

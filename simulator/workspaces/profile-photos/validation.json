@@ -1,0 +1,120 @@
+{
+  "engine": "insightface-buffalo_l",
+  "simulated_engine": false,
+  "synthetic_images": true,
+  "identity_threshold": 0.5,
+  "min_quality": 0.3,
+  "min_area": 0.005,
+  "validation_mode": "offline; no account or enrollment writes",
+  "accounts": {
+    "alex-rivera": {
+      "profile": 1,
+      "references": 5,
+      "images": [
+        {
+          "file": "00-profile.png",
+          "face_count": 1,
+          "quality": 0.90245,
+          "similarity_to_profile": 1.0,
+          "similarity_to_original": 0.89204,
+          "accepted": true
+        },
+        {
+          "file": "01-reference-park.png",
+          "face_count": 1,
+          "quality": 0.91409,
+          "similarity_to_profile": 0.83028,
+          "similarity_to_original": 0.88636,
+          "accepted": true
+        },
+        {
+          "file": "02-reference-cafe.png",
+          "face_count": 1,
+          "quality": 0.85102,
+          "similarity_to_profile": 0.77868,
+          "similarity_to_original": 0.82514,
+          "accepted": true
+        },
+        {
+          "file": "03-reference-home.png",
+          "face_count": 1,
+          "quality": 0.85765,
+          "similarity_to_profile": 0.81498,
+          "similarity_to_original": 0.83033,
+          "accepted": true
+        },
+        {
+          "file": "04-reference-waterfront.png",
+          "face_count": 1,
+          "quality": 0.90103,
+          "similarity_to_profile": 0.75574,
+          "similarity_to_original": 0.77078,
+          "accepted": true
+        },
+        {
+          "file": "05-reference-courtyard.png",
+          "face_count": 1,
+          "quality": 0.89712,
+          "similarity_to_profile": 0.83842,
+          "similarity_to_original": 0.85957,
+          "accepted": true
+        }
+      ]
+    },
+    "noah-brooks": {
+      "profile": 1,
+      "references": 5,
+      "images": [
+        {
+          "file": "00-profile.png",
+          "face_count": 1,
+          "quality": 0.90223,
+          "similarity_to_profile": 1.0,
+          "similarity_to_original": 0.87971,
+          "accepted": true
+        },
+        {
+          "file": "01-reference-park.png",
+          "face_count": 1,
+          "quality": 0.90158,
+          "similarity_to_profile": 0.80065,
+          "similarity_to_original": 0.8226,
+          "accepted": true
+        },
+        {
+          "file": "02-reference-library.png",
+          "face_count": 1,
+          "quality": 0.84377,
+          "similarity_to_profile": 0.73607,
+          "similarity_to_original": 0.79355,
+          "accepted": true
+        },
+        {
+          "file": "03-reference-cafe.png",
+          "face_count": 1,
+          "quality": 0.90322,
+          "similarity_to_profile": 0.8031,
+          "similarity_to_original": 0.85035,
+          "accepted": true
+        },
+        {
+          "file": "04-reference-waterfront.png",
+          "face_count": 1,
+          "quality": 0.85091,
+          "similarity_to_profile": 0.79712,
+          "similarity_to_original": 0.82025,
+          "accepted": true
+        },
+        {
+          "file": "05-reference-courtyard.png",
+          "face_count": 1,
+          "quality": 0.86265,
+          "similarity_to_profile": 0.85148,
+          "similarity_to_original": 0.8971,
+          "accepted": true
+        }
+      ]
+    }
+  },
+  "container_image": "ghcr.io/luxisoft/realityos-backend:a4812688f0179d61d5797eec79a2ccb2c4fde87a"
+}

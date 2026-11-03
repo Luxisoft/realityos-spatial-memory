@@ -1,0 +1,29 @@
+FOTOS SINTETICAS PARA CUENTAS DE PRUEBA
+
+Generadas con el generador integrado image_gen de Codex para Alex Rivera y
+Noah Brooks, tomando como referencia sus retratos ficticios existentes.
+Cada carpeta contiene una foto de perfil y cinco fotos de referencia distintas.
+
+Como cargarlas:
+1. En la cuenta correspondiente, seleccionar 00-profile.png como foto de perfil.
+2. En el paso de referencias, seleccionar los cinco archivos 01-reference-...
+   a 05-reference-... de esa misma carpeta.
+3. Completar el registro cuando la app confirme las referencias aceptadas.
+
+Alex: parque, cafe, casa, paseo junto al agua y patio.
+Noah: parque, biblioteca de casa, cafe, lago y patio.
+Ropa casual, colores, angulos, expresiones y peinados variados; misma identidad
+ficticia dentro de cada lote. Imagenes individuales en PNG, derechas y bajo
+5 MiB. Las seis imagenes de cada persona tienen bytes distintos.
+
+Validacion: realizada sin escribir cuentas ni enrolamientos, usando el motor
+InsightFace y los criterios de referencia de la app: un rostro, calidad minima
+0.3, area minima 0.005 y coincidencia minima 0.5 con la foto de perfil.
+Las cinco referencias de cada persona superan esas comprobaciones.
+No se realizo una subida desde un telefono fisico.
+
+Los prompts completos estan en prompts.json. Los hashes y medidas estan en
+manifest.json. Los resultados de la comprobacion estan en validation.json.
+
+Estas imagenes representan personajes ficticios para pruebas; no son fotos
+aportadas por usuarios ni una medicion de precision sobre personas reales.
