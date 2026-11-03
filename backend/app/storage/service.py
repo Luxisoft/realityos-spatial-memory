@@ -11,8 +11,9 @@ from sqlalchemy import select
 from starlette.datastructures import Headers
 
 from app.meta import build_meta_client
-from app.models import User
+from app.models import MediaAsset, User
 from app.social_features.evidence_models import PublicationUpload
+from app.social_features.models import Publication
 from app.social_features.upload_service import process_upload
 from app.social_features.uploads import candidate, check_destination
 from app.storage.client import MEDIA, BucketClient, check_key, mime_for
@@ -91,16 +92,35 @@ def import_json(db, run):
     }
 
 
-def upload_request_key(db, owner_id, identity):
-    # Follow cancelled attempts without changing their history. Each successor
-    # has a stable key, so concurrent/repeated imports reuse the same candidate.
+def upload_request_key(db, owner_id, identity, sha256):
+    # Follow cancelled or superseded attempts without changing their history.
+    # Stable successor keys keep concurrent/repeated imports idempotent.
     key = hashlib.sha256(identity.encode()).hexdigest()
     while previous := db.scalar(
         select(PublicationUpload).where(
             PublicationUpload.owner_id == owner_id, PublicationUpload.request_key == key
         )
     ):
-        if previous.status != "cancelled":
+        reusable = previous.status != "cancelled"
+        if previous.status == "published":
+            # A published candidate is historical: its result may since have
+            # been removed or replaced with different original bytes.
+            reusable = (
+                db.scalar(
+                    select(Publication.id)
+                    .join(MediaAsset, Publication.media_id == MediaAsset.id)
+                    .where(
+                        Publication.id == previous.result_id,
+                        Publication.owner_id == owner_id,
+                        Publication.audience == previous.audience,
+                        Publication.workspace_id == previous.workspace_id,
+                        Publication.hidden.is_(False),
+                        MediaAsset.sha256 == sha256,
+                    )
+                )
+                is not None
+            )
+        if reusable:
             break
         key = hashlib.sha256(f"{key}:{previous.id}".encode()).hexdigest()
     return key
@@ -141,7 +161,7 @@ def process_import(db, run_id, settings):
                     str(run.workspace_id),
                 ]
             )
-            request_key = upload_request_key(db, user.id, identity)
+            request_key = upload_request_key(db, user.id, identity, provenance["sha256"])
             upload = asyncio.run(
                 candidate(
                     request,

@@ -242,6 +242,97 @@ def test_candidate_reuse_is_scoped_to_destination(client, auth_headers, source, 
     assert len(set(ids)) == 2
 
 
+def test_reimport_restores_original_after_publication_was_replaced(
+    client, auth_headers, source, monkeypatch
+):
+    from app.models import MediaAsset
+    from app.social_features.models import Publication
+    from PIL.PngImagePlugin import PngInfo
+
+    original = image_bytes()
+    metadata = PngInfo()
+    metadata.add_text("version", "updated original")
+    output = io.BytesIO()
+    Image.open(io.BytesIO(original)).save(output, "PNG", pnginfo=metadata)
+    changed = output.getvalue()
+    current = [original]
+
+    def download(bucket, key):
+        check_key(bucket.connection, key)
+        raw = current[0]
+        return raw, "image/png", {"key": key, "sha256": hashlib.sha256(raw).hexdigest()}
+
+    monkeypatch.setattr(BucketClient, "download", download)
+    path = BASE + "/" + source["id"] + "/imports"
+
+    def start(request_key):
+        response = client.post(
+            path,
+            headers=auth_headers,
+            json={
+                "request_key": request_key,
+                "keys": ["photos/a.png"],
+            },
+        )
+        assert response.status_code == 202, response.text
+        return response.json()["items"][0]
+
+    first = start("original")
+    assert first["status"] == "published"
+    for request_key, raw in (("changed", changed), ("restored", original)):
+        current[0] = raw
+        item = start(request_key)
+        assert item["status"] == "duplicate"
+        assert item["upload_id"] != first["upload_id"]
+        assert (
+            client.post(
+                "/v1/me/publication-uploads/" + item["upload_id"] + "/confirm",
+                headers=auth_headers,
+            ).status_code
+            == 200
+        )
+        with client.app.state.database.session_factory() as db:
+            post = db.get(Publication, uuid.UUID(first["publication_id"]))
+            assert db.get(MediaAsset, post.media_id).original_bytes == raw
+    again = start("unchanged")
+    assert again["status"] == "published"
+    assert again["publication_id"] == first["publication_id"]
+
+
+def test_explicit_reimport_after_removal_creates_a_visible_publication(
+    client, auth_headers, source, remote
+):
+    from app.social_features.models import Publication
+
+    path = BASE + "/" + source["id"] + "/imports"
+    body = {"request_key": "first", "keys": ["photos/a.png"]}
+    first = client.post(path, headers=auth_headers, json=body).json()["items"][0]
+    assert (
+        client.post(
+            "/v1/gallery/" + first["publication_id"] + "/remove",
+            headers=auth_headers,
+        ).status_code
+        == 200
+    )
+    body["request_key"] = "explicit-reimport"
+    response = client.post(path, headers=auth_headers, json=body)
+    assert response.status_code == 202, response.text
+    replacement = response.json()["items"][0]
+    assert replacement["status"] == "published"
+    assert replacement["publication_id"] != first["publication_id"]
+    assert client.post(path, headers=auth_headers, json=body).json() == response.json()
+    body["request_key"] = "unchanged"
+    assert (
+        client.post(path, headers=auth_headers, json=body).json()["items"][0][
+            "publication_id"
+        ]
+        == replacement["publication_id"]
+    )
+    with client.app.state.database.session_factory() as db:
+        assert db.get(Publication, uuid.UUID(first["publication_id"])).hidden
+        assert not db.get(Publication, uuid.UUID(replacement["publication_id"])).hidden
+
+
 @pytest.mark.parametrize(
     ("prefix", "encoded"),
     [
