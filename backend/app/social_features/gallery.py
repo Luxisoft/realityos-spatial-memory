@@ -8,7 +8,7 @@ from datetime import UTC, datetime
 from typing import Literal
 
 from fastapi import APIRouter, Depends, HTTPException, Request
-from PIL import Image
+from PIL import Image, ImageOps
 from pydantic import BaseModel, Field
 from sqlalchemy import (
     and_,
@@ -590,7 +590,8 @@ def thumbnail(
                 except (subprocess.SubprocessError, OSError) as error:
                     raise HTTPException(422, "Video thumbnail unavailable.") from error
     try:
-        with Image.open(io.BytesIO(raw)) as image:
+        with Image.open(io.BytesIO(raw)) as source:
+            image = ImageOps.exif_transpose(source)
             image.thumbnail((360, 480))
             output = io.BytesIO()
             image.convert("RGB").save(output, format="JPEG", quality=85)
@@ -649,7 +650,12 @@ def boxed_thumbnail(
             break
     try:
         with Image.open(io.BytesIO(asset.original_bytes)) as image:
-            picture = image.convert("RGB")
+            # Current detections are measured on the normalized upright image.
+            # Legacy boxes were drawn on encoded pixels: rotate that whole
+            # annotated image afterwards so their existing alignment is kept.
+            picture = (
+                ImageOps.exif_transpose(image) if post.evidence_version >= 2 else image
+            ).convert("RGB")
             draw = ImageDraw.Draw(picture)
             width_px, height_px = picture.size
             outline = max(2, min(width_px, height_px) // 150)
@@ -659,6 +665,8 @@ def boxed_thumbnail(
                 right = min(max(x + width, 0.0), 1.0) * width_px
                 bottom = min(max(y + height, 0.0), 1.0) * height_px
                 draw.rectangle([left, top, right, bottom], outline=(255, 196, 0), width=outline)
+            if post.evidence_version < 2:
+                picture = ImageOps.exif_transpose(picture)
             if not full_size:
                 picture.thumbnail((360, 480))
             output = io.BytesIO()

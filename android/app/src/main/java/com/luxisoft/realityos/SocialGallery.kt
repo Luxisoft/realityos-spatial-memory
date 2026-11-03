@@ -251,6 +251,9 @@ internal object SocialSession {
             }
             if (connection.responseCode == 403 && path.startsWith("faces/")) error(localizedText(R.string.ui_face_search_requires_your_biometric_consent))
             if (connection.responseCode !in 200..299) {
+                val detail = connection.errorStream?.bufferedReader()?.use { it.readText() }.orEmpty()
+                recognitionPhotoFailure(path, connection.responseCode, detail)?.let { error(it) }
+                publicationUploadFailure(path, connection.responseCode, detail)?.let { error(it) }
                 error(localizedHttpError(connection.responseCode))
             }
             connection.inputStream.bufferedReader().use { it.readText() }

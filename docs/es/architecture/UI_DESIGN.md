@@ -37,6 +37,14 @@ máximo de 25. La foto visible se distingue de las referencias privadas. Carga,
 error recuperable y envío tienen estados explícitos, sin habilitar acciones antes
 del consentimiento ni completar el registro automáticamente.
 
+Las fotos de perfil y las referencias elegidas en Android aplican las ocho
+orientaciones EXIF antes de enviarse como JPEG de hasta 1600 px. El control de
+nitidez utiliza la misma escala para evitar rechazar retratos por su resolución.
+Las publicaciones conservan sus bytes originales; sus miniaturas, vistas previas
+y recuadros respetan la orientación de la foto. Los errores de subida explican
+si falta un grupo, si el formato/tamaño no se admite o si el rostro no se valida,
+en lugar de mostrar únicamente un código HTTP.
+
 Antes de entregar cambios de interfaz, revisar capturas de los estados relevantes
 en español e inglés, a 320–480 dp y con texto al 200 %, además de las pruebas de
 interacción y la compilación del APK. Las capturas de esta pantalla se generan con

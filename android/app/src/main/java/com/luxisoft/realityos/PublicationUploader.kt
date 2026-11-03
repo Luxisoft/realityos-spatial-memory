@@ -12,6 +12,25 @@ import java.util.UUID
 import kotlinx.coroutines.*
 import org.json.JSONObject
 
+internal fun publicationUploadFailure(path: String, status: Int, body: String): String? {
+    if (path != "me/publication-uploads") return null
+    val detail = runCatching { JSONObject(body).opt("detail") }.getOrNull()
+    val message = when {
+        status == 403 -> R.string.publication_group_permission
+        status == 413 -> R.string.biometric_photo_too_large
+        status == 415 -> R.string.publication_media_format
+        status == 422 && detail in setOf("Join or create a work group before publishing.", "Choose a work group.") -> R.string.publish_needs_group
+        status == 422 && detail == "Invalid image." -> R.string.ui_could_not_read_the_image
+        status == 422 && detail is org.json.JSONArray && (0 until detail.length()).any { index ->
+            val location = detail.optJSONObject(index)?.optJSONArray("loc")
+            location?.optString(location.length() - 1) in setOf("audience", "workspace_id")
+        } -> R.string.publish_needs_group
+        status == 422 -> R.string.publication_upload_validation
+        else -> return null
+    }
+    return localizedText(message)
+}
+
 internal class PublicationUploader(
     private val scope: CoroutineScope,
     private val onPublished: () -> Unit,
@@ -44,6 +63,7 @@ internal class PublicationUploader(
             submitting = true
             error = ""
             try {
+                require(audience == "work" && !workspaceId.isNullOrBlank()) { localizedText(R.string.publish_needs_group) }
                 val fields = mutableMapOf("request_key" to UUID.randomUUID().toString(), "audience" to audience, "note_text" to note, "note_source" to source)
                 workspaceId?.let { fields["workspace_id"] = it }
                 val value = withContext(Dispatchers.IO) {

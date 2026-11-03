@@ -106,7 +106,7 @@ internal fun FaceSearch(onBack: () -> Unit, onOpenProfile: (String) -> Unit = {}
                     context.contentResolver.openInputStream(uri)?.use { it.readBytes() }
                 } ?: error(context.getString(R.string.face_unreadable))
                 val result = withContext(Dispatchers.IO) {
-                    JSONObject(SocialSession.requestMultipart("faces/profile-photo", emptyMap(), bytes, "profile.jpg", "image/jpeg"))
+                    JSONObject(SocialSession.requestMultipart("faces/profile-photo", emptyMap(), prepareRecognitionPhoto(bytes), "profile.jpg", "image/jpeg"))
                 }
                 message = localizedQuantityText(R.plurals.face_enrolled, result.getInt("faces_enrolled"), result.getInt("faces_enrolled"))
                 refreshEnrollments()

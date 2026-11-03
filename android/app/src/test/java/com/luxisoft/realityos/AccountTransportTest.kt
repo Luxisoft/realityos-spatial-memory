@@ -18,6 +18,40 @@ import org.robolectric.annotation.Config
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [35], application = Application::class)
 class AccountTransportTest {
+    @Test fun publicationRejectionsExplainTheDestinationOrImageWithoutChangingUploadedBytes() {
+        val context = org.robolectric.RuntimeEnvironment.getApplication()
+        LocalizedText.initialize(context)
+        val store = RealityExperienceStore(context)
+        store.setLanguage(RealityLanguage.SPANISH)
+        val original = SocialSession.openJsonConnection
+        val server = MockWebServer().apply { start() }
+        try {
+            SocialSession.clear()
+            SocialSession.token = "synthetic-publication-session"
+            SocialSession.openJsonConnection = { path -> server.url("/$path").toUrl().openConnection() as HttpURLConnection }
+            server.enqueue(MockResponse().setResponseCode(422).setBody("""{"detail":"Choose a work group."}"""))
+            val raw = "original image with EXIF bytes".toByteArray()
+            val failure = assertThrows(IllegalStateException::class.java) {
+                SocialSession.requestMultipart("me/publication-uploads", mapOf("request_key" to "test-key", "audience" to "work", "workspace_id" to "chosen-workspace"), raw, "photo.jpg", "image/jpeg")
+            }
+            assertEquals(localizedText(R.string.publish_needs_group), failure.message)
+            val request = server.takeRequest()
+            val body = request.body.readUtf8()
+            assertTrue(body.contains("name=\"workspace_id\"\r\n\r\nchosen-workspace"))
+            assertTrue(body.contains(String(raw)))
+            assertEquals("Bearer synthetic-publication-session", request.getHeader("Authorization"))
+            assertEquals(localizedText(R.string.ui_could_not_read_the_image), publicationUploadFailure("me/publication-uploads", 422, """{"detail":"Invalid image."}"""))
+            assertEquals(localizedText(R.string.publication_media_format), publicationUploadFailure("me/publication-uploads", 415, "{}"))
+            assertEquals(localizedText(R.string.publish_needs_group), publicationUploadFailure("me/publication-uploads", 422, """{"detail":[{"loc":["body","workspace_id"],"type":"uuid_parsing"}]}"""))
+            assertNull(publicationUploadFailure("faces/profile-photo", 422, "{}"))
+        } finally {
+            SocialSession.openJsonConnection = original
+            SocialSession.clear()
+            store.setLanguage(RealityLanguage.ENGLISH)
+            server.shutdown()
+        }
+    }
+
     @Test fun imageQueryWaitsForLongAnalysisWhileOrdinaryUploadsKeepTheirLimit() {
         class DelayedConnection : HttpURLConnection(URL("https://example.test/v1/query")) {
             val body = ByteArrayOutputStream()

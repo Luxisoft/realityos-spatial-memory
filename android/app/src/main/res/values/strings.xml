@@ -570,4 +570,13 @@
     <string name="biometric_uploading">Processing photo %1$s…</string>
     <string name="biometric_loading">Checking your recognition profile…</string>
     <string name="biometric_load_failed">Your profile could not be loaded. Check your connection and try again.</string>
+    <string name="biometric_photo_one_face">Use a clear, close-up photo with only your face visible.</string>
+    <string name="biometric_photo_quality">Your face could not be validated. Choose a sharp close-up in natural light, without glare or a screen in front of the camera.</string>
+    <string name="biometric_photo_identity">Choose another photo of yourself that matches your profile photo.</string>
+    <string name="biometric_photo_different">Use a different photo. Your profile photo does not count as a reference.</string>
+    <string name="biometric_photo_too_large">The photo is too large. Choose a smaller image and try again.</string>
+    <string name="biometric_photo_rejected">This photo could not be accepted. Choose another clear photo of your face and try again.</string>
+    <string name="publication_group_permission">Choose a work group where you have permission to publish.</string>
+    <string name="publication_media_format">Use a JPEG, PNG or WebP photo, or an MP4 video.</string>
+    <string name="publication_upload_validation">Check the selected group and keep your note under 4,000 characters, then try again.</string>
 </resources>

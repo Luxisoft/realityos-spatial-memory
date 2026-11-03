@@ -36,6 +36,13 @@ maximum of 25. The visible photo is distinguished from private references.
 Loading, recoverable errors and submissions have explicit states, without
 enabling actions before consent or completing registration automatically.
 
+Profile and reference photos selected on Android apply all eight EXIF
+orientations before upload as JPEGs bounded to 1600 px. Sharpness validation uses
+the same scale so resolution alone does not reject a portrait. Publications keep
+their original bytes; thumbnails, previews and overlays honor photo orientation.
+Upload errors explain missing groups, unsupported formats/sizes or failed face
+validation instead of showing only an HTTP code.
+
 Before delivering UI changes, review relevant state screenshots in English and
 Spanish, at 320–480 dp and 200% text, alongside interaction tests and an APK build.
 `AccountBiometricSetupTest` generates this screen's captures in

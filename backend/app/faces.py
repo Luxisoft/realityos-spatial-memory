@@ -246,6 +246,11 @@ def assess_spoof_risk(image: bytes, bounding_box: dict[str, float]) -> SpoofAsse
             rgb = ImageOps.exif_transpose(picture).convert("RGB")
     except Exception:
         return SpoofAssessment(risk=1.0, reasons=["unreadable"])
+    # Measure sharpness/frequency at the same scale as Android face captures.
+    # Otherwise a clear high-resolution portrait has very small pixel-to-pixel
+    # changes and is rejected as blurry merely because it has more pixels.
+    # Work only on this decoded analysis copy; original BYTEA/EXIF stay intact.
+    rgb.thumbnail((1600, 1600), Image.Resampling.LANCZOS)
     width, height = rgb.size
     try:
         left = max(0, int(float(bounding_box.get("x", 0.0)) * width))
@@ -1241,7 +1246,7 @@ async def upload_profile_photo(
     engine = _face_engine_or_503(settings)
     raw = await _read_probe_image(file, settings)
     with Image.open(io.BytesIO(raw)) as picture:
-        width, height = picture.size
+        width, height = ImageOps.exif_transpose(picture).size
     try:
         pre_faces = engine.detect_faces(raw)
     except FaceEngineError as exc:

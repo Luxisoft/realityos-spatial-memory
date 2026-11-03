@@ -52,9 +52,7 @@ internal fun AccountBiometricGate(content: @Composable () -> Unit) {
             operation {
                 withContext(Dispatchers.IO) {
                     val raw = context.contentResolver.openInputStream(uri)?.use { it.readBytes() } ?: error(localizedText(R.string.face_unreadable))
-                    val mime = context.contentResolver.getType(uri) ?: "image/jpeg"
-                    SocialSession.requestMultipart("faces/profile-photo", emptyMap(), raw, "profile-photo", mime)
-                    SocialSession.requestMultipart("me/profile/avatar", emptyMap(), raw, "avatar", mime)
+                    uploadRecognitionProfile(prepareRecognitionPhoto(raw))
                 }
                 refresh()
             }
@@ -69,7 +67,7 @@ internal fun AccountBiometricGate(content: @Composable () -> Unit) {
                     try {
                         withContext(Dispatchers.IO) {
                             val raw = context.contentResolver.openInputStream(uri)?.use { it.readBytes() } ?: error(localizedText(R.string.face_unreadable))
-                            SocialSession.requestMultipart("faces/reference-photos", emptyMap(), raw, "reference-photo", context.contentResolver.getType(uri) ?: "image/jpeg")
+                            SocialSession.requestMultipart("faces/reference-photos", emptyMap(), prepareRecognitionPhoto(raw), "reference-photo.jpg", "image/jpeg")
                         }
                     } catch (cancelled: CancellationException) {
                         throw cancelled
