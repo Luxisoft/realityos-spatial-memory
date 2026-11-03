@@ -1752,3 +1752,27 @@ Sin cambios de API, servidor o reconocimiento biométrico.
 Builds Debug y Release aprobados. APK instalable reconstruido en la ruta única
 `android/app/build/outputs/apk/debug/app-debug.apk`; SHA-256
 `cfc13087746d6bda4bb74d72424229e9a52956abd410d615097b78c6913fd479`.
+
+
+## Nombre del remitente de correo — 2026-11-03
+
+Se detectó `SMTP_FROM=Animalia <support@luxisoft.com>` en API y worker. El runtime
+ahora usa `RealityOS <support@luxisoft.com>` y el transporte construye siempre
+el nombre visible RealityOS, conservando la dirección configurada. Así un alias
+heredado no vuelve a aparecer en confirmaciones ni recuperaciones.
+
+15 pruebas de cuentas aprobadas, incluyendo TLS 465/587 con remitente sin nombre,
+nombre heredado y nombre correcto; formato y lint aprobados. Imagen productiva
+`realityos-backend:mail-sender-20261103`, construida sobre la imagen instalada
+cambiando únicamente el servicio de correo. Salud real de API, contrato OpenAPI
+exacto local/público y worker verificados; Alembic `20261103_0033 (head)` sin
+migración nueva. Entorno restante, límites, reinicio bajo demanda y proxy
+conservados. Dos mensajes construidos en el contenedor con SMTP sustituido por
+un receptor de prueba confirmaron el remitente; cero correos reales enviados.
+El propietario informó recepción del correo anterior; no se afirma una nueva
+recepción en buzón después de esta corrección.
+
+Rollback: `.runtime/mail-sender-20261103-rollback.json`; recibo de verificación:
+`.runtime/mail-sender-20261103/verified.json`. Sin cambios de contrato Android
+ni necesidad de reconstruir el APK. Contenedores anteriores retirados tras
+validar; la imagen de reversión se conserva.

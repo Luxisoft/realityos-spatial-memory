@@ -615,3 +615,10 @@ locales se rotulan como ejemplos; los prompts están en
 `docs/assets/entry/PROMPTS.json`. Se conserva el consentimiento de entrada,
 la preferencia de bienvenida y el flujo de regreso. Ver UI_DESIGN.md y
 la validación en IMPLEMENTATION_STATUS.md. Sin cambios de contratos o servidor.
+
+Remitente de correo corregido (2026-11-03): producción usa
+`RealityOS <support@luxisoft.com>`. El transporte fija el nombre del proyecto
+y conserva solo el buzón de `SMTP_FROM`, evitando aliases heredados de otras
+apps. API/worker `realityos-backend:mail-sender-20261103`, salud/contrato/head
+verificados, 15 pruebas de cuentas aprobadas. Rollback:
+`.runtime/mail-sender-20261103-rollback.json`. Sin migración ni contrato nuevo.

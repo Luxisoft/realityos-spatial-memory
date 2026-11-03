@@ -216,7 +216,15 @@ import pytest
 
 
 @pytest.mark.parametrize("port", [465, 587])
-def test_smtp_transport_confirmation_and_reset_links(client, monkeypatch, port):
+@pytest.mark.parametrize(
+    "sender",
+    [
+        "realityos@example.test",
+        "Animalia <realityos@example.test>",
+        "RealityOS <realityos@example.test>",
+    ],
+)
+def test_smtp_transport_confirmation_and_reset_links(client, monkeypatch, port, sender):
     from urllib.parse import parse_qs, urlsplit
 
     from app.accounts.models import AccountChallenge
@@ -227,7 +235,7 @@ def test_smtp_transport_confirmation_and_reset_links(client, monkeypatch, port):
     settings.smtp_port = port
     settings.smtp_username = "transport-test"
     settings.smtp_password = SecretStr("synthetic-mail-password")
-    settings.smtp_from = "realityos@example.test"
+    settings.smtp_from = sender
     settings.auth_public_url = "https://example.test"
     deliveries = []
     calls = []
@@ -256,6 +264,8 @@ def test_smtp_transport_confirmation_and_reset_links(client, monkeypatch, port):
             calls.append("login")
 
         def send_message(self, message):
+            assert message["From"].addresses[0].display_name == "RealityOS"
+            assert message["From"].addresses[0].addr_spec == "realityos@example.test"
             deliveries.append(message)
 
     monkeypatch.setattr("app.accounts.service.smtplib.SMTP_SSL", SMTP)

@@ -16,6 +16,9 @@ son de un solo uso y el cambio de contraseña revoca sesiones anteriores.
 SMTP requiere `SMTP_HOST`, `SMTP_PORT`, `SMTP_USERNAME`, `SMTP_PASSWORD`,
 `SMTP_FROM` y `AUTH_PUBLIC_URL` privados. Se exige TLS; puerto 465 usa TLS directo,
 los demás STARTTLS. Nunca incluir estas variables en aplicaciones cliente o Git.
+El nombre visible del remitente es siempre `RealityOS`; de `SMTP_FROM` se toma
+solo la dirección del buzón. Un nombre heredado de otra aplicación no cambia
+la identidad de los correos de confirmación o recuperación.
 
 Las cuentas del jurado son provisionadas por administración: pueden entrar por
 usuario y contraseña, pero sus direcciones ficticias no se marcan verificadas.

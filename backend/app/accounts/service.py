@@ -7,7 +7,9 @@ import smtplib
 import ssl
 import time
 from datetime import UTC, datetime, timedelta
+from email.headerregistry import Address
 from email.message import EmailMessage
+from email.utils import parseaddr
 
 from fastapi import HTTPException
 from sqlalchemy import update
@@ -55,7 +57,8 @@ def send_mail(settings, recipient, purpose, lang, token):
     path = "verify" if purpose == "verify" else "reset"
     url = f"{str(settings.auth_public_url).rstrip('/')}/v1/auth/{path}?lang={lang}#token={token}"
     message = EmailMessage()
-    message["From"] = settings.smtp_from
+    # The mailbox is configurable; account mail always carries this app's name.
+    message["From"] = Address(display_name="RealityOS", addr_spec=parseaddr(settings.smtp_from)[1])
     message["To"] = recipient
     subject, text, html = mail_content(purpose, url, lang)
     message["Subject"] = subject
