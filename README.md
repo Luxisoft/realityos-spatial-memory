@@ -2,11 +2,16 @@
 
 <a id="top"></a>
 
-[Español](docs/es/README.md)
+<p align="center">
+  <a href="docs/en/README.md"><img src="docs/assets/readme/language-en-active.svg" alt="English — selected" height="32"></a>
+  <a href="docs/es/README.md"><img src="docs/assets/readme/language-es.svg" alt="Leer en español" height="32"></a>
+</p>
 
 # RealityOS
 
-<a id="architecture"></a>
+<p align="center">
+  <img src="docs/assets/readme/banner-en.png" width="896" alt="RealityOS: conceptual illustration of face search with Android and smart glasses.">
+</p>
 
 Android app for saving photos, videos and records in groups and searching evidence with AI. The local server runs PostgreSQL, Redis, API and worker in Docker.
 
@@ -52,9 +57,42 @@ adb install -r app-debug.apk
 
 Open the app and choose one of the **9 accounts across 3 groups: police, nursing and memory**. Explore the gallery and records; to publish, select a group, category and tag. Wait for indexing to finish before searching.
 
+| Preview / video | Use |
+| --- | --- |
+| <a href="demo-video/policial_case.mp4"><img src="docs/assets/readme/example-police.png" width="160" height="90" alt="Professional reviewing a police record"></a> | **Police:** consult group records and evidence. |
+| <a href="demo-video/nurse_case.mp4"><img src="docs/assets/readme/example-nursing.png" width="160" height="90" alt="Nurse and patient consulting a record"></a> | **Nursing:** review authorized records, notes and attachments. |
+| <a href="demo-video/memory.mp4"><img src="docs/assets/readme/example-memory.png" width="160" height="90" alt="Person retrieving a photograph of a stored object"></a> | **Memory:** find where and when an object was last seen. |
+| <a href="demo-video/profile_found.mp4"><img src="docs/assets/readme/example-social.png" width="160" height="90" alt="Two people consulting a shared profile"></a> | **Profiles:** open a face candidate's authorized information. |
+
+Images and videos are [conceptual illustrations](docs/en/project/GRAPHICS.md). Click a thumbnail to open its video.
+
 <a id="biometrics"></a>
 
-Face search requires explicit consent and enrollment. For spoken replies, install an offline ES/EN voice on Android. Repeat `adb reverse` after reconnecting the phone.
+### Face search
+
+Face search requires explicit consent and enrollment. InsightFace returns candidates for human review; profiles or records open according to permissions.
+
+![Face flow: photo, representation, authorized index, candidates and context.](docs/assets/readme/face-lookup.svg)
+
+For spoken replies, install an offline ES/EN voice on Android. Repeat `adb reverse` after reconnecting the phone.
+
+<a id="architecture"></a>
+
+### Local architecture
+
+```mermaid
+flowchart TB
+    Android["Android"] <-->|"USB · localhost:8080"| API
+    Android --> Voice["Installed voices<br/>offline"]
+    subgraph Local["Your computer · Docker"]
+        API["API<br/>queries and permissions"] <--> DB[("PostgreSQL<br/>BYTEA originals")]
+        API --> Redis[("Redis<br/>task queue")]
+        Redis --> Worker["Worker<br/>processing and indexing"]
+        Worker <--> DB
+    end
+    API <-->|"Queries and transcription"| Meta["Meta · internet<br/>Muse Spark · SAM · Muse Voice Transcribe"]
+    Worker <-->|"Evidence analysis"| Meta
+```
 
 ## 3. Diagnostics, shutdown and Postman
 
@@ -98,5 +136,7 @@ Build from the project folder:
 Output: `android/app/build/outputs/apk/debug/app-debug.apk`. Install it with `adb install -r android/app/build/outputs/apk/debug/app-debug.apk`.
 
 <a id="hackathon"></a>
+
+[![CI status](https://github.com/Luxisoft/realityos-spatial-memory/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/Luxisoft/realityos-spatial-memory/actions/workflows/ci.yml)
 
 [Technical reference](docs/en/INDEX.md) · [Verified status](docs/en/project/IMPLEMENTATION_STATUS.md) · [Third-party licenses](docs/en/project/THIRD_PARTY.md) · [Apache 2.0](LICENSE)
