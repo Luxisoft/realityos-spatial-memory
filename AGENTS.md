@@ -83,7 +83,14 @@ hosts during local preparation. Automatic production deployment is disabled.
 Owner preference (2026-11-01): commit and push project changes directly to
 `main`. Do not create feature branches or draft PRs unless the owner explicitly
 requests them. Run the relevant checks before pushing; `main` triggers CI; remote deployment requires a separate explicit opt-in. Keep credentials, runtime files, build
-outputs and private media out of Git.
+outputs and private media out of Git, except the installable Debug APK below.
+
+Owner correction (2026-11-04): include
+`android/app/build/outputs/apk/debug/app-debug.apk` in the repository through
+Git LFS so clone/pull retrieves the APK. Keep this canonical file tracked and
+update it after required Android builds, using the same server signing key.
+Keep the README download, pull, install and launch commands current. Releases
+may also carry the APK; they do not replace delivery in the repository.
 
 ## Deploy standing rule
 

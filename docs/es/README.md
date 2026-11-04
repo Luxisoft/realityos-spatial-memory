@@ -13,7 +13,7 @@
 
 App Android para guardar fotos, videos y expedientes en grupos y consultar evidencia con IA. El servidor local ejecuta PostgreSQL, Redis, API y worker en Docker.
 
-**[Descargar APK para Android 12+](https://github.com/Luxisoft/realityos-spatial-memory/releases/download/local-evaluation/app-debug.apk)** · [Instalar y abrir en el celular](#android) · [Versión publicada](https://github.com/Luxisoft/realityos-spatial-memory/releases/tag/local-evaluation)
+**[APK en el repositorio](../../android/app/build/outputs/apk/debug/app-debug.apk)** · [Descargar APK para Android 12+](https://media.githubusercontent.com/media/Luxisoft/realityos-spatial-memory/main/android/app/build/outputs/apk/debug/app-debug.apk) · [Comandos para el celular](#android)
 
 <p align="center">
   <a href="#linux-server"><img src="../assets/readme/linux-server-es.svg" alt="Desplegar en servidor Linux — pasos de evaluación privada" height="40"></a>
@@ -30,7 +30,15 @@ App Android para guardar fotos, videos y expedientes en grupos y consultar evide
 
 ## 1. Iniciar
 
-Descarga y extrae el [repositorio](https://github.com/Luxisoft/realityos-spatial-memory/archive/refs/heads/main.zip). Abre la carpeta del proyecto.
+Con Git y [Git LFS](https://git-lfs.com/) instalados, descarga el proyecto:
+
+```bash
+git lfs install
+git clone https://github.com/Luxisoft/realityos-spatial-memory.git
+cd realityos-spatial-memory
+```
+
+Si ya lo tienes, abre su carpeta y sigue los comandos de [actualización e instalación](#android). También puedes extraer el [ZIP](https://github.com/Luxisoft/realityos-spatial-memory/archive/refs/heads/main.zip) y descargar el APK con el enlace de arriba.
 
 <a id="deploy-muse"></a>
 
@@ -68,10 +76,11 @@ respeta los permisos de la sesión y solicita mi intervención cuando sea necesa
    Usa la preparación existente de los tres grupos y nueve cuentas. Conserva
    ediciones y eliminaciones al reiniciar, así como permisos y consentimiento.
 
-5. Prepara Platform Tools (adb) y descarga el APK compilado en el servidor:
-   https://github.com/Luxisoft/realityos-spatial-memory/releases/download/local-evaluation/app-debug.apk
-   Guárdalo en android/app/build/outputs/apk/debug/app-debug.apk; crea la carpeta
-   si falta. Comprueba el commit y SHA-256 en la publicación local-evaluation.
+5. Prepara Platform Tools (adb). El APK compilado en el servidor está en
+   android/app/build/outputs/apk/debug/app-debug.apk. En un checkout Git ejecuta
+   git lfs install y git lfs pull para obtenerlo. Si usas el ZIP del proyecto,
+   descarga el APK desde el enlace del README a esa misma ruta. Comprueba que
+   sea un APK completo y que su SHA-256 coincida con el objeto LFS del commit.
    Este recorrido no requiere instalar Java, Android SDK 36 ni Android Studio.
    Si hay cambios Android o de contrato posteriores al APK publicado, solicita
    una nueva compilación del servidor o usa la sección de compilación del README.
@@ -127,16 +136,21 @@ En Windows, añade `-NoCache` al comando de inicio para reconstruir las dependen
 
 ## 2. Descargar, instalar y abrir Android
 
-**[Descarga app-debug.apk](https://github.com/Luxisoft/realityos-spatial-memory/releases/download/local-evaluation/app-debug.apk)**, compilado en el servidor para Android 12+ y `http://localhost:8080/v1`. Para instalarlo necesitas `adb`; **no necesitas Android Studio, JDK ni SDK 36 en tu computadora**. El commit y SHA-256 están en la [publicación](https://github.com/Luxisoft/realityos-spatial-memory/releases/tag/local-evaluation).
+El APK compilado en el servidor está incluido en [`android/app/build/outputs/apk/debug/app-debug.apk`](../../android/app/build/outputs/apk/debug/app-debug.apk), para Android 12+ y `http://localhost:8080/v1`. Se descarga con Git LFS al clonar o actualizar. Para instalarlo necesitas `adb`; **no necesitas Android Studio, JDK ni SDK 36**.
 
-Inicia el backend del paso 1, conecta el celular por USB y acepta la autorización de depuración. Abre una terminal **en la carpeta donde descargaste `app-debug.apk`** y ejecuta:
+Con el backend iniciado, conecta el celular por USB y acepta la depuración. Desde **la raíz del proyecto**, actualiza, instala y abre la app:
 
 ```powershell
+git lfs install
+git pull --ff-only
+git lfs pull
 adb devices
 adb reverse tcp:8080 tcp:8080
-adb install -r app-debug.apk
+adb install -r android/app/build/outputs/apk/debug/app-debug.apk
 adb shell am start -n com.luxisoft.realityos.local/com.luxisoft.realityos.MainActivity
 ```
+
+`git lfs install` se configura una vez por computadora. Si Git no reconoce `lfs`, instala [Git LFS](https://git-lfs.com/) y repite los comandos. Si descargaste el ZIP, omite los tres comandos Git y guarda la [descarga directa del APK](https://media.githubusercontent.com/media/Luxisoft/realityos-spatial-memory/main/android/app/build/outputs/apk/debug/app-debug.apk) en la ruta indicada; crea sus carpetas si faltan.
 
 El celular debe aparecer como `device`; si indica `unauthorized`, acepta el aviso en su pantalla. Si hay varios dispositivos, añade `-s SERIAL` después de `adb` en cada comando. Para volver a abrir la app basta el último comando o tocar su icono; repite `adb reverse` al reconectar el USB. El mismo APK sirve para el [túnel privado al servidor Linux](#linux-server).
 
@@ -177,14 +191,14 @@ adb shell am start -n com.luxisoft.realityos.local/com.luxisoft.realityos.MainAc
 
 | Qué cambió | Qué ejecutar |
 | --- | --- |
-| Código o recursos Android | Publica una nueva compilación del servidor, descárgala e instala con `adb install -r app-debug.apk`; también puedes [compilar tú](#android-build). |
+| Código o recursos Android | El servidor compila y sube el APK al repositorio. Repite los comandos de actualización e instalación anteriores; también puedes [compilar tú](#android-build). |
 | Código del backend o configuración del servidor | Ejecuta `Start-RealityOS.ps1` en Windows o `bash scripts/local/start.sh` en Linux para reconstruir/iniciar los servicios locales. Se conservan los datos existentes. |
 | Contrato de la API que utiliza Android | Actualiza tanto el backend como el APK. |
 | Solo documentación | No hace falta reconstruir la app ni los contenedores. |
 
 `adb install -r` conserva los datos con el mismo identificador y firma. Las compilaciones publicadas desde este servidor mantienen esa firma; una compilación de otra computadora o CI puede usar otra. No desinstales automáticamente ante un conflicto. Consulta [instalación con ADB](https://developer.android.com/tools/adb#move).
 
-El enlace de descarga se conserva al publicar un APK nuevo. GitHub Releases y el celular requieren actualizarse explícitamente: un cambio en `main` no los actualiza por sí solo. La versión Debug incluye la fecha de compilación.
+`git pull` trae el APK actualizado con Git LFS activo; `adb install -r` actualiza el celular. La versión Debug incluye la fecha de compilación. Cada cambio Android requiere compilar y subir el APK junto con el código.
 
 <a id="cases"></a>
 
