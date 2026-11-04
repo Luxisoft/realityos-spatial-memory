@@ -18,3 +18,5 @@ Exact prompts are preserved in [HEADER_PROMPTS.json](../../assets/readme/HEADER_
 The [README's local diagram](../README.md#architecture) reflects the four services in [local Compose](../../../infrastructure/docker-compose.local.yml), [worker tasks](../../../backend/app/tasks.py) and [installed Android voices](../../../android/app/src/main/java/com/luxisoft/realityos/MainActivity.kt). Thumbnails link to the conceptual videos preserved in `demo-video/`; the profile illustration represents a feature, not a fourth initial group.
 
 Android entry artwork provenance is recorded in [entry/PROMPTS.json](../../assets/entry/PROMPTS.json); it accompanies resources used by the app.
+
+The local account selector uses profile photos, with an [illustrated default avatar](../../../android/app/src/main/res/drawable-nodpi/default_account_avatar.png) when a photo is missing or cannot load. It was generated using the built-in image tool; the exact prompt is recorded in [DEFAULT_AVATAR_PROMPT.json](../../assets/entry/DEFAULT_AVATAR_PROMPT.json).

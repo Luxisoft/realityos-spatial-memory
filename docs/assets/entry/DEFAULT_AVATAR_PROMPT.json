@@ -1,0 +1,8 @@
+{
+  "mode": "Built-in image_gen",
+  "intent": "generate",
+  "generated": "2026-11-04",
+  "file": "android/app/src/main/res/drawable-nodpi/default_account_avatar.png",
+  "purpose": "Fallback portrait for local account selection when a profile photo is missing or unavailable.",
+  "prompt": "Use case: stylized-concept. Asset type: default account profile picture for a dark gray and blue Android app, displayed as a 48 dp circular avatar. Create one square image of a friendly anonymous gender-neutral human head and shoulders, a polished softly sculpted 3D clay portrait, with short softly shaped charcoal hair, subtle facial features, neutral pale-gray clay skin, and a simple muted blue shirt. Center the face, fill the frame enough to be legible at tiny sizes, leave all hair and shoulders within a safe circular crop. Plain dark slate-gray background, soft studio lighting, restrained gray/blue palette matching existing 3D onboarding artwork. This is an illustrated profile portrait, not a line icon or a flat user silhouette. No text, no logos, no badges, no watermark, no border."
+}

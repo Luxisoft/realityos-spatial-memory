@@ -7,8 +7,13 @@ import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.unit.Density
 import java.io.File
+import java.util.concurrent.TimeUnit
+import okhttp3.mockwebserver.MockResponse
+import okhttp3.mockwebserver.MockWebServer
+import okio.Buffer
 import org.json.JSONObject
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotNull
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -64,5 +69,85 @@ class LocalAccountChooserTest {
         compose.onNodeWithText("Retry").performClick()
         assertEquals(1, retries)
         capture("error")
+    }
+
+    @Test fun profilePhotoLoadsWithoutLoginCredentials() {
+        val server = MockWebServer().apply { start() }
+        val imageError = java.util.concurrent.atomic.AtomicReference("")
+        val imageLoaded = java.util.concurrent.atomic.AtomicBoolean(false)
+        coil.Coil.setImageLoader(
+            coil.ImageLoader.Builder(compose.activity)
+                .networkObserverEnabled(false)
+                .eventListener(object : coil.EventListener {
+                    override fun onError(request: coil.request.ImageRequest, result: coil.request.ErrorResult) {
+                        imageError.set(result.throwable.toString())
+                    }
+                    override fun onSuccess(request: coil.request.ImageRequest, result: coil.request.SuccessResult) {
+                        imageLoaded.set(true)
+                    }
+                })
+                .build()
+        )
+        try {
+            val photo = android.graphics.Bitmap.createBitmap(16, 16, android.graphics.Bitmap.Config.ARGB_8888)
+            photo.eraseColor(android.graphics.Color.RED)
+            val bytes = java.io.ByteArrayOutputStream()
+            photo.compress(android.graphics.Bitmap.CompressFormat.PNG, 100, bytes)
+            photo.recycle()
+            server.enqueue(MockResponse().setHeader("Content-Type", "image/png").setBody(Buffer().write(bytes.toByteArray())))
+            val account = JSONObject().put("username", "photo").put("picture_url", server.url("/avatar").toString())
+            compose.setContent { RealityOsTheme { LocalAccountAvatar(account) } }
+            compose.onNodeWithTag("local-avatar-photo").assertIsDisplayed()
+            compose.waitUntil(10_000) {
+                compose.waitForIdle()
+                check(imageError.get().isEmpty()) { imageError.get() }
+                imageLoaded.get()
+            }
+            compose.onNodeWithTag("local-avatar-photo").assertIsDisplayed()
+            capture("loaded-photo")
+            val request = server.takeRequest(1, TimeUnit.SECONDS)
+            assertNotNull(request)
+            assertEquals(null, request!!.getHeader("Authorization"))
+        } finally {
+            coil.Coil.reset()
+            server.shutdown()
+        }
+    }
+
+    @Test fun missingPhotoUsesTheIllustratedAvatar() {
+        val account = JSONObject().put("username", "missing")
+        compose.setContent { RealityOsTheme { LocalAccountAvatar(account) } }
+        compose.onNodeWithTag("local-avatar-missing").assertIsDisplayed()
+        capture("default-avatar")
+    }
+
+    @Test fun failedPhotoKeepsTheIllustratedAvatar() {
+        val server = MockWebServer().apply { start() }
+        val failed = java.util.concurrent.atomic.AtomicBoolean(false)
+        coil.Coil.setImageLoader(
+            coil.ImageLoader.Builder(compose.activity)
+                .networkObserverEnabled(false)
+                .eventListener(object : coil.EventListener {
+                    override fun onError(request: coil.request.ImageRequest, result: coil.request.ErrorResult) {
+                        failed.set(true)
+                    }
+                })
+                .build()
+        )
+        try {
+            server.enqueue(MockResponse().setResponseCode(404))
+            val account = JSONObject().put("username", "failed").put("picture_url", server.url("/missing-avatar").toString())
+            compose.setContent { RealityOsTheme { LocalAccountAvatar(account) } }
+            compose.onNodeWithTag("local-avatar-failed").assertIsDisplayed()
+            compose.waitUntil(10_000) {
+                compose.waitForIdle()
+                failed.get()
+            }
+            compose.onNodeWithTag("local-avatar-failed").assertIsDisplayed()
+            capture("failed-avatar")
+        } finally {
+            coil.Coil.reset()
+            server.shutdown()
+        }
     }
 }

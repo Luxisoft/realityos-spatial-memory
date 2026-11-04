@@ -3149,6 +3149,7 @@ Respuestas declaradas: `200`.
 | --- | --- | --- | --- | --- |
 | `GET /v1/auth/local-session` | Local Session | bearer | — | — |
 | `GET /v1/auth/local-accounts` | Local Accounts | none | — | — |
+| `GET /v1/auth/local-accounts/{user_id}/avatar` | Local Account Avatar | none | `user_id` | — |
 | `POST /v1/auth/local-select` | Local Select | none | `user_id` | — |
 | `POST /v1/auth/local-login` | Local Login | none | `email`, `password` | — |
 
@@ -3173,6 +3174,18 @@ Respuestas declaradas: `200`.
 | — | — | — | — | — |
 
 Respuestas declaradas: `200`.
+
+</details>
+
+<details>
+
+<summary>GET /v1/auth/local-accounts/{user_id}/avatar</summary>
+
+| Campo | Ubicación | Obligatorio | Tipo | Restricciones |
+| --- | --- | --- | --- | --- |
+| `user_id` | path | ✓ | `string` | `{}` |
+
+Respuestas declaradas: `200`, `422`.
 
 </details>
 

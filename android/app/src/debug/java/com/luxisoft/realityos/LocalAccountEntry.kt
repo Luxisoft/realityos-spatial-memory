@@ -2,17 +2,24 @@ package com.luxisoft.realityos
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowForward
-import androidx.compose.material.icons.outlined.PersonOutline
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import coil.compose.AsyncImage
+import coil.request.CachePolicy
+import coil.request.ImageRequest
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -113,7 +120,7 @@ internal fun LocalAccountChooser(accounts: List<JSONObject>, busy: Boolean, fail
                                 onClick = { onSelect(account) }
                             ) {
                                 Row(Modifier.fillMaxWidth().padding(16.dp).heightIn(min = 32.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                                    Icon(Icons.Outlined.PersonOutline, null, tint = AccountBlue)
+                                    LocalAccountAvatar(account)
                                     Text(account.getString("display_name"), style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f))
                                     Icon(Icons.AutoMirrored.Outlined.ArrowForward, null, Modifier.size(20.dp))
                                 }
@@ -124,4 +131,29 @@ internal fun LocalAccountChooser(accounts: List<JSONObject>, busy: Boolean, fail
             }
         }
     }
+}
+
+@Composable
+internal fun LocalAccountAvatar(account: JSONObject) {
+    val context = LocalContext.current
+    val picture = account.optText("picture_url")
+    val request = remember(context, picture) {
+        picture?.let {
+            ImageRequest.Builder(context)
+                .data(profileMediaUrl(it))
+                .memoryCachePolicy(CachePolicy.DISABLED)
+                .diskCachePolicy(CachePolicy.DISABLED)
+                .build()
+        }
+    }
+    val fallback = painterResource(R.drawable.default_account_avatar)
+    AsyncImage(
+        model = request,
+        contentDescription = null,
+        modifier = Modifier.size(48.dp).clip(CircleShape).testTag("local-avatar-${account.getString("username")}"),
+        placeholder = fallback,
+        error = fallback,
+        fallback = fallback,
+        contentScale = ContentScale.Crop
+    )
 }

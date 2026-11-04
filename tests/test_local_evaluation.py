@@ -1,5 +1,6 @@
 """Local fixture integrity, isolation, real sessions and restart behavior."""
 
+import io
 import uuid
 
 import pytest
@@ -7,10 +8,11 @@ from app.db import Base
 from app.local_catalog import catalog
 from app.local_seed import seed_evaluation
 from app.main import create_app
-from app.models import User, Workspace, WorkspaceMember
+from app.models import MediaAsset, User, Workspace, WorkspaceMember
 from app.social_features.models import Publication, UserProfile
 from app.workspaces.models import Record, RecordMedia
 from conftest import APIClient
+from PIL import Image
 from sqlalchemy import delete, select
 from test_local_access import local_settings
 
@@ -127,6 +129,10 @@ def test_selector_disabled_on_production_and_legacy_local(tmp_path):
     ):
         client = APIClient(create_app(settings))
         assert client.get("/v1/auth/local-accounts").status_code == 404
+        user_id = catalog()["groups"][0]["users"][0]["id"]
+        assert (
+            client.get(f"/v1/auth/local-accounts/{user_id}/avatar").status_code == 404
+        )
         assert (
             client.post(
                 "/v1/auth/local-select",
@@ -136,7 +142,56 @@ def test_selector_disabled_on_production_and_legacy_local(tmp_path):
         )
 
 
-def test_queue_dispatch_resumes_without_repeating_successful_jobs(evaluation, monkeypatch):
+def test_selector_serves_only_profile_thumbnails(evaluation):
+    accounts = evaluation.get("/v1/auth/local-accounts").json()["accounts"]
+    for account in accounts:
+        response = evaluation.get(account["picture_url"])
+        assert response.status_code == 200
+        assert response.headers["content-type"] == "image/jpeg"
+        assert response.headers["cache-control"] == "no-store"
+        with Image.open(io.BytesIO(response.content)) as image:
+            assert max(image.size) <= 192
+    assert (
+        evaluation.get(f"/v1/auth/local-accounts/{uuid.uuid4()}/avatar").status_code
+        == 404
+    )
+
+
+@pytest.mark.parametrize(
+    "unavailable", ["missing", "corrupt", "inactive", "membership", "other_group"]
+)
+def test_selector_avatar_rechecks_availability_and_scope(evaluation, unavailable):
+    accounts = evaluation.get("/v1/auth/local-accounts").json()["accounts"]
+    account = accounts[0]
+    user_id = uuid.UUID(account["id"])
+    with evaluation.app.state.database.session_factory() as db:
+        profile = db.get(UserProfile, user_id)
+        if unavailable == "missing":
+            profile.avatar_media_id = None
+        elif unavailable == "corrupt":
+            db.get(MediaAsset, profile.avatar_media_id).original_bytes = b"not an image"
+        elif unavailable == "inactive":
+            db.get(User, user_id).is_active = False
+        elif unavailable == "membership":
+            db.execute(
+                delete(WorkspaceMember).where(WorkspaceMember.user_id == user_id)
+            )
+        else:
+            other = db.get(UserProfile, uuid.UUID(accounts[-1]["id"]))
+            profile.avatar_media_id = other.avatar_media_id
+        db.commit()
+    assert evaluation.get(account["picture_url"]).status_code == 404
+    if unavailable == "missing":
+        listing = evaluation.get("/v1/auth/local-accounts").json()["accounts"]
+        assert (
+            next(row for row in listing if row["id"] == account["id"])["picture_url"]
+            is None
+        )
+
+
+def test_queue_dispatch_resumes_without_repeating_successful_jobs(
+    evaluation, monkeypatch
+):
     from app.local_seed import enqueue_initial_media
 
     calls = []
