@@ -13,7 +13,7 @@
 
 App Android para guardar fotos, videos y expedientes en grupos y consultar evidencia con IA. El servidor local ejecuta PostgreSQL, Redis, API y worker en Docker.
 
-**[APK en el repositorio](../../android/app/build/outputs/apk/debug/app-debug.apk)** · [Descargar APK para Android 12+](https://media.githubusercontent.com/media/Luxisoft/realityos-spatial-memory/main/android/app/build/outputs/apk/debug/app-debug.apk) · [Comandos para el celular](#android)
+**[Descargar APK para Android 12+](https://media.githubusercontent.com/media/Luxisoft/realityos-spatial-memory/main/android/app/build/outputs/apk/debug/app-debug.apk)** · [Comandos para el celular](#android)
 
 <p align="center">
   <a href="#linux-server"><img src="../assets/readme/linux-server-es.svg" alt="Desplegar en servidor Linux — pasos de evaluación privada" height="40"></a>
@@ -136,7 +136,7 @@ En Windows, añade `-NoCache` al comando de inicio para reconstruir las dependen
 
 ## 2. Descargar, instalar y abrir Android
 
-El APK compilado en el servidor está incluido en [`android/app/build/outputs/apk/debug/app-debug.apk`](../../android/app/build/outputs/apk/debug/app-debug.apk), para Android 12+ y `http://localhost:8080/v1`. Se descarga con Git LFS al clonar o actualizar. Para instalarlo necesitas `adb`; **no necesitas Android Studio, JDK ni SDK 36**.
+El APK compilado en el servidor está incluido en `android/app/build/outputs/apk/debug/app-debug.apk`, para Android 12+ y `http://localhost:8080/v1`. Se descarga con Git LFS al clonar o actualizar. Para instalarlo necesitas `adb`; **no necesitas Android Studio, JDK ni SDK 36**.
 
 Con el backend iniciado, conecta el celular por USB y acepta la depuración. Desde **la raíz del proyecto**, actualiza, instala y abre la app:
 
@@ -150,7 +150,7 @@ adb install -r android/app/build/outputs/apk/debug/app-debug.apk
 adb shell am start -n com.luxisoft.realityos.local/com.luxisoft.realityos.MainActivity
 ```
 
-`git lfs install` se configura una vez por computadora. Si Git no reconoce `lfs`, instala [Git LFS](https://git-lfs.com/) y repite los comandos. Si descargaste el ZIP, omite los tres comandos Git y guarda la [descarga directa del APK](https://media.githubusercontent.com/media/Luxisoft/realityos-spatial-memory/main/android/app/build/outputs/apk/debug/app-debug.apk) en la ruta indicada; crea sus carpetas si faltan.
+`git lfs install` se configura una vez por computadora. Si Git no reconoce `lfs`, instala [Git LFS](https://git-lfs.com/) y repite los comandos. Si descargaste el ZIP, omite los tres comandos Git y guarda el APK del enlace superior en la ruta indicada; crea sus carpetas si faltan.
 
 El celular debe aparecer como `device`; si indica `unauthorized`, acepta el aviso en su pantalla. Si hay varios dispositivos, añade `-s SERIAL` después de `adb` en cada comando. Para volver a abrir la app basta el último comando o tocar su icono; repite `adb reverse` al reconectar el USB. El mismo APK sirve para el [túnel privado al servidor Linux](#linux-server).
 
