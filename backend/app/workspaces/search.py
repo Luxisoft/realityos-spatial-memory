@@ -11,6 +11,7 @@ from sqlalchemy.orm import Session
 from app.dependencies import get_current_user, get_db, workspace_member
 from app.meta import MetaProviderError, build_meta_client
 from app.models import User
+from app.workspaces.record_gallery import record_gallery
 from app.workspaces.retrieval import retrieve
 from app.workspaces.routes import router
 from app.workspaces.service import record_json
@@ -34,12 +35,25 @@ async def search_records(
     selected, truncated = retrieve(db, workspace_id, payload.question, payload.record_id)
     chosen = [row for row, _ in selected]
     if not chosen:
+        from app.query_lang import qtext
+
+        gallery = record_gallery(db, user, workspace_id, payload.question, [])
+        if gallery:
+            key = (
+                "found_in_publications_one" if len(gallery) == 1 else "found_in_publications_other"
+            )
+            answer = qtext(payload.language, key, count=len(gallery))
+        else:
+            answer = (
+                "No hay evidencia registrada que responda a la consulta."
+                if payload.language == "es"
+                else "No recorded evidence answers this question."
+            )
         return {
-            "answer": "No hay evidencia registrada que responda a la consulta."
-            if payload.language == "es"
-            else "No recorded evidence answers this question.",
+            "answer": answer,
             "response_language": payload.language,
             "records": [],
+            "gallery_matches": gallery,
             "simulated": False,
         }
     candidates = []
@@ -77,6 +91,7 @@ async def search_records(
         "answer": answer.text,
         "response_language": payload.language,
         "records": [record_json(r) for r in chosen],
+        "gallery_matches": record_gallery(db, user, workspace_id, payload.question, chosen),
         "simulated": bool(answer.simulated),
         "profiles": [{"display_name": r.title} for r in chosen],
         "context_truncated": truncated,

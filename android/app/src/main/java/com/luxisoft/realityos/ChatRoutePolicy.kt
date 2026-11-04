@@ -44,6 +44,15 @@ internal object ChatRoutePolicy {
             else -> route
         }
 
+    /**
+     * Image-plus-text fallback when probe classification fails: route by the
+     * user's own words. Null when there is nothing to route on.
+     */
+    fun imageFallbackRoute(question: String, serverTarget: String?): ResolvedRoute? {
+        if (question.isBlank() || serverTarget == null) return null
+        return resolveAutoRoute(serverTarget)
+    }
+
     fun greeting(language: String): String = when (language.lowercase().take(2)) {
         "es" -> "¡Hola! Soy Muse. Puedo buscar personas y objetos en tus espacios. ¿Qué necesitas encontrar?"
         "pt" -> "Olá! Sou Muse. Posso buscar pessoas e objetos nos seus espaços. O que você precisa encontrar?"

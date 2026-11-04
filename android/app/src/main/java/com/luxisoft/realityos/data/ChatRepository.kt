@@ -23,7 +23,11 @@ internal data class ChatTurn(
     val responseLanguage: String?
 )
 
-internal data class RecordAnswer(val text: String?, val language: String?)
+internal data class RecordAnswer(
+    val text: String?,
+    val language: String?,
+    val gallery: List<GalleryThumb> = emptyList()
+)
 internal data class ObjectAnswer(
     val text: String?,
     val speech: String?,
@@ -66,7 +70,12 @@ internal class ChatRepository(
 
     suspend fun answerRecords(workspaceId: String, question: String, language: String): RecordAnswer = guarded {
         val result = JSONObject(SocialSession.searchWorkspaceRecords(workspaceId, JSONObject().put("question", question).put("language", language)))
-        RecordAnswer(result.optText("answer"), result.optText("response_language"))
+        val gallery = result.optJSONArray("gallery_matches")
+        RecordAnswer(
+            result.optText("answer"),
+            result.optText("response_language"),
+            (0 until (gallery?.length() ?: 0)).mapNotNull { gallery?.optJSONObject(it)?.let(::decodeGalleryThumb) }
+        )
     }
 
     suspend fun query(workspaceId: String, question: String, language: String, probe: PendingChatProbe?): ObjectAnswer {

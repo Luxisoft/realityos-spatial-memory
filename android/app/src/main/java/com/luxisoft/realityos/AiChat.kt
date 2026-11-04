@@ -384,7 +384,7 @@ internal fun AiChat(
                 val requestLanguage = experienceStore.syncAccountLanguage().languageTag
                 val response = repository.answerRecords(workspaceId, text, requestLanguage)
                 val answer = response.text?.ifBlank { chatText(R.string.chat_no_answer) } ?: chatText(R.string.chat_no_answer)
-                pushAi(answer, message = ChatMessage(role = ChatRole.AI, text = answer, speakText = answer, responseLanguage = response.language ?: requestLanguage))
+                pushAi(answer, message = ChatMessage(role = ChatRole.AI, text = answer, gallery = response.gallery, speakText = answer, responseLanguage = response.language ?: requestLanguage))
             } catch (failure: Exception) {
                 pushAi(chatText(R.string.chat_query_failed))
             } finally {
@@ -538,7 +538,18 @@ internal fun AiChat(
                     SearchTargetPolicy.Target.OBJECT -> runObjectQuery(question, probe, fromVoice)
                 }
             } catch (failure: Exception) {
-                pushAi(chatText(R.string.chat_image_failed))
+                // Classification needs providers; honor the user's own words instead.
+                val fallbackTarget = try {
+                    if (question.isBlank()) null else repository.routeText(question)
+                } catch (_: Exception) {
+                    null
+                }
+                when (ChatRoutePolicy.imageFallbackRoute(question, fallbackTarget)) {
+                    ChatRoutePolicy.ResolvedRoute.PEOPLE_SEARCH -> runFaceSearch(probe, fromVoice)
+                    ChatRoutePolicy.ResolvedRoute.OBJECT_QUERY,
+                    ChatRoutePolicy.ResolvedRoute.CHAT -> runObjectQuery(question, probe, fromVoice)
+                    ChatRoutePolicy.ResolvedRoute.ASK, null -> pushAi(chatText(R.string.chat_image_failed))
+                }
             } finally {
                 busy = false
             }

@@ -2,6 +2,7 @@ package com.luxisoft.realityos
 
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -117,5 +118,28 @@ class ChatRoutePolicyTest {
         assertFalse(ChatRoutePolicy.canSend("a"))
         assertTrue(ChatRoutePolicy.canSend("ab"))
         assertTrue(ChatRoutePolicy.canSend("  hola  "))
+    }
+
+    @Test
+    fun imageFallbackHonorsPersonAndObjectRequests() {
+        assertEquals(
+            ChatRoutePolicy.ResolvedRoute.PEOPLE_SEARCH,
+            ChatRoutePolicy.imageFallbackRoute("Find people with arrest warrants", "person"),
+        )
+        assertEquals(
+            ChatRoutePolicy.ResolvedRoute.OBJECT_QUERY,
+            ChatRoutePolicy.imageFallbackRoute("Find the hammer", "object"),
+        )
+        assertEquals(
+            ChatRoutePolicy.ResolvedRoute.OBJECT_QUERY,
+            ChatRoutePolicy.imageFallbackRoute("buscalo", "ask"),
+        )
+    }
+
+    @Test
+    fun imageFallbackNeedsBothWordsAndARoute() {
+        assertNull(ChatRoutePolicy.imageFallbackRoute("", "person"))
+        assertNull(ChatRoutePolicy.imageFallbackRoute("   ", "object"))
+        assertNull(ChatRoutePolicy.imageFallbackRoute("Find people", null))
     }
 }

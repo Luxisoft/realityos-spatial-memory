@@ -76,16 +76,28 @@ def image_query(
     try:
         with Image.open(io.BytesIO(raw)) as decoded:
             decoded.verify()
+    except (OSError, ValueError):
+        raise HTTPException(status_code=422, detail="The image cannot be decoded.") from None
+    question_text = question.strip()
+    try:
         client = build_meta_client(request.app.state.settings)
         analysis = client.analyze_image(
             raw,
             image.content_type,
-            context=question.strip() or "Identify the object the user wants to find.",
+            context=question_text or "Identify the object the user wants to find.",
         )
-    except (OSError, ValueError):
-        raise HTTPException(status_code=422, detail="The image cannot be decoded.") from None
     except MetaProviderError as exc:
-        raise HTTPException(status_code=503, detail=str(exc)) from exc
+        if not question_text:
+            raise HTTPException(status_code=503, detail=str(exc)) from exc
+        # The user already named the target: answer from authorized local
+        # evidence instead of failing the whole search.
+        logger.warning("image query analysis unavailable; using text fallback")
+        return _answer_query(
+            QueryRequest(workspace_id=workspace_id, question=question_text, language=language),
+            user,
+            db,
+            None,
+        )
     from app.query_lang import qtext
 
     labels = list(
@@ -100,7 +112,7 @@ def image_query(
             simulated=analysis.simulated,
             response_language=language,
         )
-    combined = " ".join(part for part in [question.strip(), *labels] if part)[:500]
+    combined = " ".join(part for part in [question_text, *labels] if part)[:500]
     result = _answer_query(
         QueryRequest(workspace_id=workspace_id, question=combined, language=language),
         user,
@@ -137,23 +149,33 @@ def classify_search_probe(
     try:
         engine = build_face_engine(request.app.state.settings)
         faces = engine.detect_faces(raw)
+    except FaceEngineError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
+    try:
         client = build_meta_client(request.app.state.settings)
         analysis = client.analyze_image(
             raw,
             image.content_type,
             context="List the distinct non-person objects visible in this image.",
         )
-    except FaceEngineError as exc:
-        raise HTTPException(status_code=503, detail=str(exc)) from exc
-    except MetaProviderError as exc:
-        raise HTTPException(status_code=503, detail=str(exc)) from exc
-    labels = list(
-        dict.fromkeys(item.label.strip() for item in analysis.detections if item.label.strip())
+    except MetaProviderError:
+        # Object labels are auxiliary: the face count alone already routes
+        # person probes, so a provider outage must not hide detected faces.
+        logger.warning("search classify object analysis unavailable")
+        analysis = None
+    labels = (
+        list(
+            dict.fromkeys(item.label.strip() for item in analysis.detections if item.label.strip())
+        )
+        if analysis is not None
+        else []
     )
     return {
         "faces": len(faces),
         "object_labels": labels,
-        "simulated": bool(getattr(engine, "simulated", False) or analysis.simulated),
+        "simulated": bool(
+            getattr(engine, "simulated", False) or (analysis.simulated if analysis else False)
+        ),
     }
 
 
@@ -171,8 +193,14 @@ def route_search_text(
     try:
         client = build_meta_client(request.app.state.settings)
         intent = client.classify_intent(payload.text.strip())
-    except MetaProviderError as exc:
-        raise HTTPException(status_code=503, detail=str(exc)) from exc
+    except MetaProviderError:
+        from app.providers.mock import MockMetaModelClient
+
+        # Deterministic keyword routing keeps chat usable during an outage;
+        # it is explicitly labelled simulated.
+        logger.warning("search route intent unavailable; using keyword fallback")
+        intent = MockMetaModelClient().classify_intent(payload.text.strip())
+        return {"target": intent.target, "simulated": True}
     return {"target": intent.target, "simulated": intent.simulated}
 
 
