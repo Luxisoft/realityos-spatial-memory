@@ -252,7 +252,7 @@ def stage(db, root, journal):
                 owner_id=uuid.UUID(row["owner_id"]),
                 media_id=asset.id,
                 workspace_id=asset.workspace_id,
-                audience="work",
+
                 source=SOURCE,
                 source_ref=row["reference"],
                 caption=item["label"],
@@ -331,7 +331,7 @@ def bind_source(db, connection, row, generation):
         upload = PublicationUpload(
             owner_id=post.owner_id,
             request_key=request_key,
-            audience="work",
+
             workspace_id=post.workspace_id,
             original_bytes=asset.original_bytes,
             mime_type=asset.mime_type,
@@ -442,7 +442,7 @@ def select_generation(db, journal, generation):
             rule = StorageSync(
                 connection_id=connection.id,
                 prefix=prefix,
-                audience="work",
+
                 workspace_id=connection.workspace_id,
             )
             db.add(rule)

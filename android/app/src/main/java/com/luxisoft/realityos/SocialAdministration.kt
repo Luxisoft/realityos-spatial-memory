@@ -40,7 +40,7 @@ private data class PendingAdminAction(
 /** Right-side administration drawer. Every operation is independently authorized by the server. */
 @Composable
 internal fun SocialAdministration(
-    workspaceId: String?,
+    workspaceId: String,
     onDismiss: () -> Unit,
     onGroupDeleted: () -> Unit = {},
     onChanged: () -> Unit = {}
@@ -69,25 +69,21 @@ internal fun SocialAdministration(
         error = ""
         try {
             val loaded = withContext(Dispatchers.IO) {
-                val memberArray = if (workspaceId != null) {
+                val memberArray = run {
                     try {
                         JSONArray(SocialSession.request("groups/$workspaceId/members"))
                     } catch (_: Exception) {
                         JSONArray()
                     }
-                } else {
-                    JSONArray()
                 }
-                val groupPin = if (workspaceId != null) {
+                val groupPin = run {
                     try {
                         JSONObject(SocialSession.request("groups/$workspaceId/pin")).getString("join_pin")
                     } catch (_: Exception) {
                         null
                     }
-                } else {
-                    null
                 }
-                val reportArray = JSONArray(SocialSession.request(if (workspaceId == null) "moderation/reports" else "groups/$workspaceId/reports"))
+                val reportArray = JSONArray(SocialSession.request("groups/$workspaceId/reports"))
                 Triple(
                     (0 until memberArray.length()).map { memberArray.getJSONObject(it) },
                     groupPin,
@@ -96,7 +92,7 @@ internal fun SocialAdministration(
             }
             members = loaded.first
             pin = loaded.second
-            pinAvailable = workspaceId != null && loaded.second != null
+            pinAvailable = loaded.second != null
             reports = loaded.third
         } catch (e: Exception) {
             error = e.message.orEmpty()
@@ -155,7 +151,7 @@ internal fun SocialAdministration(
                             ) {
                                 Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                                     Text(
-                                        if (workspaceId == null) localizedText(R.string.ui_reports) else localizedText(R.string.ui_manage_group),
+                                        localizedText(R.string.ui_manage_group),
                                         style = MaterialTheme.typography.titleLarge,
                                         modifier = Modifier.weight(1f)
                                     )
@@ -167,6 +163,7 @@ internal fun SocialAdministration(
                                 if (loading) {
                                     SkeletonList(Modifier.padding(top = 16.dp), rows = 6)
                                 } else {
+                                    GroupCatalogEditor(workspaceId, onChanged)
                                     if (pinAvailable) {
                                         Spacer(Modifier.height(8.dp))
                                         Text(localizedText(R.string.ui_join_pin), style = MaterialTheme.typography.titleMedium)
@@ -201,96 +198,95 @@ internal fun SocialAdministration(
                                             style = MaterialTheme.typography.bodySmall
                                         )
                                     }
-                                    if (workspaceId != null) {
-                                        Spacer(Modifier.height(12.dp))
-                                        Text(localizedText(R.string.ui_members), style = MaterialTheme.typography.titleMedium)
-                                        if (members.isEmpty() && error.isBlank()) Text(localizedText(R.string.ui_no_access_to_the_member_list))
-                                        members.forEach { member ->
-                                            val targetRole = member.optString("role")
-                                            val targetSelf = member.optBoolean("self")
-                                            val badges = buildList {
-                                                if (member.optBoolean("creator")) add(localizedText(R.string.ui_creator))
-                                                if (targetRole == "admin") add("Admin")
-                                                if (member.optBoolean("can_invite")) add(localizedText(R.string.ui_can_invite))
-                                                if (targetSelf) add(localizedText(R.string.ui_you))
-                                            }
-                                            Row(
-                                                Modifier.fillMaxWidth()
-                                                    .clickable(
-                                                        role = Role.Button,
-                                                        onClickLabel = localizedText(R.string.ui_view_profile),
-                                                        onClick = { viewingProfile = member.getString("id") }
+                                    Spacer(Modifier.height(12.dp))
+                                    Text(localizedText(R.string.ui_members), style = MaterialTheme.typography.titleMedium)
+                                    if (members.isEmpty() && error.isBlank()) Text(localizedText(R.string.ui_no_access_to_the_member_list))
+                                    members.forEach { member ->
+                                        val targetRole = member.optString("role")
+                                        val targetSelf = member.optBoolean("self")
+                                        val badges = buildList {
+                                            if (member.optBoolean("creator")) add(localizedText(R.string.ui_creator))
+                                            if (targetRole == "admin") add("Admin")
+                                            if (member.optBoolean("can_invite")) add(localizedText(R.string.ui_can_invite))
+                                            if (targetSelf) add(localizedText(R.string.ui_you))
+                                        }
+                                        Row(
+                                            Modifier.fillMaxWidth()
+                                                .clickable(
+                                                    role = Role.Button,
+                                                    onClickLabel = localizedText(R.string.ui_view_profile),
+                                                    onClick = { viewingProfile = member.getString("id") }
+                                                )
+                                                .padding(vertical = 8.dp),
+                                            verticalAlignment = Alignment.CenterVertically
+                                        ) {
+                                            Column(Modifier.weight(1f)) {
+                                                Text(member.optString("name"), style = MaterialTheme.typography.titleSmall)
+                                                if (badges.isNotEmpty()) {
+                                                    Text(
+                                                        badges.joinToString(" · "),
+                                                        style = MaterialTheme.typography.bodySmall,
+                                                        color = MaterialTheme.colorScheme.onSurfaceVariant
                                                     )
-                                                    .padding(vertical = 8.dp),
-                                                verticalAlignment = Alignment.CenterVertically
-                                            ) {
-                                                Column(Modifier.weight(1f)) {
-                                                    Text(member.optString("name"), style = MaterialTheme.typography.titleSmall)
-                                                    if (badges.isNotEmpty()) {
-                                                        Text(
-                                                            badges.joinToString(" · "),
-                                                            style = MaterialTheme.typography.bodySmall,
-                                                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                                                        )
-                                                    }
                                                 }
-                                                if (iAmAdmin && !targetSelf && targetRole != "admin") {
-                                                    Switch(
-                                                        checked = member.optBoolean("can_invite"),
-                                                        onCheckedChange = { allowed ->
-                                                            scope.launch {
-                                                                try {
-                                                                    withContext(Dispatchers.IO) {
-                                                                        SocialSession.request(
-                                                                            "groups/$workspaceId/members/${member.getString("id")}/invite-permission",
-                                                                            JSONObject().put("allowed", allowed)
-                                                                        )
-                                                                    }
-                                                                    revision++
-                                                                    onChanged()
-                                                                } catch (e: Exception) {
-                                                                    error = e.message.orEmpty()
+                                            }
+                                            if (iAmAdmin && !targetSelf && targetRole != "admin") {
+                                                Switch(
+                                                    checked = member.optBoolean("can_invite"),
+                                                    onCheckedChange = { allowed ->
+                                                        scope.launch {
+                                                            try {
+                                                                withContext(Dispatchers.IO) {
+                                                                    SocialSession.request(
+                                                                        "groups/$workspaceId/members/${member.getString("id")}/invite-permission",
+                                                                        JSONObject().put("allowed", allowed)
+                                                                    )
                                                                 }
+                                                                revision++
+                                                                onChanged()
+                                                            } catch (e: Exception) {
+                                                                error = e.message.orEmpty()
                                                             }
                                                         }
-                                                    )
-                                                }
-                                                if (iCanInvite && GroupAdminPolicy.canRemoveMember(myRole, iCanInvite, targetRole)) {
-                                                    IconButton(onClick = {
-                                                        pending = PendingAdminAction(
-                                                            "POST",
-                                                            "groups/$workspaceId/members/${member.getString("id")}/remove",
-                                                            localizedText(R.string.ui_remove_this_person_from_the_group)
-                                                        )
-                                                    }) {
-                                                        Icon(Icons.Filled.PersonRemove, contentDescription = localizedText(R.string.ui_remove_from_group))
                                                     }
+                                                )
+                                            }
+                                            if (iCanInvite && GroupAdminPolicy.canRemoveMember(myRole, iCanInvite, targetRole)) {
+                                                IconButton(onClick = {
+                                                    pending = PendingAdminAction(
+                                                        "POST",
+                                                        "groups/$workspaceId/members/${member.getString("id")}/remove",
+                                                        localizedText(R.string.ui_remove_this_person_from_the_group)
+                                                    )
+                                                }) {
+                                                    Icon(Icons.Filled.PersonRemove, contentDescription = localizedText(R.string.ui_remove_from_group))
                                                 }
                                             }
-                                            HorizontalDivider()
                                         }
-                                        if (GroupAdminPolicy.showDeleteGroup(myRow?.optBoolean("creator") == true)) {
-                                            Spacer(Modifier.height(12.dp))
-                                            Button(
-                                                onClick = {
-                                                    pending = PendingAdminAction(
-                                                        "DELETE",
-                                                        "groups/$workspaceId",
-                                                        localizedText(R.string.ui_delete_this_group_publications_become_personal_to_their_authors),
-                                                        deletesGroup = true
-                                                    )
-                                                },
-                                                colors = ButtonDefaults.buttonColors(
-                                                    containerColor = MaterialTheme.colorScheme.error,
-                                                    contentColor = MaterialTheme.colorScheme.onError
+                                        HorizontalDivider()
+                                    }
+                                    if (GroupAdminPolicy.showDeleteGroup(myRow?.optBoolean("creator") == true)) {
+                                        Spacer(Modifier.height(12.dp))
+                                        Button(
+                                            onClick = {
+                                                pending = PendingAdminAction(
+                                                    "DELETE",
+                                                    "groups/$workspaceId",
+                                                    localizedText(R.string.ui_delete_this_group_publications_become_personal_to_their_authors),
+                                                    deletesGroup = true
                                                 )
-                                            ) {
-                                                Icon(Icons.Filled.Delete, contentDescription = null)
-                                                Spacer(Modifier.width(8.dp))
-                                                Text(localizedText(R.string.ui_delete_group))
-                                            }
+                                            },
+                                            colors = ButtonDefaults.buttonColors(
+                                                containerColor = MaterialTheme.colorScheme.error,
+                                                contentColor = MaterialTheme.colorScheme.onError
+                                            )
+                                        ) {
+                                            Icon(Icons.Filled.Delete, contentDescription = null)
+                                            Spacer(Modifier.width(8.dp))
+                                            Text(localizedText(R.string.ui_delete_group))
                                         }
                                     }
+
                                     Spacer(Modifier.height(12.dp))
                                     Text(localizedText(R.string.ui_content_reports), style = MaterialTheme.typography.titleMedium)
                                     if (reports.isEmpty() && error.isBlank()) Text(localizedText(R.string.ui_no_pending_reports))
@@ -300,7 +296,7 @@ internal fun SocialAdministration(
                                             val postId = report.getString("post_id")
                                             pending = PendingAdminAction(
                                                 "POST",
-                                                if (workspaceId == null) "moderation/$postId/hide" else "groups/$workspaceId/hide/$postId",
+                                                "groups/$workspaceId/hide/$postId",
                                                 localizedText(R.string.ui_hide_this_publication)
                                             )
                                         }) { Text(localizedText(R.string.ui_hide_content)) }

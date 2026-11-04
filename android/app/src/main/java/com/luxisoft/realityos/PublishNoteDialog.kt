@@ -6,6 +6,8 @@ import android.media.MediaRecorder
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
@@ -30,11 +32,14 @@ internal data class PendingPublishPhoto(val bytes: ByteArray, val mimeType: Stri
  */
 @Composable
 internal fun PublishNoteDialog(
-    onPublish: (noteText: String, noteSource: String) -> Unit,
+    workspaceId: String,
+    onPublish: (noteText: String, noteSource: String, classification: PublicationClassification) -> Unit,
     onDismiss: () -> Unit,
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
+    var classification by remember(workspaceId) { mutableStateOf(PublicationClassification()) }
+    var classificationValid by remember(workspaceId) { mutableStateOf(false) }
     var note by remember { mutableStateOf("") }
     var voiceUsed by remember { mutableStateOf(false) }
     var recording by remember { mutableStateOf(false) }
@@ -110,9 +115,10 @@ internal fun PublishNoteDialog(
 
     AlertDialog(
         onDismissRequest = { if (!recording && !transcribing) onDismiss() },
-        title = { Text(localizedText(R.string.ui_add_note)) },
+        title = { Text(localizedText(R.string.ui_publish)) },
         text = {
-            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                ClassificationFields(workspaceId, classification, onValid = { classificationValid = it }) { classification = it }
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     IconButton(
                         onClick = {
@@ -145,12 +151,12 @@ internal fun PublishNoteDialog(
                 )
                 NoticeEffect(error, { error = "" })
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    TextButton(onClick = { onPublish("", "") }) { Text(localizedText(R.string.ui_no_note)) }
+                    TextButton(enabled = classificationValid && !recording && !transcribing, onClick = { onPublish("", "", classification) }) { Text(localizedText(R.string.ui_no_note)) }
                     Spacer(Modifier.weight(1f))
                     TextButton(onClick = onDismiss) { Text(localizedText(R.string.ui_cancel)) }
-                    Button(onClick = {
+                    Button(enabled = classificationValid && !recording && !transcribing, onClick = {
                         val text = note.trim()
-                        onPublish(text, if (text.isEmpty()) "" else if (voiceUsed) "voice" else "text")
+                        onPublish(text, if (text.isEmpty()) "" else if (voiceUsed) "voice" else "text", classification)
                     }) { Text(localizedText(R.string.ui_publish)) }
                 }
             }

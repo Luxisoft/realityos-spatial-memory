@@ -712,9 +712,9 @@ Respuestas declaradas: `200`, `422`.
 | `POST /v1/faces/search` | Buscar candidatos faciales | bearer | `workspace_id` | — |
 | `GET /v1/faces/enrollments/{enrollment_id}/thumbnail` | Ver evidencia del enrolamiento | bearer | `enrollment_id` | — |
 | `GET /v1/faces/record-enrollments/{enrollment_id}/thumbnail` | Ver evidencia del expediente enrolado | bearer | `enrollment_id` | — |
+| `GET /v1/faces/setup` | Status | bearer | — | — |
 | `POST /v1/faces/reference-photos` | Add Reference | bearer | `file` | ✓ |
 | `DELETE /v1/faces/reference-photos/{enrollment_id}` | Remove Reference | bearer | `enrollment_id` | ✓ |
-| `GET /v1/faces/setup` | Status | bearer | — | — |
 | `POST /v1/faces/setup/complete` | Complete | bearer | — | ✓ |
 
 <details>
@@ -908,6 +908,18 @@ Respuestas declaradas: `200`, `422`.
 
 <details>
 
+<summary>GET /v1/faces/setup</summary>
+
+| Campo | Ubicación | Obligatorio | Tipo | Restricciones |
+| --- | --- | --- | --- | --- |
+| — | — | — | — | — |
+
+Respuestas declaradas: `200`.
+
+</details>
+
+<details>
+
 <summary>POST /v1/faces/reference-photos</summary>
 
 | Campo | Ubicación | Obligatorio | Tipo | Restricciones |
@@ -927,18 +939,6 @@ Respuestas declaradas: `201`, `422`.
 | `enrollment_id` | path | ✓ | `string` | `{}` |
 
 Respuestas declaradas: `200`, `422`.
-
-</details>
-
-<details>
-
-<summary>GET /v1/faces/setup</summary>
-
-| Campo | Ubicación | Obligatorio | Tipo | Restricciones |
-| --- | --- | --- | --- | --- |
-| — | — | — | — | — |
-
-Respuestas declaradas: `200`.
 
 </details>
 
@@ -1092,7 +1092,6 @@ Respuestas declaradas: `200`, `422`.
 | `GET /v1/observations/{observation_id}/highlighted` | Ver observación señalada | bearer | `observation_id` | — |
 | `GET /v1/media/{media_id}/highlighted` | Obtener medio señalado | bearer | `media_id` | — |
 | `GET /v1/me/storage-connections/{connection_id}/objects` | Objects | bearer | `connection_id` | — |
-| `GET /v1/profiles/{user_id}/media` | Paginar medios del perfil | bearer | `user_id` | — |
 | `GET /v1/gallery/{post_id}/media` | Obtener medio autorizado | bearer | `post_id` | — |
 
 <details>
@@ -1389,20 +1388,6 @@ Respuestas declaradas: `200`, `422`.
 
 <details>
 
-<summary>GET /v1/profiles/{user_id}/media</summary>
-
-| Campo | Ubicación | Obligatorio | Tipo | Restricciones |
-| --- | --- | --- | --- | --- |
-| `user_id` | path | ✓ | `string` | `{}` |
-| `limit` | query | — | `integer` | `{"default": 12}` |
-| `cursor` | query | — | `string / null` | `{}` |
-
-Respuestas declaradas: `200`, `422`.
-
-</details>
-
-<details>
-
 <summary>GET /v1/gallery/{post_id}/media</summary>
 
 | Campo | Ubicación | Obligatorio | Tipo | Restricciones |
@@ -1433,7 +1418,6 @@ Respuestas declaradas: `200`, `422`.
 | `POST /v1/me/storage-connections/{connection_id}/syncs/{rule_id}/run` | Run Sync | bearer | `connection_id`, `rule_id` | ✓ |
 | `DELETE /v1/me/storage-connections/{connection_id}/syncs/{rule_id}` | Stop Sync | bearer | `connection_id`, `rule_id` | ✓ |
 | `POST /v1/me/profile/avatar` | Cambiar avatar | bearer | `file` | ✓ |
-| `GET /v1/me/social-capabilities` | Consultar capacidades sociales | bearer | — | — |
 | `GET /v1/groups/{workspace_id}/members` | Listar miembros | bearer | `workspace_id` | — |
 | `POST /v1/groups/{workspace_id}/members/{member_id}/invite-permission` | Cambiar permiso para invitar | bearer | `workspace_id`, `member_id` | ✓ |
 | `POST /v1/groups/{workspace_id}/members/{member_id}/remove` | Retirar miembro | bearer | `workspace_id`, `member_id` | ✓ |
@@ -1451,7 +1435,7 @@ Respuestas declaradas: `200`, `422`.
 | `POST /v1/groups/join` | Aceptar invitación | bearer | — | ✓ |
 | `POST /v1/gallery/{post_id}/remove` | Retirar publicación | bearer | `post_id` | ✓ |
 | `POST /v1/assistant` | Consultar asistente | bearer | `text` | ✓ |
-| `POST /v1/gallery/{post_id}/share` | Compartir publicación | bearer | `post_id`, `audience` | ✓ |
+| `POST /v1/gallery/{post_id}/share` | Compartir publicación | bearer | `post_id`, `category_id`, `tag_ids`, `workspace_id` | ✓ |
 | `GET /v1/groups/{workspace_id}/reports` | Consultar reportes del grupo | bearer | `workspace_id` | — |
 | `POST /v1/groups/{workspace_id}/hide/{post_id}` | Ocultar publicación del grupo | bearer | `workspace_id`, `post_id` | ✓ |
 | `GET /v1/me/facebook-profile` | Consultar mi perfil sincronizado | bearer | — | — |
@@ -1462,13 +1446,10 @@ Respuestas declaradas: `200`, `422`.
 | `POST /v1/me/profile/cv` | Reemplazar CV privado | bearer | `file` | ✓ |
 | `DELETE /v1/me/profile/cv` | Eliminar CV privado | bearer | — | ✓ |
 | `POST /v1/notes/transcribe` | Transcribir nota | bearer | `audio` | ✓ |
-| `POST /v1/me/profile/publications` | Publicar en mi perfil | bearer | `file`, `workspace_id` | ✓ |
-| `POST /v1/me/work-publications` | Publicar en espacio de trabajo | bearer | `workspace_id`, `file` | ✓ |
 | `POST /v1/me/profile/cv/retry` | Reintentar procesamiento de CV | bearer | — | ✓ |
 | `POST /v1/profiles/search` | Consultar perfiles autorizados | bearer | `question` | — |
 | `GET /v1/gallery/page` | Paginar galería | bearer | — | — |
-| `GET /v1/gallery` | Consultar galería | bearer | — | — |
-| `POST /v1/gallery` | Crear publicación | bearer | `media_id` | ✓ |
+| `POST /v1/gallery` | Crear publicación | bearer | `category_id`, `tag_ids`, `media_id`, `workspace_id` | ✓ |
 | `POST /v1/me/capture-profile` | Obtener credencial de captura | bearer | — | ✓ |
 | `GET /v1/gallery/{post_id}/thumbnail` | Obtener miniatura | bearer | `post_id` | — |
 | `GET /v1/gallery/{post_id}/boxed` | Obtener miniatura señalada | bearer | `post_id` | — |
@@ -1481,13 +1462,19 @@ Respuestas declaradas: `200`, `422`.
 | `POST /v1/gallery/evidence/information` | Leer información de evidencia | bearer | `items` | — |
 | `POST /v1/gallery/evidence/information/prepare` | Preparar información bilingüe | bearer | `items` | ✓ |
 | `GET /v1/gallery/evidence/{evidence_id}` | Obtener imagen de evidencia | bearer | `evidence_id` | — |
-| `POST /v1/me/publication-uploads` | Preparar publicación para revisión | bearer | `file`, `request_key` | ✓ |
+| `POST /v1/me/publication-uploads` | Preparar publicación para revisión | bearer | `file`, `request_key`, `category_id`, `tag_ids`, `workspace_id` | ✓ |
 | `GET /v1/me/publication-uploads/{upload_id}` | Consultar estado de publicación | bearer | `upload_id` | — |
 | `GET /v1/me/publication-uploads/{upload_id}/preview` | Ver publicación pendiente | bearer | `upload_id` | — |
 | `POST /v1/me/publication-uploads/{upload_id}/confirm` | Confirmar publicación | bearer | `upload_id` | ✓ |
 | `POST /v1/me/publication-uploads/{upload_id}/cancel` | Cancelar publicación pendiente | bearer | `upload_id` | ✓ |
 | `POST /v1/me/publication-uploads/{upload_id}/retry` | Reintentar publicación | bearer | `upload_id` | ✓ |
+| `POST /v1/me/publication-uploads/{upload_id}/classify` | Classify Publication Upload | bearer | `upload_id`, `category_id`, `tag_ids` | ✓ |
 | `POST /v1/groups/{workspace_id}/publications/import` | Import Group Publications | bearer | `workspace_id`, `publication_ids` | ✓ |
+| `GET /v1/groups/{workspace_id}/publication-catalog` | Publication Catalog | bearer | `workspace_id` | — |
+| `POST /v1/groups/{workspace_id}/publication-catalog/{kind}` | Create Publication Term | bearer | `workspace_id`, `kind`, `name` | ✓ |
+| `PATCH /v1/groups/{workspace_id}/publication-catalog/{term_id}` | Update Publication Term | bearer | `workspace_id`, `term_id`, `name` | ✓ |
+| `PATCH /v1/gallery/{post_id}/classification` | Update Publication Classification | bearer | `post_id`, `category_id`, `tag_ids` | ✓ |
+| `GET /v1/gallery/filter-options` | Gallery Filter Options | bearer | — | — |
 
 <details>
 
@@ -1664,7 +1651,7 @@ Respuestas declaradas: `200`, `422`.
 | `connection_id` | path | ✓ | `string` | `{}` |
 | `request_key` | body | ✓ | `string` | `{"maxLength": 128, "minLength": 1}` |
 | `keys` | body | ✓ | `array` | `{}` |
-| `audience` | body | — | `string` | `{"default": "work"}` |
+| `classifications` | body | — | `object` | `{}` |
 | `workspace_id` | body | — | `string / null` | `{}` |
 
 ```json
@@ -1674,8 +1661,15 @@ Respuestas declaradas: `200`, `422`.
   "keys": [
     "{{storage_object_key}}"
   ],
-  "audience": "work",
-  "workspace_id": "{{workspace_id}}"
+  "workspace_id": "{{workspace_id}}",
+  "classifications": {
+    "{{storage_object_key}}": {
+      "category_id": "{{category_id}}",
+      "tag_ids": [
+        "{{tag_id}}"
+      ]
+    }
+  }
 }
 
 ```
@@ -1729,7 +1723,6 @@ Respuestas declaradas: `200`, `422`.
 | --- | --- | --- | --- | --- |
 | `connection_id` | path | ✓ | `string` | `{}` |
 | `prefix` | body | — | `string` | `{"maxLength": 1024, "default": ""}` |
-| `audience` | body | — | `string` | `{"default": "work"}` |
 | `workspace_id` | body | — | `string / null` | `{}` |
 | `interval_minutes` | body | — | `integer` | `{"enum": [15, 60, 1440], "default": 15}` |
 | `enabled` | body | — | `boolean` | `{"default": false}` |
@@ -1738,7 +1731,6 @@ Respuestas declaradas: `200`, `422`.
 
 {
   "prefix": "{{storage_prefix}}",
-  "audience": "work",
   "workspace_id": "{{workspace_id}}",
   "interval_minutes": 15,
   "enabled": false
@@ -1785,18 +1777,6 @@ Respuestas declaradas: `200`, `422`.
 | `file` | body | ✓ | `string` | `{}` |
 
 Respuestas declaradas: `200`, `422`.
-
-</details>
-
-<details>
-
-<summary>GET /v1/me/social-capabilities</summary>
-
-| Campo | Ubicación | Obligatorio | Tipo | Restricciones |
-| --- | --- | --- | --- | --- |
-| — | — | — | — | — |
-
-Respuestas declaradas: `200`.
 
 </details>
 
@@ -1855,11 +1835,19 @@ Respuestas declaradas: `200`, `422`.
 | --- | --- | --- | --- | --- |
 | `name` | body | — | `string` | `{"maxLength": 160, "default": ""}` |
 | `code` | body | — | `string` | `{"maxLength": 128, "default": ""}` |
+| `categories` | body | — | `array` | `{}` |
+| `tags` | body | — | `array` | `{}` |
 
 ```json
 
 {
-  "name": "New work group"
+  "name": "New work group",
+  "categories": [
+    "Equipment"
+  ],
+  "tags": [
+    "Reviewed"
+  ]
 }
 
 ```
@@ -2033,6 +2021,8 @@ Respuestas declaradas: `200`, `422`.
 | --- | --- | --- | --- | --- |
 | `name` | body | — | `string` | `{"maxLength": 160, "default": ""}` |
 | `code` | body | — | `string` | `{"maxLength": 128, "default": ""}` |
+| `categories` | body | — | `array` | `{}` |
+| `tags` | body | — | `array` | `{}` |
 
 ```json
 
@@ -2066,7 +2056,6 @@ Respuestas declaradas: `200`, `422`.
 | --- | --- | --- | --- | --- |
 | `language` | body | — | `string / null` | `{}` |
 | `text` | body | ✓ | `string` | `{"maxLength": 500, "minLength": 2}` |
-| `audience` | body | — | `string` | `{"enum": ["home", "public", "work"], "default": "home"}` |
 | `workspace_id` | body | — | `string / null` | `{}` |
 | `post_id` | body | — | `string / null` | `{}` |
 
@@ -2090,14 +2079,18 @@ Respuestas declaradas: `200`, `422`.
 | Campo | Ubicación | Obligatorio | Tipo | Restricciones |
 | --- | --- | --- | --- | --- |
 | `post_id` | path | ✓ | `string` | `{}` |
-| `audience` | body | ✓ | `string` | `{"enum": ["home", "public", "work"]}` |
-| `workspace_id` | body | — | `string / null` | `{}` |
+| `category_id` | body | ✓ | `string` | `{}` |
+| `tag_ids` | body | ✓ | `array` | `{}` |
+| `workspace_id` | body | ✓ | `string` | `{}` |
 
 ```json
 
 {
-  "audience": "work",
-  "workspace_id": "{{workspace_id}}"
+  "workspace_id": "{{workspace_id}}",
+  "category_id": "{{category_id}}",
+  "tag_ids": [
+    "{{tag_id}}"
+  ]
 }
 
 ```
@@ -2246,38 +2239,6 @@ Respuestas declaradas: `200`, `422`.
 
 <details>
 
-<summary>POST /v1/me/profile/publications</summary>
-
-| Campo | Ubicación | Obligatorio | Tipo | Restricciones |
-| --- | --- | --- | --- | --- |
-| `file` | body | ✓ | `string` | `{}` |
-| `caption` | body | — | `string` | `{"maxLength": 4000, "default": ""}` |
-| `note_text` | body | — | `string` | `{"maxLength": 4000, "default": ""}` |
-| `note_source` | body | — | `string` | `{"default": ""}` |
-| `workspace_id` | body | ✓ | `string` | `{}` |
-
-Respuestas declaradas: `200`, `422`.
-
-</details>
-
-<details>
-
-<summary>POST /v1/me/work-publications</summary>
-
-| Campo | Ubicación | Obligatorio | Tipo | Restricciones |
-| --- | --- | --- | --- | --- |
-| `workspace_id` | body | ✓ | `string` | `{}` |
-| `caption` | body | — | `string` | `{"maxLength": 4000, "default": ""}` |
-| `note_text` | body | — | `string` | `{"maxLength": 4000, "default": ""}` |
-| `note_source` | body | — | `string` | `{"default": ""}` |
-| `file` | body | ✓ | `string` | `{}` |
-
-Respuestas declaradas: `200`, `422`.
-
-</details>
-
-<details>
-
 <summary>POST /v1/me/profile/cv/retry</summary>
 
 | Campo | Ubicación | Obligatorio | Tipo | Restricciones |
@@ -2317,24 +2278,15 @@ Respuestas declaradas: `200`, `422`.
 
 | Campo | Ubicación | Obligatorio | Tipo | Restricciones |
 | --- | --- | --- | --- | --- |
-| `audience` | query | — | `string` | `{"enum": ["home", "work"], "default": "work"}` |
 | `workspace_id` | query | — | `string / null` | `{}` |
 | `limit` | query | — | `integer` | `{"default": 12}` |
 | `cursor` | query | — | `string / null` | `{}` |
-
-Respuestas declaradas: `200`, `422`.
-
-</details>
-
-<details>
-
-<summary>GET /v1/gallery</summary>
-
-| Campo | Ubicación | Obligatorio | Tipo | Restricciones |
-| --- | --- | --- | --- | --- |
-| `audience` | query | — | `string` | `{"enum": ["home", "public", "work"], "default": "work"}` |
-| `offset` | query | — | `integer` | `{"default": 0}` |
-| `workspace_id` | query | — | `string / null` | `{}` |
+| `category_ids` | query | — | `array` | `{"default": []}` |
+| `tag_ids` | query | — | `array` | `{"default": []}` |
+| `owner_ids` | query | — | `array` | `{"default": []}` |
+| `published_from` | query | — | `string / null` | `{}` |
+| `published_before` | query | — | `string / null` | `{}` |
+| `description_q` | query | — | `string` | `{"maxLength": 500, "default": ""}` |
 
 Respuestas declaradas: `200`, `422`.
 
@@ -2346,17 +2298,21 @@ Respuestas declaradas: `200`, `422`.
 
 | Campo | Ubicación | Obligatorio | Tipo | Restricciones |
 | --- | --- | --- | --- | --- |
+| `category_id` | body | ✓ | `string` | `{}` |
+| `tag_ids` | body | ✓ | `array` | `{}` |
 | `media_id` | body | ✓ | `string` | `{}` |
-| `audience` | body | — | `string` | `{"default": "work"}` |
 | `caption` | body | — | `string` | `{"maxLength": 4000, "default": ""}` |
-| `workspace_id` | body | — | `string / null` | `{}` |
+| `workspace_id` | body | ✓ | `string` | `{}` |
 
 ```json
 
 {
   "media_id": "{{media_id}}",
-  "audience": "work",
-  "workspace_id": "{{workspace_id}}"
+  "workspace_id": "{{workspace_id}}",
+  "category_id": "{{category_id}}",
+  "tag_ids": [
+    "{{tag_id}}"
+  ]
 }
 
 ```
@@ -2585,8 +2541,9 @@ Respuestas declaradas: `200`, `422`.
 | --- | --- | --- | --- | --- |
 | `file` | body | ✓ | `string` | `{}` |
 | `request_key` | body | ✓ | `string` | `{"maxLength": 64}` |
-| `audience` | body | — | `string` | `{"default": "work"}` |
-| `workspace_id` | body | — | `string / null` | `{}` |
+| `category_id` | body | ✓ | `string` | `{}` |
+| `tag_ids` | body | ✓ | `string` | `{}` |
+| `workspace_id` | body | ✓ | `string` | `{}` |
 | `caption` | body | — | `string` | `{"maxLength": 4000, "default": ""}` |
 | `note_text` | body | — | `string` | `{"maxLength": 4000, "default": ""}` |
 | `note_source` | body | — | `string` | `{"default": ""}` |
@@ -2657,22 +2614,151 @@ Respuestas declaradas: `200`, `422`.
 
 <details>
 
+<summary>POST /v1/me/publication-uploads/{upload_id}/classify</summary>
+
+| Campo | Ubicación | Obligatorio | Tipo | Restricciones |
+| --- | --- | --- | --- | --- |
+| `upload_id` | path | ✓ | `string` | `{}` |
+| `category_id` | body | ✓ | `string` | `{}` |
+| `tag_ids` | body | ✓ | `array` | `{}` |
+
+```json
+
+{
+  "category_id": "{{category_id}}",
+  "tag_ids": [
+    "{{tag_id}}"
+  ]
+}
+
+```
+
+Respuestas declaradas: `200`, `422`.
+
+</details>
+
+<details>
+
 <summary>POST /v1/groups/{workspace_id}/publications/import</summary>
 
 | Campo | Ubicación | Obligatorio | Tipo | Restricciones |
 | --- | --- | --- | --- | --- |
 | `workspace_id` | path | ✓ | `string` | `{}` |
 | `publication_ids` | body | ✓ | `array` | `{}` |
+| `classifications` | body | — | `object` | `{}` |
 
 ```json
 
 {
   "publication_ids": [
     "{{post_id}}"
+  ],
+  "classifications": {
+    "{{post_id}}": {
+      "category_id": "{{category_id}}",
+      "tag_ids": [
+        "{{tag_id}}"
+      ]
+    }
+  }
+}
+
+```
+
+Respuestas declaradas: `200`, `422`.
+
+</details>
+
+<details>
+
+<summary>GET /v1/groups/{workspace_id}/publication-catalog</summary>
+
+| Campo | Ubicación | Obligatorio | Tipo | Restricciones |
+| --- | --- | --- | --- | --- |
+| `workspace_id` | path | ✓ | `string` | `{}` |
+
+Respuestas declaradas: `200`, `422`.
+
+</details>
+
+<details>
+
+<summary>POST /v1/groups/{workspace_id}/publication-catalog/{kind}</summary>
+
+| Campo | Ubicación | Obligatorio | Tipo | Restricciones |
+| --- | --- | --- | --- | --- |
+| `workspace_id` | path | ✓ | `string` | `{}` |
+| `kind` | path | ✓ | `string` | `{"enum": ["category", "tag"]}` |
+| `name` | body | ✓ | `string` | `{"maxLength": 80, "minLength": 1}` |
+
+```json
+
+{
+  "name": "Equipment"
+}
+
+```
+
+Respuestas declaradas: `201`, `422`.
+
+</details>
+
+<details>
+
+<summary>PATCH /v1/groups/{workspace_id}/publication-catalog/{term_id}</summary>
+
+| Campo | Ubicación | Obligatorio | Tipo | Restricciones |
+| --- | --- | --- | --- | --- |
+| `workspace_id` | path | ✓ | `string` | `{}` |
+| `term_id` | path | ✓ | `string` | `{}` |
+| `name` | body | ✓ | `string` | `{"maxLength": 80, "minLength": 1}` |
+| `active` | body | — | `boolean` | `{"default": true}` |
+
+```json
+
+{
+  "name": "Equipment",
+  "active": true
+}
+
+```
+
+Respuestas declaradas: `200`, `422`.
+
+</details>
+
+<details>
+
+<summary>PATCH /v1/gallery/{post_id}/classification</summary>
+
+| Campo | Ubicación | Obligatorio | Tipo | Restricciones |
+| --- | --- | --- | --- | --- |
+| `post_id` | path | ✓ | `string` | `{}` |
+| `category_id` | body | ✓ | `string` | `{}` |
+| `tag_ids` | body | ✓ | `array` | `{}` |
+
+```json
+
+{
+  "category_id": "{{category_id}}",
+  "tag_ids": [
+    "{{tag_id}}"
   ]
 }
 
 ```
+
+Respuestas declaradas: `200`, `422`.
+
+</details>
+
+<details>
+
+<summary>GET /v1/gallery/filter-options</summary>
+
+| Campo | Ubicación | Obligatorio | Tipo | Restricciones |
+| --- | --- | --- | --- | --- |
+| `workspace_id` | query | — | `string / null` | `{}` |
 
 Respuestas declaradas: `200`, `422`.
 
@@ -2916,8 +3002,6 @@ Respuestas declaradas: `200`, `422`.
 | `GET /v1/admin/devices/{device_id}/assignments` | Consultar asignaciones del dispositivo | bearer | `device_id` | — |
 | `POST /v1/admin/devices/{device_id}/assignments` | Asignar dispositivo | bearer | `device_id`, `operator_label`, `notice_version` | ✓ |
 | `GET /v1/admin/analytics/inventory` | Consultar analítica del inventario | bearer | `workspace_id` | — |
-| `GET /v1/moderation/reports` | Consultar reportes de moderación | bearer | — | — |
-| `POST /v1/moderation/{post_id}/hide` | Ocultar publicación por moderación | bearer | `post_id` | ✓ |
 
 <details>
 
@@ -3023,30 +3107,6 @@ Respuestas declaradas: `201`, `422`.
 | Campo | Ubicación | Obligatorio | Tipo | Restricciones |
 | --- | --- | --- | --- | --- |
 | `workspace_id` | query | ✓ | `string` | `{}` |
-
-Respuestas declaradas: `200`, `422`.
-
-</details>
-
-<details>
-
-<summary>GET /v1/moderation/reports</summary>
-
-| Campo | Ubicación | Obligatorio | Tipo | Restricciones |
-| --- | --- | --- | --- | --- |
-| — | — | — | — | — |
-
-Respuestas declaradas: `200`.
-
-</details>
-
-<details>
-
-<summary>POST /v1/moderation/{post_id}/hide</summary>
-
-| Campo | Ubicación | Obligatorio | Tipo | Restricciones |
-| --- | --- | --- | --- | --- |
-| `post_id` | path | ✓ | `string` | `{}` |
 
 Respuestas declaradas: `200`, `422`.
 

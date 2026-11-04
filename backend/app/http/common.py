@@ -371,7 +371,6 @@ async def _store_capture(
                 Publication(
                     owner_id=session.created_by_id,
                     media_id=asset.id,
-                    audience="work",
                     workspace_id=session.workspace_id,
                 )
             )

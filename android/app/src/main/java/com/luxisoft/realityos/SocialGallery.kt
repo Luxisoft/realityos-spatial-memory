@@ -7,12 +7,16 @@ import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
+import com.luxisoft.realityos.host.GalleryActions
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.Color
@@ -348,11 +352,11 @@ internal object SocialSession {
 @SuppressLint("LocalContextGetResourceValueCall")
 fun SocialGallery(
     viewModel: RealityViewModel,
-    audience: String = "home",
     onWelcome: () -> Unit = {},
     onViewerChange: (Boolean) -> Unit = {},
     galleryBar: GalleryTopBarState? = null,
     onAdminDrawerChange: (Boolean) -> Unit = {},
+    capturePublicationRevision: Long = 0,
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
@@ -360,12 +364,16 @@ fun SocialGallery(
     var loginBusy by remember { mutableStateOf(false) }
     var showImport by remember { mutableStateOf(false) }
     var showRecords by remember { mutableStateOf(false) }
-    var groupId by remember { mutableStateOf<String?>(null) }
-    var posts by remember(audience, groupId) { mutableStateOf<List<JSONObject>>(emptyList()) }
+    var groupId by rememberSaveable { mutableStateOf(SocialSession.workWorkspaceId) }
+    var filters by remember(groupId) { mutableStateOf(if (galleryBar != null && galleryBar.selectedId == groupId) galleryBar.filters else GalleryFilterSelection()) }
+    var editingClassification by remember { mutableStateOf<JSONObject?>(null) }
+    var draftCategories by remember { mutableStateOf(emptyList<String>()) }
+    var draftTags by remember { mutableStateOf(emptyList<String>()) }
+    var posts by remember(groupId) { mutableStateOf<List<JSONObject>>(emptyList()) }
     var error by remember { mutableStateOf("") }
     var loading by remember { mutableStateOf(false) }
     var pageFailed by remember { mutableStateOf(false) }
-    var pageLoaded by remember(audience, groupId) { mutableStateOf(false) }
+    var pageLoaded by remember(groupId) { mutableStateOf(false) }
     var groupsLoading by remember { mutableStateOf(true) }
     var commentsLoading by remember { mutableStateOf(false) }
     var inviteLoading by remember { mutableStateOf(false) }
@@ -380,26 +388,26 @@ fun SocialGallery(
     var groupText by remember { mutableStateOf("") }
     var liked by remember { mutableStateOf(setOf<String>()) }
     var revision by remember { mutableIntStateOf(0) }
-    var offset by remember(audience, groupId) { mutableIntStateOf(0) }
-    var endReached by remember(audience, groupId) { mutableStateOf(false) }
+    var cursor by remember(groupId) { mutableStateOf<String?>(null) }
+    var nextCursor by remember(groupId) { mutableStateOf<String?>(null) }
+    var endReached by remember(groupId) { mutableStateOf(false) }
     var publishing by remember { mutableStateOf(false) }
     var workPublishMenu by remember { mutableStateOf(false) }
     var workPendingPhoto by remember { mutableStateOf<PendingPublishPhoto?>(null) }
     var workNoteDialog by remember { mutableStateOf(false) }
     var workCaptureUri by remember { mutableStateOf<Uri?>(null) }
     var showAdministration by remember { mutableStateOf(false) }
-    var moderator by remember { mutableStateOf(false) }
     var entryConsent by remember { mutableStateOf(false) }
     var faceConsentAsk by remember { mutableStateOf(false) }
     var faceCaptureDone by remember { mutableStateOf<Boolean?>(null) }
     var identityVerified by remember { mutableStateOf<Boolean?>(null) }
     var deniedLastTime by remember { mutableStateOf(false) }
     val resumedSession = remember { SocialSession.token != null }
-    val publicationUploader = rememberPublicationUploader(onPublished = { offset = 0; endReached = false; revision++ }, onBusy = { publishing = it })
+    val publicationUploader = rememberPublicationUploader(onPublished = { cursor = null; endReached = false; revision++ }, onBusy = { publishing = it })
     PublicationUploadDialog(publicationUploader)
-    fun uploadWorkPublication(photo: PendingPublishPhoto, noteText: String, noteSource: String) {
+    fun uploadWorkPublication(photo: PendingPublishPhoto, noteText: String, noteSource: String, classification: PublicationClassification) {
         val target = groupId ?: return
-        publicationUploader.submit(photo, noteText, noteSource, "work", target)
+        publicationUploader.submit(photo, noteText, noteSource, target, classification)
     }
 
     fun stageWorkPhoto(bytes: ByteArray, mime: String, name: String) {
@@ -492,11 +500,13 @@ fun SocialGallery(
         } }
     }
     galleryBar?.let { bar ->
-        bar.onCreate = { groupText = ""; groupPin = ""; groupDialog = "create" }
+        bar.filters = filters
+        bar.onFilters = { filters = it; cursor = null; endReached = false; pageLoaded = false; posts = emptyList(); revision++ }
+        bar.onCreate = { groupText = ""; groupPin = ""; draftCategories = emptyList(); draftTags = emptyList(); groupDialog = "create" }
         bar.onRecords = { showRecords = true }
         bar.onImport = { showImport = true }
         bar.loading = groupsLoading
-        bar.options = if (authenticated && audience == "work") {
+        bar.options = if (authenticated) {
             groups.map { WorkspaceOption(it.optString("id"), it.optString("name"), it.optString("role")) }
         } else emptyList()
         bar.selectedId = groupId
@@ -505,7 +515,7 @@ fun SocialGallery(
         val iCanInvite = currentGroup != null && GroupAdminPolicy.canInvite(currentGroup.optString("role"), currentGroup.optBoolean("can_invite"))
         bar.showInvite = groupId != null && iCanInvite
         bar.showAdmin = groupId != null && iCanInvite
-        bar.onSelect = { groupId = it; SocialSession.workWorkspaceId = it; posts = emptyList(); pageLoaded = false; offset = 0; endReached = false }
+        bar.onSelect = { groupId = it; SocialSession.workWorkspaceId = it; posts = emptyList(); pageLoaded = false; cursor = null; endReached = false }
         bar.onPublish = {
             if (groupId == null) error = localizedText(R.string.ui_select_a_workspace_to_publish)
             else workPublishMenu = true
@@ -586,26 +596,38 @@ fun SocialGallery(
             onRequireLogin = { requireFreshLogin() })
         return
     }
-    LaunchedEffect(audience, authenticated, groupId, revision, offset) {
+    LaunchedEffect(capturePublicationRevision) {
+        if (capturePublicationRevision > 0) {
+            cursor = null
+            endReached = false
+            revision++
+        }
+    }
+    LaunchedEffect(authenticated, groupId, revision, cursor, filters) {
         if (!authenticated) return@LaunchedEffect
-        if (offset != 0 && endReached) return@LaunchedEffect
+        if (cursor != null && endReached) return@LaunchedEffect
         loading = true
         pageFailed = false
         error = ""
         try {
-            val result = withContext(Dispatchers.IO) { JSONArray(SocialSession.request("gallery?audience=$audience&offset=$offset" + if (audience == "work" && groupId != null) "&workspace_id=$groupId" else "")) }
-            val page = (0 until result.length()).map { result.getJSONObject(it) }
-            posts = if (offset == 0) page else (posts + page).distinctBy { it.getString("id") }
-            endReached = GalleryPagingPolicy.isEndOfContent(page.size)
+            val result = withContext(Dispatchers.IO) {
+                JSONObject(SocialSession.request("gallery/page?limit=30" +
+                    (groupId?.let { "&workspace_id=$it" } ?: "") +
+                    (cursor?.let { "&cursor=${Uri.encode(it)}" } ?: "") + "&" + filters.query()))
+            }
+            val values = result.getJSONArray("items")
+            val page = (0 until values.length()).map { values.getJSONObject(it) }
+            posts = if (cursor == null) page else (posts + page).distinctBy { it.getString("id") }
+            nextCursor = result.optText("next_cursor")
+            endReached = nextCursor == null
             liked = posts.filter { it.optBoolean("liked") }.map { it.getString("id") }.toSet()
         } catch (e: Exception) { if (e is kotlinx.coroutines.CancellationException) throw e; pageFailed = true; error = e.message.orEmpty() }
         finally { loading = false; pageLoaded = true }
     }
-    LaunchedEffect(authenticated, audience, revision) {
+    LaunchedEffect(authenticated, revision) {
         if (!authenticated) return@LaunchedEffect
         groupsLoading = true
         try {
-            moderator = withContext(Dispatchers.IO) { JSONObject(SocialSession.request("me/social-capabilities")).optBoolean("moderator") }
             val resultGroups = withContext(Dispatchers.IO) { JSONArray(SocialSession.request("workspaces")) }
             groups = (0 until resultGroups.length()).map { resultGroups.getJSONObject(it) }.filter { !it.getString("name").startsWith("home:") }
             if (groupId == null && groups.size == 1) {
@@ -621,9 +643,7 @@ fun SocialGallery(
     }
     Column(Modifier.fillMaxSize()) {
 
-        if (moderator && audience == "public") Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-            IconButton(onClick = { showAdministration = true }) { Icon(Icons.Filled.Flag, contentDescription = localizedText(R.string.ui_review_reports)) }
-        }
+        if (selected == null) galleryBar?.let { GalleryActions(it) }
         NoticeEffect(error, { error = "" })
         if (publishing) LinearProgressIndicator(Modifier.fillMaxWidth())
         if (posts.isEmpty() && (loading || !pageLoaded) && error.isBlank()) {
@@ -636,11 +656,11 @@ fun SocialGallery(
             Box(Modifier.fillMaxWidth().weight(1f), contentAlignment = Alignment.Center) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     Icon(Icons.Default.PhotoLibrary, null, modifier = Modifier.size(58.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
-                    Text(localizedText(R.string.ui_no_publications_in_this_workspace_yet), color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    if (audience == "work" && groupsLoading) SkeletonList(Modifier.padding(16.dp), rows = 2)
-                    else if (audience == "work" && groups.isEmpty()) {
+                    Text(localizedText(if (filters.active) R.string.gallery_no_results else R.string.ui_no_publications_in_this_workspace_yet), color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    if (groupsLoading) SkeletonList(Modifier.padding(16.dp), rows = 2)
+                    else if (groups.isEmpty()) {
                         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            OutlinedButton(onClick = { groupText = ""; groupPin = ""; groupDialog = "create" }) { Text(localizedText(R.string.ui_create_group)) }
+                            OutlinedButton(onClick = { groupText = ""; groupPin = ""; draftCategories = emptyList(); draftTags = emptyList(); groupDialog = "create" }) { Text(localizedText(R.string.ui_create_group)) }
                             Button(onClick = { groupText = ""; groupPin = ""; groupDialog = "join" }) { Text(localizedText(R.string.ui_join)) }
                         }
                     }
@@ -648,15 +668,8 @@ fun SocialGallery(
             }
         } else {
             LazyVerticalGrid(columns = GridCells.Fixed(3), modifier = Modifier.weight(1f)) {
-                items(posts.filter { audience != "work" || groupId == null || it.optString("workspace_id") == groupId }, key = { it.getString("id") }) { post ->
-                    Box(Modifier.padding(1.dp).aspectRatio(0.75f).clickable { selected = post }) {
-                        DatabaseImage(
-                            model = profileImageRequest(context, post.getString("thumbnail_url")),
-                            contentDescription = post.optString("caption"), contentScale = ContentScale.Crop,
-                            modifier = Modifier.fillMaxSize(),
-                        )
-                        PublicationSourceBadge(post.optString("source"), Modifier.align(Alignment.BottomStart).padding(4.dp))
-                    }
+                items(posts, key = { it.getString("id") }) { post ->
+                    PublicationThumbnail(post, Modifier.padding(1.dp).aspectRatio(0.75f)) { selected = post }
                 }
                 if (authenticated && posts.isNotEmpty()) item(span = { GridItemSpan(maxLineSpan) }) {
                     val loadMore = GalleryPagingPolicy.shouldLoadMore(loading, endReached)
@@ -667,7 +680,7 @@ fun SocialGallery(
                             style = MaterialTheme.typography.labelMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
-                        else LaunchedEffect(posts.size, audience, groupId) { offset = GalleryPagingPolicy.nextOffset(offset) }
+                        else LaunchedEffect(posts.size, groupId) { cursor = nextCursor }
                     }
                 }
             }
@@ -695,7 +708,7 @@ fun SocialGallery(
             noteText = post.optString("note_text"),
             noteSource = post.optString("note_source"),
             metaLines = listOf(
-                if (post.optString("source").startsWith("simulator")) localizedText(R.string.profile_simulated_media) else "",
+                publicationClassificationText(post),
                 post.optJSONObject("owner")?.optString("display_name").orEmpty().let { if (it.isNotBlank()) localizedText(R.string.ui_by_1_s, it) else "" },
                 post.optString("published_at").substringBefore("T").let { if (it.isNotBlank()) localizedText(R.string.ui_published_on_1_s, it) else "" },
             ),
@@ -709,7 +722,7 @@ fun SocialGallery(
                 IconButton(onClick = { interaction = "comment"; reply = null }) { Icon(Icons.Filled.Comment, contentDescription = localizedText(R.string.ui_comment), tint = Color.White) }
                 IconButton(onClick = { interaction = "report" }) { Icon(Icons.Filled.Flag, contentDescription = localizedText(R.string.ui_report), tint = Color.White) }
                 if (post.optBoolean("owned")) {
-                    IconButton(onClick = { interaction = "public" }) { Icon(Icons.Filled.Public, contentDescription = localizedText(R.string.ui_publish), tint = Color.White) }
+                    IconButton(onClick = { editingClassification = post }) { Icon(Icons.Filled.Label, localizedText(R.string.catalog_classify), tint = Color.White) }
                     IconButton(onClick = { interaction = "work" }) { Icon(Icons.Filled.Group, contentDescription = localizedText(R.string.ui_share_with_group), tint = Color.White) }
                     IconButton(onClick = { interaction = "remove" }) { Icon(Icons.Filled.Delete, contentDescription = localizedText(R.string.ui_delete), tint = Color.White) }
                 }
@@ -717,27 +730,31 @@ fun SocialGallery(
             onClose = { selected = null },
         )
         interaction?.let { action ->
+            var shareGroup by remember(action) { mutableStateOf<String?>(null) }
+            var shareClassification by remember(shareGroup) { mutableStateOf(PublicationClassification()) }
+            var shareValid by remember(shareGroup) { mutableStateOf(false) }
             AlertDialog(onDismissRequest = { interaction = null }, title = { Text(if (reply != null) localizedText(R.string.ui_reply) else action) },
                 text = {
                     if (action in listOf("comment", "report")) OutlinedTextField(value = text, onValueChange = { text = it }, label = { Text(localizedText(R.string.ui_text)) })
-                    else if (action == "work") Column {
+                    else if (action == "work") Column(Modifier.verticalScroll(rememberScrollState())) {
                         Text(localizedText(R.string.ui_choose_the_group_to_share_this_publication_with))
                         if (groupsLoading) SkeletonList(rows = 3)
                         else if (groups.isEmpty()) Text(localizedText(R.string.ui_create_or_join_a_group_from_work))
+                        shareGroup?.let { ClassificationFields(it, shareClassification, onValid = { shareValid = it }) { value -> shareClassification = value } }
                         groups.forEach { group ->
-                            TextButton(onClick = { groupId = group.getString("id") }) {
-                                Text((if (groupId == group.getString("id")) "✓ " else "") + group.getString("name"))
+                            TextButton(onClick = { shareGroup = group.getString("id") }) {
+                                Text((if (shareGroup == group.getString("id")) "✓ " else "") + group.getString("name"))
                             }
                         }
                     }
                     else Text(if (action == "public") localizedText(R.string.ui_the_content_will_be_visible_to_all_users) else if (action == "remove") localizedText(R.string.ui_the_publication_will_no_longer_appear_in_the_gallery_the_original_evidence_is_preserv) else localizedText(R.string.ui_confirm_reaction))
                 },
-                confirmButton = { TextButton(onClick = {
+                confirmButton = { TextButton(enabled = action != "work" || shareValid, onClick = {
                     runRequest {
                         withContext(Dispatchers.IO) {
                             if (action in listOf("public", "work")) {
-                                if (action == "work" && groupId == null) error(localizedText(R.string.ui_select_a_group_in_work))
-                                SocialSession.request("gallery/${post.getString("id")}/share", JSONObject().put("audience", action).apply { groupId?.let { put("workspace_id", it) } })
+                                if (action == "work" && shareGroup == null) error(localizedText(R.string.ui_select_a_group_in_work))
+                                SocialSession.request("gallery/${post.getString("id")}/share", shareClassification.json().put("workspace_id", shareGroup))
                             } else if (action == "remove") SocialSession.request("gallery/${post.getString("id")}/remove", JSONObject())
                             else SocialSession.request("gallery/${post.getString("id")}/interactions", JSONObject().put("action", action).put("text", text).apply { reply?.let { put("parent_id", it) } })
                         }
@@ -748,7 +765,7 @@ fun SocialGallery(
                             comments = (0 until result.length()).map { result.getJSONObject(it) }
                         }
                         interaction = null; text = ""
-                        if (action in listOf("public", "work", "remove")) { selected = null; offset = 0; endReached = false; revision++ }
+                        if (action in listOf("work", "remove")) { selected = null; cursor = null; endReached = false; revision++ }
                     }
                 }) { Text(localizedText(R.string.ui_confirm)) } }, dismissButton = { TextButton(onClick = { interaction = null }) { Text(localizedText(R.string.ui_cancel)) } })
         }
@@ -775,10 +792,11 @@ fun SocialGallery(
     if (workNoteDialog) {
         workPendingPhoto?.let { pending ->
             PublishNoteDialog(
-                onPublish = { noteText, noteSource ->
+                workspaceId = groupId.orEmpty(),
+                onPublish = { noteText, noteSource, classification ->
                     workNoteDialog = false
                     workPendingPhoto = null
-                    uploadWorkPublication(pending, noteText, noteSource)
+                    uploadWorkPublication(pending, noteText, noteSource, classification)
                 },
                 onDismiss = { workNoteDialog = false; workPendingPhoto = null },
             )
@@ -787,7 +805,8 @@ fun SocialGallery(
     groupDialog?.let { action ->
         AlertDialog(onDismissRequest = { groupDialog = null }, title = { Text(if (action == "invite") localizedText(R.string.ui_invitation_code) else localizedText(R.string.ui_work_group)) },
             text = {
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    if (action == "create") CatalogDraftFields(draftCategories, draftTags, { draftCategories = it }, { draftTags = it })
                     if (action == "invite" && error.isNotBlank()) {
                         NoticeEffect(error, {})
                     } else if (action == "invite" && inviteLoading) {
@@ -820,9 +839,10 @@ fun SocialGallery(
                     }) { Text(localizedText(R.string.share_invitation)) }
                 }
                 TextButton(onClick = {
-                if (action == "invite" || action == "created") groupDialog = null else runRequest {
+                if (action == "create" && (draftCategories.isEmpty() || draftTags.isEmpty())) { error = localizedText(R.string.catalog_owner_needed) }
+                else if (action == "invite" || action == "created") groupDialog = null else runRequest {
                     if (action == "create") {
-                        val created = withContext(Dispatchers.IO) { JSONObject(SocialSession.request("groups", JSONObject().put("name", groupText))) }
+                        val created = withContext(Dispatchers.IO) { JSONObject(SocialSession.request("groups", JSONObject().put("name", groupText).put("categories", JSONArray(draftCategories)).put("tags", JSONArray(draftTags)))) }
                         groupId = created.getString("id")
                         SocialSession.workWorkspaceId = groupId
                         showImport = true
@@ -859,13 +879,21 @@ fun SocialGallery(
             }) { Text(stringResource(R.string.face_consent_accept)) } },
             dismissButton = { TextButton(onClick = { faceConsentAsk = false }) { Text(stringResource(R.string.face_consent_later)) } })
     }
+    editingClassification?.let { post ->
+        ClassificationDialog(post.optString("workspace_id"), publicationClassification(post), onSave = { value ->
+            val updated = withContext(Dispatchers.IO) { JSONObject(SocialSession.requestJson("gallery/${post.getString("id")}/classification", "PATCH", value.json())) }
+            post.put("category", updated.opt("category")).put("tags", updated.getJSONArray("tags"))
+            selected = JSONObject(post.toString())
+            cursor = null; endReached = false; revision++
+        }, onClose = { editingClassification = null })
+    }
     LaunchedEffect(showAdministration) { onAdminDrawerChange(showAdministration) }
     DisposableEffect(Unit) { onDispose { onAdminDrawerChange(false) } }
-    if (showImport && groupId != null && groupDialog == null) GroupPublicationPicker(groupId!!, onClose = { showImport = false }, onImported = { revision++ })
-    if (showAdministration) SocialAdministration(
-        if (audience == "work") groupId else null,
+    if (showImport && groupId != null && groupDialog == null) GroupPublicationPicker(groupId!!, onClose = { showImport = false }, onImported = { cursor = null; endReached = false; revision++ })
+    if (showAdministration && groupId != null) SocialAdministration(
+        groupId!!,
         onDismiss = { showAdministration = false },
-        onChanged = { revision++ },
-        onGroupDeleted = { groupId = null; showAdministration = false; offset = 0; endReached = false; revision++ },
+        onChanged = { cursor = null; endReached = false; revision++ },
+        onGroupDeleted = { groupId = null; showAdministration = false; cursor = null; endReached = false; revision++ },
     )
 }

@@ -222,7 +222,7 @@ def seed_profile(db, settings, workspace: Workspace, row, index: int) -> None:
         )
     )
     for publication in publications:
-        publication.audience = "public"
+
         publication.source = "simulator"
         publication.search_text = f"{publication.caption} {profession} {region} {tags}"
     photo_publication = next((item for item in publications if db.get(MediaAsset, item.media_id).mime_type.startswith("image/")), None)
@@ -231,7 +231,7 @@ def seed_profile(db, settings, workspace: Workspace, row, index: int) -> None:
             select(Publication).where(
                 Publication.owner_id == user.id,
                 Publication.source == "simulator-work",
-                Publication.audience == "work",
+
             )
         )
     )
@@ -265,7 +265,7 @@ def seed_profile(db, settings, workspace: Workspace, row, index: int) -> None:
                 Publication(
                     owner_id=user.id,
                     media_id=photo_publication.media_id,
-                    audience="work",
+
                     workspace_id=workspace.id,
                     caption=photo_publication.caption,
                     search_text=photo_publication.search_text,

@@ -50,7 +50,7 @@ def legacy(db, user, workspace, label="crimping tool", color="red", **changes):
     post = Publication(
         owner_id=user.id,
         media_id=asset.id,
-        audience="home",
+        workspace_id=db.get(MediaAsset, asset.id).workspace_id,
         source="workshop",
         ai_labels=[label],
         ai_detections=[
@@ -156,7 +156,10 @@ def test_complete_vocabulary_scoped_and_no_cutoff(client):
         )
         db.add(other)
         db.flush()
-        private = legacy(db, other, workspace, "secret-private-tool", "green")
+        private_space = Workspace(name="Other group", created_by_id=other.id)
+        db.add(private_space)
+        db.flush()
+        private = legacy(db, other, private_space, "secret-private-tool", "green")
         assert repair_image(db, private)
         result = search_evidence(db, user, QUESTIONS[0], Interpreter())
         assert len(result.matches) == 1 and result.matches[0]["post_id"] == post.id
@@ -257,7 +260,7 @@ def test_recovered_evidence_remains_private_and_membership_scoped(client, auth_h
     with client.app.state.database.session_factory() as db:
         user, workspace = setup(db)
         post = legacy(db, user, workspace)
-        post.audience = "work"
+
         post.workspace_id = workspace.id
         db.flush()
         assert repair_image(db, post)

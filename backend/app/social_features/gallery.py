@@ -5,7 +5,6 @@ import io
 import json
 import uuid
 from datetime import UTC, datetime
-from typing import Literal
 
 from fastapi import APIRouter, Depends, HTTPException, Request
 from PIL import Image, ImageOps
@@ -25,11 +24,15 @@ from app.models import (
     MediaAsset,
     MediaKind,
     User,
-    WorkspaceMember,
 )
+from app.social_features.classification import (
+    ClassificationInput,
+    classification_json,
+    set_classification,
+)
+from app.social_features.gallery_filters import GalleryFilters, gallery_scope
 from app.social_features.models import Comment, Publication, Reaction, Report
 from app.social_features.publication_visibility import (
-    publication_content,
     require_ordinary_media,
     require_publication_content,
 )
@@ -89,9 +92,9 @@ def share(
     from app.social_features.sharing import import_publications
 
     get_post(post_id, user, db)
-    if payload.audience != "work" or not payload.workspace_id:
+    if not payload.workspace_id:
         raise HTTPException(422, "Choose a work group.")
-    result = import_publications(db, user, payload.workspace_id, [post_id])
+    result = import_publications(db, user, payload.workspace_id, [post_id], {post_id: payload})
     return {"ok": True, **result}
 
 
@@ -108,12 +111,8 @@ def visible(post: Publication, user: User, db: Session) -> Publication:
         owner = db.get(User, post.owner_id)
         if owner is None or not owner.is_guest:
             raise HTTPException(404, "Publication unavailable.")
-    if post.audience == "work":
-        workspace_member(post.workspace_id, user, db)
-        return post
-    if post.owner_id == user.id:
-        return post
-    raise HTTPException(404, "Publication unavailable.")
+    workspace_member(post.workspace_id, user, db)
+    return post
 
 
 def get_post(post_id: uuid.UUID, user: User, db: Session):
@@ -163,9 +162,9 @@ def _publication_payload(post: Publication, viewer: User, db: Session) -> dict:
         "id": str(post.id),
         "original_id": str(post.shared_from_id or post.id),
         "caption": post.caption,
+        **classification_json(db, post),
         "note_text": post.note_text,
         "note_source": post.note_source,
-        "audience": post.audience,
         "workspace_id": str(post.workspace_id) if post.workspace_id else None,
         "mime_type": asset.mime_type if asset else "application/octet-stream",
         "media_url": f"gallery/{post.id}/media",
@@ -212,124 +211,17 @@ def _gallery_page(query, limit: int, cursor: str | None, viewer: User, db: Sessi
     }
 
 
-@router.get("/profiles/{user_id}/media")
-def profile_media_page(
-    user_id: uuid.UUID,
-    limit: int = 12,
-    cursor: str | None = None,
-    user: User = Depends(get_current_user),
-    db: Session = Depends(get_db),
-):
-    from app.social_features.profiles import _guest_may_view_profile
-
-    target = db.get(User, user_id)
-    if target is None or not target.is_active:
-        raise HTTPException(404, "Profile unavailable.")
-    if not _guest_may_view_profile(user, target):
-        raise HTTPException(404, "Profile unavailable.")
-    query = select(Publication).where(
-        Publication.owner_id == user_id,
-        Publication.hidden.is_(False),
-        publication_content(),
-    )
-    if user.id != user_id:
-        query = query.where(
-            Publication.audience == "work",
-            Publication.workspace_id.in_(
-                select(WorkspaceMember.workspace_id).where(WorkspaceMember.user_id == user.id)
-            ),
-        )
-    else:
-        query = query.where(
-            or_(
-                Publication.audience != "work",
-                Publication.workspace_id.in_(
-                    select(WorkspaceMember.workspace_id).where(WorkspaceMember.user_id == user.id)
-                ),
-            )
-        )
-    return _gallery_page(query, limit, cursor, user, db)
-
-
 @router.get("/gallery/page")
 def gallery_page(
-    audience: Literal["home", "work"] = "work",
     workspace_id: uuid.UUID | None = None,
     limit: int = 12,
     cursor: str | None = None,
+    filters: GalleryFilters = Depends(),
     user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-
-    query = select(Publication).where(
-        Publication.audience == audience,
-        Publication.hidden.is_(False),
-        publication_content(),
-    )
-    if audience == "home":
-        query = query.where(Publication.owner_id == user.id)
-    else:
-        if workspace_id is not None:
-            workspace_member(workspace_id, user, db)
-            query = query.where(Publication.workspace_id == workspace_id)
-        query = query.where(
-            Publication.workspace_id.in_(
-                select(WorkspaceMember.workspace_id).where(WorkspaceMember.user_id == user.id)
-            )
-        )
-    if user.is_guest:
-        query = query.where(
-            Publication.owner_id.in_(
-                select(User.id).where(or_(User.id == user.id, User.is_guest.is_(True)))
-            )
-        )
+    query = filters.apply(gallery_scope(db, user, workspace_id))
     return _gallery_page(query, limit, cursor, user, db)
-
-
-@router.get("/gallery")
-def gallery(
-    audience: Literal["home", "public", "work"] = "work",
-    offset: int = 0,
-    workspace_id: uuid.UUID | None = None,
-    user: User = Depends(get_current_user),
-    db: Session = Depends(get_db),
-):
-
-    from app.social_features.publication_visibility import authorized_publications
-
-    query = (
-        select(Publication)
-        .join(MediaAsset, Publication.media_id == MediaAsset.id)
-        .where(
-            Publication.audience == audience,
-            Publication.hidden.is_(False),
-            publication_content(),
-            authorized_publications(user.id),
-        )
-    )
-    if audience == "home":
-        query = query.where(Publication.owner_id == user.id)
-    elif audience == "work":
-        if workspace_id is not None:
-            workspace_member(workspace_id, user, db)
-            query = query.where(Publication.workspace_id == workspace_id)
-        query = query.where(
-            Publication.workspace_id.in_(
-                select(WorkspaceMember.workspace_id).where(WorkspaceMember.user_id == user.id)
-            )
-        )
-    if user.is_guest:
-        query = query.where(
-            Publication.owner_id.in_(
-                select(User.id).where(or_(User.id == user.id, User.is_guest.is_(True)))
-            )
-        )
-    posts = db.scalars(
-        query.order_by(Publication.created_at.desc(), Publication.id)
-        .offset(max(0, offset))
-        .limit(30)
-    )
-    return [_publication_payload(post, user, db) for post in posts]
 
 
 @router.post("/gallery")
@@ -352,18 +244,17 @@ def publish(
     require_ordinary_media(asset, user, db)
     from app.social_features.uploads import check_destination
 
-    check_destination(db, user, payload.audience, payload.workspace_id)
+    check_destination(db, user, payload.workspace_id)
     from app.meta import build_meta_client
     from app.social_features.upload_service import duplicate, scope_lock
 
-    scope_lock(db, user.id, payload.audience, payload.workspace_id)
+    scope_lock(db, user.id, payload.workspace_id)
     if asset.mime_type.startswith("image/"):
         old = duplicate(
             db,
             build_meta_client(request.app.state.settings),
             asset.original_bytes,
             user.id,
-            payload.audience,
             payload.workspace_id,
         )
         if old:
@@ -373,11 +264,12 @@ def publish(
                 409,
                 "This photo already exists in this destination. Use image upload to confirm replacement.",
             )
-    post = Publication(owner_id=user.id, **payload.model_dump())
+    post = Publication(owner_id=user.id, **payload.model_dump(exclude={"tag_ids"}))
     db.add(post)
     db.flush()
     from app.social_features.localizations import prepare_posts
 
+    set_classification(db, post, payload.category_id, payload.tag_ids)
     prepare_posts(db, [post], build_meta_client(request.app.state.settings))
     db.commit()
     from app.gallery_index import queue_publication_index
@@ -734,6 +626,7 @@ def comments(
 
 class GroupPublicationImport(BaseModel):
     publication_ids: list[uuid.UUID] = Field(min_length=1, max_length=100)
+    classifications: dict[uuid.UUID, ClassificationInput] = Field(default_factory=dict)
 
 
 @router.post("/groups/{workspace_id}/publications/import")
@@ -745,4 +638,6 @@ def import_group_publications(
 ):
     from app.social_features.sharing import import_publications
 
-    return import_publications(db, user, workspace_id, payload.publication_ids)
+    return import_publications(
+        db, user, workspace_id, payload.publication_ids, payload.classifications
+    )

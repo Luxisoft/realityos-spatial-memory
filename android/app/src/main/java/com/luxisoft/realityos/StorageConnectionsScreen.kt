@@ -41,6 +41,7 @@ internal fun StorageConnectionsScreen(onClose: () -> Unit) {
     var message by remember { mutableStateOf("") }
     NoticeEffect(message, { message = "" }, if (message.startsWith(localizedText(R.string.storage_error))) NoticeKind.ERROR else NoticeKind.SUCCESS)
     var confirmation by remember { mutableStateOf<String?>(null) }
+    var classificationItem by remember { mutableStateOf<JSONObject?>(null) }
     var preview by remember { mutableStateOf<JSONObject?>(null) }
     var result by remember { mutableStateOf<JSONObject?>(null) }
     var evidence by remember { mutableStateOf<StorageEvidenceSelection?>(null) }
@@ -303,6 +304,9 @@ internal fun StorageConnectionsScreen(onClose: () -> Unit) {
                 Column {
                     storageRows(run.getJSONArray("items")).forEach { item ->
                         Text(item.getString("key").substringAfterLast('/') + " · " + storageStatusLabel(item.getString("status")))
+                        if (item.optString("status") == "awaiting_classification") {
+                            TextButton(onClick = { classificationItem = item }) { Text(localizedText(R.string.catalog_classify)) }
+                        }
                         if (item.optString("status") in setOf("duplicate", "failed") && !item.isNull("upload_id")) {
                             TextButton(onClick = {
                                 uploader.id = item.getString("upload_id")
@@ -321,6 +325,16 @@ internal fun StorageConnectionsScreen(onClose: () -> Unit) {
                 }
             }
         }
+    }
+    classificationItem?.let { item ->
+        ClassificationDialog(item.optString("workspace_id"), previewUrl = item.optString("preview_url"), onSave = { value ->
+            val response = JSONObject(request("me/publication-uploads/${item.getString("upload_id")}/classify", value.json()))
+            if (response.optString("status") != "published") {
+                uploader.id = response.getString("id")
+                uploader.resumePolling()
+            }
+            refreshRuns()
+        }, onClose = { classificationItem = null })
     }
     if (consentAsk) {
         AlertDialog(onDismissRequest = { consentAsk = false }, title = { Text(localizedText(R.string.face_consent_title)) }, text = { Text(localizedText(R.string.face_consent_body)) }, confirmButton = {
@@ -349,7 +363,7 @@ internal fun StorageConnectionsScreen(onClose: () -> Unit) {
             Button(onClick = {
                 confirmation = null
                 operation {
-                    val destination = JSONObject().put("audience", "work")
+                    val destination = JSONObject()
                     if (workspace.isNotBlank()) destination.put("workspace_id", workspace)
                     when {
                         action == "disconnect" -> {

@@ -103,7 +103,6 @@ def test_information_requires_auth_and_authorizes_whole_batch_before_provider(
         lambda *args: called.append(True),
     )
     with client.app.state.database.session_factory() as db:
-        workspace = db.scalar(select(Workspace))
         other = User(
             email="private-info@test.invalid",
             display_name="Other",
@@ -111,7 +110,10 @@ def test_information_requires_auth_and_authorizes_whole_batch_before_provider(
         )
         db.add(other)
         db.flush()
-        post = legacy(db, other, workspace, color="blue")
+        private_space = Workspace(name="Other group", created_by_id=other.id)
+        db.add(private_space)
+        db.flush()
+        post = legacy(db, other, private_space, color="blue")
         assert repair_image(db, post)
         secret = str(
             db.scalar(
@@ -121,7 +123,7 @@ def test_information_requires_auth_and_authorizes_whole_batch_before_provider(
         db.commit()
     request = payload(eid)
     request["items"].append({"evidence_id": secret, "labels": ["crimping tool"]})
-    assert client.post(URL, headers=auth_headers, json=request).status_code == 404
+    assert client.post(URL, headers=auth_headers, json=request).status_code == 403
     assert not called
 
 
@@ -145,7 +147,7 @@ def test_membership_revocation_removes_information_access(client, auth_headers):
             workspace_id=workspace.id, user_id=viewer.id, role=Role.QUERY
         )
         db.add(member)
-        post.audience = "work"
+
         post.workspace_id = workspace.id
         token = create_access_token(viewer.id, client.app.state.settings)
         uid, wid = viewer.id, workspace.id

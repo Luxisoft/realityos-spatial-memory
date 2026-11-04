@@ -108,7 +108,7 @@ def selected_workspace(db, user, requested, previous=None):
         )
         if len(options) == 1:
             target = options[0]
-    check_destination(db, user, "work", target)
+    check_destination(db, user, target)
     return target
 
 
@@ -116,7 +116,7 @@ def enable_default_sync(db, row):
     rule = StorageSync(
         connection_id=row.id,
         prefix=row.prefix,
-        audience="work",
+
         workspace_id=row.workspace_id,
         interval_minutes=15,
         enabled=True,
@@ -357,7 +357,7 @@ def retry(
     if not run or run.connection_id != row.id:
         raise HTTPException(404)
     db.refresh(run, with_for_update=True)
-    destination(db, row, run.audience, run.workspace_id)
+    destination(db, row, run.workspace_id)
     if run.status not in {"attention", "completed"}:
         raise HTTPException(409, "Import is still running.")
     items = []
@@ -395,7 +395,7 @@ def create_sync(
     if not prefix.startswith(row.prefix):
         raise HTTPException(422, "Folder is outside the connection.")
     payload = payload.model_copy(update={"workspace_id": payload.workspace_id or row.workspace_id})
-    destination(db, row, payload.audience, payload.workspace_id)
+    destination(db, row, payload.workspace_id)
     existing = db.scalar(
         select(StorageSync).where(
             StorageSync.connection_id == row.id,
@@ -410,7 +410,7 @@ def create_sync(
     rule = StorageSync(
         connection_id=row.id,
         prefix=prefix,
-        audience=payload.audience,
+
         workspace_id=payload.workspace_id,
         interval_minutes=payload.interval_minutes,
         enabled=payload.enabled,

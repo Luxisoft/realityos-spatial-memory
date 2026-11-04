@@ -1,7 +1,9 @@
 import uuid
 from typing import Literal
 
-from pydantic import BaseModel, Field, SecretStr, model_validator
+from pydantic import BaseModel, ConfigDict, Field, SecretStr, model_validator
+
+from app.social_features.classification import ClassificationInput
 
 
 class ConnectionInput(BaseModel):
@@ -25,15 +27,16 @@ class ConnectionInput(BaseModel):
 
 
 class ImportInput(BaseModel):
+    model_config = ConfigDict(extra="forbid")
     request_key: str = Field(min_length=1, max_length=128)
     keys: list[str] = Field(min_length=1, max_length=100)
-    audience: Literal["work"] = "work"
+    classifications: dict[str, ClassificationInput] = Field(default_factory=dict)
     workspace_id: uuid.UUID | None = None
 
 
 class SyncInput(BaseModel):
+    model_config = ConfigDict(extra="forbid")
     prefix: str = Field(default="", max_length=1024)
-    audience: Literal["work"] = "work"
     workspace_id: uuid.UUID | None = None
     interval_minutes: Literal[15, 60, 1440] = 15
     enabled: bool = False

@@ -337,7 +337,7 @@ def ensure_workshop_publication(db, *, group_name: str, filename: str, apply: bo
             Publication(
                 owner_id=owner.id,
                 media_id=asset.id,
-                audience="work",
+
                 workspace_id=group.id,
                 caption=caption,
                 search_text=(
@@ -351,7 +351,7 @@ def ensure_workshop_publication(db, *, group_name: str, filename: str, apply: bo
         )
     else:
         existing.media_id = asset.id
-        existing.audience = "work"
+
         existing.workspace_id = group.id
         existing.caption = caption
         existing.search_text = (
@@ -474,7 +474,7 @@ def publish_workshop_photos(db, fixture_root: Path, group_id, *, apply: bool) ->
             Publication(
                 owner_id=owner.id,
                 media_id=asset.id,
-                audience="work",
+
                 workspace_id=group_id,
                 caption=entry["caption"],
                 search_text=(

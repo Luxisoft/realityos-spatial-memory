@@ -143,7 +143,7 @@ class DisplaySearchCameraTest {
             vm.mutableUiState.update { current ->
                 current.copy(
                     wearable = current.wearable.copy(transportReady = true),
-                    meta = current.meta.copy(destinations = listOf(MetaDestination("home", "Profile", "home")))
+                    meta = current.meta.copy(destinations = listOf(MetaDestination("home", "Profile")))
                 )
             }
             vm.connectDisplay(identifier)

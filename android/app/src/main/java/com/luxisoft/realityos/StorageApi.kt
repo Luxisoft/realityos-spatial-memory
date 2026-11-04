@@ -14,6 +14,7 @@ internal fun storageSupportsCv(mime: String): Boolean = mime in setOf("applicati
 
 internal fun storageStatusLabel(status: String): String = localizedText(
     when (status) {
+        "awaiting_classification" -> R.string.catalog_awaiting
         "pending" -> R.string.storage_pending
         "downloading" -> R.string.storage_downloading
         "analyzing", "processing" -> R.string.storage_analyzing

@@ -50,7 +50,7 @@ def _publish_image(
     db.add(asset)
     db.flush()
     post = Publication(
-        owner_id=owner.id, media_id=asset.id, audience="home", caption=caption
+        owner_id=owner.id, media_id=asset.id, workspace_id=db.get(MediaAsset, asset.id).workspace_id, caption=caption
     )
     db.add(post)
     db.flush()
@@ -147,7 +147,7 @@ def test_boxed_full_size_enforces_workspace_access(client, auth_headers):
     with client.app.state.database.session_factory() as db:
         owner, workspace = _setup_workspace(db)
         post = _publish_image(db, owner, workspace)
-        post.audience = "work"
+
         post.workspace_id = workspace.id
         stranger = User(
             email="boxed-other@example.test",
@@ -194,7 +194,7 @@ def test_gallery_search_matches_spanish_synonym_and_respects_visibility(client):
         stranger_post = Publication(
             owner_id=stranger.id,
             media_id=post.media_id,
-            audience="home",
+            workspace_id=db.get(MediaAsset, post.media_id).workspace_id,
             caption="martillo",
         )
         db.add(stranger_post)

@@ -64,13 +64,13 @@ class GallerySearch:
     reason: str = "none"
 
 
-def search_evidence(db, user, question, client, limit=6, *, audience=None, workspace_id=None):
+def search_evidence(db, user, question, client, limit=6, *, workspace_id=None):
     from app.gallery_index import _visible_scope
     from app.social_features.gallery import visible
     from app.social_features.models import Publication
     from app.social_features.retrieval_terms import KINDS, classify_terms
 
-    scope = _visible_scope(user, audience, workspace_id).where(Publication.hidden.is_(False))
+    scope = _visible_scope(user, workspace_id).where(Publication.hidden.is_(False))
     posts = []
     for post in db.scalars(scope.order_by(Publication.published_at.desc())):
         try:
@@ -148,7 +148,6 @@ def search_evidence(db, user, question, client, limit=6, *, audience=None, works
                 evidence_id=evidence.id,
                 caption=post.caption or "",
                 ai_caption=post.ai_caption or "",
-                audience=post.audience,
                 thumbnail_url=url,
                 boxed_url=url,
                 media_url=f"/v1/gallery/{post.id}/media",
@@ -212,10 +211,8 @@ def search_evidence(db, user, question, client, limit=6, *, audience=None, works
     return GallerySearch(unique, status, pending, failed, reason)
 
 
-def gallery_results(db, user, question, client, limit=6, *, audience=None, workspace_id=None):
-    return search_evidence(
-        db, user, question, client, limit, audience=audience, workspace_id=workspace_id
-    ).matches
+def gallery_results(db, user, question, client, limit=6, *, workspace_id=None):
+    return search_evidence(db, user, question, client, limit, workspace_id=workspace_id).matches
 
 
 @router.get("/gallery/evidence/{evidence_id}")

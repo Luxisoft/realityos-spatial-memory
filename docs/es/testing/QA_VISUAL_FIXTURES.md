@@ -80,4 +80,4 @@ Carpeta roja / red folder; llaves de latón / brass keys; cuaderno azul / blue n
 
 ## Archivos solo para la prueba de sustitución de CV
 
-[CV sintético v1](../../../simulator/acceptance/cv-v1.pdf) · [CV sintético v2](../../../simulator/acceptance/cv-v2.pdf). Para F03/K11 ya están en **Perfil → Mis conexiones → Demo qa**: marca un PDF y pulsa **Usar como CV**. Los enlaces son solo de referencia; no necesitas descargarlos al teléfono. La versión 1 dice “Inventory assistant”; la versión 2 “Equipment coordinator”. No contienen información real.
+[CV sintético v1](../../../simulator/acceptance/cv-v1.pdf) · [CV sintético v2](../../../simulator/acceptance/cv-v2.pdf). Para F03/K11 ya están en **Menú → Mis conexiones → Demo qa**: marca un PDF y pulsa **Usar como CV**. Los enlaces son solo de referencia; no necesitas descargarlos al teléfono. La versión 1 dice “Inventory assistant”; la versión 2 “Equipment coordinator”. No contienen información real.

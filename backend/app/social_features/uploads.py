@@ -4,11 +4,11 @@ from __future__ import annotations
 
 import asyncio
 import io
+import json
 import uuid
-from typing import Literal
 
 from fastapi import APIRouter, Depends, File, Form, HTTPException, Request, UploadFile
-from fastapi.responses import JSONResponse, Response
+from fastapi.responses import Response
 from PIL import Image
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
@@ -17,6 +17,7 @@ from sqlalchemy.orm import Session
 from app.dependencies import get_current_user, get_db, workspace_member
 from app.meta import build_meta_client
 from app.models import User, Workspace
+from app.social_features.classification import ClassificationInput, validate_classification
 from app.social_features.evidence_models import PublicationUpload
 from app.social_features.upload_service import confirm_replace, process_upload
 
@@ -33,6 +34,9 @@ def owned(db, key, user):
 def payload(upload):
     return dict(
         id=str(upload.id),
+        workspace_id=str(upload.workspace_id) if upload.workspace_id else None,
+        category_id=str(upload.category_id) if upload.category_id else None,
+        tag_ids=upload.tag_ids,
         status=upload.status,
         error=upload.error,
         result_id=str(upload.result_id) if upload.result_id else None,
@@ -44,26 +48,35 @@ def payload(upload):
     )
 
 
-def check_destination(db, user, audience, workspace_id):
-    if audience != "work" or not workspace_id:
+def check_destination(db, user, workspace_id):
+    if not workspace_id:
         raise HTTPException(422, "Join or create a work group before publishing.")
-    if audience == "work":
-        if not workspace_id:
-            raise HTTPException(422, "Choose a work group.")
-        workspace_member(workspace_id, user, db)
-        space = db.get(Workspace, workspace_id)
-        if not space or space.name.startswith("home:"):
-            raise HTTPException(422, "Choose a work group.")
-    elif workspace_id:
-        raise HTTPException(422, "Only work publications accept a group.")
+    workspace_member(workspace_id, user, db)
+    space = db.get(Workspace, workspace_id)
+    if not space or space.name.startswith("home:"):
+        raise HTTPException(422, "Choose a work group.")
 
 
 async def candidate(
-    request, file, caption, note_text, note_source, user, db, audience, workspace_id, request_key
+    request,
+    file,
+    caption,
+    note_text,
+    note_source,
+    user,
+    db,
+    workspace_id,
+    request_key,
+    category_id=None,
+    tag_ids=None,
+    allow_unclassified=False,
 ):
     from app.social_features.profiles import _checked_note
 
-    check_destination(db, user, audience, workspace_id)
+    check_destination(db, user, workspace_id)
+    if not allow_unclassified or category_id is not None or tag_ids:
+        category_id, tag_ids = validate_classification(db, workspace_id, category_id, tag_ids)
+    tags = sorted(str(key) for key in (tag_ids or []))
     note, source = _checked_note(note_text, note_source)
     is_video = file.content_type == "video/mp4"
     if file.content_type not in {"image/jpeg", "image/png", "image/webp", "video/mp4"}:
@@ -92,25 +105,29 @@ async def candidate(
         if (
             old.original_bytes != raw
             or old.mime_type != file.content_type
-            or old.audience != audience
             or old.workspace_id != workspace_id
             or old.caption != caption
             or old.note_text != note
             or old.note_source != source
+            or (
+                (not allow_unclassified or category_id is not None)
+                and (old.category_id != category_id or sorted(old.tag_ids) != tags)
+            )
         ):
             raise HTTPException(409, "Upload key already used.")
         return old
     upload = PublicationUpload(
         owner_id=user.id,
         request_key=request_key,
-        audience=audience,
         workspace_id=workspace_id,
         original_bytes=raw,
         mime_type=file.content_type,
         caption=caption,
         note_text=note,
         note_source=source,
-        status="pending",
+        category_id=category_id,
+        tag_ids=tags,
+        status="pending" if category_id else "awaiting_classification",
     )
     db.add(upload)
     try:
@@ -133,9 +150,11 @@ async def candidate(
             note_source,
             user,
             db,
-            audience,
             workspace_id,
             request_key,
+            category_id,
+            tag_ids,
+            allow_unclassified,
         )
     return upload
 
@@ -163,14 +182,30 @@ async def prepare_publication_upload(
     request: Request,
     file: UploadFile = File(...),
     request_key: str = Form(..., max_length=64),
-    audience: Literal["work"] = Form("work"),
-    workspace_id: uuid.UUID | None = Form(None),
+    category_id: uuid.UUID = Form(...),
+    tag_ids: str = Form(..., description="JSON array of tag UUIDs from the destination group"),
+    workspace_id: uuid.UUID = Form(...),
     caption: str = Form("", max_length=4000),
     note_text: str = Form("", max_length=4000),
     note_source: str = Form(""),
     user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
+    fields = await request.form()
+    allowed = {
+        "file",
+        "request_key",
+        "workspace_id",
+        "category_id",
+        "tag_ids",
+        "caption",
+        "note_text",
+        "note_source",
+    }
+    if set(fields) - allowed:
+        raise HTTPException(
+            422, "Unsupported publication fields. Update the app before publishing."
+        )
     upload = await candidate(
         request,
         file,
@@ -179,9 +214,10 @@ async def prepare_publication_upload(
         note_source,
         user,
         db,
-        audience,
         workspace_id,
         request_key,
+        category_id,
+        parse_tag_ids(tag_ids),
     )
     if upload.status == "pending":
         await enqueue(db, upload, request)
@@ -246,7 +282,7 @@ async def publication_upload_retry(
     upload = owned(db, upload_id, user)
     if upload.status not in {"failed", "duplicate"}:
         raise HTTPException(409, "Upload cannot be analyzed again in this state.")
-    check_destination(db, user, upload.audience, upload.workspace_id)
+    check_destination(db, user, upload.workspace_id)
     upload.status = "pending"
     upload.error = None
     upload.duplicate_id = None
@@ -255,37 +291,36 @@ async def publication_upload_retry(
     return payload(upload)
 
 
-async def legacy_upload(
-    request, file, caption, note_text, note_source, user, db, audience="work", workspace_id=None
+def parse_tag_ids(value):
+    try:
+        tags = json.loads(value)
+        if not isinstance(tags, list):
+            raise ValueError()
+        return [uuid.UUID(str(key)) for key in tags]
+    except (ValueError, TypeError) as exc:
+        raise HTTPException(422, "tag_ids must be a JSON array of tag UUIDs.") from exc
+
+
+@router.post("/me/publication-uploads/{upload_id}/classify")
+async def classify_publication_upload(
+    upload_id: uuid.UUID,
+    selection: ClassificationInput,
+    request: Request,
+    user=Depends(get_current_user),
+    db=Depends(get_db),
 ):
-    from app.social_features.gallery import _publication_payload
+    from app.storage.lifecycle import check_upload_source
 
-    upload = await candidate(
-        request,
-        file,
-        caption,
-        note_text,
-        note_source,
-        user,
-        db,
-        audience,
-        workspace_id,
-        str(uuid.uuid4()),
+    upload = owned(db, upload_id, user)
+    db.refresh(upload, with_for_update=True)
+    if upload.status != "awaiting_classification":
+        raise HTTPException(409, "This upload is not awaiting classification.")
+    check_destination(db, user, upload.workspace_id)
+    check_upload_source(db, upload)
+    category, tags = validate_classification(
+        db, upload.workspace_id, selection.category_id, selection.tag_ids
     )
-    await asyncio.to_thread(
-        process_upload, db, upload.id, build_meta_client(request.app.state.settings)
-    )
-    db.commit()
-    if upload.status == "duplicate":
-        return JSONResponse(
-            status_code=409,
-            content={
-                "detail": "This photo already exists. Update the app to confirm replacement.",
-                "upload": payload(upload),
-            },
-        )
-    if upload.status != "published":
-        raise HTTPException(503, upload.error or "Analysis unavailable.")
-    from app.social_features.models import Publication
-
-    return _publication_payload(db.get(Publication, upload.result_id), user, db)
+    upload.category_id, upload.tag_ids = category, sorted(str(key) for key in tags)
+    upload.status, upload.error = "pending", None
+    await enqueue(db, upload, request)
+    return payload(upload)

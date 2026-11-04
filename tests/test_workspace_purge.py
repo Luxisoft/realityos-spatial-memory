@@ -1,4 +1,4 @@
-"""A purge must preserve shared personal media and must remain a dry run by default."""
+"""A purge must preserve media shared with another group and must remain a dry run by default."""
 
 import importlib.util
 from pathlib import Path
@@ -13,10 +13,12 @@ module = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(module)
 
 
-def test_purge_preserves_personal_publication_and_dry_run(client):
+def test_purge_preserves_other_group_publication_and_dry_run(client):
     with client.app.state.database.session_factory() as db:
         owner = db.query(User).first()
         old = Workspace(name="Old team", created_by_id=owner.id)
+        keep = Workspace(name="Current team", created_by_id=owner.id)
+        db.add(keep)
         db.add(old)
         db.flush()
         shared = MediaAsset(
@@ -37,7 +39,7 @@ def test_purge_preserves_personal_publication_and_dry_run(client):
         )
         db.add_all([shared, exclusive])
         db.flush()
-        personal = Publication(owner_id=owner.id, media_id=shared.id, audience="home")
+        personal = Publication(owner_id=owner.id, media_id=shared.id, workspace_id=keep.id)
         db.add(personal)
         db.commit()
         old_id, shared_id, exclusive_id, personal_id = (

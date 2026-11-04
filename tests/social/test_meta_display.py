@@ -101,7 +101,7 @@ def test_display_images_are_scoped_and_expire(client, auth_headers):
 
 def test_display_rechecks_work_membership_and_user_activity(client, auth_headers):
     workspace = group(client, auth_headers)
-    first = upload(client, auth_headers, audience="work", workspace_id=workspace).json()
+    first = upload(client, auth_headers, workspace_id=workspace).json()
     url = link(client, auth_headers, "upload", first["id"]).json()["url"]
     with client.app.state.database.session_factory() as db:
         db.delete(
@@ -230,13 +230,11 @@ def video_upload(client, headers, clip, key=None, **fields):
     )
 
 
-@pytest.mark.parametrize("audience", ["work"])
 def test_reviewed_video_original_frames_and_idempotent_replacement(
-    client, auth_headers, clip, audience
+    client, auth_headers, clip
 ):
-    fields = {"audience": audience}
-    if audience == "work":
-        fields["workspace_id"] = group(client, auth_headers)
+    fields = {}
+    fields["workspace_id"] = group(client, auth_headers)
     key = str(uuid.uuid4())
     response = video_upload(client, auth_headers, clip, key=key, **fields)
     assert response.status_code == 202, response.text
@@ -316,18 +314,14 @@ def test_video_validation_permissions_and_cancellation(
     monkeypatch.setattr(settings, "max_video_seconds", 120)
     workspace = group(client, auth_headers)
     assert (
-        video_upload(
-            client, outsider(client), clip, audience="work", workspace_id=workspace
-        ).status_code
+        video_upload(client, outsider(client), clip, workspace_id=workspace).status_code
         == 403
     )
     monkeypatch.setattr(settings, "enqueue_processing", True)
     monkeypatch.setattr(
         "app.tasks.process_publication_upload.delay", lambda *args: None
     )
-    pending = video_upload(
-        client, auth_headers, clip, audience="work", workspace_id=workspace
-    ).json()
+    pending = video_upload(client, auth_headers, clip, workspace_id=workspace).json()
     assert pending["status"] == "pending"
     client.post(
         f"/v1/me/publication-uploads/{pending['id']}/cancel", headers=auth_headers
@@ -358,7 +352,7 @@ def test_video_processing_failure_does_not_publish_and_can_retry(
     monkeypatch.setattr(video_uploads, "ground", fail)
     failed = video_upload(client, auth_headers, clip).json()
     assert failed["status"] == "failed"
-    assert client.get("/v1/gallery", headers=auth_headers).json() == []
+    assert client.get("/v1/gallery/page", headers=auth_headers).json()["items"] == []
     monkeypatch.setattr(video_uploads, "ground", original)
     retried = client.post(
         f"/v1/me/publication-uploads/{failed['id']}/retry", headers=auth_headers

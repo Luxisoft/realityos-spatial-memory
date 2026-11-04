@@ -44,8 +44,11 @@ class PublicationUpload(TimestampMixin, Base):
     id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
     owner_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id"), index=True)
     request_key: Mapped[str] = mapped_column(String(64))
-    audience: Mapped[str] = mapped_column(String(16), default="home")
     workspace_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("workspaces.id"))
+    category_id: Mapped[uuid.UUID | None] = mapped_column(
+        ForeignKey("publication_terms.id", ondelete="SET NULL")
+    )
+    tag_ids: Mapped[list] = mapped_column(JSON, default=list, nullable=False, server_default="[]")
     original_bytes: Mapped[bytes] = mapped_column(LargeBinary)
     mime_type: Mapped[str] = mapped_column(String(64))
     caption: Mapped[str] = mapped_column(Text, default="")

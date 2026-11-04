@@ -277,13 +277,3 @@ internal fun ProfileWebView(url: String, onBack: () -> Unit) {
         )
     }
 }
-
-/** Explicitly distinguish the retained Work demo scenes from captured evidence. */
-@Composable
-internal fun PublicationSourceBadge(source: String, modifier: Modifier = Modifier) {
-    if (source.startsWith("simulator")) {
-        Surface(modifier = modifier.testTag("publication-simulated"), color = MaterialTheme.colorScheme.surface.copy(alpha = .9f)) {
-            Text(localizedText(R.string.profile_simulated_media), Modifier.padding(horizontal = 5.dp, vertical = 2.dp), style = MaterialTheme.typography.labelSmall)
-        }
-    }
-}

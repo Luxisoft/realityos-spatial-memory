@@ -79,8 +79,14 @@ def test_publication_without_group_still_returns_destination_validation(
     response = client.post(
         "/v1/me/publication-uploads",
         headers=auth_headers,
-        data={"request_key": str(uuid.uuid4()), "audience": "work"},
+        data={
+            "request_key": str(uuid.uuid4()),
+            "category_id": str(uuid.uuid4()),
+            "tag_ids": '["' + str(uuid.uuid4()) + '"]',
+        },
         files={"file": ("photo.jpg", oriented_photo(6), "image/jpeg")},
     )
     assert response.status_code == 422
-    assert response.json()["detail"] == "Join or create a work group before publishing."
+    assert any(
+        error["loc"] == ["body", "workspace_id"] for error in response.json()["detail"]
+    )

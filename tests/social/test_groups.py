@@ -10,6 +10,7 @@ from app.models import (
 )
 from app.security import create_access_token, hash_password
 from app.social import Publication
+from catalog_support import classification_for, published_item
 from PIL import Image
 
 from .support import (
@@ -47,38 +48,51 @@ def test_member_uploads_work_publication_into_workspace(client, auth_headers):
         }
 
     denied = client.post(
-        "/v1/me/work-publications",
+        "/v1/me/publication-uploads",
         headers=other_headers,
         files={"file": ("taller.png", output.getvalue(), "image/png")},
-        data={"workspace_id": workspace_id},
+        data={
+            "workspace_id": workspace_id,
+            **classification_for(client, workspace_id, multipart=True),
+            "request_key": str(uuid.uuid4()),
+        },
     )
     assert denied.status_code == 403, denied.text
 
     rejected = client.post(
-        "/v1/me/work-publications",
+        "/v1/me/publication-uploads",
         headers=auth_headers,
         files={"file": ("taller.txt", b"not an image", "text/plain")},
-        data={"workspace_id": workspace_id},
+        data={
+            "workspace_id": workspace_id,
+            **classification_for(client, workspace_id, multipart=True),
+            "request_key": str(uuid.uuid4()),
+        },
     )
     assert rejected.status_code == 415, rejected.text
 
     response = client.post(
-        "/v1/me/work-publications",
+        "/v1/me/publication-uploads",
         headers=auth_headers,
         files={"file": ("taller.png", output.getvalue(), "image/png")},
-        data={"workspace_id": workspace_id, "caption": "Avance del turno"},
+        data={
+            "workspace_id": workspace_id,
+            **classification_for(client, workspace_id, multipart=True),
+            "caption": "Avance del turno",
+            "request_key": str(uuid.uuid4()),
+        },
     )
-    assert response.status_code == 200, response.text
-    payload = response.json()
-    assert payload["audience"] == "work"
+    assert response.status_code == 202, response.text
+    payload = published_item(client, auth_headers, response)
+    assert "audience" not in payload
     assert payload["workspace_id"] == workspace_id
     assert payload["caption"] == "Avance del turno"
     assert payload["owned"] is True
 
     feed = client.get(
-        f"/v1/gallery?audience=work&workspace_id={workspace_id}",
+        f"/v1/gallery/page?workspace_id={workspace_id}",
         headers=auth_headers,
-    ).json()
+    ).json()["items"]
     assert any(item["id"] == payload["id"] for item in feed)
 
     with client.app.state.database.session_factory() as db:
@@ -311,7 +325,7 @@ def test_group_delete_is_creator_only_and_keeps_publications(client, auth_header
         == 404
     )
     with client.app.state.database.session_factory() as db:
-        assert db.get(Workspace, uuid.UUID(workspace_id)) is None
+        assert db.get(Workspace, uuid.UUID(workspace_id)).join_pin is None
         assert (
             db.query(WorkspaceMember)
             .filter(WorkspaceMember.workspace_id == uuid.UUID(workspace_id))
@@ -320,7 +334,8 @@ def test_group_delete_is_creator_only_and_keeps_publications(client, auth_header
         )
         publication = db.get(Publication, uuid.UUID(post_id))
         assert publication is not None
-        assert publication.workspace_id is None
+        assert publication.workspace_id == uuid.UUID(workspace_id)
+        assert publication.hidden
 
 
 def test_group_delete_rejects_personal_spaces(client, auth_headers):

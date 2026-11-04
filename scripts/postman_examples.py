@@ -2,6 +2,8 @@
 
 import json
 
+from postman_classification import classification_examples, classification_form
+
 STORAGE_CONNECTION = {
     "name": "Account media",
     "provider": "r2",
@@ -20,12 +22,10 @@ JSON_EXAMPLES = {
     "POST /v1/me/storage-connections/{connection_id}/imports": {
         "request_key": "{{storage_request_key}}",
         "keys": ["{{storage_object_key}}"],
-        "audience": "work",
         "workspace_id": "{{workspace_id}}",
     },
     "POST /v1/me/storage-connections/{connection_id}/syncs": {
         "prefix": "{{storage_prefix}}",
-        "audience": "work",
         "workspace_id": "{{workspace_id}}",
         "interval_minutes": 15,
         "enabled": False,
@@ -40,11 +40,9 @@ JSON_EXAMPLES = {
     "POST /v1/auth/forgot-password": {"email": "{{account_email}}"},
     "POST /v1/gallery": {
         "media_id": "{{media_id}}",
-        "audience": "work",
         "workspace_id": "{{workspace_id}}",
     },
     "POST /v1/gallery/{post_id}/share": {
-        "audience": "work",
         "workspace_id": "{{workspace_id}}",
     },
     "POST /v1/groups/{workspace_id}/publications/import": {
@@ -147,7 +145,11 @@ REQUEST_NOTES = {
 }
 
 
+classification_examples(JSON_EXAMPLES, REQUEST_NOTES)
+
+
 def customize_form(name, fields):
+    classification_form(name, fields)
     for field in fields:
         if name == "POST /v1/display/face-group-links" and field["key"] == "marks":
             field["value"] = json.dumps(
@@ -161,7 +163,6 @@ def customize_form(name, fields):
             )
         if name == "POST /v1/me/publication-uploads" and field["key"] in {
             "workspace_id",
-            "audience",
         }:
             field["disabled"] = False
         if name == "POST /v1/faces/search" and field["key"] == "probe":

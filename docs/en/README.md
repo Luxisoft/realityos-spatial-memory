@@ -33,7 +33,7 @@ Find people and objects, query related information and retrieve evidence through
 
 1. **Install the app.** Get **app-debug.apk** from the organizer or download it from a [successful build](https://github.com/Luxisoft/realityos-spatial-memory/actions/workflows/ci.yml): open the run → **Artifacts** → **realityos-android-debug-apk**, unzip it and install the APK on Android 12 or newer. GitHub may require sign-in.
 2. **Sign in.** Open RealityOS → **Continue with email** → **Sign in**. In **Username or email**, enter the supplied account, such as `elena-marquez`, and paste its password. The account is already created and confirmed.
-3. **Explore the prepared data.** In **Profile**, see your photo and posts. In **Work**, choose your assigned group → **Workspace records** and open a record. Portraits are available inside the record.
+3. **Explore the prepared data.** In the main **Gallery**, choose your assigned group to see its publications. Open the group menu → **Workspace records** and open a record. Portraits are available inside the record.
 
 | Scenario | Primary account | Assigned group | Open first |
 | --- | --- | --- | --- |
@@ -58,7 +58,7 @@ The regular app already connects to the server. [Windows local](deployment/DEPLO
 
 [Connect an R2/S3 bucket →](guides/STORAGE_CONNECTIONS.md)
 
-Scenario and QA accounts already have their test bucket connected under **Profile → My connections**; resources are uploaded and verified in R2.
+Scenario and QA accounts already have their test bucket connected under **Menu → My connections**; resources are uploaded and verified in R2.
 
 ## Platform capabilities
 
@@ -71,6 +71,18 @@ Scenario and QA accounts already have their test bucket connected under **Profil
 | **Multimodal interaction** | Provides explicit capture and image, text or voice queries through Android and native Display. |
 
 <a id="cases"></a>
+
+The **Gallery** is the single main view. Publications always belong to a work group: join or create one before publishing. The bottom bar contains the menu, avatar, separate profile editor, expandable account details, glasses and Muse search/chat. Tapping the avatar returns to the gallery while preserving the selected group. Group creation, selection, filters, publishing and more actions remain above the gallery. Meta preview controls sit beside its own title.
+
+## Publication categories, tags and gallery filters
+
+Each work group has its own closed category and tag catalog. The group owner manages it when creating the group and under **Manage group**. Authors select **one category and at least one tag** when publishing; they can correct that selection later. Archiving a catalog value preserves existing publications and prevents new selections.
+
+Gallery thumbnails show the category and tags, with a play icon for videos. The **filter icon** opens category, tag and author selectors, a publication date range and description search. Filters apply to all authorized publications before pagination. Different filter types combine; multiple choices within one selector match any selected value.
+
+Bucket synchronization continues every 15 minutes. New files remain private and **await classification** in Connections until the connection owner chooses values from the destination group and continues. API imports may provide `category_id` and `tag_ids` per file. Copies into another group require that group’s classification for each publication.
+
+See [publication catalogs and filters](guides/PUBLICATION_CLASSIFICATION.md) for the API fields, review workflow and permissions.
 
 ## Example applications
 

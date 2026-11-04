@@ -4,6 +4,7 @@ import io
 import json
 import re
 from pathlib import Path
+from typing import get_origin
 
 import pytest
 from fastapi.routing import APIRoute
@@ -69,6 +70,12 @@ def dependencies(dependant):
         yield from dependencies(child)
 
 
+def query_fields(dependant):
+    yield from dependant.query_params
+    for child in dependant.dependencies:
+        yield from query_fields(child)
+
+
 def test_catalog_auth_and_parameter_samples_match_runtime(catalog):
     for item, route in catalog:
         request = item["request"]
@@ -77,14 +84,15 @@ def test_catalog_auth_and_parameter_samples_match_runtime(catalog):
         headers = [header["key"].lower() for header in request["header"]]
         assert len(headers) == len(set(headers)), item["name"]
         samples = {q["key"]: q for q in request["url"].get("query", [])}
-        assert samples.keys() == {field.alias for field in route.dependant.query_params}
-        for field in route.dependant.query_params:
+        assert samples.keys() == {field.alias for field in query_fields(route.dependant)}
+        for field in query_fields(route.dependant):
             sample = samples[field.alias]
             if field.required:
                 assert not sample.get("disabled"), (item["name"], field.alias)
-            _, errors = field.validate(
-                substitute(sample["value"]), {}, loc=("query", field.alias)
-            )
+            value = substitute(sample["value"])
+            if get_origin(field.field_info.annotation) is list:
+                value = [value]
+            _, errors = field.validate(value, {}, loc=("query", field.alias))
             assert not errors, (item["name"], errors)
 
 

@@ -7,79 +7,27 @@ from app.models import User
 from app.security import hash_password
 from app.storage.client import BucketClient, check_key, endpoint_address
 from app.storage.models import StorageConnection, StorageImport, StorageSync
+from catalog_support import classification_for
 from fastapi import HTTPException
 from PIL import Image
-from pydantic import SecretStr
 from sqlalchemy import select
-
-BASE = "/v1/me/storage-connections"
-
-
-@pytest.fixture
-def source(client, auth_headers, monkeypatch):
-    client.app.state.settings.storage_encryption_key = SecretStr(
-        "test-storage-encryption-key"
-    )
-    monkeypatch.setattr(
-        "app.storage.routes.endpoint_address",
-        lambda url: ("storage.example", "1.1.1.1"),
-    )
-    body = {
-        "workspace_id": client.post(
-            "/v1/groups", headers=auth_headers, json={"name": "Bucket group"}
-        ).json()["id"],
-        "name": "My bucket",
-        "provider": "s3",
-        "endpoint": "https://storage.example",
-        "bucket": "my-bucket",
-        "region": "us-east-1",
-        "prefix": "photos",
-        "access_key": "private-access",
-        "secret_key": "private-secret",
-    }
-    with monkeypatch.context() as validation:
-        validation.setattr(
-            BucketClient, "objects", lambda *a, **kw: {"items": [], "next_cursor": None}
-        )
-        response = client.post(BASE, headers=auth_headers, json=body)
-    assert response.status_code == 201, response.text
-    result = response.json()
-    assert "secret" not in response.text and "private-access" not in response.text
-    with client.app.state.database.session_factory() as db:
-        row = db.get(StorageConnection, uuid.UUID(result["id"]))
-        assert "private-secret" not in row.secret
-    return result
-
-
-def image_bytes():
-    out = io.BytesIO()
-    Image.new("RGB", (80, 80), "red").save(out, "PNG")
-    return out.getvalue()
-
-
-@pytest.fixture
-def remote(monkeypatch):
-    calls = []
-
-    def download(self, key):
-        check_key(self.connection, key)
-        raw = image_bytes()
-        calls.append(key)
-        return (
-            raw,
-            "image/png",
-            {"key": key, "sha256": hashlib.sha256(raw).hexdigest(), "etag": '"one"'},
-        )
-
-    monkeypatch.setattr(BucketClient, "download", download)
-    return calls
+from storage_support import BASE, image_bytes
+from storage_support import remote as remote  # noqa: PLC0414 -- pytest fixture export
+from storage_support import source as source  # noqa: PLC0414 -- pytest fixture export
 
 
 def test_import_retry_preserves_original_and_idempotency(
     client, auth_headers, source, remote
 ):
     path = BASE + "/" + source["id"] + "/imports"
-    body = {"request_key": "first", "keys": ["photos/a.png"]}
+    body = {
+        "classifications": {
+            key: classification_for(client, source["workspace_id"])
+            for key in ["photos/a.png"]
+        },
+        "request_key": "first",
+        "keys": ["photos/a.png"],
+    }
     r = client.post(path, headers=auth_headers, json=body)
     assert r.status_code == 202, r.text
     assert r.json()["items"][0]["status"] == "published", r.text
@@ -87,7 +35,16 @@ def test_import_retry_preserves_original_and_idempotency(
     assert len(remote) == 1
     assert (
         client.post(
-            path, headers=auth_headers, json={**body, "keys": ["photos/b.png"]}
+            path,
+            headers=auth_headers,
+            json={
+                **body,
+                "classifications": {
+                    key: classification_for(client, source["workspace_id"])
+                    for key in ["photos/b.png"]
+                },
+                "keys": ["photos/b.png"],
+            },
         ).status_code
         == 409
     )
@@ -107,6 +64,10 @@ def test_cancelled_duplicate_can_be_imported_again_without_losing_history(
             path,
             headers=auth_headers,
             json={
+                "classifications": {
+                    key: classification_for(client, source["workspace_id"])
+                    for key in [key]
+                },
                 "request_key": request_key,
                 "keys": [key],
             },
@@ -167,12 +128,23 @@ def test_confirmed_import_status_is_refreshed_without_writing_on_read(
     client.post(
         path,
         headers=auth_headers,
-        json={"request_key": "first", "keys": ["photos/a.png"]},
+        json={
+            "classifications": {
+                key: classification_for(client, source["workspace_id"])
+                for key in ["photos/a.png"]
+            },
+            "request_key": "first",
+            "keys": ["photos/a.png"],
+        },
     )
     run = client.post(
         path,
         headers=auth_headers,
         json={
+            "classifications": {
+                key: classification_for(client, source["workspace_id"])
+                for key in ["photos/b.png", "photos/c.png"]
+            },
             "request_key": "duplicates",
             "keys": ["photos/b.png", "photos/c.png"],
         },
@@ -238,9 +210,12 @@ def test_candidate_reuse_is_scoped_to_destination(client, auth_headers, source, 
             path,
             headers=auth_headers,
             json={
+                "classifications": {
+                    key: classification_for(client, workspace)
+                    for key in ["photos/a.png"]
+                },
                 "request_key": f"group-{index}",
                 "keys": ["photos/a.png"],
-                "audience": "work",
                 "workspace_id": workspace,
             },
         ).json()
@@ -277,6 +252,10 @@ def test_changed_remote_object_retires_previous_copy_and_reimports(
             path,
             headers=auth_headers,
             json={
+                "classifications": {
+                    key: classification_for(client, source["workspace_id"])
+                    for key in ["photos/a.png"]
+                },
                 "request_key": request_key,
                 "keys": ["photos/a.png"],
             },
@@ -308,7 +287,14 @@ def test_explicit_reimport_after_removal_creates_a_visible_publication(
     from app.social_features.models import Publication
 
     path = BASE + "/" + source["id"] + "/imports"
-    body = {"request_key": "first", "keys": ["photos/a.png"]}
+    body = {
+        "classifications": {
+            key: classification_for(client, source["workspace_id"])
+            for key in ["photos/a.png"]
+        },
+        "request_key": "first",
+        "keys": ["photos/a.png"],
+    }
     first = client.post(path, headers=auth_headers, json=body).json()["items"][0]
     assert (
         client.post(
@@ -435,7 +421,6 @@ def test_destination_and_prefix_checked_before_download(
         {"keys": ["photos/./a.png"]},
         {
             "keys": ["photos/a.png"],
-            "audience": "work",
             "workspace_id": str(uuid.uuid4()),
         },
     ]:
@@ -466,7 +451,14 @@ def test_disconnect_retires_copies_and_cancels_sync(
     run = client.post(
         path + "/imports",
         headers=auth_headers,
-        json={"request_key": "one", "keys": ["photos/a.png"]},
+        json={
+            "classifications": {
+                key: classification_for(client, source["workspace_id"])
+                for key in ["photos/a.png"]
+            },
+            "request_key": "one",
+            "keys": ["photos/a.png"],
+        },
     ).json()
     client.post(path + "/syncs", headers=auth_headers, json={"enabled": True})
     assert client.request("DELETE", path, headers=auth_headers).status_code == 200
@@ -514,7 +506,14 @@ def test_failed_download_is_retryable_without_extra_publication(
     run = client.post(
         path,
         headers=auth_headers,
-        json={"request_key": "retry", "keys": ["photos/a.png"]},
+        json={
+            "classifications": {
+                key: classification_for(client, source["workspace_id"])
+                for key in ["photos/a.png"]
+            },
+            "request_key": "retry",
+            "keys": ["photos/a.png"],
+        },
     ).json()
     assert run["status"] == "attention" and "secret upstream" not in str(run)
     monkeypatch.setattr(BucketClient, "download", download)
@@ -566,8 +565,9 @@ def test_sync_processes_and_reuses_unchanged_page(
             process_import(db, uuid.UUID(first["import_id"]), client.app.state.settings)
     completed = client.get(path + "/imports", headers=auth_headers).json()[0]
     assert completed["id"] == first["import_id"]
-    assert completed["status"] == "completed"
-    assert completed["items"][0]["status"] == "published"
+    assert completed["status"] == "attention"
+    assert completed["items"][0]["status"] == "awaiting_classification"
+    assert not completed["items"][0]["publication_id"]
     second = client.post(
         path + "/syncs/" + rule["id"] + "/run", headers=auth_headers
     ).json()
@@ -583,12 +583,26 @@ def test_import_retry_uses_current_upload_status(
     client.post(
         path,
         headers=auth_headers,
-        json={"request_key": "original", "keys": ["photos/a.png"]},
+        json={
+            "classifications": {
+                key: classification_for(client, source["workspace_id"])
+                for key in ["photos/a.png"]
+            },
+            "request_key": "original",
+            "keys": ["photos/a.png"],
+        },
     )
     run = client.post(
         path,
         headers=auth_headers,
-        json={"request_key": "duplicate", "keys": ["photos/b.png"]},
+        json={
+            "classifications": {
+                key: classification_for(client, source["workspace_id"])
+                for key in ["photos/b.png"]
+            },
+            "request_key": "duplicate",
+            "keys": ["photos/b.png"],
+        },
     ).json()
     item = run["items"][0]
     assert item["status"] == "duplicate"
@@ -667,7 +681,7 @@ def test_sync_rechecks_membership_before_listing(
     rule = client.post(
         path + "/syncs",
         headers=auth_headers,
-        json={"audience": "work", "workspace_id": workspace},
+        json={"workspace_id": workspace},
     ).json()
     with client.app.state.database.session_factory() as db:
         db.execute(
@@ -712,9 +726,11 @@ def test_membership_removed_after_download_prevents_publication(
         BASE + "/" + source["id"] + "/imports",
         headers=auth_headers,
         json={
+            "classifications": {
+                key: classification_for(client, workspace) for key in ["photos/a.png"]
+            },
             "request_key": "revoked",
             "keys": ["photos/a.png"],
-            "audience": "work",
             "workspace_id": workspace,
         },
     ).json()
@@ -832,7 +848,14 @@ def test_scheduler_recovers_expired_jobs_but_respects_pause_and_live_lease(
         result = client.post(
             path + "/imports",
             headers=auth_headers,
-            json={"request_key": f"recovery-{index}", "keys": ["photos/a.png"]},
+            json={
+                "classifications": {
+                    key: classification_for(client, source["workspace_id"])
+                    for key in ["photos/a.png"]
+                },
+                "request_key": f"recovery-{index}",
+                "keys": ["photos/a.png"],
+            },
         ).json()
         jobs.append(uuid.UUID(result["id"]))
     client.post(path + "/syncs", headers=auth_headers, json={"enabled": False})
@@ -855,7 +878,6 @@ def test_scheduler_recovers_expired_jobs_but_respects_pause_and_live_lease(
     )
     tasks.storage_tick()
     assert set(dispatched) == set(jobs[:2])
-
 
 
 def test_invalid_credentials_are_never_echoed_in_validation_response(
@@ -901,7 +923,14 @@ def test_connection_operations_remain_available_during_analysis(
                 response = client.post(
                     path + "/imports",
                     headers=auth_headers,
-                    json={"request_key": "queued", "keys": ["photos/b.png"]},
+                    json={
+                        "classifications": {
+                            key: classification_for(client, source["workspace_id"])
+                            for key in ["photos/b.png"]
+                        },
+                        "request_key": "queued",
+                        "keys": ["photos/b.png"],
+                    },
                 )
             finally:
                 client.app.state.settings.enqueue_processing = False
@@ -913,7 +942,14 @@ def test_connection_operations_remain_available_during_analysis(
     result = client.post(
         path + "/imports",
         headers=auth_headers,
-        json={"request_key": "processing", "keys": ["photos/a.png"]},
+        json={
+            "classifications": {
+                key: classification_for(client, source["workspace_id"])
+                for key in ["photos/a.png"]
+            },
+            "request_key": "processing",
+            "keys": ["photos/a.png"],
+        },
     )
     assert responses == [200 if disconnect else 202]
     assert result.status_code == 202

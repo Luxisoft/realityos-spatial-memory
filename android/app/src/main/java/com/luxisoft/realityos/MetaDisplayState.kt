@@ -1,7 +1,7 @@
 package com.luxisoft.realityos
 
 /** Phone configuration and the visible state shared by physical and Debug Display. */
-data class MetaDestination(val id: String, val name: String, val audience: String)
+data class MetaDestination(val id: String, val name: String)
 enum class MetaSearchScope(val wire: String) { GALLERY("gallery"), REGISTRY("registry") }
 
 /** Photo search sense: both kinds open the same camera, only the backend differs. */
@@ -20,6 +20,7 @@ data class MetaDisplayState(
     val captureForSearch: Boolean = false,
     val pendingMime: String? = null,
     val uploadStatus: String? = null,
+    val publicationRevision: Long = 0,
     val pendingDestination: String? = null,
     val duplicatePreview: String? = null,
     val recordingSeconds: Int = 0,
@@ -28,9 +29,9 @@ data class MetaDisplayState(
 )
 
 internal object MetaDisplayPolicy {
-    /** Glasses captures go to the account's Profile, regardless of a saved Work choice. */
+    /** Every capture needs an explicitly selected group, or the sole available group. */
     fun publicationDestination(choices: List<MetaDestination>, activeId: String?): MetaDestination? {
-        val groups = choices.filter { it.audience == "work" && it.id != "home" }
+        val groups = choices.filter { it.id != "home" && it.id.isNotBlank() }
         return groups.find { it.id == activeId } ?: groups.singleOrNull()
     }
 

@@ -12,7 +12,6 @@ from app.config import Settings
 from app.db import Database
 from app.models import CaptureSession, MediaAsset, Workspace
 from app.social_features.models import Publication
-from app.social_features.upload_service import home_space
 from sqlalchemy import MetaData, delete, or_, select, tuple_, update
 
 PROTECTED = {
@@ -42,23 +41,19 @@ def purge(db, workspace_ids, apply=False):
     spaces = list(db.scalars(select(Workspace).where(Workspace.id.in_(targets))))
     if len(spaces) != len(targets) or any(s.name.startswith("home:") for s in spaces):
         raise RuntimeError("All targets must be existing non-personal workspaces.")
-    # A personal publication sharing an old asset keeps its bytes and ancestry.
+    # A publication in another group keeps its shared bytes and ancestry.
     shared = list(
         db.execute(
-            select(MediaAsset.id, Publication.owner_id)
+            select(MediaAsset.id, Publication.workspace_id)
             .join(Publication, Publication.media_id == MediaAsset.id)
             .where(
                 MediaAsset.workspace_id.in_(targets),
-                or_(
-                    Publication.workspace_id.is_(None),
-                    Publication.workspace_id.not_in(targets),
-                ),
+                Publication.workspace_id.not_in(targets),
             )
         )
     )
     preserved = set()
-    for media_id, owner in shared:
-        destination = home_space(db, owner)
+    for media_id, destination in shared:
         cursor = media_id
         while cursor and cursor not in preserved:
             asset = db.get(MediaAsset, cursor)

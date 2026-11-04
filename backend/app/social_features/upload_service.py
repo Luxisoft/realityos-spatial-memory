@@ -30,12 +30,12 @@ from app.social_features.publication_visibility import publication_content
 from app.social_features.visual import ground, normalize, similar
 
 
-def scope_lock(db, owner, audience, workspace, wait=True):
+def scope_lock(db, owner, workspace, wait=True):
     if db.get_bind().dialect.name == "postgresql":
         function = "pg_advisory_xact_lock" if wait else "pg_try_advisory_xact_lock"
         result = db.execute(
             text(f"SELECT {function}(hashtextextended(:key,0))"),
-            {"key": f"publication:{owner}:{audience}:{workspace}"},
+            {"key": f"publication:{owner}:{workspace}"},
         )
         if not wait and not result.scalar():
             raise HTTPException(
@@ -43,12 +43,11 @@ def scope_lock(db, owner, audience, workspace, wait=True):
             )
 
 
-def same_scope(db, owner, audience, workspace):
+def same_scope(db, owner, workspace):
     return (
         select(Publication)
         .where(
             Publication.owner_id == owner,
-            Publication.audience == audience,
             Publication.workspace_id == workspace,
             Publication.hidden.is_(False),
             publication_content(),
@@ -57,12 +56,12 @@ def same_scope(db, owner, audience, workspace):
     )
 
 
-def duplicate(db, client, raw, owner, audience, workspace, older_than=None):
+def duplicate(db, client, raw, owner, workspace, older_than=None):
     image, _, _, pixel, phash = normalize(raw)
     candidates = []
     statement = (
-        same_scope(db, owner, audience, workspace)
-        if audience is not None
+        same_scope(db, owner, workspace)
+        if workspace is not None
         else select(Publication)
         .where(Publication.owner_id == owner, Publication.hidden.is_(False), publication_content())
         .order_by(Publication.published_at, Publication.id)
@@ -122,29 +121,35 @@ def save_publication(db, upload, replace=None):
         raise HTTPException(
             409, "Publication languages are not ready. Retry analysis before publishing."
         )
-    if upload.audience == "work":
-        member = db.scalar(
-            select(WorkspaceMember)
-            .where(
-                WorkspaceMember.workspace_id == upload.workspace_id,
-                WorkspaceMember.user_id == upload.owner_id,
-            )
-            .with_for_update()
+    member = db.scalar(
+        select(WorkspaceMember)
+        .where(
+            WorkspaceMember.workspace_id == upload.workspace_id,
+            WorkspaceMember.user_id == upload.owner_id,
         )
-        if member is None:
-            raise HTTPException(403, "Workspace membership changed during analysis.")
+        .with_for_update()
+    )
+    if member is None:
+        raise HTTPException(403, "Workspace membership changed during analysis.")
     from app.social_features.uploads import check_destination
 
-    check_destination(db, db.get(User, upload.owner_id), upload.audience, upload.workspace_id)
+    check_destination(db, db.get(User, upload.owner_id), upload.workspace_id)
     from app.storage.lifecycle import check_upload_source
 
     check_upload_source(db, upload)
+    from app.social_features.classification import (
+        classification_json,
+        set_classification,
+        validate_classification,
+    )
+
+    validate_classification(db, upload.workspace_id, upload.category_id, upload.tag_ids)
     target = upload.workspace_id
     now = datetime.now(UTC)
     session = CaptureSession(
         workspace_id=target,
         created_by_id=upload.owner_id,
-        origin="profile-upload",
+        origin="group-upload",
         status=CaptureStatus.CLOSED,
         consent_confirmed=True,
         closed_at=now,
@@ -168,17 +173,22 @@ def save_publication(db, upload, replace=None):
             PublicationRevision(
                 post_id=replace.id,
                 previous={
-                    key: str(getattr(replace, key)) if key == "media_id" else getattr(replace, key)
-                    for key in (
-                        "media_id",
-                        "caption",
-                        "note_text",
-                        "note_source",
-                        "ai_labels",
-                        "ai_detections",
-                        "ai_caption",
-                        "search_text",
-                    )
+                    "classification": classification_json(db, replace),
+                    **{
+                        key: str(getattr(replace, key))
+                        if key == "media_id"
+                        else getattr(replace, key)
+                        for key in (
+                            "media_id",
+                            "caption",
+                            "note_text",
+                            "note_source",
+                            "ai_labels",
+                            "ai_detections",
+                            "ai_caption",
+                            "search_text",
+                        )
+                    },
                 },
             )
         )
@@ -186,13 +196,13 @@ def save_publication(db, upload, replace=None):
     else:
         post = Publication(
             owner_id=upload.owner_id,
-            audience=upload.audience,
-            workspace_id=upload.workspace_id if upload.audience == "work" else None,
+            workspace_id=upload.workspace_id,
             source="local",
         )
         db.add(post)
     post.active_index_run_id = None
     post.media_id = asset.id
+    set_classification(db, post, upload.category_id, upload.tag_ids)
     post.caption = upload.caption
     post.note_text = upload.note_text
     post.note_source = upload.note_source
@@ -243,9 +253,12 @@ def process_upload(db, upload_id, client):
     upload = db.get(PublicationUpload, upload_id)
     if upload is None or upload.status not in ("pending", "failed"):
         return upload
-    scope_lock(db, upload.owner_id, upload.audience, upload.workspace_id)
+    scope_lock(db, upload.owner_id, upload.workspace_id)
     db.refresh(upload)
     if upload.status not in ("pending", "failed"):
+        return upload
+    if not upload.category_id or not upload.tag_ids:
+        upload.status = "awaiting_classification"
         return upload
     try:
         from app.dependencies import workspace_member
@@ -267,7 +280,6 @@ def process_upload(db, upload_id, client):
                 client,
                 upload.original_bytes,
                 upload.owner_id,
-                upload.audience,
                 upload.workspace_id,
             )
             image, pixel, phash, detections = ground(client, upload.original_bytes)
@@ -275,7 +287,7 @@ def process_upload(db, upload_id, client):
             if upload.status == "cancelled":
                 return upload
             identity_match = match or duplicate(
-                db, client, upload.original_bytes, upload.owner_id, None, None
+                db, client, upload.original_bytes, upload.owner_id, None
             )
             identity_asset = db.get(MediaAsset, identity_match.media_id) if identity_match else None
             identity = (
@@ -320,18 +332,14 @@ def confirm_replace(db, upload, user):
     from app.dependencies import workspace_member
     from app.social_features.gallery import get_post
 
-    scope_lock(db, upload.owner_id, upload.audience, upload.workspace_id, wait=False)
+    scope_lock(db, upload.owner_id, upload.workspace_id, wait=False)
     db.refresh(upload)
     if upload.status == "published":
         return upload
     if upload.status != "duplicate":
         raise HTTPException(409, "This upload is not awaiting replacement.")
     post = get_post(upload.duplicate_id, user, db)
-    if (
-        post.owner_id != user.id
-        or post.audience != upload.audience
-        or post.workspace_id != upload.workspace_id
-    ):
+    if post.owner_id != user.id or post.workspace_id != upload.workspace_id:
         raise HTTPException(409, "Publication destination changed. Upload again.")
     if upload.workspace_id:
         workspace_member(upload.workspace_id, user, db)

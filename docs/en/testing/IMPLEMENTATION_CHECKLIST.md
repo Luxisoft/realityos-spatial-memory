@@ -11,7 +11,7 @@
 1. Install the prepared APK: `android/app/build/outputs/apk/debug/app-debug.apk`, version **`0.1.6-debug-20261103-1224`**. Continue if this exact build is already installed. The short `0.1.6` label is insufficient.
 2. Open **Continue with email → Sign in → Username or email**. Use **`elena-marquez`** and copy its password from the [public access table](../api/API.md#quick-start). This account is already confirmed.
 3. In **Profile**, check the avatar and open a post. In **Work → California Valley Medical Center → Workspace records**, open **Ana Solis** and her portrait. The group has 20 records and seven posts.
-4. Open **Profile → My connections → Demo nursing → Test access**. In **Import destination / search workspace**, choose **California Valley Medical Center**.
+4. Open **Menu → My connections → Demo nursing → Test access**. In **Import destination / search workspace**, choose **California Valley Medical Center**.
 5. Select **only** `patient-ana.png`, scroll to **Use to find a person** and press it. If consent appears, read it, accept when appropriate and press search again. Open Ana's candidate and record. No portrait download or repeated enrollment is needed.
 6. Deselect the previous portrait and select only `medicine-cart.png` → **Use to find an object**. Wait for the response and open its evidence. An image query may take over a minute; the APK waits up to **180 seconds**. Avoid repeated presses and do not count a loading state as a pass.
 
@@ -73,7 +73,7 @@ All four QA accounts have avatars and one initial private synthetic-scene post. 
 
 ## Exact files to test from R2
 
-In **Profile → My connections**, open the connection, select the correct workspace, then press **Preview** or select one checkbox for a search. Search buttons appear below the file list. Select both files to import a photo and video; select only the PDF to use a CV.
+In **Menu → My connections**, open the connection, select the correct workspace, then press **Preview** or select one checkbox for a search. Search buttons appear below the file list. Select both files to import a photo and video; select only the PDF to use a CV.
 
 | Account / connection | Available files | Search result / use |
 | --- | --- | --- |
@@ -154,7 +154,7 @@ Each scenario connection contains 31 files; **Demo qa** contains six. Seeing a p
 
 - [ ] **F01** — On a QA email account edit name, location, hometown, birthday and gender; save and reopen. Expected: persisted values, age derived from the date, and rejection of future or pre-1900 dates. Restore initial values.
 - [ ] **F02** — In Facebook verify read-only synchronized name and fields; edit permitted biography/contact details and sign in again. Expected: source rules are respected and available Facebook fields refresh.
-- [ ] **F03** — With QA, open **Profile → My connections → Demo qa**, select only `cv-v1.pdf` → **Use as CV** → confirm. Repeat with `cv-v2.pdf` and reopen the profile. Expected: updated current CV, no gallery post and no download for another account (T02). No PDF transfer to the phone is needed.
+- [ ] **F03** — With QA, open **Menu → My connections → Demo qa**, select only `cv-v1.pdf` → **Use as CV** → confirm. Repeat with `cv-v2.pdf` and reopen the profile. Expected: updated current CV, no gallery post and no download for another account (T02). No PDF transfer to the phone is needed.
 - [ ] **F04** — Open another profile from an authorized candidate and ask “What is this profile called?”. Expected: answer based on permitted information, without private posts or the CV file.
 
 ### G — Posts, groups and privacy
@@ -170,7 +170,7 @@ Each scenario connection contains 31 files; **Demo qa** contains six. Seeing a p
 
 R2 preparation completed: 426 remote resources verified and ready connections for all 13 accounts. QA admin also has **Directorio social y taller (QA)**. [Preparation receipt](../../assets/storage/demo-verification.json). The following cases remain pending until executed in the app.
 
-- [ ] **K01** — With all nine scenario and four QA accounts, open **Profile → My connections**, the table connection and **Test access**. Expected: successful connection without entering keys. QA admin also has Directorio social y taller (QA). Record all 13 accounts; block only a missing variant and consult the R2 guide.
+- [ ] **K01** — With all nine scenario and four QA accounts, open **Menu → My connections**, the table connection and **Test access**. Expected: successful connection without entering keys. QA admin also has Directorio social y taller (QA). Record all 13 accounts; block only a missing variant and consult the R2 guide.
 - [ ] **K02** — With QA admin, create **QA aceptación** using Add bucket; the maintainer privately enters endpoint, bucket, region and valid keys for a temporary folder. Test invalid keys in this disposable connection, then repair with Edit credentials. Expected: clear error, successful connection after repair and hidden keys on reopening. Leave prepared demo connections unchanged.
 - [ ] **K03** — In Demo qa preview `evidence-desk.png` and `evidence-desk-1.mp4`; zoom, play and seek. In Directorio social y taller (QA), open folders and Next page when available. Expected: authorized media and correct return navigation. Demo nursing marks `hospital.json` unsupported; it does not import workspace records.
 - [ ] **K04** — With QA admin in Demo qa, select `evidence-desk.png` and `evidence-desk-1.mp4` → **My private profile → Import selection → Confirm**. Follow Recent imports to Published; if review is required, open Review result and decide explicitly. Open the media in Profile and verify restriction from another account.

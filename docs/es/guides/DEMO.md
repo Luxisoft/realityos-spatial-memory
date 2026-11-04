@@ -21,8 +21,8 @@ Las nuevas pruebas de objetos usan [12 videos completos con consultas ES/EN e in
 
 1. Descarga **app-debug.apk** y usa una de las tres [cuentas públicas incluidas](../api/API.md#quick-start). Para Postman basta con importar la colección y pulsar **Send**.
 2. Instala el APK habitual del servidor ([descarga e instalación](../README.md#evaluate)). Abre **Continuar con correo → Iniciar sesión**. Escribe el usuario en **Usuario o correo** y su contraseña de la tabla pública. Estas cuentas ya están confirmadas.
-3. En **Perfil**, comprueba tu foto y abre una de tus publicaciones.
-4. En **Trabajo**, selecciona el grupo indicado abajo y pulsa **Registros del espacio**. Abre el expediente inicial para ver su contenido y adjuntos dentro de la app.
+3. En la **Galería** principal, selecciona tu grupo y abre una publicación. Tu avatar aparece en la barra inferior.
+4. En el menú del grupo de la galería, pulsa **Registros del espacio**. Abre el expediente inicial para ver su contenido y adjuntos dentro de la app.
 
 | Escenario / grupo | Cuentas ya preparadas | Primer contenido |
 | --- | --- | --- |

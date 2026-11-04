@@ -7,7 +7,7 @@ import zipfile
 from datetime import UTC, datetime
 from xml.etree import ElementTree
 
-from fastapi import APIRouter, Depends, File, Form, HTTPException, Request, UploadFile
+from fastapi import APIRouter, Depends, File, HTTPException, Request, UploadFile
 from sqlalchemy import (
     or_,
     select,
@@ -408,44 +408,6 @@ def _checked_note(note_text: str, note_source: str) -> tuple[str, str]:
         raise HTTPException(422, "note_source must be voice or text.")
     note = note_text.strip()
     return note, note_source if note else ""
-
-
-@router.post("/me/profile/publications")
-async def upload_profile_publication(
-    request: Request,
-    workspace_id: uuid.UUID = Form(...),
-    file: UploadFile = File(...),
-    caption: str = Form(default="", max_length=4000),
-    note_text: str = Form(default="", max_length=4000),
-    note_source: str = Form(default=""),
-    user: User = Depends(get_current_user),
-    db: Session = Depends(get_db),
-):
-    """Persist an owner-selected image in an authorized work group."""
-    from app.social_features.uploads import legacy_upload
-
-    return await legacy_upload(
-        request, file, caption, note_text, note_source, user, db, "work", workspace_id
-    )
-
-
-@router.post("/me/work-publications")
-async def upload_work_publication(
-    request: Request,
-    workspace_id: uuid.UUID = Form(...),
-    caption: str = Form(default="", max_length=4000),
-    note_text: str = Form(default="", max_length=4000),
-    note_source: str = Form(default=""),
-    file: UploadFile = File(...),
-    user: User = Depends(get_current_user),
-    db: Session = Depends(get_db),
-):
-    """Persist an owner-selected image and publish it into a work workspace."""
-    from app.social_features.uploads import legacy_upload
-
-    return await legacy_upload(
-        request, file, caption, note_text, note_source, user, db, "work", workspace_id
-    )
 
 
 @router.post("/me/profile/cv/retry")

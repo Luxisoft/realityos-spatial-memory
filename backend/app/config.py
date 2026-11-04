@@ -31,7 +31,6 @@ class Settings(BaseSettings):
     auth_public_url: AnyHttpUrl = "https://realityos.luxisoft.com"
     facebook_app_id: str | None = None
     facebook_app_secret: str | None = None
-    social_moderator_facebook_ids: str = ""
     api_prefix: str = "/v1"
     database_url: str = "postgresql+psycopg://realityos:realityos@localhost:5432/realityos"
     redis_url: str = "redis://localhost:6379/0"

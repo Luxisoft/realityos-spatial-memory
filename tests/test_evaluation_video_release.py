@@ -70,7 +70,6 @@ def prepare_fixture(db, root, module):
                     connection_id=connection.id,
                     prefix=connection.prefix,
                     workspace_id=workspace.id,
-                    audience="work",
                     enabled=True,
                     interval_minutes=15,
                     next_run=datetime.now(UTC),
@@ -130,7 +129,6 @@ def prepare_fixture(db, root, module):
                     owner_id=users[index % 3].id,
                     workspace_id=workspace.id,
                     media_id=asset.id,
-                    audience="work",
                     source=module.SOURCE,
                     source_ref=f"licensed-v2:{group}:{identifier}",
                 )

@@ -12,6 +12,7 @@ from app.models import (
 )
 from app.security import create_access_token, hash_password
 from app.social import Publication
+from catalog_support import classification_for
 from PIL import Image
 
 from .support import (
@@ -54,7 +55,11 @@ def test_gallery_privacy_and_interactions(client, auth_headers):
         )
         db.add(asset)
         db.flush()
-        post = Publication(owner_id=owner.id, media_id=asset.id, audience="home")
+        post = Publication(
+            owner_id=owner.id,
+            media_id=asset.id,
+            workspace_id=db.get(MediaAsset, asset.id).workspace_id,
+        )
         db.add(post)
         db.commit()
         post_id = str(post.id)
@@ -63,7 +68,7 @@ def test_gallery_privacy_and_interactions(client, auth_headers):
             + create_access_token(other.id, client.app.state.settings)
         }
     assert (
-        len(client.get("/v1/gallery?audience=home", headers=auth_headers).json()) == 1
+        len(client.get("/v1/gallery/page", headers=auth_headers).json()["items"]) == 1
     )
     preview = client.get(f"/v1/gallery/{post_id}/thumbnail", headers=auth_headers)
     assert preview.status_code == 200
@@ -72,7 +77,7 @@ def test_gallery_privacy_and_interactions(client, auth_headers):
         client.get(
             f"/v1/gallery/{post_id}/thumbnail", headers=other_headers
         ).status_code
-        == 404
+        == 403
     )
     prepared = client.post(
         "/v1/assistant",
@@ -80,11 +85,11 @@ def test_gallery_privacy_and_interactions(client, auth_headers):
         json={"text": "publicar esta foto", "post_id": post_id},
     )
     assert prepared.json()["type"] == "confirm"
-    assert client.get("/v1/gallery?audience=public", headers=other_headers).json() == []
-    assert client.get("/v1/gallery", headers=other_headers).json() == []
+    assert client.get("/v1/gallery/page", headers=other_headers).json()["items"] == []
+    assert client.get("/v1/gallery/page", headers=other_headers).json()["items"] == []
     assert (
         client.get(f"/v1/gallery/{post_id}/media", headers=other_headers).status_code
-        == 404
+        == 403
     )
     assert (
         client.post(
@@ -92,7 +97,7 @@ def test_gallery_privacy_and_interactions(client, auth_headers):
             headers=other_headers,
             json={"action": "like"},
         ).status_code
-        == 404
+        == 403
     )
     assert (
         client.post(
@@ -136,12 +141,15 @@ def test_gallery_privacy_and_interactions(client, auth_headers):
         client.post(
             f"/v1/gallery/{post_id}/share",
             headers=auth_headers,
-            json={"audience": "work", "workspace_id": group},
+            json={
+                "workspace_id": group,
+                **classification_for(client, group),
+            },
         ).status_code
         == 200
     )
     assert (
-        len(client.get("/v1/gallery?audience=work", headers=other_headers).json()) == 1
+        len(client.get("/v1/gallery/page", headers=other_headers).json()["items"]) == 1
     )
     assert (
         client.post(f"/v1/groups/{group}/invite", headers=other_headers).status_code
@@ -155,13 +163,14 @@ def test_gallery_privacy_and_interactions(client, auth_headers):
         ).status_code
         == 200
     )
-    assert client.get("/v1/gallery?audience=work", headers=other_headers).json() == []
+    assert client.get("/v1/gallery/page", headers=other_headers).json()["items"] == []
     assert (
         client.get(f"/v1/gallery/{post_id}/media", headers=other_headers).status_code
-        == 404
+        == 403
     )
     assert (
-        client.get("/v1/moderation/reports", headers=other_headers).status_code == 403
+        client.get(f"/v1/groups/{group}/reports", headers=other_headers).status_code
+        == 403
     )
 
 

@@ -34,7 +34,6 @@ class StorageImport(TimestampMixin, Base):
     request_key: Mapped[str] = mapped_column(String(128))
     payload_hash: Mapped[str] = mapped_column(String(64))
     revision: Mapped[int] = mapped_column(Integer, default=1, server_default="1")
-    audience: Mapped[str] = mapped_column(String(16))
     workspace_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("workspaces.id"))
     items: Mapped[list] = mapped_column(JSON)
     status: Mapped[str] = mapped_column(String(24), default="pending", index=True)
@@ -48,7 +47,6 @@ class StorageSync(TimestampMixin, Base):
         ForeignKey("storage_connections.id"), index=True
     )
     prefix: Mapped[str] = mapped_column(String(1024), default="")
-    audience: Mapped[str] = mapped_column(String(16))
     workspace_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("workspaces.id"))
     interval_minutes: Mapped[int] = mapped_column(default=60)
     enabled: Mapped[bool] = mapped_column(default=False)

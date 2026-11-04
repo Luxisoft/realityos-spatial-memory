@@ -1,4 +1,5 @@
 import io
+import uuid
 
 from app.models import (
     Role,
@@ -6,6 +7,7 @@ from app.models import (
     Workspace,
     WorkspaceMember,
 )
+from catalog_support import classification_for, classified_destination, published_item
 from PIL import Image
 
 from .support import (
@@ -41,28 +43,34 @@ def test_publications_accept_voice_or_text_notes(client, auth_headers):
     Image.new("RGB", (48, 32), "yellow").save(output, format="PNG")
 
     invalid = client.post(
-        "/v1/me/profile/publications",
+        "/v1/me/publication-uploads",
         headers=auth_headers,
         files={"file": ("nota.png", output.getvalue(), "image/png")},
-        data={"note_text": "Hola", "note_source": "carrier-pigeon"},
+        data={
+            "note_text": "Hola",
+            "note_source": "carrier-pigeon",
+            "request_key": str(uuid.uuid4()),
+        },
     )
     assert invalid.status_code == 422, invalid.text
 
     response = client.post(
-        "/v1/me/profile/publications",
+        "/v1/me/publication-uploads",
         headers=auth_headers,
         files={"file": ("nota.png", output.getvalue(), "image/png")},
         data={
             "note_text": "Revisar el cableado",
             "note_source": "text",
-            "workspace_id": client.post(
-                "/v1/groups", headers=auth_headers, json={"name": "Notes group"}
-            ).json()["id"],
+            **classified_destination(client, auth_headers, "Notes group"),
+            "request_key": str(uuid.uuid4()),
         },
     )
-    assert response.status_code == 200, response.text
-    assert response.json()["note_text"] == "Revisar el cableado"
-    assert response.json()["note_source"] == "text"
+    assert response.status_code == 202, response.text
+    assert (
+        published_item(client, auth_headers, response)["note_text"]
+        == "Revisar el cableado"
+    )
+    assert published_item(client, auth_headers, response)["note_source"] == "text"
 
     with client.app.state.database.session_factory() as db:
         owner = db.query(User).first()
@@ -78,18 +86,23 @@ def test_publications_accept_voice_or_text_notes(client, auth_headers):
         workspace_id = str(workspace.id)
 
     spoken = client.post(
-        "/v1/me/work-publications",
+        "/v1/me/publication-uploads",
         headers=auth_headers,
         files={"file": ("nota.png", output.getvalue(), "image/png")},
         data={
             "workspace_id": workspace_id,
+            **classification_for(client, workspace_id, multipart=True),
             "note_text": "Motor cambiado en el turno nocturno",
             "note_source": "voice",
+            "request_key": str(uuid.uuid4()),
         },
     )
-    assert spoken.status_code == 200, spoken.text
-    assert spoken.json()["note_text"] == "Motor cambiado en el turno nocturno"
-    assert spoken.json()["note_source"] == "voice"
+    assert spoken.status_code == 202, spoken.text
+    assert (
+        published_item(client, auth_headers, spoken)["note_text"]
+        == "Motor cambiado en el turno nocturno"
+    )
+    assert published_item(client, auth_headers, spoken)["note_source"] == "voice"
 
 
 def test_chat_history_pages_newest_first_per_profile(client, auth_headers):

@@ -10,8 +10,8 @@
 
 1. Instala el APK preparado: `android/app/build/outputs/apk/debug/app-debug.apk`, versión **`0.1.6-debug-20261103-1224`**. Si ya tienes exactamente ese build, continúa. La versión corta `0.1.6` no basta para identificarlo.
 2. Abre **Continuar con correo → Iniciar sesión → Usuario o correo**. Usa **`elena-marquez`** y copia su contraseña de la [tabla pública de acceso](../api/API.md#quick-start). La cuenta ya está confirmada.
-3. En **Perfil**, comprueba el avatar y abre una publicación. En **Trabajo → California Valley Medical Center → Registros del espacio**, abre **Ana Solis** y su retrato. Hay 20 expedientes y siete publicaciones de grupo.
-4. Abre **Perfil → Mis conexiones → Demo nursing → Comprobar acceso**. En **Destino de importación / espacio de búsqueda**, elige **California Valley Medical Center**.
+3. En la **Galería** principal, comprueba el avatar de la barra inferior y abre una publicación. En **California Valley Medical Center → Registros del espacio**, abre **Ana Solis** y su retrato. Hay 20 expedientes y siete publicaciones de grupo.
+4. Abre **Menú → Mis conexiones → Demo nursing → Comprobar acceso**. En **Destino de importación / espacio de búsqueda**, elige **California Valley Medical Center**.
 5. Marca **solo** `patient-ana.png`, baja hasta **Usar para buscar persona** y pulsa. Si aparece consentimiento, léelo, acepta si corresponde y vuelve a pulsar la búsqueda. Abre el candidato Ana y su expediente. No hace falta descargar el retrato ni volver a enrolarlo.
 6. Desmarca el retrato anterior y marca solo `medicine-cart.png` → **Usar para buscar objeto**. Espera el resultado y abre su evidencia. Una búsqueda por imagen puede tardar más de un minuto; el APK espera hasta **180 segundos**. No pulses repetidamente ni confundas la espera con un resultado aprobado.
 
@@ -73,7 +73,7 @@ Las cuatro cuentas QA tienen avatares y una publicación privada de escena sint�
 
 ## Archivos concretos para probar desde R2
 
-En **Perfil → Mis conexiones**, abre la conexión, elige el espacio correcto y pulsa **Vista previa** o marca una sola casilla para buscar. Los botones de búsqueda aparecen debajo de la lista. Para importar foto y video, marca ambos; para usar un CV, marca solo el PDF.
+En **Menú → Mis conexiones**, abre la conexión, elige el espacio correcto y pulsa **Vista previa** o marca una sola casilla para buscar. Los botones de búsqueda aparecen debajo de la lista. Para importar foto y video, marca ambos; para usar un CV, marca solo el PDF.
 
 | Cuenta / conexión | Archivos ya disponibles | Resultado de búsqueda / uso |
 | --- | --- | --- |
@@ -154,7 +154,7 @@ Las conexiones de escenario tienen 31 archivos cada una; **Demo qa** tiene seis.
 
 - [ ] **F01** — En una cuenta QA por correo, edita nombre, ubicación, localidad, nacimiento y género; guarda y reabre. Esperado: persisten, la edad corresponde a la fecha y una fecha futura o anterior a 1900 se rechaza. Restaura los datos iniciales.
 - [ ] **F02** — En Facebook verifica nombre y campos sincronizados de solo lectura; edita biografía/contacto permitidos y vuelve a entrar. Esperado: conserva las reglas de origen y refresca los datos Facebook disponibles.
-- [ ] **F03** — Con QA abre **Perfil → Mis conexiones → Demo qa**, marca solo `cv-v1.pdf` → **Usar como CV** → confirma. Repite con `cv-v2.pdf` y reabre el perfil. Esperado: CV vigente actualizado, sin publicación en la galería y sin descarga permitida para otra cuenta (T02). No hace falta copiar PDFs al teléfono.
+- [ ] **F03** — Con QA abre **Menú → Mis conexiones → Demo qa**, marca solo `cv-v1.pdf` → **Usar como CV** → confirma. Repite con `cv-v2.pdf` y reabre el perfil. Esperado: CV vigente actualizado, sin publicación en la galería y sin descarga permitida para otra cuenta (T02). No hace falta copiar PDFs al teléfono.
 - [ ] **F04** — Abre un perfil ajeno desde un candidato autorizado y pregunta «¿Cómo se llama este perfil?». Esperado: respuesta basada en información permitida; no expone publicaciones privadas ni el archivo CV.
 
 ### G — Publicaciones, grupos y privacidad
@@ -170,7 +170,7 @@ Las conexiones de escenario tienen 31 archivos cada una; **Demo qa** tiene seis.
 
 Preparación R2 completada: 426 recursos remotos verificados y conexiones listas para las 13 cuentas. QA admin tiene además **Directorio social y taller (QA)**. [Comprobante de preparación](../../assets/storage/demo-verification.json). Los casos siguientes permanecen pendientes hasta ejecutarlos en la app.
 
-- [ ] **K01** — Con las nueve cuentas de escenario y cuatro QA, abre **Perfil → Mis conexiones** y su conexión de la tabla → **Comprobar acceso**. Esperado: Conexión correcta, sin pedir claves. QA admin tiene además Directorio social y taller (QA). Registra las 13 cuentas; si falta una, bloquea esa variante y consulta la guía R2.
+- [ ] **K01** — Con las nueve cuentas de escenario y cuatro QA, abre **Menú → Mis conexiones** y su conexión de la tabla → **Comprobar acceso**. Esperado: Conexión correcta, sin pedir claves. QA admin tiene además Directorio social y taller (QA). Registra las 13 cuentas; si falta una, bloquea esa variante y consulta la guía R2.
 - [ ] **K02** — Con QA admin crea **QA aceptación** mediante Añadir bucket; el responsable introduce endpoint, bucket, región y claves válidas para su carpeta temporal. Prueba claves inválidas en esta conexión desechable y corrígelas con Editar claves. Esperado: error claro con claves malas, Comprobar acceso correcto al repararlas y claves ocultas al reabrir. No edites las conexiones demo preparadas.
 - [ ] **K03** — En Demo qa abre Vista previa de `evidence-desk.png` y `evidence-desk-1.mp4`; amplía, reproduce y cambia de instante. En Directorio social y taller (QA) abre carpetas y Siguiente página cuando aparezca. Esperado: medios autorizados y retorno correcto. En Demo nursing, `hospital.json` se identifica como formato no compatible, no como una importación de expedientes.
 - [ ] **K04** — Con QA admin en Demo qa, selecciona `evidence-desk.png` y `evidence-desk-1.mp4` → **Mi perfil privado → Importar selección → Confirmar**. Sigue Importaciones recientes hasta Publicado; si hay Duplicado por revisar, abre Revisar resultado y toma la decisión explícita. Abre los medios en Perfil y verifica su restricción desde otra cuenta.

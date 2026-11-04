@@ -4,9 +4,10 @@ import uuid
 from datetime import UTC, date, datetime
 from typing import Literal
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from app.schemas import LocalizedGalleryInformation
+from app.social_features.classification import ClassificationInput
 
 """Facebook identities and explicitly shared audiovisual publications."""
 
@@ -18,6 +19,8 @@ class InvitePermission(BaseModel):
 class GroupAction(BaseModel):
     name: str = Field(default="", max_length=160)
     code: str = Field(default="", max_length=128)
+    categories: list[str] = Field(default_factory=list, max_length=100)
+    tags: list[str] = Field(default_factory=list, max_length=200)
 
 
 class PinJoin(BaseModel):
@@ -66,15 +69,15 @@ class MergeTexts(BaseModel):
     texts: list[str] = Field(min_length=1, max_length=12)
 
 
-class Share(BaseModel):
-    audience: Literal["home", "public", "work"]
-    workspace_id: uuid.UUID | None = None
+class Share(ClassificationInput):
+    model_config = ConfigDict(extra="forbid")
+    workspace_id: uuid.UUID
 
 
 class AssistantCommand(BaseModel):
+    model_config = ConfigDict(extra="forbid")
     language: str | None = Field(default=None, max_length=16)
     text: str = Field(min_length=2, max_length=500)
-    audience: Literal["home", "public", "work"] = "home"
     workspace_id: uuid.UUID | None = None
     post_id: uuid.UUID | None = None
 
@@ -134,11 +137,11 @@ class ProfileSearchRequest(BaseModel):
     user_id: uuid.UUID | None = None
 
 
-class Publish(BaseModel):
+class Publish(ClassificationInput):
+    model_config = ConfigDict(extra="forbid")
     media_id: uuid.UUID
-    audience: Literal["work"] = "work"
     caption: str = Field(default="", max_length=4000)
-    workspace_id: uuid.UUID | None = None
+    workspace_id: uuid.UUID
 
 
 class Interaction(BaseModel):

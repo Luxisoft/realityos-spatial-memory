@@ -23,8 +23,9 @@ internal fun publicationUploadFailure(path: String, status: Int, body: String): 
         status == 422 && detail == "Invalid image." -> R.string.ui_could_not_read_the_image
         status == 422 && detail is org.json.JSONArray && (0 until detail.length()).any { index ->
             val location = detail.optJSONObject(index)?.optJSONArray("loc")
-            location?.optString(location.length() - 1) in setOf("audience", "workspace_id")
+            location?.optString(location.length() - 1) in setOf("workspace_id")
         } -> R.string.publish_needs_group
+        status == 422 && (detail.toString().contains("category") || detail.toString().contains("tag")) -> R.string.catalog_required
         status == 422 -> R.string.publication_upload_validation
         else -> return null
     }
@@ -57,15 +58,17 @@ internal class PublicationUploader(
             onPublished()
         }
     }
-    fun submit(photo: PendingPublishPhoto, note: String, source: String, audience: String, workspaceId: String? = null) {
+    fun submit(photo: PendingPublishPhoto, note: String, source: String, workspaceId: String, classification: PublicationClassification) {
         scope.launch {
             onBusy(true)
             submitting = true
             error = ""
             try {
-                require(audience == "work" && !workspaceId.isNullOrBlank()) { localizedText(R.string.publish_needs_group) }
-                val fields = mutableMapOf("request_key" to UUID.randomUUID().toString(), "audience" to audience, "note_text" to note, "note_source" to source)
+                require(workspaceId.isNotBlank()) { localizedText(R.string.publish_needs_group) }
+                val fields = mutableMapOf("request_key" to UUID.randomUUID().toString(), "note_text" to note, "note_source" to source)
                 workspaceId?.let { fields["workspace_id"] = it }
+                fields["category_id"] = classification.categoryId
+                fields["tag_ids"] = org.json.JSONArray(classification.tagIds.toList()).toString()
                 val value = withContext(Dispatchers.IO) {
                     JSONObject(SocialSession.requestMultipart("me/publication-uploads", fields, photo.bytes, photo.name, photo.mimeType))
                 }

@@ -71,20 +71,47 @@ class ChatAudio(TimestampMixin, Base):
     duration_ms: Mapped[int] = mapped_column(default=0)
 
 
+class PublicationTerm(TimestampMixin, Base):
+    __tablename__ = "publication_terms"
+    __table_args__ = (
+        UniqueConstraint("workspace_id", "kind", "name_key", name="uq_publication_term_name"),
+    )
+    id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
+    workspace_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("workspaces.id", ondelete="CASCADE"), index=True
+    )
+    kind: Mapped[str] = mapped_column(String(16))
+    name: Mapped[str] = mapped_column(String(80))
+    name_key: Mapped[str] = mapped_column(String(160))
+    active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+
+
+class PublicationTag(Base):
+    __tablename__ = "publication_tags"
+    post_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("publications.id", ondelete="CASCADE"), primary_key=True
+    )
+    term_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("publication_terms.id", ondelete="CASCADE"), primary_key=True, index=True
+    )
+
+
 class Publication(TimestampMixin, Base):
     __tablename__ = "publications"
     __table_args__ = (
         UniqueConstraint("owner_id", "source", "source_ref", name="uq_publication_source"),
         UniqueConstraint("shared_from_id", "workspace_id", name="uq_publication_group_copy"),
-        Index("ix_publication_feed", "audience", "published_at", "id"),
+        Index("ix_publication_feed", "workspace_id", "published_at", "id"),
     )
     id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
     owner_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id"), index=True)
     shared_from_id: Mapped[uuid.UUID | None] = mapped_column(
         ForeignKey("publications.id"), index=True
     )
+    category_id: Mapped[uuid.UUID | None] = mapped_column(
+        ForeignKey("publication_terms.id", ondelete="SET NULL"), index=True
+    )
     media_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("media_assets.id"))
-    audience: Mapped[str] = mapped_column(String(16), default="home", index=True)
     caption: Mapped[str] = mapped_column(Text, default="")
     note_text: Mapped[str] = mapped_column(Text, default="", nullable=False)
     note_source: Mapped[str] = mapped_column(String(16), default="", nullable=False)
@@ -107,7 +134,7 @@ class Publication(TimestampMixin, Base):
         DateTime(timezone=True), default=lambda: datetime.now(UTC), nullable=False
     )
     hidden: Mapped[bool] = mapped_column(default=False)
-    workspace_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("workspaces.id"))
+    workspace_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("workspaces.id"), nullable=False)
 
 
 class Reaction(Base):

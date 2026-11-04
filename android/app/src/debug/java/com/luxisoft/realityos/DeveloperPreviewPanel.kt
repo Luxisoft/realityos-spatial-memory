@@ -517,22 +517,6 @@ private fun PreviewSurface(
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
-        if (!showPhoneCameraPreview) {
-            Surface(
-                modifier = Modifier
-                    .align(Alignment.TopStart)
-                    .padding(14.dp),
-                color = Color.Black.copy(alpha = 0.48f),
-                contentColor = MaterialTheme.colorScheme.tertiary,
-                shape = MaterialTheme.shapes.small
-            ) {
-                Text(
-                    stringResource(R.string.preview_simulator_title),
-                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 7.dp),
-                    style = MaterialTheme.typography.labelMedium
-                )
-            }
-        }
     }
 }
 

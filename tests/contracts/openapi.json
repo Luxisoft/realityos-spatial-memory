@@ -4340,27 +4340,6 @@
         ]
       }
     },
-    "/v1/me/social-capabilities": {
-      "get": {
-        "summary": "Capabilities",
-        "operationId": "capabilities_v1_me_social_capabilities_get",
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {}
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ]
-      }
-    },
     "/v1/groups/{workspace_id}/members": {
       "get": {
         "summary": "Members",
@@ -4495,70 +4474,6 @@
               "type": "string",
               "format": "uuid",
               "title": "Member Id"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {}
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/v1/moderation/reports": {
-      "get": {
-        "summary": "Moderation Reports",
-        "operationId": "moderation_reports_v1_moderation_reports_get",
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {}
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ]
-      }
-    },
-    "/v1/moderation/{post_id}/hide": {
-      "post": {
-        "summary": "Moderate Hide",
-        "operationId": "moderate_hide_v1_moderation__post_id__hide_post",
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
-        "parameters": [
-          {
-            "name": "post_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid",
-              "title": "Post Id"
             }
           }
         ],
@@ -5702,90 +5617,6 @@
         ]
       }
     },
-    "/v1/me/profile/publications": {
-      "post": {
-        "summary": "Upload Profile Publication",
-        "description": "Persist an owner-selected image in an authorized work group.",
-        "operationId": "upload_profile_publication_v1_me_profile_publications_post",
-        "requestBody": {
-          "content": {
-            "multipart/form-data": {
-              "schema": {
-                "$ref": "#/components/schemas/Body_upload_profile_publication_v1_me_profile_publications_post"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {}
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ]
-      }
-    },
-    "/v1/me/work-publications": {
-      "post": {
-        "summary": "Upload Work Publication",
-        "description": "Persist an owner-selected image and publish it into a work workspace.",
-        "operationId": "upload_work_publication_v1_me_work_publications_post",
-        "requestBody": {
-          "content": {
-            "multipart/form-data": {
-              "schema": {
-                "$ref": "#/components/schemas/Body_upload_work_publication_v1_me_work_publications_post"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {}
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ]
-      }
-    },
     "/v1/me/profile/cv/retry": {
       "post": {
         "summary": "Retry Cv",
@@ -5848,75 +5679,6 @@
         ]
       }
     },
-    "/v1/profiles/{user_id}/media": {
-      "get": {
-        "summary": "Profile Media Page",
-        "operationId": "profile_media_page_v1_profiles__user_id__media_get",
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
-        "parameters": [
-          {
-            "name": "user_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid",
-              "title": "User Id"
-            }
-          },
-          {
-            "name": "limit",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "integer",
-              "default": 12,
-              "title": "Limit"
-            }
-          },
-          {
-            "name": "cursor",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "Cursor"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {}
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/v1/gallery/page": {
       "get": {
         "summary": "Gallery Page",
@@ -5927,20 +5689,6 @@
           }
         ],
         "parameters": [
-          {
-            "name": "audience",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "enum": [
-                "home",
-                "work"
-              ],
-              "type": "string",
-              "default": "work",
-              "title": "Audience"
-            }
-          },
           {
             "name": "workspace_id",
             "in": "query",
@@ -5982,6 +5730,93 @@
                 }
               ],
               "title": "Cursor"
+            }
+          },
+          {
+            "name": "category_ids",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "default": [],
+              "title": "Category Ids"
+            }
+          },
+          {
+            "name": "tag_ids",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "default": [],
+              "title": "Tag Ids"
+            }
+          },
+          {
+            "name": "owner_ids",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "default": [],
+              "title": "Owner Ids"
+            }
+          },
+          {
+            "name": "published_from",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Published From"
+            }
+          },
+          {
+            "name": "published_before",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Published Before"
+            }
+          },
+          {
+            "name": "description_q",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "maxLength": 500,
+              "default": "",
+              "title": "Description Q"
             }
           }
         ],
@@ -6008,96 +5843,18 @@
       }
     },
     "/v1/gallery": {
-      "get": {
-        "summary": "Gallery",
-        "operationId": "gallery_v1_gallery_get",
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
-        "parameters": [
-          {
-            "name": "audience",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "enum": [
-                "home",
-                "public",
-                "work"
-              ],
-              "type": "string",
-              "default": "work",
-              "title": "Audience"
-            }
-          },
-          {
-            "name": "offset",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "integer",
-              "default": 0,
-              "title": "Offset"
-            }
-          },
-          {
-            "name": "workspace_id",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string",
-                  "format": "uuid"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "Workspace Id"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {}
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      },
       "post": {
         "summary": "Publish",
         "operationId": "publish_v1_gallery_post",
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
         "requestBody": {
-          "required": true,
           "content": {
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/Publish"
               }
             }
-          }
+          },
+          "required": true
         },
         "responses": {
           "200": {
@@ -6118,7 +5875,12 @@
               }
             }
           }
-        }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
       }
     },
     "/v1/me/capture-profile": {
@@ -6949,6 +6711,59 @@
         }
       }
     },
+    "/v1/me/publication-uploads/{upload_id}/classify": {
+      "post": {
+        "summary": "Classify Publication Upload",
+        "operationId": "classify_publication_upload_v1_me_publication_uploads__upload_id__classify_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "upload_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Upload Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ClassificationInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/display/media-links": {
       "post": {
         "summary": "Media Link",
@@ -7081,6 +6896,334 @@
             "schema": {
               "type": "string",
               "title": "Token"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/groups/{workspace_id}/publications/import": {
+      "post": {
+        "summary": "Import Group Publications",
+        "operationId": "import_group_publications_v1_groups__workspace_id__publications_import_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "workspace_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Workspace Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GroupPublicationImport"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/groups/{workspace_id}/publication-catalog": {
+      "get": {
+        "summary": "Publication Catalog",
+        "operationId": "publication_catalog_v1_groups__workspace_id__publication_catalog_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "workspace_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Workspace Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/groups/{workspace_id}/publication-catalog/{kind}": {
+      "post": {
+        "summary": "Create Publication Term",
+        "operationId": "create_publication_term_v1_groups__workspace_id__publication_catalog__kind__post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "workspace_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Workspace Id"
+            }
+          },
+          {
+            "name": "kind",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "enum": [
+                "category",
+                "tag"
+              ],
+              "type": "string",
+              "title": "Kind"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TermInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/groups/{workspace_id}/publication-catalog/{term_id}": {
+      "patch": {
+        "summary": "Update Publication Term",
+        "operationId": "update_publication_term_v1_groups__workspace_id__publication_catalog__term_id__patch",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "workspace_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Workspace Id"
+            }
+          },
+          {
+            "name": "term_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Term Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TermUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/gallery/{post_id}/classification": {
+      "patch": {
+        "summary": "Update Publication Classification",
+        "operationId": "update_publication_classification_v1_gallery__post_id__classification_patch",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "post_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Post Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ClassificationInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/gallery/filter-options": {
+      "get": {
+        "summary": "Gallery Filter Options",
+        "operationId": "gallery_filter_options_v1_gallery_filter_options_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "workspace_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Workspace Id"
             }
           }
         ],
@@ -7668,6 +7811,144 @@
         }
       }
     },
+    "/v1/faces/setup": {
+      "get": {
+        "tags": [
+          "faces"
+        ],
+        "summary": "Status",
+        "operationId": "status_v1_faces_setup_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/v1/faces/reference-photos": {
+      "post": {
+        "tags": [
+          "faces"
+        ],
+        "summary": "Add Reference",
+        "operationId": "add_reference_v1_faces_reference_photos_post",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_add_reference_v1_faces_reference_photos_post"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/v1/faces/reference-photos/{enrollment_id}": {
+      "delete": {
+        "tags": [
+          "faces"
+        ],
+        "summary": "Remove Reference",
+        "operationId": "remove_reference_v1_faces_reference_photos__enrollment_id__delete",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "enrollment_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Enrollment Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/faces/setup/complete": {
+      "post": {
+        "tags": [
+          "faces"
+        ],
+        "summary": "Complete",
+        "operationId": "complete_v1_faces_setup_complete_post",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
     "/health/live": {
       "get": {
         "tags": [
@@ -7717,197 +7998,6 @@
           }
         }
       }
-    },
-    "/v1/faces/reference-photos": {
-      "post": {
-        "operationId": "add_reference_v1_faces_reference_photos_post",
-        "requestBody": {
-          "content": {
-            "multipart/form-data": {
-              "schema": {
-                "$ref": "#/components/schemas/Body_add_reference_v1_faces_reference_photos_post"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "201": {
-            "content": {
-              "application/json": {
-                "schema": {}
-              }
-            },
-            "description": "Successful Response"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            },
-            "description": "Validation Error"
-          }
-        },
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
-        "summary": "Add Reference",
-        "tags": [
-          "faces"
-        ]
-      }
-    },
-    "/v1/faces/reference-photos/{enrollment_id}": {
-      "delete": {
-        "operationId": "remove_reference_v1_faces_reference_photos__enrollment_id__delete",
-        "parameters": [
-          {
-            "name": "enrollment_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid",
-              "title": "Enrollment Id"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {}
-              }
-            },
-            "description": "Successful Response"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            },
-            "description": "Validation Error"
-          }
-        },
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
-        "summary": "Remove Reference",
-        "tags": [
-          "faces"
-        ]
-      }
-    },
-    "/v1/faces/setup": {
-      "get": {
-        "operationId": "status_v1_faces_setup_get",
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {}
-              }
-            },
-            "description": "Successful Response"
-          }
-        },
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
-        "summary": "Status",
-        "tags": [
-          "faces"
-        ]
-      }
-    },
-    "/v1/faces/setup/complete": {
-      "post": {
-        "operationId": "complete_v1_faces_setup_complete_post",
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {}
-              }
-            },
-            "description": "Successful Response"
-          }
-        },
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
-        "summary": "Complete",
-        "tags": [
-          "faces"
-        ]
-      }
-    },
-    "/v1/groups/{workspace_id}/publications/import": {
-      "post": {
-        "operationId": "import_group_publications_v1_groups__workspace_id__publications_import_post",
-        "parameters": [
-          {
-            "name": "workspace_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid",
-              "title": "Workspace Id"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/GroupPublicationImport"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {}
-              }
-            },
-            "description": "Successful Response"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            },
-            "description": "Validation Error"
-          }
-        },
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
-        "summary": "Import Group Publications"
-      }
     }
   },
   "components": {
@@ -7931,16 +8021,6 @@
             "maxLength": 500,
             "minLength": 2,
             "title": "Text"
-          },
-          "audience": {
-            "type": "string",
-            "enum": [
-              "home",
-              "public",
-              "work"
-            ],
-            "title": "Audience",
-            "default": "home"
           },
           "workspace_id": {
             "anyOf": [
@@ -7967,11 +8047,26 @@
             "title": "Post Id"
           }
         },
+        "additionalProperties": false,
         "type": "object",
         "required": [
           "text"
         ],
         "title": "AssistantCommand"
+      },
+      "Body_add_reference_v1_faces_reference_photos_post": {
+        "properties": {
+          "file": {
+            "type": "string",
+            "format": "binary",
+            "title": "File"
+          }
+        },
+        "type": "object",
+        "required": [
+          "file"
+        ],
+        "title": "Body_add_reference_v1_faces_reference_photos_post"
       },
       "Body_audio_query_v1_queries_audio_post": {
         "properties": {
@@ -8167,22 +8262,19 @@
             "maxLength": 64,
             "title": "Request Key"
           },
-          "audience": {
+          "category_id": {
             "type": "string",
-            "title": "Audience",
-            "default": "work",
-            "const": "work"
+            "format": "uuid",
+            "title": "Category Id"
+          },
+          "tag_ids": {
+            "type": "string",
+            "title": "Tag Ids",
+            "description": "JSON array of tag UUIDs from the destination group"
           },
           "workspace_id": {
-            "anyOf": [
-              {
-                "type": "string",
-                "format": "uuid"
-              },
-              {
-                "type": "null"
-              }
-            ],
+            "type": "string",
+            "format": "uuid",
             "title": "Workspace Id"
           },
           "caption": {
@@ -8206,7 +8298,10 @@
         "type": "object",
         "required": [
           "file",
-          "request_key"
+          "request_key",
+          "category_id",
+          "tag_ids",
+          "workspace_id"
         ],
         "title": "Body_prepare_publication_upload_v1_me_publication_uploads_post"
       },
@@ -8307,43 +8402,6 @@
         ],
         "title": "Body_upload_profile_photo_v1_faces_profile_photo_post"
       },
-      "Body_upload_profile_publication_v1_me_profile_publications_post": {
-        "properties": {
-          "file": {
-            "type": "string",
-            "format": "binary",
-            "title": "File"
-          },
-          "caption": {
-            "type": "string",
-            "maxLength": 4000,
-            "title": "Caption",
-            "default": ""
-          },
-          "note_text": {
-            "type": "string",
-            "maxLength": 4000,
-            "title": "Note Text",
-            "default": ""
-          },
-          "note_source": {
-            "type": "string",
-            "title": "Note Source",
-            "default": ""
-          },
-          "workspace_id": {
-            "format": "uuid",
-            "title": "Workspace Id",
-            "type": "string"
-          }
-        },
-        "type": "object",
-        "required": [
-          "workspace_id",
-          "file"
-        ],
-        "title": "Body_upload_profile_publication_v1_me_profile_publications_post"
-      },
       "Body_upload_v1_integrations_records__record_id__media_post": {
         "properties": {
           "external_id": {
@@ -8380,43 +8438,6 @@
           "file"
         ],
         "title": "Body_upload_v1_integrations_records__record_id__media_post"
-      },
-      "Body_upload_work_publication_v1_me_work_publications_post": {
-        "properties": {
-          "workspace_id": {
-            "type": "string",
-            "format": "uuid",
-            "title": "Workspace Id"
-          },
-          "caption": {
-            "type": "string",
-            "maxLength": 4000,
-            "title": "Caption",
-            "default": ""
-          },
-          "note_text": {
-            "type": "string",
-            "maxLength": 4000,
-            "title": "Note Text",
-            "default": ""
-          },
-          "note_source": {
-            "type": "string",
-            "title": "Note Source",
-            "default": ""
-          },
-          "file": {
-            "type": "string",
-            "format": "binary",
-            "title": "File"
-          }
-        },
-        "type": "object",
-        "required": [
-          "workspace_id",
-          "file"
-        ],
-        "title": "Body_upload_work_publication_v1_me_work_publications_post"
       },
       "CaptureResponse": {
         "properties": {
@@ -8776,6 +8797,31 @@
           "label"
         ],
         "title": "ChatQuickReplyItem"
+      },
+      "ClassificationInput": {
+        "properties": {
+          "category_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Category Id"
+          },
+          "tag_ids": {
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "type": "array",
+            "maxItems": 20,
+            "minItems": 1,
+            "title": "Tag Ids"
+          }
+        },
+        "type": "object",
+        "required": [
+          "category_id",
+          "tag_ids"
+        ],
+        "title": "ClassificationInput"
       },
       "ConnectionCreate": {
         "properties": {
@@ -9471,7 +9517,6 @@
             "title": "Media Id"
           },
           "thumbnail_url": {
-            "title": "Thumbnail Url",
             "anyOf": [
               {
                 "type": "string"
@@ -9479,7 +9524,8 @@
               {
                 "type": "null"
               }
-            ]
+            ],
+            "title": "Thumbnail Url"
           },
           "source": {
             "type": "string",
@@ -9677,11 +9723,6 @@
             "title": "Ai Caption",
             "default": ""
           },
-          "audience": {
-            "type": "string",
-            "title": "Audience",
-            "default": ""
-          },
           "thumbnail_url": {
             "type": "string",
             "title": "Thumbnail Url",
@@ -9832,10 +9873,55 @@
             "maxLength": 128,
             "title": "Code",
             "default": ""
+          },
+          "categories": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "maxItems": 100,
+            "title": "Categories"
+          },
+          "tags": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "maxItems": 200,
+            "title": "Tags"
           }
         },
         "type": "object",
         "title": "GroupAction"
+      },
+      "GroupPublicationImport": {
+        "properties": {
+          "publication_ids": {
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "type": "array",
+            "maxItems": 100,
+            "minItems": 1,
+            "title": "Publication Ids"
+          },
+          "classifications": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/ClassificationInput"
+            },
+            "propertyNames": {
+              "format": "uuid"
+            },
+            "type": "object",
+            "title": "Classifications"
+          }
+        },
+        "type": "object",
+        "required": [
+          "publication_ids"
+        ],
+        "title": "GroupPublicationImport"
       },
       "GuestLogin": {
         "properties": {
@@ -9925,11 +10011,12 @@
             "minItems": 1,
             "title": "Keys"
           },
-          "audience": {
-            "type": "string",
-            "title": "Audience",
-            "default": "work",
-            "const": "work"
+          "classifications": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/ClassificationInput"
+            },
+            "type": "object",
+            "title": "Classifications"
           },
           "workspace_id": {
             "anyOf": [
@@ -9944,6 +10031,7 @@
             "title": "Workspace Id"
           }
         },
+        "additionalProperties": false,
         "type": "object",
         "required": [
           "request_key",
@@ -10899,7 +10987,6 @@
             "title": "Quality"
           },
           "thumbnail_url": {
-            "title": "Thumbnail Url",
             "anyOf": [
               {
                 "type": "string"
@@ -10907,7 +10994,8 @@
               {
                 "type": "null"
               }
-            ]
+            ],
+            "title": "Thumbnail Url"
           }
         },
         "type": "object",
@@ -10950,7 +11038,6 @@
             "title": "Quality"
           },
           "thumbnail_url": {
-            "title": "Thumbnail Url",
             "anyOf": [
               {
                 "type": "string"
@@ -10958,7 +11045,8 @@
               {
                 "type": "null"
               }
-            ]
+            ],
+            "title": "Thumbnail Url"
           }
         },
         "type": "object",
@@ -11216,16 +11304,25 @@
       },
       "Publish": {
         "properties": {
+          "category_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Category Id"
+          },
+          "tag_ids": {
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "type": "array",
+            "maxItems": 20,
+            "minItems": 1,
+            "title": "Tag Ids"
+          },
           "media_id": {
             "type": "string",
             "format": "uuid",
             "title": "Media Id"
-          },
-          "audience": {
-            "type": "string",
-            "title": "Audience",
-            "default": "work",
-            "const": "work"
           },
           "caption": {
             "type": "string",
@@ -11234,21 +11331,18 @@
             "default": ""
           },
           "workspace_id": {
-            "anyOf": [
-              {
-                "type": "string",
-                "format": "uuid"
-              },
-              {
-                "type": "null"
-              }
-            ],
+            "type": "string",
+            "format": "uuid",
             "title": "Workspace Id"
           }
         },
+        "additionalProperties": false,
         "type": "object",
         "required": [
-          "media_id"
+          "category_id",
+          "tag_ids",
+          "media_id",
+          "workspace_id"
         ],
         "title": "Publish"
       },
@@ -11644,7 +11738,6 @@
             "title": "Media Id"
           },
           "thumbnail_url": {
-            "title": "Thumbnail Url",
             "anyOf": [
               {
                 "type": "string"
@@ -11652,7 +11745,8 @@
               {
                 "type": "null"
               }
-            ]
+            ],
+            "title": "Thumbnail Url"
           },
           "source": {
             "type": "string",
@@ -11908,31 +12002,33 @@
       },
       "Share": {
         "properties": {
-          "audience": {
+          "category_id": {
             "type": "string",
-            "enum": [
-              "home",
-              "public",
-              "work"
-            ],
-            "title": "Audience"
+            "format": "uuid",
+            "title": "Category Id"
+          },
+          "tag_ids": {
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "type": "array",
+            "maxItems": 20,
+            "minItems": 1,
+            "title": "Tag Ids"
           },
           "workspace_id": {
-            "anyOf": [
-              {
-                "type": "string",
-                "format": "uuid"
-              },
-              {
-                "type": "null"
-              }
-            ],
+            "type": "string",
+            "format": "uuid",
             "title": "Workspace Id"
           }
         },
+        "additionalProperties": false,
         "type": "object",
         "required": [
-          "audience"
+          "category_id",
+          "tag_ids",
+          "workspace_id"
         ],
         "title": "Share"
       },
@@ -11969,12 +12065,6 @@
             "title": "Prefix",
             "default": ""
           },
-          "audience": {
-            "type": "string",
-            "title": "Audience",
-            "default": "work",
-            "const": "work"
-          },
           "workspace_id": {
             "anyOf": [
               {
@@ -12003,8 +12093,44 @@
             "default": false
           }
         },
+        "additionalProperties": false,
         "type": "object",
         "title": "SyncInput"
+      },
+      "TermInput": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 80,
+            "minLength": 1,
+            "title": "Name"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name"
+        ],
+        "title": "TermInput"
+      },
+      "TermUpdate": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 80,
+            "minLength": 1,
+            "title": "Name"
+          },
+          "active": {
+            "type": "boolean",
+            "title": "Active",
+            "default": true
+          }
+        },
+        "type": "object",
+        "required": [
+          "name"
+        ],
+        "title": "TermUpdate"
       },
       "TestWorker": {
         "properties": {
@@ -12463,39 +12589,6 @@
           "sort_order"
         ],
         "title": "ZoneResponse"
-      },
-      "Body_add_reference_v1_faces_reference_photos_post": {
-        "properties": {
-          "file": {
-            "format": "binary",
-            "title": "File",
-            "type": "string"
-          }
-        },
-        "required": [
-          "file"
-        ],
-        "title": "Body_add_reference_v1_faces_reference_photos_post",
-        "type": "object"
-      },
-      "GroupPublicationImport": {
-        "properties": {
-          "publication_ids": {
-            "items": {
-              "format": "uuid",
-              "type": "string"
-            },
-            "maxItems": 100,
-            "minItems": 1,
-            "title": "Publication Ids",
-            "type": "array"
-          }
-        },
-        "required": [
-          "publication_ids"
-        ],
-        "title": "GroupPublicationImport",
-        "type": "object"
       }
     },
     "securitySchemes": {

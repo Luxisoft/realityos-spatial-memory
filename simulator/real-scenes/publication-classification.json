@@ -1,0 +1,523 @@
+{
+  "version": 1,
+  "review": "Original images and video frames at 10%, 50% and 90% of duration reviewed on 2026-11-03. Manual editorial classification; not visual search evidence.",
+  "items": [
+    {
+      "post_id": "14a3b5b2-6ec3-54a4-9de0-d27b8147cb4c",
+      "workspace_id": "21a7f930-3d28-4e6a-9ac0-904654f0033a",
+      "media_sha256": "ee7bb47f324e2569fc15029bcb5832348ad0fd1eab761af40e25bb9f45ae004a",
+      "category": "Insumos médicos",
+      "tags": [
+        "Jeringas",
+        "Bandejas",
+        "Guantes"
+      ]
+    },
+    {
+      "post_id": "1c283982-36b0-57dd-aff9-23e456b16ac4",
+      "workspace_id": "21a7f930-3d28-4e6a-9ac0-904654f0033a",
+      "media_sha256": "27f89acfc23ea4152ebbee69c4701278e25ab62edb8d0e3309c9da11eb4dfcc3",
+      "category": "Instrumental clínico",
+      "tags": [
+        "Pinzas",
+        "Tijeras",
+        "Mesa de instrumental"
+      ]
+    },
+    {
+      "post_id": "255d7c98-2bd2-582e-967d-a58eec5c176b",
+      "workspace_id": "21a7f930-3d28-4e6a-9ac0-904654f0033a",
+      "media_sha256": "66349ab1d3224a249d4e63466a2c4e51279e018d507c1288192339e6fde6fc61",
+      "category": "Logística clínica",
+      "tags": [
+        "Carro de suministros",
+        "Traslado",
+        "Guantes"
+      ]
+    },
+    {
+      "post_id": "3336c0a5-6f54-5b5b-aadf-91c501d3b568",
+      "workspace_id": "21a7f930-3d28-4e6a-9ac0-904654f0033a",
+      "media_sha256": "f0f47b29e4160c8a9d1481bf29db01dcca0515177ff9aeffdad80e25c1aba524",
+      "category": "Instrumental clínico",
+      "tags": [
+        "Pinzas",
+        "Cajones",
+        "Guantes"
+      ]
+    },
+    {
+      "post_id": "141c5b69-204f-4fac-9e79-e29f448722cd",
+      "workspace_id": "21a7f930-3d28-4e6a-9ac0-904654f0033a",
+      "media_sha256": "5bc0f0be2b0dcb01a75da3b63c65c6bd1d3e46f82d98ef77ded5cbbdb94f038b",
+      "category": "Insumos médicos",
+      "tags": [
+        "Gasas",
+        "Recipientes",
+        "Depresores linguales"
+      ]
+    },
+    {
+      "post_id": "2a02e8e2-14d4-4994-b1a6-3efeb4afb8c3",
+      "workspace_id": "21a7f930-3d28-4e6a-9ac0-904654f0033a",
+      "media_sha256": "d73f06c4a80ba8473664465a4e1523e8fb8b43115c9e308e605f4b53bef24618",
+      "category": "Insumos médicos",
+      "tags": [
+        "Estanterías",
+        "Bandejas",
+        "Recipientes"
+      ]
+    },
+    {
+      "post_id": "45d8b79d-401e-44c2-ba39-40bb0c10252f",
+      "workspace_id": "21a7f930-3d28-4e6a-9ac0-904654f0033a",
+      "media_sha256": "efc80da6a43a597727aa4279dd47a3daad0957138f5fe9bc52da25ca66a4b546",
+      "category": "Espacios clínicos",
+      "tags": [
+        "Camas",
+        "Lavamanos",
+        "Mobiliario"
+      ]
+    },
+    {
+      "post_id": "491effd8-5b8a-41fb-9681-5bc8b3236403",
+      "workspace_id": "21a7f930-3d28-4e6a-9ac0-904654f0033a",
+      "media_sha256": "001b85fe56c602a53c867d582119a59d1f046acecfcb66a50d023c5ad4eefa87",
+      "category": "Instrumental clínico",
+      "tags": [
+        "Tijeras",
+        "Bandejas",
+        "Pinzas"
+      ]
+    },
+    {
+      "post_id": "5acf3b95-5d36-48b5-a71c-ced934af5f2b",
+      "workspace_id": "21a7f930-3d28-4e6a-9ac0-904654f0033a",
+      "media_sha256": "0901ded0a158f16bde3afd19b7c78d8bbafa0c20812fdd25c2e0d26c9a1db603",
+      "category": "Equipos clínicos",
+      "tags": [
+        "Estetoscopio",
+        "Cinta métrica"
+      ]
+    },
+    {
+      "post_id": "5d67667a-44fc-4a52-845f-96e2cad79378",
+      "workspace_id": "21a7f930-3d28-4e6a-9ac0-904654f0033a",
+      "media_sha256": "0e43acc9a0ba81b34779cc3c4c187885a55e35c5408ae8ca5b4b4e3b02af8ba7",
+      "category": "Equipos clínicos",
+      "tags": [
+        "Monitores",
+        "Carro de equipos"
+      ]
+    },
+    {
+      "post_id": "69f31c4f-3adc-42bb-8b06-d74034c81706",
+      "workspace_id": "21a7f930-3d28-4e6a-9ac0-904654f0033a",
+      "media_sha256": "3128117c516fdf4335f5acf866395b39ee001d5ed9e83849ffc4a4e6af4392db",
+      "category": "Equipos clínicos",
+      "tags": [
+        "Balanza",
+        "Estanterías"
+      ]
+    },
+    {
+      "post_id": "6d71a8e0-63d0-4357-88de-fa3b1e1f1233",
+      "workspace_id": "21a7f930-3d28-4e6a-9ac0-904654f0033a",
+      "media_sha256": "76f53f3a64d9c52f80890b27270739641aa0f0291d308595c44b8905b0fbbd8c",
+      "category": "Insumos médicos",
+      "tags": [
+        "Jeringas",
+        "Bandejas",
+        "Gasas"
+      ]
+    },
+    {
+      "post_id": "7ffce046-3e55-4d1c-b9ad-1185aba7506d",
+      "workspace_id": "21a7f930-3d28-4e6a-9ac0-904654f0033a",
+      "media_sha256": "393aaf775b4224c505cf1a04ee9372c7e79da62af158b3a8049b920ef3870b79",
+      "category": "Instrumental clínico",
+      "tags": [
+        "Instrumental dental",
+        "Bandejas"
+      ]
+    },
+    {
+      "post_id": "960d6e0f-77f7-4af9-9f5c-e1f8c9d2f949",
+      "workspace_id": "21a7f930-3d28-4e6a-9ac0-904654f0033a",
+      "media_sha256": "1ec2253a511970090d9beaa803884c49e5baabe7333fa8bbafd13b647f77bea3",
+      "category": "Instrumental clínico",
+      "tags": [
+        "Bandejas",
+        "Guantes",
+        "Instrumental de exploración"
+      ]
+    },
+    {
+      "post_id": "b2ad5409-8a76-4fc0-a8f2-781bc7223ff2",
+      "workspace_id": "21a7f930-3d28-4e6a-9ac0-904654f0033a",
+      "media_sha256": "4d92e7a1acc8b8b8edb583ee0574125d9d80c2c98d4580e2aac2dea9cb181c9f",
+      "category": "Instrumental clínico",
+      "tags": [
+        "Tijeras",
+        "Pinzas",
+        "Jeringas"
+      ]
+    },
+    {
+      "post_id": "fb86e523-704f-4202-a814-035b8fef4510",
+      "workspace_id": "21a7f930-3d28-4e6a-9ac0-904654f0033a",
+      "media_sha256": "ed913257edee242bbe4c10d111231f42d32276b1cc920f28faaee263d03fb7d0",
+      "category": "Espacios clínicos",
+      "tags": [
+        "Camas",
+        "Carro de suministros",
+        "Mobiliario"
+      ]
+    },
+    {
+      "post_id": "30230377-e6b7-5579-8950-0642a824f927",
+      "workspace_id": "d6a6b4ba-7e5c-4f0b-b7d8-106a5da18d17",
+      "media_sha256": "5433a6a24b8837604e7e417783267fd10079d1aeabc819c3f7aedf847e87ba66",
+      "category": "Cocina y hogar",
+      "tags": [
+        "Utensilios",
+        "Rallador",
+        "Cucharas"
+      ]
+    },
+    {
+      "post_id": "3fc73c02-7a71-5cb3-97c0-7e41209aa8e4",
+      "workspace_id": "d6a6b4ba-7e5c-4f0b-b7d8-106a5da18d17",
+      "media_sha256": "e5729768d5164363a339207377f06a612dce88a29a7294b0a62fbd1d30474053",
+      "category": "Lectura y documentos",
+      "tags": [
+        "Documentos",
+        "Bolígrafo",
+        "Escritorio"
+      ]
+    },
+    {
+      "post_id": "78892b03-28bf-5c5c-a0ae-4c07ab56309c",
+      "workspace_id": "d6a6b4ba-7e5c-4f0b-b7d8-106a5da18d17",
+      "media_sha256": "70605dacf1174d7f46d7eab840dc81f3f0d7dc671882f40a4a16752420bd5cdd",
+      "category": "Objetos personales",
+      "tags": [
+        "Bolso",
+        "Billetera",
+        "Gafas",
+        "Portátil"
+      ]
+    },
+    {
+      "post_id": "fb13c08c-6bc8-5595-aad2-895e89e291f9",
+      "workspace_id": "d6a6b4ba-7e5c-4f0b-b7d8-106a5da18d17",
+      "media_sha256": "c50d1e0c3e6e59fedefdb0fc8d004dfc279692bf859a66d109795805b3385f44",
+      "category": "Objetos personales",
+      "tags": [
+        "Llaves",
+        "Gafas",
+        "Mesa"
+      ]
+    },
+    {
+      "post_id": "1c347cf0-a6c7-4ca7-acca-dc786e410511",
+      "workspace_id": "d6a6b4ba-7e5c-4f0b-b7d8-106a5da18d17",
+      "media_sha256": "e0de861c89d3bec490192177e786d5868f892298c216ea2399b4e349d7108ea7",
+      "category": "Cocina y hogar",
+      "tags": [
+        "Estanterías",
+        "Utensilios",
+        "Lavamanos"
+      ]
+    },
+    {
+      "post_id": "36dd6a89-54e7-4c2c-a16e-bab877df5510",
+      "workspace_id": "d6a6b4ba-7e5c-4f0b-b7d8-106a5da18d17",
+      "media_sha256": "fa0aa0a75804597175aadd537a00c1b086c1c0274485303db7d372bcce5169f2",
+      "category": "Lectura y documentos",
+      "tags": [
+        "Libros",
+        "Gafas"
+      ]
+    },
+    {
+      "post_id": "3a1c1fb0-86f6-4701-8cd4-495986ac97ac",
+      "workspace_id": "d6a6b4ba-7e5c-4f0b-b7d8-106a5da18d17",
+      "media_sha256": "746f86bf5c70750c6236b2d5806c83614ba7f74c5a04e6b0dcf63e8a81a30d45",
+      "category": "Objetos personales",
+      "tags": [
+        "Llaves",
+        "Monedas"
+      ]
+    },
+    {
+      "post_id": "4e2f3a26-49a8-4b2a-85c4-f5d0bcb13e06",
+      "workspace_id": "d6a6b4ba-7e5c-4f0b-b7d8-106a5da18d17",
+      "media_sha256": "42b37897a73ad58ba3c723c325094b6874c3f67e42d7bce1296b486a90af1329",
+      "category": "Lectura y documentos",
+      "tags": [
+        "Libros",
+        "Gafas",
+        "Taza"
+      ]
+    },
+    {
+      "post_id": "636a6cf2-ae3e-4731-a509-8b35cb818526",
+      "workspace_id": "d6a6b4ba-7e5c-4f0b-b7d8-106a5da18d17",
+      "media_sha256": "95c04d0daa9cf04ee3d0802da1c5073457b81959fe17a37d8557c305d0035318",
+      "category": "Cocina y hogar",
+      "tags": [
+        "Utensilios",
+        "Rallador",
+        "Tabla de cortar"
+      ]
+    },
+    {
+      "post_id": "692c6507-5f19-437c-9ccf-8164f169d96b",
+      "workspace_id": "d6a6b4ba-7e5c-4f0b-b7d8-106a5da18d17",
+      "media_sha256": "343779a95d7b5d178e3c9bbd72d6f2029f3b30e61f38450913c8ff299db4a40e",
+      "category": "Cocina y hogar",
+      "tags": [
+        "Tabla de cortar",
+        "Taza",
+        "Café"
+      ]
+    },
+    {
+      "post_id": "6971c4fe-2592-4658-913b-9e31d98a5bb8",
+      "workspace_id": "d6a6b4ba-7e5c-4f0b-b7d8-106a5da18d17",
+      "media_sha256": "88cdc6c9f6d81d4399a452b0a9e2e98c7a22a103bd06c49b9ecd868887aff5ce",
+      "category": "Cocina y hogar",
+      "tags": [
+        "Utensilios",
+        "Cucharas"
+      ]
+    },
+    {
+      "post_id": "9674a89d-e198-46a6-8bf8-c1f1be432724",
+      "workspace_id": "d6a6b4ba-7e5c-4f0b-b7d8-106a5da18d17",
+      "media_sha256": "0bd3d1cfb9f3b088244cd9b173bb22d5c1872d51a320e27cd19247518093565d",
+      "category": "Objetos personales",
+      "tags": [
+        "Llaves",
+        "Billetera"
+      ]
+    },
+    {
+      "post_id": "aa63c5b4-c1f8-4f88-9190-ba661fc600c2",
+      "workspace_id": "d6a6b4ba-7e5c-4f0b-b7d8-106a5da18d17",
+      "media_sha256": "20d7ccb1ab7034385ac2d48c4cb0864764f5af83201c162ab29bc501328b10e0",
+      "category": "Lectura y documentos",
+      "tags": [
+        "Libros",
+        "Gafas",
+        "Cuadernos"
+      ]
+    },
+    {
+      "post_id": "d5150c54-0783-4995-84ac-f5d28474f172",
+      "workspace_id": "d6a6b4ba-7e5c-4f0b-b7d8-106a5da18d17",
+      "media_sha256": "c56ac713c9b0c022e6423219534c7ed6b5c9d73099d80f2f8cac459e92782e58",
+      "category": "Lectura y documentos",
+      "tags": [
+        "Cuadernos",
+        "Bolígrafo"
+      ]
+    },
+    {
+      "post_id": "dfe84c1f-457d-4c12-ba6e-8668857e2fe1",
+      "workspace_id": "d6a6b4ba-7e5c-4f0b-b7d8-106a5da18d17",
+      "media_sha256": "ecb8381516c439916fe83736535d26e95106b2a80ee0d2eed18ce2ec694ac82b",
+      "category": "Escritorio",
+      "tags": [
+        "Cuadernos",
+        "Bolígrafo",
+        "Monedas",
+        "Teclado"
+      ]
+    },
+    {
+      "post_id": "e216a070-1e1e-43ae-9502-6f925a84f8fc",
+      "workspace_id": "d6a6b4ba-7e5c-4f0b-b7d8-106a5da18d17",
+      "media_sha256": "79848b416d36117cb391da7286a428b57049002025258406dd621c1c52971f22",
+      "category": "Escritorio",
+      "tags": [
+        "Teclado",
+        "Cuadernos",
+        "Libros"
+      ]
+    },
+    {
+      "post_id": "cf086ad9-9333-55cc-810b-deb221316c96",
+      "workspace_id": "352a54b3-7b98-4ff9-95bd-688eec110ad6",
+      "media_sha256": "6c8540761d3ea85bceb52ae82f49317795dac3206f348d6bdd5d5413d5dc82fe",
+      "category": "Equipos de seguridad",
+      "tags": [
+        "Radio portátil",
+        "Casco",
+        "Protección auditiva"
+      ]
+    },
+    {
+      "post_id": "27d57dd6-ebe2-5288-89c0-4c58dcbf1683",
+      "workspace_id": "352a54b3-7b98-4ff9-95bd-688eec110ad6",
+      "media_sha256": "00c817b580b20e498726206035f08dff33a0cacf9eb13966d9bd60dd582e2c27",
+      "category": "Documentación",
+      "tags": [
+        "Documentos",
+        "Fotografías",
+        "Escritorio"
+      ]
+    },
+    {
+      "post_id": "afc197cd-790b-5e2e-99f1-9fc04d3251c0",
+      "workspace_id": "352a54b3-7b98-4ff9-95bd-688eec110ad6",
+      "media_sha256": "340cdd03a66e20e74321ee27403c720492ba06ff57f2d2ff2fad7586681f344b",
+      "category": "Registro de evidencias",
+      "tags": [
+        "Cámara",
+        "Cinta delimitadora",
+        "Protección personal"
+      ]
+    },
+    {
+      "post_id": "dcfa6175-5b47-5c2f-853a-a3714b016bf7",
+      "workspace_id": "352a54b3-7b98-4ff9-95bd-688eec110ad6",
+      "media_sha256": "eb8463f44a2dcfd2f4ff0393a82b6be32d10398c2580984084b6e7beeb52b72f",
+      "category": "Registro de evidencias",
+      "tags": [
+        "Llaves",
+        "Pinzas",
+        "Bolsa de evidencias"
+      ]
+    },
+    {
+      "post_id": "05c14de7-f9de-445b-9650-3ecf172886fc",
+      "workspace_id": "352a54b3-7b98-4ff9-95bd-688eec110ad6",
+      "media_sha256": "e3be231cae5fd15b1cf5e89b5c6c0331658aee888253282850f012ef3817773f",
+      "category": "Equipos y accesorios",
+      "tags": [
+        "Cámara",
+        "Llaves",
+        "Reloj"
+      ]
+    },
+    {
+      "post_id": "0d1f4689-0963-4a37-94b6-958cd1dc92e6",
+      "workspace_id": "352a54b3-7b98-4ff9-95bd-688eec110ad6",
+      "media_sha256": "3cc1c93a74aa45ded6ac8895fecd80e6c31059e300ec9a5242a37f4ea61656ab",
+      "category": "Videovigilancia",
+      "tags": [
+        "Cámara de seguridad",
+        "Exterior"
+      ]
+    },
+    {
+      "post_id": "21c9e19d-c786-4bb9-b46b-58d94bc09ec1",
+      "workspace_id": "352a54b3-7b98-4ff9-95bd-688eec110ad6",
+      "media_sha256": "a6e78128d3f55662f44054acd2dc14b98a5656f7178bee6920a6327119b836e6",
+      "category": "Equipos de seguridad",
+      "tags": [
+        "Chalecos",
+        "Cascos"
+      ]
+    },
+    {
+      "post_id": "24281914-35f0-47b4-ae29-f345ca2b8e1c",
+      "workspace_id": "352a54b3-7b98-4ff9-95bd-688eec110ad6",
+      "media_sha256": "17ce2a0fd4239b1e52e30c040f439ca9bb1b7f81ef88e77874129fc86a84d9b8",
+      "category": "Documentación",
+      "tags": [
+        "Portapapeles",
+        "Cuadernos",
+        "Documentos"
+      ]
+    },
+    {
+      "post_id": "4d1d951f-03c8-418d-b3a5-cf3ba8c1310d",
+      "workspace_id": "352a54b3-7b98-4ff9-95bd-688eec110ad6",
+      "media_sha256": "1cf183f39b9d64c4480018abca82a66877d778f7a7cb679e32682931868113a2",
+      "category": "Equipos de seguridad",
+      "tags": [
+        "Casco",
+        "Chaleco",
+        "Portapapeles"
+      ]
+    },
+    {
+      "post_id": "4d9d2f2f-f6b7-45ac-9b58-25e388a0cdf1",
+      "workspace_id": "352a54b3-7b98-4ff9-95bd-688eec110ad6",
+      "media_sha256": "6a6d9bf5bdc2d224ecb06da996f8731f55d4f2e2f1bf4b1e92d20a7280d479fd",
+      "category": "Videovigilancia",
+      "tags": [
+        "Cámara de seguridad",
+        "Interior"
+      ]
+    },
+    {
+      "post_id": "6be3e68c-e3a6-4d35-9eac-3bdab89517bf",
+      "workspace_id": "352a54b3-7b98-4ff9-95bd-688eec110ad6",
+      "media_sha256": "1b168ea5fe82ed95c6d058411b8e2cad75388e3b71ef8ba193ad06352691409c",
+      "category": "Documentación",
+      "tags": [
+        "Portapapeles",
+        "Periódico",
+        "Escritorio"
+      ]
+    },
+    {
+      "post_id": "af350bc6-eb29-4896-b050-fc3bd6af3421",
+      "workspace_id": "352a54b3-7b98-4ff9-95bd-688eec110ad6",
+      "media_sha256": "e455213b74899956359ff79ed29a3b95f9e8d8751ea23421d5a58f7a38ccb7d0",
+      "category": "Videovigilancia",
+      "tags": [
+        "Cámara de seguridad",
+        "Soporte de cámara"
+      ]
+    },
+    {
+      "post_id": "ba0c86bb-5a80-42f6-bdc6-2f6464c16c72",
+      "workspace_id": "352a54b3-7b98-4ff9-95bd-688eec110ad6",
+      "media_sha256": "b0857c7f111159adbb1e9ee91b5f9096ccdd369ab50524c12214943973dbe14c",
+      "category": "Documentación",
+      "tags": [
+        "Portapapeles",
+        "Bolígrafo",
+        "Notas adhesivas"
+      ]
+    },
+    {
+      "post_id": "bb5b60e5-189d-48b0-a226-2aa2462184fb",
+      "workspace_id": "352a54b3-7b98-4ff9-95bd-688eec110ad6",
+      "media_sha256": "c7f7081ad198131beaa95037b0891b5196780920a5a635243a3ee2e451288108",
+      "category": "Objetos personales",
+      "tags": [
+        "Llaves",
+        "Billetera",
+        "Teléfono",
+        "Taza"
+      ]
+    },
+    {
+      "post_id": "cc28b425-755e-442d-b419-39e595043b6a",
+      "workspace_id": "352a54b3-7b98-4ff9-95bd-688eec110ad6",
+      "media_sha256": "d35eeb551e144eeb276bb4a40af6dee7e7189126733fc4dbe2f54d463a9eecb3",
+      "category": "Videovigilancia",
+      "tags": [
+        "Cámara de seguridad",
+        "Exterior"
+      ]
+    },
+    {
+      "post_id": "f1272f85-4d2f-4e41-95cc-26631415a406",
+      "workspace_id": "352a54b3-7b98-4ff9-95bd-688eec110ad6",
+      "media_sha256": "ab28d67a032d86e0ab63fd6f4194f600d355def0d4b4976baf85c437e12611a9",
+      "category": "Documentación",
+      "tags": [
+        "Portapapeles",
+        "Bolígrafo",
+        "Escritorio"
+      ]
+    }
+  ]
+}

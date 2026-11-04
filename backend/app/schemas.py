@@ -278,7 +278,6 @@ class GalleryMatch(BaseModel):
     localized_information: dict[str, LocalizedGalleryInformation] = Field(default_factory=dict)
     caption: str = ""
     ai_caption: str = ""
-    audience: str = ""
     thumbnail_url: str = ""
     media_url: str = ""
     boxed_url: str = ""

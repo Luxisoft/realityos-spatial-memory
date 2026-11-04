@@ -1,4 +1,5 @@
 import io
+import uuid
 import zipfile
 
 from app.models import (
@@ -12,6 +13,7 @@ from app.models import (
 )
 from app.security import create_access_token, hash_password
 from app.social import Publication
+from catalog_support import classification_for
 from PIL import Image
 
 
@@ -158,12 +160,13 @@ def _range_fixture(client, auth_headers):
                 )
             )
         inline_post = Publication(
-            owner_id=owner.id, media_id=inline.id, audience="public"
+            owner_id=owner.id,
+            media_id=inline.id,
+            workspace_id=db.get(MediaAsset, inline.id).workspace_id,
         )
         chunked_post = Publication(
             owner_id=owner.id,
             media_id=chunked.id,
-            audience="work",
             workspace_id=workspace.id,
         )
         db.add(inline_post)
@@ -221,13 +224,17 @@ def _work_post(client, headers, workspace_id, color):
     output = io.BytesIO()
     Image.new("RGB", (32, 24), color).save(output, format="PNG")
     response = client.post(
-        "/v1/me/work-publications",
+        "/v1/me/publication-uploads",
         headers=headers,
         files={"file": ("post.png", output.getvalue(), "image/png")},
-        data={"workspace_id": workspace_id},
+        data={
+            "workspace_id": workspace_id,
+            **classification_for(client, workspace_id, multipart=True),
+            "request_key": str(uuid.uuid4()),
+        },
     )
-    assert response.status_code == 200, response.text
-    return response.json()["id"]
+    assert response.status_code == 202, response.text
+    return response.json()["result_id"]
 
 
 def _group_member_ids(client, auth_headers, workspace_id):

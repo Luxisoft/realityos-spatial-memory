@@ -526,7 +526,6 @@
     </plurals>
     <string name="profile_choose_media">Elegir foto o video</string>
     <string name="profile_play_video">Reproducir video</string>
-    <string name="profile_simulated_media">Archivo</string>
     <string name="notice_error">Error</string>
     <string name="notice_warning">Advertencia</string>
     <string name="notice_success">Listo</string>
@@ -582,4 +581,30 @@
     <string name="publication_group_permission">Elige un grupo de trabajo en el que tengas permiso para publicar.</string>
     <string name="publication_media_format">Usa una foto JPEG, PNG o WebP, o un video MP4.</string>
     <string name="publication_upload_validation">Revisa el grupo elegido y que tu nota tenga menos de 4.000 caracteres. Luego inténtalo de nuevo.</string>
+    <string name="catalog_select">Seleccionar</string>
+    <string name="catalog_empty">Sin opciones</string>
+    <string name="catalog_category">Categoría</string>
+    <string name="catalog_categories">Categorías</string>
+    <string name="catalog_tags">Tags</string>
+    <string name="catalog_owner_needed">El dueño del grupo debe añadir al menos una categoría y un tag.</string>
+    <string name="catalog_classify">Clasificar publicación</string>
+    <string name="catalog_add">Añadir</string>
+    <string name="catalog_title">Catálogo de publicaciones</string>
+    <string name="catalog_archive">Archivar</string>
+    <string name="catalog_restore">Restaurar</string>
+    <string name="catalog_archived">Archivado</string>
+    <string name="gallery_filters">Filtrar publicaciones</string>
+    <string name="gallery_authors">Usuarios</string>
+    <string name="gallery_from">Desde</string>
+    <string name="gallery_through">Hasta</string>
+    <string name="gallery_description">Texto en la descripción</string>
+    <string name="gallery_dates_invalid">La fecha final no puede ser anterior a la inicial.</string>
+    <string name="gallery_clear">Limpiar</string>
+    <string name="gallery_apply">Aplicar</string>
+    <string name="gallery_any_date">Cualquier fecha</string>
+    <string name="gallery_no_results">No hay publicaciones que coincidan con estos filtros.</string>
+    <string name="catalog_apply_all">Aplicar selección a todo el lote</string>
+    <string name="catalog_awaiting">Pendiente de clasificación</string>
+    <string name="catalog_required">Selecciona una categoría y al menos un tag.</string>
+    <string name="meta_classify_on_phone">Elige una categoría y etiquetas de este grupo en la revisión de la captura del teléfono antes de publicar.</string>
 </resources>

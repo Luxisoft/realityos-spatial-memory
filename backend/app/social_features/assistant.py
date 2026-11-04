@@ -1,9 +1,6 @@
 from __future__ import annotations
 
 from fastapi import APIRouter, Depends, HTTPException, Request
-from sqlalchemy import (
-    select,
-)
 from sqlalchemy.orm import Session
 
 from app.dependencies import get_current_user, get_db
@@ -44,11 +41,8 @@ def assistant(
     )
     for words, destination in (
         ("abrir gafas", "glasses"),
-        ("ir a casa", "home"),
-        ("abrir casa", "home"),
         ("ir a trabajo", "work"),
         ("abrir trabajo", "work"),
-        ("abrir publico", "public"),
     ):
         if command.strip() == words:
             return response(
@@ -58,7 +52,7 @@ def assistant(
                     "message": qtext(language, "open_screen"),
                 }
             )
-    actions = {"publicar": "public", "compartir": "work", "borrar": "remove", "eliminar": "remove"}
+    actions = {"publicar": "work", "compartir": "work", "borrar": "remove", "eliminar": "remove"}
     for word, action in actions.items():
         if command.startswith(word + " ") or command == word:
             if payload.post_id is None:
@@ -77,35 +71,6 @@ def assistant(
                 "post_id": str(post.id),
                 "message": qtext(language, "confirm_post"),
             }
-    if payload.audience == "home":
-        from app.meta import MetaProviderError, build_meta_client
-        from app.models import Workspace
-        from app.routes import _answer_query
-        from app.schemas import QueryRequest
-
-        home = db.scalar(select(Workspace).where(Workspace.name == f"home:{user.id}"))
-        if home is None:
-            return {
-                "type": "message",
-                "response_language": language,
-                "message": qtext(language, "register_home"),
-            }
-        try:
-            model = build_meta_client(request.app.state.settings)
-        except MetaProviderError:
-            model = None
-        result = _answer_query(
-            QueryRequest(workspace_id=home.id, question=payload.text, language=language),
-            user,
-            db,
-            model,
-        )
-        return {
-            "type": "answer",
-            "response_language": language,
-            "message": result.message,
-            "simulated": result.simulated,
-        }
     from app.meta import MetaProviderError, build_meta_client
     from app.social_features.evidence import gallery_results
 
@@ -119,7 +84,6 @@ def assistant(
         payload.text,
         model,
         limit=12,
-        audience=payload.audience,
         workspace_id=payload.workspace_id,
     )
     from app.social_features.models import Publication

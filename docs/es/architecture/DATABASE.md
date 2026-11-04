@@ -37,3 +37,9 @@ La revisión `20261103_0035` añade `storage_connections`, `storage_imports` y `
 ## Revisión de privacidad por grupo
 
 La revisión `20261103_0036` añade procedencia de copias (`shared_from_id`, único por original/grupo), revisión y grupo de conexión, `storage_objects` inmutables, `seen_keys` del recorrido y `biometric_setups`. La cuarentena de publicaciones biométricas conserva un diario de visibilidad para revertir la migración. Las copias comparten original, con comentarios/reacciones independientes. Los originales de enrolamiento siguen privados; solo se exponen avatares normalizados.
+
+## Contrato único de publicaciones
+
+La revisión `20261103_0038` hace obligatorio el grupo de cada publicación y elimina `audience` de publicaciones, candidatos, importaciones y sincronización. `GET /v1/gallery/page` es la única lista paginada, con cursor y filtros; `/me/publication-uploads` concentra la subida y revisión. Se retiran la lista por desplazamiento y las rutas de medios/publicación del perfil. Los clientes deben actualizarse. Las conexiones pueden utilizar su grupo previamente configurado, siempre revalidando la pertenencia.
+
+Por decisión del propietario se eliminan los registros de los antiguos destinos personal/público y sin grupo. Las copias válidas en grupos conservan sus IDs, originales e interacciones. Solo se eliminan bytes sin referencias vigentes; avatares, referencias biométricas y medios de expedientes se conservan. Retirar un grupo revoca membresías e invitaciones, cancela sus operaciones pendientes y oculta sus publicaciones; se conserva su identidad histórica para mantener los enlaces de evidencia. La reversión de esquema no recupera datos eliminados: requiere la instantánea técnica temporal de la entrega.

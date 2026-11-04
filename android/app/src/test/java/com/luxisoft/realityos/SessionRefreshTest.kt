@@ -171,7 +171,7 @@ class SessionRefreshTest {
     }
 
     @Test fun allSectionsKeepSessionForPermissionValidationAndServerErrors() {
-        val paths = listOf("me/profile", "gallery?audience=work", "groups", "workspaces/work/records", "chat/history", "queries", STORAGE_BASE, "me/publication-uploads/one")
+        val paths = listOf("me/profile", "gallery/page", "groups", "workspaces/work/records", "chat/history", "queries", STORAGE_BASE, "me/publication-uploads/one")
         for (path in paths) {
             for (status in listOf(403, 404, 409, 422, 429, 500, 503)) {
                 server.enqueue(MockResponse().setResponseCode(status))

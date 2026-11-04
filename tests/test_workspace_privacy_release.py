@@ -1,9 +1,11 @@
 """Owner-requested group publication, private enrollment and source lifecycle."""
 
 import io
+import uuid
 
 from app.faces import build_face_engine
 from app.social_features.models import Publication
+from catalog_support import classification_for
 from PIL import Image
 
 
@@ -25,7 +27,7 @@ def single_faces(client, count):
     raise AssertionError("Missing deterministic fixtures")
 
 
-def test_publication_requires_group_even_for_legacy_route(client, auth_headers):
+def test_publication_requires_group_and_legacy_route_is_removed(client, auth_headers):
     r = client.post(
         "/v1/me/publication-uploads",
         headers=auth_headers,
@@ -39,7 +41,7 @@ def test_publication_requires_group_even_for_legacy_route(client, auth_headers):
             headers=auth_headers,
             files={"file": ("test.png", photo("blue"), "image/png")},
         ).status_code
-        == 422
+        == 404
     )
 
 
@@ -51,29 +53,27 @@ def test_group_import_is_idempotent_and_retains_original(client, auth_headers):
         "/v1/groups", headers=auth_headers, json={"name": "Second group"}
     ).json()["id"]
     post = client.post(
-        "/v1/me/work-publications",
+        "/v1/me/publication-uploads",
         headers=auth_headers,
-        data={"workspace_id": first},
+        data={"workspace_id": first, "request_key": str(uuid.uuid4()), **classification_for(client, first, multipart=True)},
         files={"file": ("test.png", photo("blue"), "image/png")},
     )
-    assert post.status_code == 200, post.text
-    post_id = post.json()["id"]
+    assert post.status_code == 202, post.text
+    post_id = post.json()["result_id"]
     route = f"/v1/groups/{second}/publications/import"
     result = client.post(
-        route, headers=auth_headers, json={"publication_ids": [post_id]}
+        route, headers=auth_headers, json={"publication_ids": [post_id], "classifications": {post_id: classification_for(client, second)}}
     )
     assert result.status_code == 200, result.text
     copied = result.json()["items"][0]["id"]
     assert copied != post_id
     assert (
         client.post(
-            route, headers=auth_headers, json={"publication_ids": [post_id]}
+            route, headers=auth_headers, json={"publication_ids": [post_id], "classifications": {post_id: classification_for(client, second)}}
         ).json()["items"][0]["id"]
         == copied
     )
     with client.app.state.database.session_factory() as db:
-        import uuid
-
         original = db.get(Publication, uuid.UUID(post_id))
         duplicate = db.get(Publication, uuid.UUID(copied))
         assert str(original.workspace_id) == first
@@ -111,7 +111,7 @@ def test_group_import_is_idempotent_and_retains_original(client, auth_headers):
         db.commit()
         assert (
             db.scalar(
-                _visible_scope(owner, None, None).where(Publication.id == original.id)
+                _visible_scope(owner, None).where(Publication.id == original.id)
             )
             is None
         )

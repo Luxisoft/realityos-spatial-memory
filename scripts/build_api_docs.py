@@ -352,6 +352,9 @@ def generate(spec, check=False):
                     (p["name"], p["in"], bool(p.get("required")), p.get("schema", {}))
                 )
                 if p["in"] == "query":
+                    if p.get("schema", {}).get("type") == "array":
+                        # Query arrays use repeated keys, not a JSON array literal.
+                        val = example(p["schema"].get("items", {}), local, p["name"])
                     request["url"].setdefault("query", []).append(
                         {
                             "key": p["name"],

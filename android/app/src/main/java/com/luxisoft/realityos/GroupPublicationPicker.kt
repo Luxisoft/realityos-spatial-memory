@@ -24,6 +24,10 @@ internal fun GroupPublicationPicker(workspaceId: String, onClose: () -> Unit, on
     val scope = rememberCoroutineScope()
     var rows by remember { mutableStateOf(emptyList<JSONObject>()) }
     var selected by remember { mutableStateOf(emptySet<String>()) }
+    var classifications by remember { mutableStateOf(emptyMap<String, PublicationClassification>()) }
+    var classifying by remember { mutableStateOf<String?>(null) }
+    var applyAll by remember { mutableStateOf(false) }
+    var batchValue by remember { mutableStateOf(PublicationClassification()) }
     var loading by remember { mutableStateOf(true) }
     var failed by remember { mutableStateOf(false) }
     var busy by remember { mutableStateOf(false) }
@@ -36,7 +40,7 @@ internal fun GroupPublicationPicker(workspaceId: String, onClose: () -> Unit, on
             try {
                 val page = withContext(Dispatchers.IO) {
                     if (owner.isBlank()) owner = JSONObject(SocialSession.request("me/profile")).getString("user_id")
-                    JSONObject(SocialSession.request("profiles/$owner/media?limit=36" + (cursor?.let { "&cursor=${android.net.Uri.encode(it)}" } ?: "")))
+                    JSONObject(SocialSession.request("gallery/page?owner_ids=$owner&limit=30" + (cursor?.let { "&cursor=${android.net.Uri.encode(it)}" } ?: "")))
                 }
                 rows = (rows + storageRows(page.getJSONArray("items"))).distinctBy { it.optString("original_id").ifBlank { it.getString("id") } }
                 cursor = page.optText("next_cursor")
@@ -55,10 +59,13 @@ internal fun GroupPublicationPicker(workspaceId: String, onClose: () -> Unit, on
                         items(rows, key = { it.getString("id") }) { post ->
                             val id = post.getString("id")
                             val inGroup = post.optString("workspace_id") == workspaceId
+                            Column {
                             Row(Modifier.fillMaxWidth().clickable(enabled = !busy && !inGroup && (id in selected || selected.size < 100)) { selected = if (id in selected) selected - id else selected + id }.padding(vertical = 8.dp)) {
                                 Checkbox(checked = inGroup || id in selected, enabled = !busy && !inGroup && (id in selected || selected.size < 100), onCheckedChange = { checked -> selected = if (checked) selected + id else selected - id })
                                 Text(post.optString("caption").ifBlank { localizedText(R.string.evidence_publication) }, Modifier.weight(1f).padding(8.dp))
                                 DatabaseImage(profileImageRequest(context, post.getString("thumbnail_url")), null, Modifier.size(64.dp))
+                            }
+                            if (id in selected) TextButton(onClick = { classifying = id }) { Text(localizedText(R.string.catalog_classify) + if (classifications[id]?.complete == true) " ✓" else "") }
                             }
                         }
                         if (loading) item { CircularProgressIndicator() }
@@ -66,11 +73,12 @@ internal fun GroupPublicationPicker(workspaceId: String, onClose: () -> Unit, on
                         else if (cursor != null) item { TextButton(onClick = { load() }) { Text(localizedText(R.string.storage_more)) } }
                         else if (rows.isEmpty()) item { Text(localizedText(R.string.ui_no_publications_in_this_workspace_yet)) }
                     }
-                    Button(enabled = selected.isNotEmpty() && !busy, onClick = {
+                    TextButton(enabled = selected.isNotEmpty() && !busy, onClick = { applyAll = true }) { Text(localizedText(R.string.catalog_apply_all)) }
+                    Button(enabled = selected.isNotEmpty() && selected.all { classifications[it]?.complete == true } && !busy, onClick = {
                         scope.launch {
                             busy = true
                             try {
-                                withContext(Dispatchers.IO) { SocialSession.request("groups/$workspaceId/publications/import", JSONObject().put("publication_ids", JSONArray(selected.toList()))) }
+                                withContext(Dispatchers.IO) { SocialSession.request("groups/$workspaceId/publications/import", JSONObject().put("publication_ids", JSONArray(selected.toList())).put("classifications", JSONObject().apply { selected.forEach { key -> put(key, classifications.getValue(key).json()) } })) }
                                 AppNotices.show(localizedText(R.string.storage_done), NoticeKind.SUCCESS)
                                 onImported()
                                 onClose()
@@ -84,4 +92,12 @@ internal fun GroupPublicationPicker(workspaceId: String, onClose: () -> Unit, on
             }
         }
     }
+    if (classifying != null || applyAll) {
+        val key = classifying
+        ClassificationDialog(workspaceId, initial = if (applyAll) batchValue else classifications[key] ?: PublicationClassification(), onSave = { value ->
+            if (applyAll) { batchValue = value; classifications = classifications + selected.associateWith { value } }
+            else if (key != null) classifications = classifications + (key to value)
+        }, onClose = { classifying = null; applyAll = false })
+    }
+
 }

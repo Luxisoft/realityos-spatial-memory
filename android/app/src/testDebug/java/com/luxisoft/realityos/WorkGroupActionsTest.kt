@@ -7,7 +7,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.unit.Density
-import com.luxisoft.realityos.host.HostTopBar
+import com.luxisoft.realityos.host.GalleryActions
 import java.io.File
 import org.junit.After
 import org.junit.Assert.*
@@ -55,7 +55,7 @@ class WorkGroupActionsTest {
         compose.setContent {
             CompositionLocalProvider(LocalDensity provides Density(LocalDensity.current.density, scale)) {
                 RealityOsTheme {
-                    Surface { HostTopBar(HostDestination.GALLERY, "work", MetaSection.PREVIEW, bar, {}, {}) }
+                    Surface { GalleryActions(bar) }
                 }
             }
         }

@@ -4,8 +4,8 @@ import org.junit.Assert.*
 import org.junit.Test
 
 class MetaDisplayPolicyTest {
-    private val profile = MetaDestination("home", "Profile", "home")
-    private val work = MetaDestination("group-a", "Workshop", "work")
+    private val profile = MetaDestination("home", "Profile")
+    private val work = MetaDestination("group-a", "Care team")
 
     @Test fun captureAndPendingUploadFreezeDestination() {
         assertTrue(MetaDisplayPolicy.canChangeDestination(false, false, false))

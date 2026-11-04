@@ -27,7 +27,7 @@ def reference_fixture(client):
     raw = output.getvalue()
     with client.app.state.database.session_factory() as db:
         owner = db.scalar(select(User))
-        space = Workspace(name="home:visibility", created_by_id=owner.id)
+        space = Workspace(name="Visibility team", created_by_id=owner.id)
         db.add(space)
         db.flush()
         db.add(
@@ -65,7 +65,9 @@ def reference_fixture(client):
                 owner_id=owner.id,
                 media_id=asset.id if source != "local" else ordinary.id,
                 source=source,
-                audience="home",
+                workspace_id=db.get(
+                    MediaAsset, asset.id if source != "local" else ordinary.id
+                ).workspace_id,
                 caption=f"post-{index}",
                 published_at=datetime.now(UTC) - timedelta(minutes=index),
             )
@@ -78,20 +80,18 @@ def reference_fixture(client):
 def test_references_filtered_before_cursor_pagination(client, auth_headers):
     owner, _, posts, _ = reference_fixture(client)
     page = client.get(
-        f"/v1/profiles/{owner}/media?limit=1", headers=auth_headers
+        f"/v1/gallery/page?owner_ids={owner}&limit=1", headers=auth_headers
     ).json()
     assert [p["id"] for p in page["items"]] == [posts[1]]
     assert page["next_cursor"]
     page2 = client.get(
-        f"/v1/profiles/{owner}/media?limit=1&cursor={page['next_cursor']}",
+        f"/v1/gallery/page?owner_ids={owner}&limit=1&cursor={page['next_cursor']}",
         headers=auth_headers,
     ).json()
     assert [p["id"] for p in page2["items"]] == [posts[3]]
     assert page2["next_cursor"] is None
-    feed = client.get("/v1/gallery?audience=home", headers=auth_headers).json()
-    cursor_feed = client.get(
-        "/v1/gallery/page?audience=home", headers=auth_headers
-    ).json()["items"]
+    feed = client.get("/v1/gallery/page", headers=auth_headers).json()["items"]
+    cursor_feed = client.get("/v1/gallery/page", headers=auth_headers).json()["items"]
     assert {p["id"] for p in feed} == {posts[1], posts[3]}
     assert {p["id"] for p in cursor_feed} == {posts[1], posts[3]}
 
@@ -111,7 +111,11 @@ def test_reference_urls_and_actions_unavailable_even_to_owner(
         client.post(
             f"/v1/gallery/{post}/share",
             headers=auth_headers,
-            json={"audience": "public"},
+            json={
+                "workspace_id": str(uuid.uuid4()),
+                "category_id": str(uuid.uuid4()),
+                "tag_ids": [str(uuid.uuid4())],
+            },
         ).status_code
         == 404
     )
@@ -196,7 +200,7 @@ def test_references_excluded_from_retrieval_and_duplicate_candidates(
         db.flush()
         assert all(
             p.source not in ("facebook", "simulator")
-            for p in db.scalars(_visible_scope(owner, None, None))
+            for p in db.scalars(_visible_scope(owner, None))
         )
         _, _, matches = _profile_search_text(owner, owner, db)
         assert matches == []
@@ -205,7 +209,7 @@ def test_references_excluded_from_retrieval_and_duplicate_candidates(
             def compare_gallery_images(self, image, candidates):
                 assert candidates == []
 
-        assert duplicate(db, Comparison(), raw, owner.id, "home", None) is None
+        assert duplicate(db, Comparison(), raw, owner.id, None) is None
 
 
 def test_work_demo_is_visible_only_to_members_and_references_stay_internal(
@@ -229,12 +233,11 @@ def test_work_demo_is_visible_only_to_members_and_references_stay_internal(
         )
         for key in (posts[0], posts[2]):
             post = db.get(Publication, uuid.UUID(key))
-            post.audience = "work"
+
             post.workspace_id = group.id
         demo = Publication(
             owner_id=owner.id,
             media_id=db.get(Publication, uuid.UUID(posts[1])).media_id,
-            audience="work",
             workspace_id=group.id,
             source="simulator-work",
         )
@@ -245,7 +248,7 @@ def test_work_demo_is_visible_only_to_members_and_references_stay_internal(
             "Authorization": "Bearer "
             + create_access_token(other.id, client.app.state.settings)
         }
-    url = f"/v1/gallery/page?audience=work&workspace_id={group_id}"
+    url = f"/v1/gallery/page?workspace_id={group_id}"
     assert [p["id"] for p in client.get(url, headers=auth_headers).json()["items"]] == [
         demo_id
     ]

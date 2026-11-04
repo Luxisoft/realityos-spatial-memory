@@ -2,11 +2,12 @@ import io
 import uuid
 
 import pytest
-from app.models import MediaAsset, User
+from app.models import MediaAsset, User, Workspace
 from app.security import create_access_token
 from app.social_features.evidence_models import GalleryEvidence, PublicationRevision
 from app.social_features.models import Comment, Publication
 from app.social_features.visual import valid_box
+from catalog_support import classification_for
 from PIL import Image
 from sqlalchemy import select
 
@@ -28,7 +29,10 @@ def publication_destination(client, headers):
         )
         assert response.status_code == 200, response.text
         work = response.json()
-    return {"audience": "work", "workspace_id": work["id"]}
+    return {
+        "workspace_id": work["id"],
+        **classification_for(client, work["id"], multipart=True),
+    }
 
 
 def upload(client, headers, key=None, raw=None, **fields):
@@ -54,7 +58,9 @@ def test_duplicate_requires_confirmation_preserves_post_and_original(
     ).json()
     assert second["status"] == "duplicate"
     assert second["duplicate_id"] == first["result_id"]
-    assert len(client.get("/v1/gallery", headers=auth_headers).json()) == 1
+    assert (
+        len(client.get("/v1/gallery/page", headers=auth_headers).json()["items"]) == 1
+    )
     with client.app.state.database.session_factory() as db:
         post = db.get(Publication, uuid.UUID(first["result_id"]))
         old = post.media_id
@@ -99,7 +105,9 @@ def test_cancel_and_idempotency_do_not_create_duplicate_posts(client, auth_heade
         ).status_code
         == 409
     )
-    assert len(client.get("/v1/gallery", headers=auth_headers).json()) == 1
+    assert (
+        len(client.get("/v1/gallery/page", headers=auth_headers).json()["items"]) == 1
+    )
 
 
 def test_upload_and_evidence_are_owner_scoped(client, auth_headers):
@@ -142,10 +150,7 @@ def test_upload_and_evidence_are_owner_scoped(client, auth_headers):
         == 200
     )
     assert (
-        upload(
-            client, auth_headers, audience="work", workspace_id=str(uuid.uuid4())
-        ).status_code
-        == 403
+        upload(client, auth_headers, workspace_id=str(uuid.uuid4())).status_code == 403
     )
 
 
@@ -161,7 +166,7 @@ def test_meta_failure_never_publishes_and_can_retry(client, auth_headers, monkey
     monkeypatch.setattr(MockMetaModelClient, "compare_gallery_images", fail)
     response = upload(client, auth_headers).json()
     assert response["status"] == "failed"
-    assert client.get("/v1/gallery", headers=auth_headers).json() == []
+    assert client.get("/v1/gallery/page", headers=auth_headers).json()["items"] == []
     monkeypatch.setattr(MockMetaModelClient, "compare_gallery_images", original)
     assert (
         client.post(
@@ -211,7 +216,6 @@ def test_retirement_preserves_references_and_different_destinations(
         copy = Publication(
             owner_id=canonical.owner_id,
             media_id=canonical.media_id,
-            audience=canonical.audience,
             workspace_id=canonical.workspace_id,
             note_text="Otra nota",
         )
@@ -225,8 +229,15 @@ def test_retirement_preserves_references_and_different_destinations(
         assert copy.hidden and comment.post_id == canonical.id
         assert db.get(PublicationDuplicate, copy.id).canonical_id == canonical.id
         assert "Otra nota" in canonical.note_text
+        other_space = Workspace(
+            name="Another destination", created_by_id=canonical.owner_id
+        )
+        db.add(other_space)
+        db.flush()
         another = Publication(
-            owner_id=canonical.owner_id, media_id=canonical.media_id, audience="public"
+            owner_id=canonical.owner_id,
+            media_id=canonical.media_id,
+            workspace_id=other_space.id,
         )
         db.add(another)
         db.flush()
@@ -282,7 +293,11 @@ def test_video_sampling_records_real_pts_and_renders_matching_frame(
         )
         db.add(asset)
         db.flush()
-        post = Publication(owner_id=owner.id, media_id=asset.id, audience="home")
+        post = Publication(
+            owner_id=owner.id,
+            media_id=asset.id,
+            workspace_id=db.get(MediaAsset, asset.id).workspace_id,
+        )
         db.add(post)
         db.flush()
         sampled = list(frames(db, asset))
@@ -408,7 +423,9 @@ def test_concurrent_replacements_require_reanalysis_of_stale_candidate(
         ]
         == original["result_id"]
     )
-    assert len(client.get("/v1/gallery", headers=auth_headers).json()) == 1
+    assert (
+        len(client.get("/v1/gallery/page", headers=auth_headers).json()["items"]) == 1
+    )
 
 
 def test_deleting_group_cancels_private_upload_candidates(
@@ -424,7 +441,7 @@ def test_deleting_group_cancels_private_upload_candidates(
     group = client.post(
         "/v1/groups", headers=auth_headers, json={"name": "Temporary group"}
     ).json()["id"]
-    candidate = upload(client, auth_headers, audience="work", workspace_id=group).json()
+    candidate = upload(client, auth_headers, workspace_id=group).json()
     assert candidate["status"] == "failed"
     assert (
         client.request(
@@ -461,7 +478,7 @@ def test_membership_revoked_during_analysis_prevents_publication(
         return original(self, *args)
 
     monkeypatch.setattr(MockMetaModelClient, "segment_gallery", segment)
-    response = upload(client, auth_headers, audience="work", workspace_id=group).json()
+    response = upload(client, auth_headers, workspace_id=group).json()
     assert response["status"] == "failed"
     with client.app.state.database.session_factory() as db:
         assert db.scalar(select(Publication)) is None
@@ -485,7 +502,7 @@ def test_prepare_queues_without_waiting_for_owner_analysis_lock(
     result = upload(client, auth_headers)
     assert result.status_code == 202 and result.json()["status"] == "pending"
     assert calls == [result.json()["id"]]
-    assert client.get("/v1/gallery", headers=auth_headers).json() == []
+    assert client.get("/v1/gallery/page", headers=auth_headers).json()["items"] == []
 
 
 def test_assistant_image_results_use_the_same_strict_evidence_filter(
@@ -495,7 +512,9 @@ def test_assistant_image_results_use_the_same_strict_evidence_filter(
     result = client.post(
         "/v1/assistant",
         headers=auth_headers,
-        json={"text": "yellow drill", "audience": "work"},
+        json={
+            "text": "yellow drill",
+        },
     ).json()
     assert len(result["posts"]) == 1
     assert "/gallery/evidence/" in result["posts"][0]["thumbnail_url"]
@@ -503,7 +522,9 @@ def test_assistant_image_results_use_the_same_strict_evidence_filter(
     result = client.post(
         "/v1/assistant",
         headers=auth_headers,
-        json={"text": "hammer", "audience": "work"},
+        json={
+            "text": "hammer",
+        },
     ).json()
     assert result["posts"] == []
 
@@ -518,16 +539,20 @@ def test_retirement_rechecks_visibility_after_external_analysis(client, auth_hea
         copy = Publication(
             owner_id=canonical.owner_id,
             media_id=canonical.media_id,
-            audience=canonical.audience,
             workspace_id=canonical.workspace_id,
             note_text="Private after change",
         )
         db.add(copy)
         db.flush()
+        other_space = Workspace(
+            name="Changed destination", created_by_id=canonical.owner_id
+        )
+        db.add(other_space)
+        db.flush()
         db.execute(
             update(Publication)
             .where(Publication.id == copy.id)
-            .values(audience="home")
+            .values(workspace_id=other_space.id)
             .execution_options(synchronize_session=False)
         )
         with pytest.raises(ValueError):

@@ -7,6 +7,7 @@ from app.models import (
 )
 from app.security import create_access_token, hash_password
 from app.social import Publication
+from catalog_support import classified_destination, published_item
 from PIL import Image
 
 from .support import (
@@ -99,25 +100,24 @@ def test_owner_uploads_group_profile_publication(client, auth_headers):
     output = io.BytesIO()
     Image.new("RGB", (48, 32), "green").save(output, format="PNG")
     response = client.post(
-        "/v1/me/profile/publications",
+        "/v1/me/publication-uploads",
         headers=auth_headers,
         files={"file": ("profile.png", output.getvalue(), "image/png")},
         data={
             "caption": "Nueva publicación",
-            "workspace_id": client.post(
-                "/v1/groups", headers=auth_headers, json={"name": "Profile group"}
-            ).json()["id"],
+            **classified_destination(client, auth_headers, "Profile group"),
+            "request_key": str(uuid.uuid4()),
         },
     )
-    assert response.status_code == 200, response.text
-    payload = response.json()
+    assert response.status_code == 202, response.text
+    payload = published_item(client, auth_headers, response)
     assert payload["caption"] == "Nueva publicación"
     assert payload["owned"] is True
-    assert payload["audience"] == "work"
+    assert "audience" not in payload
 
     owner_id = client.get("/v1/me/profile", headers=auth_headers).json()["user_id"]
     own_media = client.get(
-        f"/v1/profiles/{owner_id}/media", headers=auth_headers
+        f"/v1/gallery/page?owner_ids={owner_id}", headers=auth_headers
     ).json()
     assert any(item["id"] == payload["id"] for item in own_media["items"])
 
@@ -140,6 +140,6 @@ def test_owner_uploads_group_profile_publication(client, auth_headers):
             + create_access_token(other.id, client.app.state.settings)
         }
     public_media = client.get(
-        f"/v1/profiles/{owner_id}/media", headers=other_headers
+        f"/v1/gallery/page?owner_ids={owner_id}", headers=other_headers
     ).json()
     assert all(item["id"] != payload["id"] for item in public_media["items"])

@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -90,6 +91,7 @@ import com.adamglin.phosphoricons.regular.ImagesSquare
 import com.adamglin.phosphoricons.regular.SlidersHorizontal
 import com.adamglin.phosphoricons.regular.UserCircle
 import com.luxisoft.realityos.*
+import com.luxisoft.realityos.GalleryFilterButton
 import com.luxisoft.realityos.localizedText
 import kotlinx.coroutines.launch
 
@@ -137,272 +139,142 @@ internal fun Modifier.drawerEdgeOpen(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-internal fun HostTopBar(
-    selected: HostDestination,
-    audience: String,
-    metaSection: MetaSection,
-    galleryBar: GalleryTopBarState,
-    onSelectMeta: (MetaSection) -> Unit,
-    onOpenMetaControls: () -> Unit
-) {
+internal fun GalleryActions(galleryBar: GalleryTopBarState) {
     Row(
-        modifier = Modifier.fillMaxWidth().height(48.dp).padding(horizontal = 8.dp),
+        modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp).padding(horizontal = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = androidx.compose.foundation.layout.Arrangement.End
     ) {
-        if (selected == HostDestination.GALLERY && audience == "work") {
-            IconButton(onClick = galleryBar.onCreate, modifier = Modifier.testTag("work-create-group")) {
-                Icon(Icons.Default.Add, localizedText(R.string.ui_create_group))
-            }
-            var workspaceMenu by remember { mutableStateOf(false) }
-            Box(Modifier.weight(1f)) {
-                TextButton(
-                    onClick = { workspaceMenu = true },
-                    contentPadding = PaddingValues(horizontal = 8.dp)
-                ) {
-                    if (galleryBar.loading) {
-                        SkeletonBlock(Modifier.width(100.dp).height(16.dp))
-                    } else {
-                        Text(
-                            GalleryWorkspaceLabels.selectedName(galleryBar.options, galleryBar.selectedId, localizedText(R.string.ui_all_workspaces)),
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                            modifier = Modifier.weight(1f, fill = false).widthIn(max = 110.dp)
-                        )
-                    }
-                    Icon(Icons.Filled.ArrowDropDown, contentDescription = localizedText(R.string.ui_select_workspace))
+        IconButton(onClick = galleryBar.onCreate, modifier = Modifier.testTag("work-create-group")) {
+            Icon(Icons.Default.Add, localizedText(R.string.ui_create_group))
+        }
+        var workspaceMenu by remember { mutableStateOf(false) }
+        Box(Modifier.weight(1f)) {
+            TextButton(
+                onClick = { workspaceMenu = true },
+                contentPadding = PaddingValues(horizontal = 8.dp)
+            ) {
+                if (galleryBar.loading) {
+                    SkeletonBlock(Modifier.width(100.dp).height(16.dp))
+                } else {
+                    Text(
+                        GalleryWorkspaceLabels.selectedName(galleryBar.options, galleryBar.selectedId, localizedText(R.string.ui_all_workspaces)),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.weight(1f, fill = false).widthIn(max = 110.dp)
+                    )
                 }
-                DropdownMenu(expanded = workspaceMenu, onDismissRequest = { workspaceMenu = false }) {
-                    if (galleryBar.loading) {
-                        SkeletonList(Modifier.width(220.dp).padding(16.dp), rows = 3)
-                    } else {
+                Icon(Icons.Filled.ArrowDropDown, contentDescription = localizedText(R.string.ui_select_workspace))
+            }
+            DropdownMenu(expanded = workspaceMenu, onDismissRequest = { workspaceMenu = false }) {
+                if (galleryBar.loading) {
+                    SkeletonList(Modifier.width(220.dp).padding(16.dp), rows = 3)
+                } else {
+                    DropdownMenuItem(
+                        text = { Text(localizedText(R.string.ui_all_workspaces)) },
+                        onClick = {
+                            galleryBar.onSelect(null)
+                            workspaceMenu = false
+                        },
+                        leadingIcon = if (galleryBar.selectedId == null) {
+                            { Icon(Icons.Filled.Check, contentDescription = null) }
+                        } else {
+                            null
+                        }
+                    )
+                    galleryBar.options.forEach { option ->
                         DropdownMenuItem(
-                            text = { Text(localizedText(R.string.ui_all_workspaces)) },
+                            text = { Text(option.name) },
                             onClick = {
-                                galleryBar.onSelect(null)
+                                galleryBar.onSelect(option.id)
                                 workspaceMenu = false
                             },
-                            leadingIcon = if (galleryBar.selectedId == null) {
+                            leadingIcon = if (galleryBar.selectedId == option.id) {
                                 { Icon(Icons.Filled.Check, contentDescription = null) }
                             } else {
                                 null
                             }
                         )
-                        galleryBar.options.forEach { option ->
-                            DropdownMenuItem(
-                                text = { Text(option.name) },
-                                onClick = {
-                                    galleryBar.onSelect(option.id)
-                                    workspaceMenu = false
-                                },
-                                leadingIcon = if (galleryBar.selectedId == option.id) {
-                                    { Icon(Icons.Filled.Check, contentDescription = null) }
-                                } else {
-                                    null
-                                }
-                            )
-                        }
-                    }
-                }
-            }
-            IconButton(onClick = galleryBar.onPublish, enabled = !galleryBar.loading && galleryBar.publishEnabled, modifier = Modifier.testTag("work-publish")) {
-                Icon(Icons.Default.CloudUpload, localizedText(R.string.ui_publish))
-            }
-            var more by remember { mutableStateOf(false) }
-            Box {
-                IconButton(onClick = { more = true }) { Icon(Icons.Default.MoreVert, localizedText(R.string.ui_manage)) }
-                DropdownMenu(more, { more = false }) {
-                    DropdownMenuItem(text = { Text(localizedText(R.string.ui_history)) }, leadingIcon = {
-                        Icon(Icons.Default.History, contentDescription = null)
-                    }, enabled = galleryBar.selectedId != null, modifier = Modifier.testTag("work-history"), onClick = {
-                        more = false
-                        galleryBar.onRecords()
-                    })
-                    DropdownMenuItem(text = { Text(localizedText(R.string.import_existing_publications)) }, leadingIcon = {
-                        Icon(Icons.Default.FolderCopy, contentDescription = null)
-                    }, enabled = galleryBar.selectedId != null, onClick = {
-                        more = false
-                        galleryBar.onImport()
-                    })
-                    if (galleryBar.showInvite) {
-                        DropdownMenuItem(text = { Text(localizedText(R.string.ui_invite_person)) }, leadingIcon = {
-                            Icon(Icons.Default.PersonAdd, contentDescription = null)
-                        }, modifier = Modifier.testTag("work-invite-person"), onClick = {
-                            more = false
-                            galleryBar.onInvite()
-                        })
-                    }
-                    if (galleryBar.showAdmin) {
-                        DropdownMenuItem(text = { Text(localizedText(R.string.ui_manage)) }, leadingIcon = {
-                            Icon(Icons.Default.AdminPanelSettings, contentDescription = null)
-                        }, onClick = {
-                            more = false
-                            galleryBar.onAdmin()
-                        })
                     }
                 }
             }
         }
-        if (selected == HostDestination.META_DISPLAY) {
-            IconButton(onClick = { onSelectMeta(MetaSection.PREVIEW) }) {
-                Icon(
-                    imageVector = if (metaSection == MetaSection.PREVIEW) PhosphorIcons.Fill.Eye else PhosphorIcons.Regular.Eye,
-                    contentDescription = localizedText(R.string.ui_preview),
-                    tint = if (metaSection == MetaSection.PREVIEW) RealityIconSelected else RealityIconDefault
-                )
-            }
-            IconButton(onClick = { onSelectMeta(MetaSection.GLASSES) }) {
-                Icon(
-                    imageVector = if (metaSection == MetaSection.GLASSES) PhosphorIcons.Fill.Eyeglasses else PhosphorIcons.Regular.Eyeglasses,
-                    contentDescription = localizedText(R.string.ui_glasses),
-                    tint = if (metaSection == MetaSection.GLASSES) RealityIconSelected else RealityIconDefault
-                )
-            }
-            IconButton(
-                onClick = onOpenMetaControls,
-                modifier = Modifier.testTag("host-preview-controls-button")
-            ) {
-                Icon(
-                    imageVector = PhosphorIcons.Regular.SlidersHorizontal,
-                    contentDescription = localizedText(R.string.ui_controls),
-                    tint = RealityIconDefault
-                )
+        GalleryFilterButton(galleryBar)
+        IconButton(onClick = galleryBar.onPublish, enabled = !galleryBar.loading && galleryBar.publishEnabled, modifier = Modifier.testTag("work-publish")) {
+            Icon(Icons.Default.CloudUpload, localizedText(R.string.ui_publish))
+        }
+        var more by remember { mutableStateOf(false) }
+        Box {
+            IconButton(onClick = { more = true }) { Icon(Icons.Default.MoreVert, localizedText(R.string.ui_manage)) }
+            DropdownMenu(more, { more = false }) {
+                DropdownMenuItem(text = { Text(localizedText(R.string.ui_history)) }, leadingIcon = {
+                    Icon(Icons.Default.History, contentDescription = null)
+                }, enabled = galleryBar.selectedId != null, modifier = Modifier.testTag("work-history"), onClick = {
+                    more = false
+                    galleryBar.onRecords()
+                })
+                DropdownMenuItem(text = { Text(localizedText(R.string.import_existing_publications)) }, leadingIcon = {
+                    Icon(Icons.Default.FolderCopy, contentDescription = null)
+                }, enabled = galleryBar.selectedId != null, onClick = {
+                    more = false
+                    galleryBar.onImport()
+                })
+                if (galleryBar.showInvite) {
+                    DropdownMenuItem(text = { Text(localizedText(R.string.ui_invite_person)) }, leadingIcon = {
+                        Icon(Icons.Default.PersonAdd, contentDescription = null)
+                    }, modifier = Modifier.testTag("work-invite-person"), onClick = {
+                        more = false
+                        galleryBar.onInvite()
+                    })
+                }
+                if (galleryBar.showAdmin) {
+                    DropdownMenuItem(text = { Text(localizedText(R.string.ui_manage)) }, leadingIcon = {
+                        Icon(Icons.Default.AdminPanelSettings, contentDescription = null)
+                    }, onClick = {
+                        more = false
+                        galleryBar.onAdmin()
+                    })
+                }
             }
         }
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-internal fun SocialBottomBar(
-    selected: HostDestination,
-    profilePictureUrl: String?,
-    onProfile: () -> Unit,
-    onWork: () -> Unit,
-    onSearch: () -> Unit
+internal fun MetaViewHeader(
+    title: String,
+    metaSection: MetaSection,
+    onSelectMeta: (MetaSection) -> Unit,
+    onOpenMetaControls: () -> Unit
 ) {
-    CompactBottomBar {
-        ProfileBottomBarItem(
-            selected = selected == HostDestination.PROFILE,
-            onClick = onProfile,
-            profilePictureUrl = profilePictureUrl
-        )
-        BottomBarItem(
-            selected = selected == HostDestination.GALLERY,
-            onClick = onWork,
-            selectedIcon = PhosphorIcons.Fill.ImagesSquare,
-            unselectedIcon = PhosphorIcons.Regular.ImagesSquare,
-            contentDescription = localizedText(R.string.ui_work)
-        )
-        BottomBarItem(
-            selected = false,
-            onClick = onSearch,
-            contentDescription = localizedText(R.string.ui_search),
-            brandIcon = painterResource(R.drawable.ic_muse)
-        )
-    }
-}
-
-@Composable
-internal fun RowScope.ProfileBottomBarItem(
-    selected: Boolean,
-    profilePictureUrl: String?,
-    onClick: () -> Unit
-) {
-    Box(
-        modifier = Modifier
-            .weight(1f)
-            .fillMaxHeight()
-            .selectable(selected = selected, onClick = onClick, role = Role.Tab),
-        contentAlignment = Alignment.Center
+    Row(
+        Modifier.fillMaxWidth().padding(start = 14.dp, end = 4.dp).testTag("meta-view-header"),
+        verticalAlignment = Alignment.CenterVertically
     ) {
-        if (profilePictureUrl != null) {
-            val context = LocalContext.current
-            coil.compose.SubcomposeAsyncImage(
-                model = profileImageRequest(context, profilePictureUrl),
-                contentDescription = localizedText(R.string.ui_profile),
-                contentScale = ContentScale.Crop,
-                loading = { SkeletonBlock(Modifier.fillMaxSize().clip(CircleShape)) },
-                error = { ProfileAvatarFallback(selected) },
-                modifier = Modifier
-                    .size(30.dp)
-                    .clip(CircleShape)
-                    .then(
-                        if (selected) {
-                            Modifier.border(1.5.dp, RealityIconSelected, CircleShape)
-                        } else {
-                            Modifier
-                        }
-                    )
-            )
-        } else {
-            ProfileAvatarFallback(selected)
-        }
-    }
-}
-
-@Composable
-internal fun ProfileAvatarFallback(selected: Boolean) {
-    Icon(
-        imageVector = if (selected) PhosphorIcons.Fill.UserCircle else PhosphorIcons.Regular.UserCircle,
-        contentDescription = localizedText(R.string.ui_profile),
-        modifier = Modifier.size(30.dp),
-        tint = if (selected) RealityIconSelected else RealityIconDefault
-    )
-}
-
-@Composable
-internal fun CompactBottomBar(content: @Composable RowScope.() -> Unit) {
-    Surface(
-        color = MaterialTheme.colorScheme.surface,
-        contentColor = MaterialTheme.colorScheme.onSurface,
-        tonalElevation = 0.dp
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .navigationBarsPadding()
-                .height(54.dp)
-                .padding(3.dp),
-            content = content
-        )
-    }
-}
-
-@Composable
-internal fun RowScope.BottomBarItem(
-    selectedIcon: androidx.compose.ui.graphics.vector.ImageVector? = null,
-    unselectedIcon: androidx.compose.ui.graphics.vector.ImageVector? = null,
-    contentDescription: String,
-    selected: Boolean,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier,
-    brandIcon: Painter? = null
-) {
-    Box(
-        modifier = modifier
-            .weight(1f)
-            .fillMaxHeight()
-            .selectable(selected = selected, onClick = onClick, role = Role.Tab),
-        contentAlignment = Alignment.Center
-    ) {
-        if (brandIcon != null) {
+        Text(title, Modifier.weight(1f).padding(vertical = 7.dp), style = MaterialTheme.typography.labelMedium)
+        IconButton(onClick = { onSelectMeta(MetaSection.PREVIEW) }) {
             Icon(
-                painter = brandIcon,
-                contentDescription = contentDescription,
-                modifier = Modifier.size(30.dp),
-                tint = if (selected) RealityIconSelected else RealityIconDefault
+                imageVector = if (metaSection == MetaSection.PREVIEW) PhosphorIcons.Fill.Eye else PhosphorIcons.Regular.Eye,
+                contentDescription = localizedText(R.string.ui_preview),
+                tint = if (metaSection == MetaSection.PREVIEW) RealityIconSelected else RealityIconDefault
             )
-        } else {
-            val vector = if (selected) selectedIcon else unselectedIcon
-            if (vector != null) {
-                Icon(
-                    imageVector = vector,
-                    contentDescription = contentDescription,
-                    modifier = Modifier.size(30.dp),
-                    tint = if (selected) RealityIconSelected else RealityIconDefault
-                )
-            }
+        }
+        IconButton(onClick = { onSelectMeta(MetaSection.GLASSES) }) {
+            Icon(
+                imageVector = if (metaSection == MetaSection.GLASSES) PhosphorIcons.Fill.Eyeglasses else PhosphorIcons.Regular.Eyeglasses,
+                contentDescription = localizedText(R.string.ui_glasses),
+                tint = if (metaSection == MetaSection.GLASSES) RealityIconSelected else RealityIconDefault
+            )
+        }
+        IconButton(
+            onClick = onOpenMetaControls,
+            modifier = Modifier.testTag("host-preview-controls-button")
+        ) {
+            Icon(
+                imageVector = PhosphorIcons.Regular.SlidersHorizontal,
+                contentDescription = localizedText(R.string.ui_controls),
+                tint = RealityIconDefault
+            )
         }
     }
 }

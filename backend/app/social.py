@@ -11,6 +11,7 @@ from app.social_features.chat import chat_history as chat_history
 from app.social_features.chat import merge_notes as merge_notes
 from app.social_features.chat import router as chat_router
 from app.social_features.chat_localization import router as chat_languages_router
+from app.social_features.classification import router as classification_router
 from app.social_features.display_media import router as display_media_router
 from app.social_features.evidence import router as evidence_router
 from app.social_features.evidence_information import router as information_router
@@ -39,33 +40,28 @@ from app.social_features.gallery import _publication_payload as _publication_pay
 from app.social_features.gallery import boxed_thumbnail as boxed_thumbnail
 from app.social_features.gallery import capture_profile as capture_profile
 from app.social_features.gallery import comments as comments
-from app.social_features.gallery import gallery as gallery
 from app.social_features.gallery import gallery_page as gallery_page
 from app.social_features.gallery import get_post as get_post
 from app.social_features.gallery import interact as interact
 from app.social_features.gallery import media as media
 from app.social_features.gallery import merge_transcript_chunks as merge_transcript_chunks
-from app.social_features.gallery import profile_media_page as profile_media_page
 from app.social_features.gallery import publish as publish
 from app.social_features.gallery import remove_publication as remove_publication
 from app.social_features.gallery import router as gallery_router
 from app.social_features.gallery import share as share
 from app.social_features.gallery import thumbnail as thumbnail
 from app.social_features.gallery import visible as visible
+from app.social_features.gallery_filters import router as gallery_filters_router
 from app.social_features.groups import _new_join_pin as _new_join_pin
 from app.social_features.groups import _require_inviter as _require_inviter
-from app.social_features.groups import capabilities as capabilities
 from app.social_features.groups import create_group as create_group
 from app.social_features.groups import delete_group as delete_group
 from app.social_features.groups import group_pin as group_pin
 from app.social_features.groups import hide as hide
 from app.social_features.groups import invite as invite
-from app.social_features.groups import is_moderator as is_moderator
 from app.social_features.groups import join as join
 from app.social_features.groups import join_by_pin as join_by_pin
 from app.social_features.groups import members as members
-from app.social_features.groups import moderate_hide as moderate_hide
-from app.social_features.groups import moderation_reports as moderation_reports
 from app.social_features.groups import remove_member as remove_member
 from app.social_features.groups import reports as reports
 from app.social_features.groups import rotate_group_pin as rotate_group_pin
@@ -105,8 +101,6 @@ from app.social_features.profiles import search_profiles as search_profiles
 from app.social_features.profiles import transcribe_note as transcribe_note
 from app.social_features.profiles import update_profile as update_profile
 from app.social_features.profiles import upload_cv as upload_cv
-from app.social_features.profiles import upload_profile_publication as upload_profile_publication
-from app.social_features.profiles import upload_work_publication as upload_work_publication
 from app.social_features.schemas import AssistantCommand as AssistantCommand
 from app.social_features.schemas import ChatAppend as ChatAppend
 from app.social_features.schemas import ChatGalleryItem as ChatGalleryItem
@@ -137,15 +131,14 @@ router.include_router(chat_router)
 router.include_router(facebook_router)
 router.include_router(gallery_router)
 router.include_router(groups_router)
+router.include_router(classification_router)
+router.include_router(gallery_filters_router)
 router.include_router(profiles_router)
 
 _ROUTE_ORDER = {
-    "capabilities": 1,
     "members": 2,
     "set_invite_permission": 4,
     "remove_member": 5,
-    "moderation_reports": 6,
-    "moderate_hide": 7,
     "create_group": 25,
     "group_pin": 26,
     "rotate_group_pin": 27,
@@ -173,14 +166,10 @@ _ROUTE_ORDER = {
     "profile_avatar": 75,
     "upload_cv": 78,
     "transcribe_note": 80,
-    "upload_profile_publication": 82,
-    "upload_work_publication": 83,
     "retry_cv": 84,
     "delete_cv": 85,
     "search_profiles": 87,
-    "profile_media_page": 94,
     "gallery_page": 95,
-    "gallery": 96,
     "publish": 98,
     "capture_profile": 99,
     "media": 102,

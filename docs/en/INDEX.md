@@ -8,6 +8,7 @@
 
 - [Evaluation walkthroughs](guides/DEMO.md)
 - [Connect a bucket and use its resources](guides/STORAGE_CONNECTIONS.md)
+- [Publication catalogs and gallery filters](guides/PUBLICATION_CLASSIFICATION.md)
 - [Accounts, records and imports](guides/WORKSPACE_DATA.md)
 
 ## Testing

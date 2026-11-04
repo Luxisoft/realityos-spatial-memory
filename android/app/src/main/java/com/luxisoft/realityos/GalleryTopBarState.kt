@@ -21,6 +21,8 @@ object GalleryWorkspaceLabels {
  * populates workspaces and actions, the top bar renders the selector.
  */
 class GalleryTopBarState {
+    internal var filters by mutableStateOf(GalleryFilterSelection())
+    internal var onFilters: (GalleryFilterSelection) -> Unit = {}
     var loading by mutableStateOf(true)
     var options by mutableStateOf<List<WorkspaceOption>>(emptyList())
     var selectedId by mutableStateOf<String?>(null)

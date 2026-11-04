@@ -526,7 +526,6 @@
     </plurals>
     <string name="profile_choose_media">Choose photo or video</string>
     <string name="profile_play_video">Play video</string>
-    <string name="profile_simulated_media">Media</string>
     <string name="notice_error">Error</string>
     <string name="notice_warning">Warning</string>
     <string name="notice_success">Done</string>
@@ -582,4 +581,30 @@
     <string name="publication_group_permission">Choose a work group where you have permission to publish.</string>
     <string name="publication_media_format">Use a JPEG, PNG or WebP photo, or an MP4 video.</string>
     <string name="publication_upload_validation">Check the selected group and keep your note under 4,000 characters, then try again.</string>
+    <string name="catalog_select">Select</string>
+    <string name="catalog_empty">No options</string>
+    <string name="catalog_category">Category</string>
+    <string name="catalog_categories">Categories</string>
+    <string name="catalog_tags">Tags</string>
+    <string name="catalog_owner_needed">The group owner must add at least one category and one tag.</string>
+    <string name="catalog_classify">Classify publication</string>
+    <string name="catalog_add">Add</string>
+    <string name="catalog_title">Publication catalog</string>
+    <string name="catalog_archive">Archive</string>
+    <string name="catalog_restore">Restore</string>
+    <string name="catalog_archived">Archived</string>
+    <string name="gallery_filters">Filter publications</string>
+    <string name="gallery_authors">Authors</string>
+    <string name="gallery_from">From</string>
+    <string name="gallery_through">Through</string>
+    <string name="gallery_description">Description text</string>
+    <string name="gallery_dates_invalid">The end date must not precede the start date.</string>
+    <string name="gallery_clear">Clear</string>
+    <string name="gallery_apply">Apply</string>
+    <string name="gallery_any_date">Any date</string>
+    <string name="gallery_no_results">No publications match these filters.</string>
+    <string name="catalog_apply_all">Apply selection to all</string>
+    <string name="catalog_awaiting">Awaiting classification</string>
+    <string name="catalog_required">Select a category and at least one tag.</string>
+    <string name="meta_classify_on_phone">Choose a category and tags for this group in the phone’s capture review before publishing.</string>
 </resources>

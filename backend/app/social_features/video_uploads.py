@@ -72,7 +72,7 @@ def analyze_video(db, upload, client):
 
     digest = hashlib.sha256(upload.original_bytes).hexdigest()
     match = db.scalar(
-        same_scope(db, upload.owner_id, upload.audience, upload.workspace_id)
+        same_scope(db, upload.owner_id, upload.workspace_id)
         .join(MediaAsset, Publication.media_id == MediaAsset.id)
         .where(MediaAsset.kind == MediaKind.VIDEO, MediaAsset.sha256 == digest)
     )

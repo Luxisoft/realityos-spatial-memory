@@ -2,6 +2,7 @@ package com.luxisoft.realityos
 
 import android.app.Application
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.ui.Modifier
@@ -133,11 +134,15 @@ class ProfileHeaderTest {
         compose.runOnIdle { assertEquals(RealityLanguage.ENGLISH, store.selectedLanguage()) }
     }
 
-    @Test fun retainedWorkDemoHasAnExplicitSimulationLabel() {
-        val source = androidx.compose.runtime.mutableStateOf("local")
-        compose.setContent { MaterialTheme { PublicationSourceBadge(source.value) } }
+    @Test fun publicationsShowClassificationInsteadOfSourceLabels() {
+        val post = org.json.JSONObject().put("thumbnail_url", "").put("source", "simulator-work")
+            .put("mime_type", "image/jpeg").put("category", org.json.JSONObject().put("name", "Equipment"))
+            .put("tags", org.json.JSONArray().put(org.json.JSONObject().put("name", "Ready")))
+        compose.setContent { MaterialTheme { PublicationThumbnail(post, androidx.compose.ui.Modifier.size(120.dp)) {} } }
         compose.onNodeWithTag("publication-simulated").assertDoesNotExist()
-        compose.runOnIdle { source.value = "simulator-work" }
-        compose.onNodeWithTag("publication-simulated").assertIsDisplayed()
+        compose.waitForIdle()
+        compose.onNodeWithTag("publication-classification", useUnmergedTree = true).assertIsDisplayed()
+        compose.onNodeWithText("Equipment").assertIsDisplayed()
+        compose.onNodeWithTag("publication-video").assertDoesNotExist()
     }
 }

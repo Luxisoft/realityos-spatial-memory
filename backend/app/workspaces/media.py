@@ -103,7 +103,7 @@ async def upload(
         post = Publication(
             owner_id=author.id,
             media_id=asset.id,
-            audience="work",
+
             workspace_id=source.workspace_id,
             caption=record.title,
             source="workspace-import",

@@ -10,6 +10,7 @@ import pytest
 from app.models import User
 from app.security import create_access_token
 from app.social_features.models import Publication
+from catalog_support import classification_for
 from PIL import Image
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -46,9 +47,11 @@ def test_publication_examples_use_authorized_work_group(client, auth_headers, re
     )
     assert created.status_code == 200, created.text
     workspace_id = created.json()["id"]
+    selection = classification_for(client, workspace_id)
+    variables = {"workspace_id": workspace_id, "category_id": selection["category_id"], "tag_id": selection["tag_ids"][0]}
     upload = requests["POST /v1/me/publication-uploads"]
     data = {
-        field["key"]: resolve(field["value"], workspace_id=workspace_id)
+        field["key"]: resolve(field["value"], **variables)
         for field in upload["body"]["formdata"]
         if field["type"] == "text" and not field.get("disabled")
     }
@@ -85,7 +88,7 @@ def test_publication_examples_use_authorized_work_group(client, auth_headers, re
         "/v1/gallery",
         headers=auth_headers,
         json=body(
-            requests, "POST /v1/gallery", media_id=media_id, workspace_id=workspace_id
+            requests, "POST /v1/gallery", media_id=media_id, **variables
         ),
     )
     assert published.status_code == 200, published.text
@@ -93,7 +96,7 @@ def test_publication_examples_use_authorized_work_group(client, auth_headers, re
         (
             f"/v1/gallery/{post_id}/share",
             body(
-                requests, "POST /v1/gallery/{post_id}/share", workspace_id=workspace_id
+                requests, "POST /v1/gallery/{post_id}/share", **variables
             ),
         ),
         (
@@ -101,15 +104,15 @@ def test_publication_examples_use_authorized_work_group(client, auth_headers, re
             body(
                 requests,
                 "POST /v1/groups/{workspace_id}/publications/import",
-                post_id=post_id,
+                post_id=post_id, **variables,
             ),
         ),
     ):
         response = client.post(route, headers=auth_headers, json=payload)
         assert response.status_code == 200, response.text
     feed = client.get(
-        f"/v1/gallery?workspace_id={workspace_id}", headers=auth_headers
-    ).json()
+        f"/v1/gallery/page?workspace_id={workspace_id}", headers=auth_headers
+    ).json()["items"]
     assert feed and all(item["workspace_id"] == workspace_id for item in feed)
 
 

@@ -33,7 +33,7 @@ Permite encontrar personas y objetos, consultar información relacionada y recup
 
 1. **Instala la app.** Recibe **app-debug.apk** del responsable o descárgalo de una [compilación exitosa](https://github.com/Luxisoft/realityos-spatial-memory/actions/workflows/ci.yml): abre la ejecución → **Artifacts** → **realityos-android-debug-apk**, descomprime el ZIP e instala el APK en Android 12 o superior. GitHub puede pedir iniciar sesión.
 2. **Entra.** Abre RealityOS → **Continuar con correo** → **Iniciar sesión**. En **Usuario o correo**, escribe la cuenta recibida, por ejemplo `elena-marquez`, y pega su contraseña. La cuenta ya está creada y confirmada.
-3. **Prueba lo que ya está cargado.** En **Perfil** verás tu foto y publicaciones. En **Trabajo**, elige el grupo asignado → **Registros del espacio** y abre uno de sus expedientes. Los retratos están dentro del expediente.
+3. **Prueba lo que ya está cargado.** En la **Galería** principal, elige el grupo asignado para ver sus publicaciones. Abre el menú del grupo → **Registros del espacio** y abre uno de sus expedientes. Los retratos están dentro del expediente.
 
 | Prueba | Cuenta principal | Grupo ya asignado | Abre primero |
 | --- | --- | --- | --- |
@@ -58,7 +58,7 @@ La app habitual ya conecta al servidor. [Windows local](deployment/DEPLOYMENT_LO
 
 [Conectar un bucket R2/S3 →](guides/STORAGE_CONNECTIONS.md)
 
-Las cuentas de escenario y QA ya tienen el bucket de prueba conectado en **Perfil → Mis conexiones**; sus recursos están cargados y verificados en R2.
+Las cuentas de escenario y QA ya tienen el bucket de prueba conectado en **Menú → Mis conexiones**; sus recursos están cargados y verificados en R2.
 
 ## Capacidades de la plataforma
 
@@ -71,6 +71,18 @@ Las cuentas de escenario y QA ya tienen el bucket de prueba conectado en **Perfi
 | **Interacción multimodal** | Ofrece captura explícita y consultas por imagen, texto o voz desde Android y Display nativo. |
 
 <a id="cases"></a>
+
+La **Galería** es la única vista principal. Las publicaciones siempre pertenecen a un grupo de trabajo: debes unirte o crear uno antes de publicar. La barra inferior contiene menú, avatar, edición de perfil independiente, información de cuenta desplegable, gafas y buscador/chat Muse. Tocar el avatar vuelve a la galería conservando el grupo seleccionado. Crear grupo, selector, filtros, publicar y más opciones permanecen encima de la galería. Los controles de la vista previa Meta están junto a su título.
+
+## Categorías, tags y filtros de publicaciones
+
+Cada grupo de trabajo tiene su propio catálogo cerrado de categorías y tags. El dueño lo gestiona al crear el grupo y en **Administrar grupo**. Al publicar, el autor selecciona **una categoría y al menos un tag**, y puede corregirlos después. Archivar un valor conserva las publicaciones existentes e impide seleccionarlo en publicaciones nuevas.
+
+Las miniaturas muestran la categoría y los tags, con un icono de reproducción en los videos. El **icono de filtro** abre selectores de categorías, tags y usuarios, un rango de fechas de publicación y búsqueda en la descripción. Los filtros se aplican a todas las publicaciones autorizadas antes de paginar. Se combinan los distintos criterios; dentro de cada selector basta coincidir con uno de los valores elegidos.
+
+La sincronización de buckets continúa cada 15 minutos. Los archivos nuevos quedan privados y **pendientes de clasificación** en Conexiones hasta que su propietario seleccione valores del grupo de destino y continúe. Las importaciones por API pueden proporcionar `category_id` y `tag_ids` por archivo. Copiar publicaciones a otro grupo exige elegir su clasificación de destino por publicación.
+
+Consulta [catálogos y filtros de publicaciones](guides/PUBLICATION_CLASSIFICATION.md) para conocer los campos de la API, la revisión y los permisos.
 
 ## Ejemplos de aplicación
 

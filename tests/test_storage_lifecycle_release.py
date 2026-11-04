@@ -10,6 +10,7 @@ from app.storage.client import BucketClient
 from app.storage.lifecycle import check_upload_source
 from app.storage.models import StorageConnection
 from app.storage.provenance_models import StorageObject
+from catalog_support import classification_for
 from fastapi import HTTPException
 from sqlalchemy import select
 from test_storage_connections import BASE, image_bytes
@@ -21,7 +22,13 @@ def imported(client, headers, connection, key="photos/one.png"):
     response = client.post(
         BASE + "/" + connection["id"] + "/imports",
         headers=headers,
-        json={"request_key": str(uuid.uuid4()), "keys": [key]},
+        json={
+            "request_key": str(uuid.uuid4()),
+            "keys": [key],
+            "classifications": {
+                key: classification_for(client, connection["workspace_id"])
+            },
+        },
     )
     assert response.status_code == 202, response.text
     return response.json()["items"][0]
@@ -37,7 +44,12 @@ def test_failed_source_edit_preserves_old_then_success_retires_shared_copies(
     shared = client.post(
         f"/v1/groups/{group}/publications/import",
         headers=auth_headers,
-        json={"publication_ids": [original["publication_id"]]},
+        json={
+            "publication_ids": [original["publication_id"]],
+            "classifications": {
+                original["publication_id"]: classification_for(client, group)
+            },
+        },
     ).json()["items"][0]["id"]
     path = BASE + "/" + source["id"]
     change = {

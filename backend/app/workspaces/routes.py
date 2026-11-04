@@ -280,7 +280,7 @@ async def link_publication(
     from app.social_features.models import Publication
 
     post = db.get(Publication, payload.publication_id)
-    if post is None or post.workspace_id != workspace_id or post.audience != "work" or post.hidden:
+    if post is None or post.workspace_id != workspace_id or post.hidden:
         raise HTTPException(404, "Publication unavailable in this workspace.")
     external_id = f"local-publication:{post.id}"
     existing = db.scalar(

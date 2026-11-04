@@ -25,6 +25,8 @@ import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -90,12 +92,16 @@ internal fun ProfileHeader(
     onMenu: (() -> Unit)? = null,
     onBack: (() -> Unit)? = null,
     onGlasses: (() -> Unit)? = null,
+    onAvatar: (() -> Unit)? = null,
+    onSearch: (() -> Unit)? = null,
+    bottom: Boolean = false,
+    initiallyExpanded: Boolean = false,
     onEditDrawerChange: (Boolean) -> Unit = {}
 ) {
     val context = LocalContext.current
     val clipboard = LocalClipboardManager.current
     val scope = rememberCoroutineScope()
-    var expanded by rememberSaveable(state.userId) { mutableStateOf(false) }
+    var expanded by rememberSaveable(state.userId) { mutableStateOf(initiallyExpanded) }
     var editing by rememberSaveable(state.userId) { mutableStateOf(false) }
     var webUrl by rememberSaveable(state.userId) { mutableStateOf<String?>(null) }
     val current = state.profile
@@ -113,20 +119,73 @@ internal fun ProfileHeader(
         }
         webUrl = url
     }
+    val details: @Composable () -> Unit = {
+        AnimatedVisibility(expanded && current != null) {
+            Column(
+                Modifier.fillMaxWidth().heightIn(max = (LocalConfiguration.current.screenHeightDp * .4f).dp)
+                    .verticalScroll(rememberScrollState()).padding(16.dp).testTag("profile-details"),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                if (current != null) {
+                    if (bottom) {
+                        Text(current.optString("display_name"), style = MaterialTheme.typography.titleSmall)
+                        current.optText("email")?.let { email ->
+                            TextButton(onClick = {
+                                clipboard.setText(AnnotatedString(email))
+                                AppNotices.show(localizedText(R.string.ui_email_copied), NoticeKind.SUCCESS)
+                            }) { Text(email) }
+                        }
+                        current.optText("facebook_link")?.takeIf { facebookProfile }?.let { facebook ->
+                            TextButton(onClick = { openLink(facebook, true) }, modifier = Modifier.testTag("profile-facebook")) {
+                                Icon(Icons.Default.Facebook, null)
+                                Text(localizedText(R.string.ui_open_facebook))
+                            }
+                        }
+                    }
+                    ProfileInformation(current, current.optString("headline"), current.optString("phone"), current.optString("website"), profileLinks(current), { openLink(it) })
+                    Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                        Icon(Icons.Default.Description, null)
+                        Text(current.optText("biography") ?: "-", style = MaterialTheme.typography.bodyMedium)
+                    }
+                    val friends = if (facebookProfile) current.optJSONArray("friends") ?: JSONArray() else JSONArray()
+                    for (index in 0 until minOf(friends.length(), 6)) {
+                        val friend = friends.getJSONObject(index)
+                        TextButton(onClick = { friend.optText("profile_link")?.let { openLink(it, true) } }) {
+                            Text(friend.optString("name"))
+                        }
+                    }
+                }
+            }
+        }
+    }
     Surface(tonalElevation = 1.dp, modifier = Modifier.testTag("global-profile-header")) {
-        Column(Modifier.fillMaxWidth()) {
+        Column(Modifier.fillMaxWidth().then(if (bottom) Modifier.navigationBarsPadding() else Modifier)) {
+            if (bottom) details()
             Row(
                 Modifier.fillMaxWidth().heightIn(min = 64.dp).padding(horizontal = 4.dp),
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(4.dp)
+                horizontalArrangement = Arrangement.spacedBy(if (bottom) 2.dp else 4.dp)
             ) {
                 val navigation = onBack ?: onMenu
                 if (navigation != null) {
-                    IconButton(onClick = navigation, modifier = Modifier.testTag("host-menu-button")) {
+                    IconButton(onClick = navigation, modifier = Modifier.size(48.dp).testTag("host-menu-button")) {
                         Icon(if (onBack != null) Icons.Default.ArrowBack else Icons.Default.Menu, localizedText(if (onBack != null) R.string.ui_back else R.string.content_open_menu))
                     }
                 }
-                Box(Modifier.size(52.dp)) {
+                Box(
+                    Modifier.size(if (bottom) 48.dp else 52.dp)
+                        .then(
+                            if (onAvatar != null) {
+                                Modifier.clickable(role = Role.Button, onClickLabel = localizedText(R.string.ui_publications), onClick = {
+                                    expanded = false
+                                    onAvatar()
+                                })
+                            } else {
+                                Modifier
+                            }
+                        )
+                        .testTag("profile-avatar")
+                ) {
                     val picture = current?.optText("picture_url")
                     if (picture != null) {
                         DatabaseImage(
@@ -138,7 +197,7 @@ internal fun ProfileHeader(
                     } else {
                         Icon(Icons.Default.AccountCircle, null, Modifier.size(48.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
-                    if (state.userId == null && current != null) {
+                    if (!bottom && state.userId == null && current != null) {
                         IconButton(onClick = { editing = true }, modifier = Modifier.align(Alignment.BottomEnd).size(32.dp).testTag("profile-edit")) {
                             Surface(shape = CircleShape, color = MaterialTheme.colorScheme.primary) {
                                 Icon(Icons.Default.Edit, localizedText(R.string.ui_edit_profile), Modifier.padding(3.dp).size(16.dp))
@@ -146,7 +205,17 @@ internal fun ProfileHeader(
                         }
                     }
                 }
-                Column(Modifier.weight(1f)) {
+                if (bottom && state.userId == null) {
+                    IconButton(onClick = { editing = true }, enabled = current != null, modifier = Modifier.size(48.dp).testTag("profile-edit")) {
+                        Icon(Icons.Default.Edit, localizedText(R.string.ui_edit_profile))
+                    }
+                }
+                Column(
+                    Modifier.weight(1f).then(
+                        if (bottom) Modifier.heightIn(min = 48.dp).clickable(enabled = current != null, role = Role.Button, onClickLabel = localizedText(R.string.ui_show_information)) { expanded = !expanded }.testTag("profile-expand") else Modifier
+                    ),
+                    verticalArrangement = Arrangement.Center
+                ) {
                     if (current == null && state.loading) {
                         SkeletonLines(rows = 2)
                     } else {
@@ -154,56 +223,58 @@ internal fun ProfileHeader(
                         current?.optText("email")?.let { email ->
                             Text(
                                 email,
-                                Modifier.clickable {
-                                    clipboard.setText(AnnotatedString(email))
-                                    AppNotices.show(localizedText(R.string.ui_email_copied), NoticeKind.SUCCESS)
-                                }.testTag("profile-email"),
+                                Modifier.then(
+                                    if (!bottom) {
+                                        Modifier.clickable {
+                                            clipboard.setText(AnnotatedString(email))
+                                            AppNotices.show(localizedText(R.string.ui_email_copied), NoticeKind.SUCCESS)
+                                        }
+                                    } else {
+                                        Modifier
+                                    }
+                                ).testTag("profile-email"),
                                 style = MaterialTheme.typography.bodySmall,
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis
                             )
                         }
                     }
+                    if (bottom) {
+                        Icon(
+                            if (expanded) Icons.Default.ExpandMore else Icons.Default.ExpandLess,
+                            null,
+                            Modifier.size(14.dp).align(Alignment.End)
+                        )
+                    }
                 }
-                IconButton(onClick = { expanded = !expanded }, enabled = current != null, modifier = Modifier.size(48.dp).testTag("profile-expand")) {
-                    Icon(if (expanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore, localizedText(if (expanded) R.string.ui_hide_information else R.string.ui_show_information))
+                if (!bottom) {
+                    IconButton(onClick = { expanded = !expanded }, enabled = current != null, modifier = Modifier.size(48.dp).testTag("profile-expand")) {
+                        Icon(if (expanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore, localizedText(if (expanded) R.string.ui_hide_information else R.string.ui_show_information))
+                    }
                 }
                 Column {
-                    current?.optText("facebook_link")?.takeIf { facebookProfile }?.let { facebook ->
+                    current?.optText("facebook_link")?.takeIf { facebookProfile && !bottom }?.let { facebook ->
                         IconButton(onClick = { openLink(facebook, true) }, modifier = Modifier.testTag("profile-facebook")) {
                             Icon(Icons.Default.Facebook, localizedText(R.string.ui_open_facebook))
                         }
                     }
                     if (onGlasses != null) {
-                        IconButton(onClick = onGlasses, modifier = Modifier.testTag("profile-glasses")) {
+                        IconButton(onClick = onGlasses, modifier = Modifier.size(48.dp).testTag("profile-glasses")) {
                             Icon(PhosphorIcons.Regular.Eyeglasses, localizedText(R.string.ui_glasses))
                         }
                     }
                 }
-            }
-            NoticeEffect(state.error, {})
-            AnimatedVisibility(expanded && current != null) {
-                Column(
-                    Modifier.fillMaxWidth().heightIn(max = (LocalConfiguration.current.screenHeightDp * .4f).dp)
-                        .verticalScroll(rememberScrollState()).padding(16.dp).testTag("profile-details"),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    if (current != null) {
-                        ProfileInformation(current, current.optString("headline"), current.optString("phone"), current.optString("website"), profileLinks(current), { openLink(it) })
-                        Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                            Icon(Icons.Default.Description, null)
-                            Text(current.optText("biography") ?: "-", style = MaterialTheme.typography.bodyMedium)
-                        }
-                        val friends = if (facebookProfile) current.optJSONArray("friends") ?: JSONArray() else JSONArray()
-                        for (index in 0 until minOf(friends.length(), 6)) {
-                            val friend = friends.getJSONObject(index)
-                            TextButton(onClick = { friend.optText("profile_link")?.let { openLink(it, true) } }) {
-                                Text(friend.optString("name"))
-                            }
-                        }
+                if (onSearch != null) {
+                    IconButton(onClick = {
+                        expanded = false
+                        onSearch()
+                    }, modifier = Modifier.size(48.dp).testTag("host-search-button")) {
+                        Icon(painterResource(R.drawable.ic_muse), localizedText(R.string.ui_search), Modifier.size(30.dp))
                     }
                 }
             }
+            NoticeEffect(state.error, {})
+            if (!bottom) details()
         }
     }
     if (editing && current != null) ProfileEditor(state, onClose = { editing = false })

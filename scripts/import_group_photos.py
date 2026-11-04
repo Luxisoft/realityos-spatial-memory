@@ -53,7 +53,7 @@ def refresh_profile(db, settings, workspace, row, index: int, *, apply: bool) ->
             select(Publication).where(
                 Publication.owner_id == user_id,
                 Publication.source == "simulator-work",
-                Publication.audience == "work",
+
             )
         )
     )
@@ -110,7 +110,7 @@ def refresh_profile(db, settings, workspace, row, index: int, *, apply: bool) ->
         )
     )
     for post in touched:
-        post.audience = "public"
+
         post.source = "simulator"
         post.search_text = f"{post.caption} {profession} {region} {tags}"
     photo_pub = next(
@@ -134,7 +134,7 @@ def refresh_profile(db, settings, workspace, row, index: int, *, apply: bool) ->
             Publication(
                 owner_id=user_id,
                 media_id=photo_pub.media_id,
-                audience="work",
+
                 workspace_id=workspace.id,
                 caption=photo_pub.caption,
                 search_text=photo_pub.search_text,

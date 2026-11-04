@@ -69,7 +69,7 @@ def test_translation_failure_does_not_publish_image(client, auth_headers, monkey
     monkeypatch.setattr(MockMetaModelClient, "prepare_gallery_languages", unavailable)
     result = upload(client, auth_headers).json()
     assert result["status"] == "failed"
-    assert not client.get("/v1/gallery", headers=auth_headers).json()
+    assert not client.get("/v1/gallery/page", headers=auth_headers).json()["items"]
     with client.app.state.database.session_factory() as db:
         assert db.scalar(select(func.count()).select_from(PublicationTranslation)) == 0
 
@@ -79,7 +79,7 @@ def test_incomplete_language_pair_is_not_published(client, auth_headers, monkeyp
         MockMetaModelClient, "prepare_gallery_languages", lambda *args: {"en": {}}
     )
     assert upload(client, auth_headers).json()["status"] == "failed"
-    assert not client.get("/v1/gallery", headers=auth_headers).json()
+    assert not client.get("/v1/gallery/page", headers=auth_headers).json()["items"]
 
 
 def test_preparation_is_resumable_and_keeps_old_texts_for_history(client):

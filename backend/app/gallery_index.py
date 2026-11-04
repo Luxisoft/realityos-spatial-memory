@@ -78,13 +78,13 @@ def index_publication(
             from app.social_features.maintenance import retire
             from app.social_features.upload_service import duplicate, scope_lock
 
-            scope_lock(db, publication.owner_id, publication.audience, publication.workspace_id)
+            scope_lock(db, publication.owner_id, publication.workspace_id)
             match = duplicate(
                 db,
                 client,
                 asset.original_bytes,
                 publication.owner_id,
-                publication.audience,
+
                 publication.workspace_id,
                 older_than=publication,
             )
@@ -117,7 +117,7 @@ def index_publication(
     return publication
 
 
-def _visible_scope(viewer: User, audience: str | None, workspace_id: uuid.UUID | None):
+def _visible_scope(viewer: User, workspace_id: uuid.UUID | None):
     from app.social import Publication
     from app.social_features.publication_visibility import (
         authorized_publications,
@@ -127,8 +127,6 @@ def _visible_scope(viewer: User, audience: str | None, workspace_id: uuid.UUID |
     statement = select(Publication).where(
         publication_content(), Publication.hidden.is_(False), authorized_publications(viewer.id)
     )
-    if audience is not None:
-        statement = statement.where(Publication.audience == audience)
     if workspace_id is not None:
         statement = statement.where(Publication.workspace_id == workspace_id)
     return statement
@@ -138,7 +136,7 @@ def _known_tags(db: Session, viewer: User) -> list[str]:
     from app.social import Publication
 
     rows = db.scalars(
-        _visible_scope(viewer, None, None).order_by(Publication.published_at.desc()).limit(2000)
+        _visible_scope(viewer, None).order_by(Publication.published_at.desc()).limit(2000)
     )
     tags: list[str] = []
     for publication in rows:
@@ -177,7 +175,6 @@ def search_gallery(
     client: MetaModelClient | None,
     *,
     limit: int = 8,
-    audience: str | None = None,
     workspace_id: uuid.UUID | None = None,
 ):
     """Return viewer-visible publications matching the question, newest first."""
@@ -199,7 +196,7 @@ def search_gallery(
     # contain the best matches instead of only the newest rows.
     headroom = min(max(limit * 25, 500), 2000)
     candidates = db.scalars(
-        _visible_scope(viewer, audience, workspace_id)
+        _visible_scope(viewer, workspace_id)
         .where(or_(*clauses))
         .order_by(Publication.published_at.desc())
         .limit(headroom)

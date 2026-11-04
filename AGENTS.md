@@ -132,8 +132,10 @@ Do not create extra APK copies named after versions, dates or individual fixes.
 
 Publications require an existing work group; there is no private publication
 choice. Owners can import their publications into additional groups, with separate
-comments/reactions and shared original bytes. Legacy unassigned posts remain
-owner-only pending assignment; never guess a destination.
+comments/reactions and shared original bytes. Owner correction for the unified gallery (2026-11-03): delete legacy unassigned
+and former personal/public publications; preserve valid group copies and any
+media still referenced by groups, account profiles, records or biometric data.
+There is one main group gallery, not a separate profile publication feed.
 
 The owner explicitly requested email-account biometric onboarding: consent,
 profile image and 3–25 distinct accepted reference photos. Keep references and

@@ -4,21 +4,35 @@
 
 Actualizado el **3 de noviembre de 2026**. Un build o una comprobación HTTP no aprueba pruebas físicas. Las entregas anteriores permanecen en Git.
 
+## Clasificación de publicaciones
+
+Los catálogos de grupo, la clasificación manual obligatoria, etiquetas en miniaturas, iconos de video y filtros autorizados están incluidos en la revisión `20261103_0038`. Los archivos de bucket sin clasificar siguen privados para revisión del propietario. La [guía de clasificación](../guides/PUBLICATION_CLASSIFICATION.md) documenta este flujo.
+
+El manifiesto revisado cubre 48 publicaciones existentes y coincide con los hashes de sus originales. Las pruebas de asignación/reversión aprobaron; la asignación opcional de clasificación aún no se ha aplicado a producción. Las publicaciones existentes siguen disponibles en sus grupos.
+
 ## Implementado
 
 | Área | Comportamiento vigente |
 | --- | --- |
-| Android | Indicadores de carga/buffering, información expandida, skeleton inicial de datos, paneles/insets corregidos, administración de grupo a pantalla completa, compartir invitación y alertas inferiores con cierre. |
-| Grupos | Publicar exige pertenencia. Las publicaciones propias se pueden copiar a varios grupos, con reacciones/comentarios independientes; las antiguas sin grupo quedan solo para su propietario. |
+| Android | Galería principal única y una barra inferior para cuenta, edición, gafas y buscador/chat Muse; las acciones de grupo permanecen arriba del contenido. El avatar vuelve al grupo seleccionado. Los controles Meta están junto a su título local. |
+| Grupos | Publicar exige pertenencia. Las publicaciones propias se pueden copiar a varios grupos, con reacciones/comentarios independientes; las antiguas sin grupo se eliminaron por instrucción del propietario. La paginación con cursor y un único modelo de publicaciones de grupo reemplazan las rutas personales/públicas. |
 | Biometría | Se mantienen consentimiento y búsqueda facial aislada. El ingreso por email solicita foto de perfil/avatar y 3–25 referencias privadas aceptadas, con continuación y nueva selección. Los originales y URLs de referencias Meta no aparecen en galerías ni miniaturas de candidatos de cuenta. |
 | Almacenamiento | R2/S3 editable, miniaturas a la derecha, destino por grupo, sincronización inmediata/cada 15 minutos, reconciliación tras recorrido completo y retiro de copias importadas/compartidas protegido por revisión. Los objetos remotos se conservan. |
 | Evidencia | Originales BYTEA, proveedor real, evidencia versionada y traducciones. Consultar no inicia capturas ni inventa observaciones. |
 | Expedientes y voz | Se conservan expedientes versionados y comparación clínica; transcripción Muse y síntesis ElevenLabs autenticada. |
 
-## Entrega verificada
+## Servidor vigente verificado
+
+- Desplegada `realityos-backend:unified-groups-20261103-verified`, Alembic **`20261103_0038`**. Salud y comparación exacta de OpenAPI público aprobadas. Las tres cuentas del jurado consultaron sus 16 publicaciones de grupo y abrieron Mis conexiones conservando la sesión.
+- Eliminadas **234** publicaciones antiguas sin grupo; conservadas **70** publicaciones de grupos y sus originales sin cambios. Las huellas de tablas confirmaron perfiles, enrolamientos/consentimientos biométricos, 47 expedientes y 27 adjuntos intactos. La migración también conserva los hashes de 25 solicitudes de importación. Actualización/reversión/actualización de PostgreSQL aprobadas sobre una base restaurada aislada.
+- Backend/gateway: **588 pruebas aprobadas**, más **14 comprobaciones específicas** tras la limpieza final. Formato, lint, arquitectura, documentación y runtime Newman aprobados.
+- Android: **287 pruebas aprobadas**, `ktlintCheck`, `lintDebug` y builds Debug/Release aprobados. Revisión visual ES/EN con 320 dp y texto al 200 %. No hubo dispositivo físico conectado. APK Debug vigente: `android/app/build/outputs/apk/debug/app-debug.apk`; SHA-256 `5701aff08d835882c728b4690789898d2187987dc9bc0c667508ebae1b08f823`.
+- Instrucciones privadas de reversión: `.runtime/unified-groups-20261103-rollback.md`, con overlay de imagen/runtime `.runtime/unified-groups-20261103-rollback.json`. La reversión de datos necesita el snapshot técnico `pre-unified-publications.dump`, que caduca a las 24 horas (una hora con presión de disco). Las imágenes anteriores requieren revertir primero esquema/datos.
+
+## Verificación anterior
 
 - Renovación de videos desplegada en `realityos-backend:evaluation-videos-20261103-final`: API, worker y scheduler saludables, contrato OpenAPI público idéntico y Alembic `20261103_0036`. Las 16 pruebas de renovación pasaron; formato, lint, estructura y documentación/Postman también. El [recibo de videos](../../assets/storage/video-evaluation-verification.json) registra los resultados reales y la eliminación solicitada del material sin uso. Rollback del código: `.runtime/evaluation-videos-20261103-rollback.json`; los videos eliminados no tienen reversión.
-- [Despliegue productivo aprobado](https://github.com/Luxisoft/realityos-spatial-memory/actions/runs/41709265025): imagen inmutable `99fe11f`, después de la entrega local `realityos-backend:workspace-privacy-20261103`. API, worker y scheduler conservan runtime y conexiones. PostgreSQL está en **`20261103_0036`**. Actualización → reversión → actualización aprobadas sobre un esquema PostgreSQL temporal; actualización productiva, salud y comparación exacta de OpenAPI público aprobadas.
+- [Despliegue productivo aprobado](https://github.com/Luxisoft/realityos-spatial-memory/actions/runs/41709265025): imagen inmutable `99fe11f`, después de la entrega local `realityos-backend:workspace-privacy-20261103`. API, worker y scheduler conservan runtime y conexiones. Esa entrega usó la revisión PostgreSQL **`20261103_0036`**. Actualización → reversión → actualización aprobadas sobre un esquema PostgreSQL temporal; actualización productiva, salud y comparación exacta de OpenAPI público aprobadas.
 - La suite de 499 pruebas backend/gateway terminó CI con **496 aprobadas y tres omitidas**, incluidos contrato corregido, pérdida de membresía y privacidad de referencias. Android aprobó **228 pruebas**, formato/lint y builds Debug/Release. Documentación, estructura y Postman validados.
 - APK instalable: `android/app/build/outputs/apk/debug/app-debug.apk`; SHA-256 `2666a4ee7a15decca18311a28f8d3072e05afe22823b2cae04167a46d78953bc`.
 - Rollback de imagen: `.runtime/workspace-privacy-20261103-rollback.json`. Diario de visibilidad demo: `.runtime/real-scenes-20261103-visibility.json`. El snapshot técnico `pre-workspace-privacy-20261103.dump` caduca mediante mantenimiento tras 24 horas, o una bajo presión de disco; no es un respaldo oficial y no se envió a R2.
@@ -33,7 +47,7 @@ Se conservan **47 expedientes, 27 adjuntos y seis retratos de expediente enrolad
 
 El [recibo de evaluación](../../assets/storage/video-evaluation-verification.json) registra **48 consultas positivas ES/EN, seis negativas, seis comprobaciones entre grupos y 12 descargas originales verificadas**. Se revisaron visualmente los fotogramas y sus recuadros. La [matriz reproducible](../testing/VIDEO_EVALUATION.md) conserva las preguntas; sus revisiones y una toma rechazada por recuadros incorrectos quedan documentadas. Es una demostración seleccionada, no una estimación general de precisión.
 
-Postman mantiene exactamente **Server requests** y **Localhost requests**, con **451 solicitudes**, incluidos los **87 recorridos sobre datos existentes** (48 consultas ES/EN de videos). Los IDs de publicaciones del jurado apuntan al contenido renovado. Solo las tres contraseñas autorizadas por el propietario son públicas. Las cuentas por email, incluidas las de prueba sin configuración completa, reciben el nuevo ingreso biométrico privado; no se inventó consentimiento ni enrolamiento completado.
+Postman mantiene exactamente **Server requests** y **Localhost requests**, con **449 solicitudes**, incluidos los **87 recorridos sobre datos existentes** (48 consultas ES/EN de videos). Los IDs de publicaciones del jurado apuntan al contenido renovado. Solo las tres contraseñas autorizadas por el propietario son públicas. Las cuentas por email, incluidas las de prueba sin configuración completa, reciben el nuevo ingreso biométrico privado; no se inventó consentimiento ni enrolamiento completado.
 
 <a id="next-steps"></a>
 

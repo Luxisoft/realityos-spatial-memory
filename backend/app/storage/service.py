@@ -32,21 +32,32 @@ def owned(db, connection_id, user):
     return row
 
 
-def destination(db, row, audience, workspace_id):
+def destination(db, row, workspace_id):
     user = db.get(User, row.owner_id, populate_existing=True)
     if user is None or not user.is_active or not row.active:
         raise HTTPException(403, "Connection or account is inactive.")
-    check_destination(db, user, audience, workspace_id)
+    check_destination(db, user, workspace_id)
     return user
 
 
 def create_import(db, row, payload):
-    destination(db, row, payload.audience, payload.workspace_id)
+    destination(db, row, payload.workspace_id)
     for key in payload.keys:
         check_key(row, key)
         if mime_for(key) not in MEDIA:
             raise HTTPException(415, "Publication imports support JPEG, PNG, WebP and MP4.")
-    digest = hashlib.sha256(payload.model_dump_json().encode()).hexdigest()
+    from app.social_features.classification import validate_classification
+
+    if set(payload.classifications) - set(payload.keys):
+        raise HTTPException(422, "Classification keys must belong to this import.")
+    for selection in payload.classifications.values():
+        validate_classification(db, payload.workspace_id, selection.category_id, selection.tag_ids)
+    # Empty new metadata must preserve request hashes of existing scheduled scans.
+    digest = hashlib.sha256(
+        payload.model_dump_json(
+            exclude={"classifications"} if not payload.classifications else set()
+        ).encode()
+    ).hexdigest()
     previous = db.scalar(
         select(StorageImport).where(
             StorageImport.connection_id == row.id, StorageImport.request_key == payload.request_key
@@ -63,9 +74,20 @@ def create_import(db, row, payload):
         request_key=payload.request_key,
         payload_hash=digest,
         revision=row.revision,
-        audience=payload.audience,
+
         workspace_id=payload.workspace_id,
-        items=[{"key": key, "status": "pending"} for key in dict.fromkeys(payload.keys)],
+        items=[
+            {
+                "key": key,
+                "status": "pending",
+                **(
+                    {"classification": payload.classifications[key].model_dump(mode="json")}
+                    if key in payload.classifications
+                    else {}
+                ),
+            }
+            for key in dict.fromkeys(payload.keys)
+        ],
     )
     db.add(run)
     db.flush()
@@ -82,6 +104,9 @@ def import_json(db, run):
                 item.update(
                     status=upload.status,
                     publication_id=str(upload.result_id) if upload.result_id else None,
+                    preview_url=f"/v1/me/publication-uploads/{upload.id}/preview",
+                    mime_type=upload.mime_type,
+                    workspace_id=str(upload.workspace_id) if upload.workspace_id else None,
                 )
         items.append(item)
     status = run.status
@@ -91,7 +116,7 @@ def import_json(db, run):
         "id": str(run.id),
         "status": status,
         "items": items,
-        "audience": run.audience,
+
         "workspace_id": str(run.workspace_id) if run.workspace_id else None,
     }
 
@@ -116,7 +141,7 @@ def upload_request_key(db, owner_id, identity, sha256):
                     .where(
                         Publication.id == previous.result_id,
                         Publication.owner_id == owner_id,
-                        Publication.audience == previous.audience,
+
                         Publication.workspace_id == previous.workspace_id,
                         Publication.hidden.is_(False),
                         MediaAsset.sha256 == sha256,
@@ -150,7 +175,7 @@ def process_import(db, run_id, settings):
         item = dict(source)
         row = db.get(StorageConnection, run.connection_id, populate_existing=True)
         try:
-            destination(db, row, run.audience, run.workspace_id)
+            destination(db, row, run.workspace_id)
             if run.revision != row.revision:
                 raise HTTPException(409, "Connection source changed.")
             item["status"] = "downloading"
@@ -159,7 +184,7 @@ def process_import(db, run_id, settings):
             raw, mime, provenance = BucketClient(row, settings).download(item["key"])
             # Serialize publication with disconnect/credential rotation and membership validation.
             db.refresh(row, with_for_update=True)
-            user = destination(db, row, run.audience, run.workspace_id)
+            user = destination(db, row, run.workspace_id)
             if run.revision != row.revision:
                 raise HTTPException(409, "Connection source changed.")
             request = SimpleNamespace(app=SimpleNamespace(state=SimpleNamespace(settings=settings)))
@@ -168,7 +193,7 @@ def process_import(db, run_id, settings):
                     str(row.id),
                     item["key"],
                     provenance["sha256"],
-                    run.audience,
+                    "work",  # Stable digest namespace for previously stored upload attempts.
                     str(run.workspace_id),
                 ]
             )
@@ -186,9 +211,12 @@ def process_import(db, run_id, settings):
                     "",
                     user,
                     db,
-                    run.audience,
+
                     run.workspace_id,
                     request_key,
+                    category_id=item.get("classification", {}).get("category_id"),
+                    tag_ids=item.get("classification", {}).get("tag_ids"),
+                    allow_unclassified=True,
                 )
             )
             from app.storage.lifecycle import retire_object
@@ -229,7 +257,7 @@ def process_import(db, run_id, settings):
             # Publication changes are still uncommitted. Recheck the source
             # after analysis so a concurrent disconnect rolls them back.
             db.refresh(row, with_for_update=True)
-            destination(db, row, run.audience, run.workspace_id)
+            destination(db, row, run.workspace_id)
             if run.revision != row.revision:
                 raise HTTPException(409, "Connection source changed.")
             item["status"] = upload.status
@@ -280,7 +308,7 @@ def sync_page(db, rule, settings):
     from app.storage.schemas import ImportInput
 
     connection = db.get(StorageConnection, rule.connection_id, populate_existing=True)
-    destination(db, connection, rule.audience, rule.workspace_id)
+    destination(db, connection, rule.workspace_id)
     page = BucketClient(connection, settings).objects(rule.prefix, rule.cursor, recursive=True)
     objects = [o for o in page["items"] if mime_for(o["key"]) in MEDIA]
     if objects:
@@ -293,7 +321,7 @@ def sync_page(db, rule, settings):
             ImportInput(
                 request_key=hashlib.sha256(signature.encode()).hexdigest(),
                 keys=[o["key"] for o in objects],
-                audience=rule.audience,
+
                 workspace_id=rule.workspace_id,
             ),
         )

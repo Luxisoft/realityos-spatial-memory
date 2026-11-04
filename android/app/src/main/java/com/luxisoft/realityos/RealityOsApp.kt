@@ -1,42 +1,19 @@
 package com.luxisoft.realityos
 
 import androidx.activity.compose.BackHandler
-import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutVertically
-import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.consumeWindowInsets
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.pager.HorizontalPager
-import androidx.compose.foundation.pager.rememberPagerState
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberDrawerState
@@ -47,32 +24,19 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.saveable.rememberSaveableStateHolder
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.snapshotFlow
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
-import androidx.compose.ui.input.nestedscroll.NestedScrollSource
-import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.unit.Velocity
-import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.facebook.login.LoginManager
 import com.luxisoft.realityos.host.*
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 internal enum class HostDestination {
-    PROFILE,
     GALLERY,
     META_DISPLAY
 }
@@ -103,7 +67,7 @@ fun RealityOsApp(
     var replayingWelcome by rememberSaveable { mutableStateOf(false) }
 
     LaunchedEffect(SocialSession.active) {
-        viewModel?.stopSpeak()
+        viewModel.stopSpeak()
         if (SocialSession.active) viewModel.refreshMetaConfiguration() else viewModel.clearMetaAccount()
     }
 
@@ -156,14 +120,11 @@ private fun RealityHostShell(
 ) {
     val drawerState = rememberDrawerState(initialValue = androidx.compose.material3.DrawerValue.Closed)
     val scope = rememberCoroutineScope()
-    var selectedName by rememberSaveable { mutableStateOf(HostDestination.PROFILE.name) }
-    val selected = remember(selectedName) { HostDestination.entries.firstOrNull { it.name == selectedName } ?: HostDestination.PROFILE }
-    // The host gallery is always work: starting here avoids flashing another feed first.
-    var audience by rememberSaveable { mutableStateOf("work") }
+    var selectedName by rememberSaveable { mutableStateOf(HostDestination.GALLERY.name) }
+    val selected = remember(selectedName) { HostDestination.entries.firstOrNull { it.name == selectedName } ?: HostDestination.GALLERY }
     var metaSectionName by rememberSaveable { mutableStateOf(MetaSection.PREVIEW.name) }
     val metaSection = remember(metaSectionName) { MetaSection.valueOf(metaSectionName) }
     var previewControlsOpen by rememberSaveable { mutableStateOf(false) }
-    var bottomBarVisible by rememberSaveable { mutableStateOf(true) }
     var mediaViewerOpen by rememberSaveable { mutableStateOf(false) }
     var profileEditOpen by rememberSaveable { mutableStateOf(false) }
     var groupAdminOpen by rememberSaveable { mutableStateOf(false) }
@@ -177,67 +138,39 @@ private fun RealityHostShell(
             runCatching { experienceStore.syncAccountLanguage() }
         }
     }
+    val savedScreens = rememberSaveableStateHolder()
     val galleryBar = remember { GalleryTopBarState() }
     val profileState = rememberProfileState()
     LaunchedEffect(selected) { mediaViewerOpen = false }
-    val swipePages = remember { HostSwipeNavigation.pages }
-    val pagerState = rememberPagerState(initialPage = HostSwipeNavigation.pageFor(selected).coerceAtLeast(0)) { swipePages.size }
-    LaunchedEffect(selected) {
-        val target = HostSwipeNavigation.pageFor(selected)
-        if (target >= 0 && pagerState.currentPage != target) pagerState.animateScrollToPage(target)
-    }
-    LaunchedEffect(pagerState) {
-        snapshotFlow { pagerState.settledPage }.collect { page ->
-            val destination = HostSwipeNavigation.destinationFor(page)
-            if (destination != null && selected in swipePages && selectedName != destination.name) {
-                // Mirror the bottom-bar side effect: the host gallery is always work.
-                if (destination == HostDestination.GALLERY) audience = "work"
-                selectedName = destination.name
-            }
-        }
-    }
     val phoneCaptureActive = state.wearable.inputRoute == InputRoute.PHONE && state.wearable.cameraActive
-    val keepNavigationVisible by rememberUpdatedState(phoneCaptureActive)
-    val bottomBarRevealJob = remember { mutableStateOf<Job?>(null) }
-    val bottomBarScrollConnection = remember(scope) {
-        object : NestedScrollConnection {
-            override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
-                if (keepNavigationVisible) {
-                    bottomBarRevealJob.value?.cancel()
-                    bottomBarVisible = true
-                    return Offset.Zero
-                }
-                when {
-                    available.y < -1f -> {
-                        bottomBarVisible = false
-                        bottomBarRevealJob.value?.cancel()
-                        bottomBarRevealJob.value = scope.launch {
-                            delay(450)
-                            bottomBarVisible = true
-                        }
-                    }
-                    available.y > 1f -> {
-                        bottomBarRevealJob.value?.cancel()
-                        bottomBarVisible = true
-                    }
-                }
-                return Offset.Zero
-            }
-
-            override suspend fun onPostFling(consumed: Velocity, available: Velocity): Velocity {
-                bottomBarRevealJob.value?.cancel()
-                bottomBarVisible = true
-                return Velocity.Zero
-            }
+    var confirmCaptureExit by remember { mutableStateOf(false) }
+    var pendingNavigation by remember { mutableStateOf<(() -> Unit)?>(null) }
+    fun navigate(action: () -> Unit) {
+        if (phoneCaptureActive && state.recording) {
+            pendingNavigation = action
+            confirmCaptureExit = true
+        } else {
+            action()
         }
     }
-    var confirmCaptureExit by remember { mutableStateOf(false) }
+    LaunchedEffect(state.meta.pendingMime) {
+        if (state.meta.pendingMime != null && pendingNavigation != null) {
+            pendingNavigation?.invoke()
+            pendingNavigation = null
+        }
+    }
+    BackHandler(enabled = selected == HostDestination.META_DISPLAY && !phoneCaptureActive && !previewControlsOpen && !showSearchSheet && !showConnections && !profileEditOpen) {
+        selectedName = HostDestination.GALLERY.name
+    }
     BackHandler(enabled = phoneCaptureActive) {
         if (state.recording) confirmCaptureExit = true else viewModel.cancelPhoneCapture()
     }
     if (confirmCaptureExit) {
         androidx.compose.material3.AlertDialog(
-            onDismissRequest = { confirmCaptureExit = false },
+            onDismissRequest = {
+                confirmCaptureExit = false
+                pendingNavigation = null
+            },
             title = { Text(localizedText(R.string.ui_exit_recording)) },
             text = { Text(localizedText(R.string.ui_you_can_save_or_discard_the_video_before_leaving)) },
             confirmButton = {
@@ -250,6 +183,8 @@ private fun RealityHostShell(
                 TextButton(onClick = {
                     confirmCaptureExit = false
                     viewModel.cancelPhoneCapture()
+                    pendingNavigation?.invoke()
+                    pendingNavigation = null
                 }) { Text(localizedText(R.string.ui_discard_and_exit)) }
             }
         )
@@ -257,7 +192,6 @@ private fun RealityHostShell(
 
     LaunchedEffect(phoneCaptureActive) {
         if (phoneCaptureActive) {
-            bottomBarVisible = true
             if (selected == HostDestination.META_DISPLAY) metaSectionName = MetaSection.PREVIEW.name
         }
     }
@@ -266,11 +200,6 @@ private fun RealityHostShell(
             viewModel.onPhonePreviewHidden()
         }
     }
-    LaunchedEffect(selected) {
-        bottomBarRevealJob.value?.cancel()
-        bottomBarVisible = true
-    }
-
     BackHandler(enabled = previewControlsOpen) {
         previewControlsOpen = false
     }
@@ -284,19 +213,19 @@ private fun RealityHostShell(
 
     ModalNavigationDrawer(
         drawerState = drawerState,
-        gesturesEnabled = drawerState.isOpen || (!previewControlsOpen && !mediaViewerOpen && selected == HostDestination.PROFILE),
+        gesturesEnabled = drawerState.isOpen || (!previewControlsOpen && !mediaViewerOpen && !profileEditOpen && !groupAdminOpen && selected == HostDestination.GALLERY),
         drawerContent = {
             RealityDrawer(
                 experienceStore = experienceStore,
                 onConnections = {
                     scope.launch {
                         drawerState.close()
-                        showConnections = true
+                        navigate { showConnections = true }
                     }
                 },
                 onAbout = {
                     scope.launch { drawerState.close() }
-                    onReplayWelcome()
+                    navigate { onReplayWelcome() }
                 },
                 onLogout = {
                     viewModel.cancelPhoneCapture()
@@ -319,46 +248,16 @@ private fun RealityHostShell(
             Scaffold(
                 containerColor = MaterialTheme.colorScheme.background,
                 contentWindowInsets = WindowInsets.safeDrawing,
-                topBar = {
-                    if (!mediaViewerOpen) {
-                        Column(Modifier.statusBarsPadding()) {
-                            ProfileHeader(
-                                state = profileState,
-                                onMenu = { scope.launch { drawerState.open() } },
-                                onGlasses = {
-                                    showSearchSheet = false
-                                    selectedName = HostDestination.META_DISPLAY.name
-                                },
-                                onEditDrawerChange = { profileEditOpen = it }
-                            )
-                            if (!showSearchSheet && (selected == HostDestination.GALLERY || selected == HostDestination.META_DISPLAY)) {
-                                HostTopBar(
-                                    selected = selected,
-                                    audience = audience,
-                                    metaSection = metaSection,
-                                    galleryBar = galleryBar,
-                                    onSelectMeta = { metaSectionName = it.name },
-                                    onOpenMetaControls = { previewControlsOpen = true }
-                                )
-                            }
-                        }
-                    }
-                },
                 bottomBar = {
-                    AnimatedVisibility(
-                        visible = !mediaViewerOpen && !showSearchSheet && !showConnections && (phoneCaptureActive || bottomBarVisible),
-                        enter = slideInVertically { fullHeight -> fullHeight },
-                        exit = slideOutVertically { fullHeight -> fullHeight }
-                    ) {
-                        SocialBottomBar(
-                            selected = selected,
-                            profilePictureUrl = SocialSession.profilePictureUrl,
-                            onProfile = { selectedName = HostDestination.PROFILE.name },
-                            onWork = {
-                                audience = "work"
-                                selectedName = HostDestination.GALLERY.name
-                            },
-                            onSearch = { showSearchSheet = true }
+                    if (!mediaViewerOpen && !showSearchSheet && !showConnections && !groupAdminOpen && !previewControlsOpen) {
+                        ProfileHeader(
+                            state = profileState,
+                            bottom = true,
+                            onMenu = { scope.launch { drawerState.open() } },
+                            onAvatar = { navigate { selectedName = HostDestination.GALLERY.name } },
+                            onGlasses = { selectedName = HostDestination.META_DISPLAY.name },
+                            onSearch = { navigate { showSearchSheet = true } },
+                            onEditDrawerChange = { profileEditOpen = it }
                         )
                     }
                 },
@@ -369,48 +268,47 @@ private fun RealityHostShell(
                         .fillMaxSize()
                         .padding(contentPadding)
                         .consumeWindowInsets(contentPadding)
-                        .nestedScroll(bottomBarScrollConnection)
                         .drawerEdgeOpen(
-                            enabled = !previewControlsOpen && !mediaViewerOpen && !drawerState.isOpen && selected == HostDestination.PROFILE,
+                            enabled = !previewControlsOpen && !mediaViewerOpen && !profileEditOpen && !groupAdminOpen && !drawerState.isOpen && selected == HostDestination.GALLERY,
                             onOpen = { scope.launch { drawerState.open() } }
                         )
                 ) {
-                    if (selected in swipePages) {
-                        HorizontalPager(
-                            state = pagerState,
-                            modifier = Modifier.fillMaxSize(),
-                            beyondViewportPageCount = 2,
-                            userScrollEnabled = !mediaViewerOpen && !drawerState.isOpen && !profileEditOpen && !(groupAdminOpen && selected == HostDestination.GALLERY)
-                        ) { page ->
-                            Box(
-                                Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)
-                            ) {
-                                when (swipePages[page]) {
-                                    HostDestination.PROFILE -> ProfileScreen(viewModel = viewModel, onViewerChange = { mediaViewerOpen = it }, sharedProfile = profileState, active = selected == HostDestination.PROFILE, captureUploadStatus = state.meta.uploadStatus)
-                                    HostDestination.GALLERY -> SocialGallery(viewModel, audience = audience, onWelcome = onReplayWelcome, onViewerChange = { mediaViewerOpen = it }, galleryBar = galleryBar, onAdminDrawerChange = { groupAdminOpen = it })
-                                    else -> {}
-                                }
-                            }
-                        }
-                    } else {
-                        AnimatedContent(
-                            targetState = selected,
-                            transitionSpec = { fadeIn(tween(220)) togetherWith fadeOut(tween(120)) },
-                            label = "host-destination",
-                            modifier = Modifier.fillMaxSize()
-                        ) { destination ->
-                            when (destination) {
-                                HostDestination.PROFILE -> ProfileScreen(viewModel = viewModel, onViewerChange = { mediaViewerOpen = it }, sharedProfile = profileState, active = selected == HostDestination.PROFILE, captureUploadStatus = state.meta.uploadStatus)
-                                HostDestination.GALLERY -> SocialGallery(viewModel, audience = audience, onWelcome = onReplayWelcome, onViewerChange = { mediaViewerOpen = it }, galleryBar = galleryBar, onAdminDrawerChange = { groupAdminOpen = it })
-                                HostDestination.META_DISPLAY -> when (metaSection) {
-                                    MetaSection.PREVIEW -> PreviewDestination(state = state, viewModel = viewModel)
-                                    MetaSection.GLASSES -> GlassesDestination(
-                                        state = state,
-                                        viewModel = viewModel,
-                                        onRegisterWithMeta = onRegisterWithMeta,
-                                        onConnectDisplay = onConnectDisplay,
-                                        onDisconnectDisplay = onDisconnectDisplay
-                                    )
+                    savedScreens.SaveableStateProvider(selected.name) {
+                        when (selected) {
+                            HostDestination.GALLERY -> SocialGallery(
+                                viewModel,
+                                onWelcome = onReplayWelcome,
+                                onViewerChange = { mediaViewerOpen = it },
+                                galleryBar = galleryBar,
+                                onAdminDrawerChange = { groupAdminOpen = it },
+                                capturePublicationRevision = state.meta.publicationRevision
+                            )
+                            HostDestination.META_DISPLAY -> Column(Modifier.fillMaxSize()) {
+                                MetaViewHeader(
+                                    title = localizedText(
+                                        if (metaSection == MetaSection.GLASSES) {
+                                            R.string.ui_glasses
+                                        } else if (BuildConfig.DEBUG) {
+                                            R.string.preview_simulator_title
+                                        } else {
+                                            R.string.preview_live_title
+                                        }
+                                    ),
+                                    metaSection = metaSection,
+                                    onSelectMeta = { section -> navigate { metaSectionName = section.name } },
+                                    onOpenMetaControls = { previewControlsOpen = true }
+                                )
+                                Box(Modifier.weight(1f)) {
+                                    when (metaSection) {
+                                        MetaSection.PREVIEW -> PreviewDestination(state = state, viewModel = viewModel)
+                                        MetaSection.GLASSES -> GlassesDestination(
+                                            state = state,
+                                            viewModel = viewModel,
+                                            onRegisterWithMeta = onRegisterWithMeta,
+                                            onConnectDisplay = onConnectDisplay,
+                                            onDisconnectDisplay = onDisconnectDisplay
+                                        )
+                                    }
                                 }
                             }
                         }

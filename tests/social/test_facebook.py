@@ -170,7 +170,7 @@ def test_facebook_login_syncs_profile_and_imports_photos(client, monkeypatch):
     assert own.json()["media"] == []
     assert own.json()["references_private"] is True
     assert "source_url" not in own.text
-    page = client.get(f"/v1/profiles/{user_id}/media?limit=2", headers=headers)
+    page = client.get(f"/v1/gallery/page?owner_ids={user_id}&limit=2", headers=headers)
     assert page.status_code == 200
     assert page.json()["items"] == []
     assert page.json()["next_cursor"] is None
@@ -475,15 +475,15 @@ def test_guest_gallery_hides_meta_owned_posts(client, auth_headers):
     guest_post = _work_post(client, guest, workspace_id, "green")
 
     feed = client.get(
-        f"/v1/gallery?audience=work&workspace_id={workspace_id}", headers=guest
-    ).json()
+        f"/v1/gallery/page?workspace_id={workspace_id}", headers=guest
+    ).json()["items"]
     ids = {item["id"] for item in feed}
     assert guest_post in ids
     assert meta_post not in ids
 
     owner_feed = client.get(
-        f"/v1/gallery?audience=work&workspace_id={workspace_id}", headers=auth_headers
-    ).json()
+        f"/v1/gallery/page?workspace_id={workspace_id}", headers=auth_headers
+    ).json()["items"]
     assert {meta_post, guest_post} <= {item["id"] for item in owner_feed}
     assert (
         client.get(f"/v1/gallery/{meta_post}/thumbnail", headers=guest).status_code

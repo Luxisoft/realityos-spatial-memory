@@ -21,8 +21,8 @@ The new object tests use [12 complete videos with ES/EN queries and evidence int
 
 1. Download **app-debug.apk** and use one of the three [included public accounts](../api/API.md#quick-start). For Postman, import the collection and click **Send**.
 2. Install the regular server APK ([download and installation](../README.md#evaluate)). Open **Continue with email → Sign in**. Enter the username in **Username or email** and its password from the public table. These accounts are already confirmed.
-3. In **Profile**, check your photo and open one of your posts.
-4. In **Work**, select the group below and tap **Workspace records**. Open the first record to see its content and attachments inside the app.
+3. In the main **Gallery**, select your assigned group and open a publication. Your avatar appears in the bottom bar.
+4. In the gallery group menu, tap **Workspace records**. Open the first record to see its content and attachments inside the app.
 
 | Scenario / group | Prepared accounts | First content |
 | --- | --- | --- |

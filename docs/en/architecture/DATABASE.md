@@ -37,3 +37,9 @@ Revision `20261103_0035` adds `storage_connections`, `storage_imports` and `stor
 ## Workspace privacy revision
 
 Revision `20261103_0036` adds publication copy provenance (`shared_from_id`, unique per original/group), connection revisions and target group, immutable `storage_objects`, scan `seen_keys`, and `biometric_setups`. Biometric publication quarantine keeps a visibility journal for migration downgrade. Copies share original media while comments/reactions remain independent. Enrollment originals stay private; only normalized avatars are exposed.
+
+## Unified publication contract
+
+Revision `20261103_0038` requires a group for every publication and removes `audience` from publications, upload candidates, imports and synchronization. `GET /v1/gallery/page` is the only paginated feed, using cursors and filters; `/me/publication-uploads` handles upload and review. Offset pagination and profile media/publication routes are removed. Clients must update. Storage connections may use their previously configured group, always rechecking membership.
+
+At the owner’s request, records from former personal/public destinations and publications without a group are deleted. Valid group copies retain their IDs, originals and interactions. Bytes are removed only when no active references remain; avatars, biometric references and record media are preserved. Removing a group revokes memberships and invitations, cancels pending operations and hides its publications; its historical identity remains to preserve evidence links. Schema downgrade does not restore deleted data: recovery requires the release’s temporary technical snapshot.

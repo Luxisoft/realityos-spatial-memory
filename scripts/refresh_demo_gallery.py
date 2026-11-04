@@ -75,7 +75,7 @@ def attach_bucket_source(db, workspace, owner, item, raw, post):
         upload = PublicationUpload(
             owner_id=owner.id,
             request_key=request_key,
-            audience="work",
+
             workspace_id=workspace.id,
             original_bytes=raw,
             mime_type="video/mp4" if item["kind"] == "video" else "image/jpeg",
@@ -191,7 +191,7 @@ def prepare(db, root, apply=False):
                     owner_id=owner.id,
                     media_id=asset.id,
                     workspace_id=workspace.id,
-                    audience="work",
+
                     source=SOURCE,
                     source_ref=reference,
                     caption=item["label"],

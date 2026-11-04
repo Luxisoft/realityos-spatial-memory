@@ -191,7 +191,7 @@ def test_recovery_rechecks_permission_after_inference_before_saving(
         )
         db.add(membership)
         post = db.get(Publication, pid)
-        post.audience = "work"
+
         post.workspace_id = workspace.id
         db.execute(
             delete(PublicationTranslation).where(PublicationTranslation.post_id == pid)

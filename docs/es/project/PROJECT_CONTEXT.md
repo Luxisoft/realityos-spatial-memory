@@ -10,7 +10,7 @@ Mapa de trabajo vigente. Lee primero las [convenciones](../../../AGENTS.md), con
 | --- | --- |
 | `backend/app/` | API y contratos compartidos con el worker: HTTP, proveedores, procesamiento, cuentas, social, expedientes y almacenamiento. |
 | `backend/app/faces.py` | Biometría aislada y protegida por AGENTS.md. |
-| `backend/alembic/versions/` | Esquema Alembic; revisión vigente documentada `20261103_0036`. |
+| `backend/alembic/versions/` | Esquema Alembic; revisión vigente documentada `20261103_0038`. |
 | `android/` | Única app: Kotlin/Compose, CameraX, DAT y Display nativo; Mock Device Kit solo Debug. |
 | `meta-gateway/` | Egreso restringido a rutas Meta permitidas. |
 | `infrastructure/` | Compose para postgres, redis, api, worker, scheduler y proxy; TLS y gateway. |

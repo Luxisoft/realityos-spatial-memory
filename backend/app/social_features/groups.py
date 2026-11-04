@@ -3,7 +3,7 @@ from __future__ import annotations
 import secrets
 import uuid
 
-from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import (
     delete,
     select,
@@ -18,36 +18,13 @@ from app.models import (
     Workspace,
     WorkspaceMember,
 )
-from app.social_features.models import FacebookIdentity, GroupInvite, Publication, Report
+from app.social_features.models import GroupInvite, Publication, Report
 from app.social_features.schemas import GroupAction, InvitePermission, PinJoin
 
 """Facebook identities and explicitly shared audiovisual publications."""
 
 
 router = APIRouter()
-
-
-def is_moderator(user: User, db: Session, request: Request) -> bool:
-
-    subjects = {
-        x.strip()
-        for x in request.app.state.settings.social_moderator_facebook_ids.split(",")
-        if x.strip()
-    }
-    identity = db.scalar(select(FacebookIdentity).where(FacebookIdentity.user_id == user.id))
-    prefix = f"{request.app.state.settings.facebook_app_id}:"
-    return (
-        identity is not None
-        and identity.subject.startswith(prefix)
-        and identity.subject[len(prefix) :] in subjects
-    )
-
-
-@router.get("/me/social-capabilities")
-def capabilities(
-    request: Request, user: User = Depends(get_current_user), db: Session = Depends(get_db)
-):
-    return {"moderator": is_moderator(user, db, request)}
 
 
 @router.get("/groups/{workspace_id}/members")
@@ -115,36 +92,6 @@ def remove_member(
     return {"ok": True}
 
 
-@router.get("/moderation/reports")
-def moderation_reports(
-    request: Request, user: User = Depends(get_current_user), db: Session = Depends(get_db)
-):
-
-    if not is_moderator(user, db, request):
-        raise HTTPException(403, "Moderator access required.")
-    return [
-        {"id": str(r.id), "post_id": str(r.post_id), "reason": r.reason}
-        for r in db.scalars(select(Report).order_by(Report.created_at.desc()).limit(100))
-    ]
-
-
-@router.post("/moderation/{post_id}/hide")
-def moderate_hide(
-    post_id: uuid.UUID,
-    request: Request,
-    user: User = Depends(get_current_user),
-    db: Session = Depends(get_db),
-):
-
-    if not is_moderator(user, db, request):
-        raise HTTPException(403, "Moderator access required.")
-    post = db.get(Publication, post_id)
-    if post is None:
-        raise HTTPException(404, "Publication unavailable.")
-    post.hidden = True
-    return {"ok": True}
-
-
 def _require_inviter(workspace_id: uuid.UUID, user: User, db: Session) -> WorkspaceMember:
 
     member = workspace_member(workspace_id, user, db)
@@ -177,6 +124,11 @@ def create_group(
     db.add(workspace)
     db.flush()
     db.add(WorkspaceMember(workspace_id=workspace.id, user_id=user.id, role=Role.ADMIN))
+    from app.social_features.classification import add_term
+
+    for kind, names in (("category", payload.categories), ("tag", payload.tags)):
+        for name in names:
+            add_term(db, workspace.id, kind, name)
     return {"id": str(workspace.id), "name": workspace.name, "join_pin": workspace.join_pin}
 
 
@@ -218,31 +170,49 @@ def delete_group(
         raise HTTPException(409, "Personal spaces cannot be deleted.")
     if workspace.created_by_id != user.id:
         raise HTTPException(403, "Only the group creator can delete it.")
+    if (
+        db.scalar(
+            select(WorkspaceMember.id).where(
+                WorkspaceMember.workspace_id == workspace_id, WorkspaceMember.user_id == user.id
+            )
+        )
+        is None
+    ):
+        raise HTTPException(404, "Group unavailable.")
     # Core DML in dependency order: sessions run with autoflush=False, so ORM
     # deletes across tables cannot rely on flush ordering here.
     db.execute(delete(GroupInvite).where(GroupInvite.workspace_id == workspace_id))
     db.execute(delete(WorkspaceMember).where(WorkspaceMember.workspace_id == workspace_id))
     db.execute(
-        update(Publication)
-        .where(Publication.workspace_id == workspace_id)
-        .values(workspace_id=None)
+        update(Publication).where(Publication.workspace_id == workspace_id).values(hidden=True)
     )
     from app.social_features.evidence_models import PublicationUpload
+    from app.storage.models import StorageImport, StorageSync
 
     db.execute(
         update(PublicationUpload)
         .where(
             PublicationUpload.workspace_id == workspace_id,
-            PublicationUpload.status.in_(["pending", "failed", "duplicate"]),
+            PublicationUpload.status.in_(
+                ["pending", "failed", "duplicate", "awaiting_classification"]
+            ),
         )
         .values(status="cancelled", error="Group deleted.")
     )
     db.execute(
-        update(PublicationUpload)
-        .where(PublicationUpload.workspace_id == workspace_id)
-        .values(workspace_id=None)
+        update(StorageImport)
+        .where(
+            StorageImport.workspace_id == workspace_id,
+            StorageImport.status.in_(["pending", "running", "attention"]),
+        )
+        .values(status="cancelled")
     )
-    db.delete(workspace)
+    db.execute(
+        update(StorageSync).where(StorageSync.workspace_id == workspace_id).values(enabled=False)
+    )
+    # The row remains an inaccessible historical group: captured media, record
+    # evidence and publications never lose their group or break surviving copies.
+    workspace.join_pin = None
     db.flush()
     return {"ok": True, "workspace_id": str(workspace_id)}
 

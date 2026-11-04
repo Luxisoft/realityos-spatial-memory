@@ -20,11 +20,7 @@ def retire(db, post, canonical):
             raise ValueError("Publication media changed during duplicate review.")
     if post.hidden or canonical.hidden:
         raise ValueError("Publication visibility changed during duplicate review.")
-    if (
-        post.owner_id != canonical.owner_id
-        or post.audience != canonical.audience
-        or post.workspace_id != canonical.workspace_id
-    ):
+    if post.owner_id != canonical.owner_id or post.workspace_id != canonical.workspace_id:
         raise ValueError("Cannot merge different publication scopes")
     previous = {"hidden": post.hidden, "comments": [], "reactions": [], "reports": []}
     for comment in db.scalars(select(Comment).where(Comment.post_id == post.id)):
@@ -73,14 +69,13 @@ def rebuild(database, client, limit=0):
                 continue
             asset = db.get(MediaAsset, post.media_id)
             try:
-                scope_lock(db, post.owner_id, post.audience, post.workspace_id)
+                scope_lock(db, post.owner_id, post.workspace_id)
                 if asset.mime_type.startswith("image/") and not selection["review_only"]:
                     match = duplicate(
                         db,
                         client,
                         asset.original_bytes,
                         post.owner_id,
-                        post.audience,
                         post.workspace_id,
                         older_than=post,
                     )

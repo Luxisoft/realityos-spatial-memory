@@ -32,7 +32,7 @@ class AccountTransportTest {
             server.enqueue(MockResponse().setResponseCode(422).setBody("""{"detail":"Choose a work group."}"""))
             val raw = "original image with EXIF bytes".toByteArray()
             val failure = assertThrows(IllegalStateException::class.java) {
-                SocialSession.requestMultipart("me/publication-uploads", mapOf("request_key" to "test-key", "audience" to "work", "workspace_id" to "chosen-workspace"), raw, "photo.jpg", "image/jpeg")
+                SocialSession.requestMultipart("me/publication-uploads", mapOf("request_key" to "test-key", "workspace_id" to "chosen-workspace"), raw, "photo.jpg", "image/jpeg")
             }
             assertEquals(localizedText(R.string.publish_needs_group), failure.message)
             val request = server.takeRequest()

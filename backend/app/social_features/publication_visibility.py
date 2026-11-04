@@ -1,7 +1,7 @@
 """Biometric originals are never publication or object-search evidence."""
 
 from fastapi import HTTPException
-from sqlalchemy import and_, exists, or_, select
+from sqlalchemy import exists, or_, select
 
 from app.models import MediaAsset, WorkspaceMember
 from app.social_features.models import Publication
@@ -11,10 +11,7 @@ REFERENCE_SOURCES = ("facebook", "simulator")
 
 def authorized_publications(user_id):
     memberships = select(WorkspaceMember.workspace_id).where(WorkspaceMember.user_id == user_id)
-    return or_(
-        and_(Publication.audience == "work", Publication.workspace_id.in_(memberships)),
-        and_(Publication.audience != "work", Publication.owner_id == user_id),
-    )
+    return Publication.workspace_id.in_(memberships)
 
 
 def private_media_predicate():

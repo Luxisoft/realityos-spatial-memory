@@ -79,7 +79,9 @@ internal fun MetaExperiencePanel(state: RealityUiState, viewModel: RealityViewMo
 @Composable
 private fun MetaPendingCapture(state: RealityUiState, viewModel: RealityViewModel) {
     val meta = state.meta
-    val file = viewModel.metaController.previewFile
+    val controller = viewModel.metaController
+    var classificationValid by remember(controller.previewFile) { mutableStateOf(false) }
+    val file = controller.previewFile
     val bitmap by produceState<android.graphics.Bitmap?>(null, file?.absolutePath) {
         value = withContext(Dispatchers.IO) {
             runCatching {
@@ -103,6 +105,11 @@ private fun MetaPendingCapture(state: RealityUiState, viewModel: RealityViewMode
                 Text(stringResource(R.string.meta_existing_capture), style = MaterialTheme.typography.labelMedium)
                 DatabaseImage(profileImageRequest(LocalContext.current, authorizedMediaUrl(path)), stringResource(R.string.meta_existing_capture), Modifier.fillMaxWidth().height(160.dp), contentScale = ContentScale.Fit)
             }
+            if (meta.uploadStatus == null) {
+                controller.publicationWorkspaceId?.let { group ->
+                    ClassificationFields(group, controller.classification, enabled = !state.busy, onValid = { classificationValid = it }, onChange = controller::classify)
+                }
+            }
             val statusLabel = when (meta.uploadStatus) {
                 "pending" -> R.string.meta_processing
                 "duplicate" -> R.string.meta_duplicate_body
@@ -113,7 +120,7 @@ private fun MetaPendingCapture(state: RealityUiState, viewModel: RealityViewMode
             Text(stringResource(statusLabel), style = MaterialTheme.typography.bodySmall)
             if (state.busy) LinearProgressIndicator(Modifier.fillMaxWidth())
             Button(
-                enabled = !state.busy,
+                enabled = !state.busy && (meta.uploadStatus != null || classificationValid),
                 onClick = {
                     when (meta.uploadStatus) {
                         "duplicate" -> viewModel.replaceMetaPublication()

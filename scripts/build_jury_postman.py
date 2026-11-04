@@ -13,7 +13,7 @@ REQUESTS = [
     "GET /v1/workspaces/{workspace_id}/records",
     "GET /v1/workspaces/{workspace_id}/records/{record_id}",
     "GET /v1/workspaces/{workspace_id}/records/{record_id}/revisions",
-    "GET /v1/gallery",
+    "GET /v1/gallery/page",
     "GET /v1/gallery/{post_id}/media",
     "GET /v1/me/profile",
     "GET /v1/profiles/{user_id}",
@@ -55,13 +55,11 @@ def publish(folders, root, write, namespace, describe, check, reference):
                 body = json.loads(request["body"]["raw"])
                 body["search_scope"] = "gallery"
                 request["body"]["raw"] = json.dumps(body, indent=2)
-            if name == "GET /v1/gallery":
+            if name == "GET /v1/gallery/page":
                 for query in request["url"]["query"]:
-                    if query["key"] == "audience":
-                        query.update(value="work", disabled=False)
-                    elif query["key"] == "workspace_id":
+                    if query["key"] == "workspace_id":
                         query["disabled"] = False
-                request["url"]["raw"] += "?audience=work&workspace_id={{workspace_id}}"
+                request["url"]["raw"] += "?workspace_id={{workspace_id}}"
             if name.endswith("/records/search"):
                 request["body"]["raw"] = request["body"]["raw"].replace(
                     "{{query}}", "{{record_question}}"
@@ -87,10 +85,10 @@ def publish(folders, root, write, namespace, describe, check, reference):
                     'pm.test("Existing record is listed", () => pm.expect(pm.response.json().some(r => r.id === pm.variables.get("record_id"))).to.eql(true));',
                     'pm.test("Records stay in the selected workspace", () => pm.expect(pm.response.json().every(r => r.workspace_id === pm.variables.get("workspace_id"))).to.eql(true));',
                 ]
-            elif name == "GET /v1/gallery":
+            elif name == "GET /v1/gallery/page":
                 tests += [
-                    'pm.test("Existing publication is listed", () => pm.expect(pm.response.json().some(p => p.id === pm.variables.get("post_id"))).to.eql(true));',
-                    'pm.test("Gallery stays in the selected workspace", () => pm.expect(pm.response.json().every(p => p.workspace_id === pm.variables.get("workspace_id"))).to.eql(true));',
+                    'pm.test("Existing publication is listed", () => pm.expect(pm.response.json().items.some(p => p.id === pm.variables.get("post_id"))).to.eql(true));',
+                    'pm.test("Gallery stays in the selected workspace", () => pm.expect(pm.response.json().items.every(p => p.workspace_id === pm.variables.get("workspace_id"))).to.eql(true));',
                 ]
             request["description"] += (
                 "\n\nReady to send. All inputs use this scenario's existing account and stored resources. Authentication and renewal are automatic."

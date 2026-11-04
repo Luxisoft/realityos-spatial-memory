@@ -1,6 +1,9 @@
 package com.luxisoft.realityos
 
 import android.util.Base64
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.lifecycle.viewModelScope
 import java.io.File
 import java.util.UUID
@@ -23,6 +26,15 @@ internal class MetaDisplayController(private val vm: RealityViewModel) {
     private var key: String? = null
     private var uploadId: String? = null
     private var target: MetaDestination? = null
+    internal val publicationWorkspaceId: String? get() = target?.id
+    internal var classification by mutableStateOf(PublicationClassification())
+        private set
+    internal val needsClassification: Boolean get() = pending != null && uploadId == null && !classification.complete
+    internal fun classify(value: PublicationClassification) {
+        if (job?.isActive == true || uploadId != null) return
+        classification = value
+        save()
+    }
     private var job: Job? = null
     private var configurationJob: Job? = null
     internal val generation = MetaDisplayGeneration()
@@ -65,7 +77,7 @@ internal class MetaDisplayController(private val vm: RealityViewModel) {
                 val groups = withContext(Dispatchers.IO) { JSONArray(SocialSession.request("workspaces")) }
                 if (subject() != current) return@launch
                 val options = (0 until groups.length()).map { groups.getJSONObject(it) }.filter { !it.getString("name").startsWith("home:") }.map {
-                    MetaDestination(it.optText("workspace_id") ?: it.getString("id"), it.getString("name"), "work")
+                    MetaDestination(it.optText("workspace_id") ?: it.getString("id"), it.getString("name"))
                 }
                 val saved = preferences.getString("$current.destination", null)
                 update { it.copy(destinations = options, destination = options.find { d -> d.id == SocialSession.workWorkspaceId } ?: options.find { d -> d.id == saved } ?: options.singleOrNull()) }
@@ -200,13 +212,13 @@ internal class MetaDisplayController(private val vm: RealityViewModel) {
     private fun save() {
         val file = pending ?: return
         val destination = target ?: return
-        if (destination.audience != "work") {
+        if (destination.id.isBlank() || destination.id == "home") {
             update { it.copy(error = vm.copy(R.string.publish_needs_group)) }
             return
         }
         val value = JSONObject().put("file", file.name).put("key", key).put("upload", uploadId)
             .put("mime", meta.pendingMime).put("target", destination.id)
-            .put("name", destination.name).put("audience", destination.audience)
+            .put("name", destination.name).put("classification", classification.json())
         preferences.edit().putString("$owner.pending", value.toString()).apply()
     }
 
@@ -215,6 +227,7 @@ internal class MetaDisplayController(private val vm: RealityViewModel) {
         val saved = preferences.getString("$current.pending", null) ?: return
         runCatching {
             val value = JSONObject(saved)
+            require(value.getString("target") != "home")
             val filename = value.getString("file")
             require(filename == File(filename).name)
             val file = File(vm.app.filesDir, "meta-captures/$current/$filename")
@@ -225,7 +238,10 @@ internal class MetaDisplayController(private val vm: RealityViewModel) {
             pending = file
             key = value.getString("key")
             uploadId = value.optText("upload")
-            target = MetaDestination(value.getString("target"), value.getString("name"), value.getString("audience"))
+            target = MetaDestination(value.getString("target"), value.getString("name"))
+            val savedClassification = value.optJSONObject("classification") ?: JSONObject()
+            val tags = savedClassification.optJSONArray("tag_ids") ?: JSONArray()
+            classification = PublicationClassification(savedClassification.optString("category_id"), (0 until tags.length()).map { tags.getString(it) }.toSet())
             update {
                 it.copy(
                     pendingMime = value.getString("mime"),
@@ -240,8 +256,13 @@ internal class MetaDisplayController(private val vm: RealityViewModel) {
         if (job?.isActive == true || vm.state.value.busy || !authenticated()) return
         val file = pending ?: return
         val destination = target ?: return
-        if (destination.audience != "work") {
+        if (destination.id.isBlank() || destination.id == "home") {
             update { it.copy(error = vm.copy(R.string.publish_needs_group)) }
+            return
+        }
+        if (needsClassification) {
+            update { it.copy(error = vm.copy(R.string.meta_classify_on_phone)) }
+            vm.renderPublicationReview()
             return
         }
         val current = owner
@@ -259,8 +280,7 @@ internal class MetaDisplayController(private val vm: RealityViewModel) {
                             )
                         )
                     } else {
-                        val fields = mutableMapOf("request_key" to checkNotNull(key), "audience" to destination.audience)
-                        if (destination.audience == "work") fields["workspace_id"] = destination.id
+                        val fields = mutableMapOf("request_key" to checkNotNull(key), "workspace_id" to destination.id, "category_id" to classification.categoryId, "tag_ids" to JSONArray(classification.tagIds.toList()).toString())
                         JSONObject(
                             SocialSession.requestMultipartFile(
                                 "me/publication-uploads",
@@ -287,7 +307,7 @@ internal class MetaDisplayController(private val vm: RealityViewModel) {
                     if (subject() != current) return@launch
                 }
                 val status = response.getString("status")
-                update { it.copy(uploadStatus = status, duplicatePreview = response.optText("duplicate_preview_url"), error = if (status == "failed") vm.copy(R.string.meta_upload_failed) else null) }
+                update { it.copy(uploadStatus = status, publicationRevision = it.publicationRevision + if (status == "published") 1 else 0, duplicatePreview = response.optText("duplicate_preview_url"), error = if (status == "failed") vm.copy(R.string.meta_upload_failed) else null) }
                 if (status == "published" || status == "cancelled") {
                     removePending()
                     vm.renderNotice(vm.copy(if (status == "published") R.string.meta_published else R.string.meta_discarded))
@@ -322,6 +342,7 @@ internal class MetaDisplayController(private val vm: RealityViewModel) {
         uploadId = null
         key = null
         target = null
+        classification = PublicationClassification()
         preferences.edit().remove("$owner.pending").apply()
         update { it.copy(pendingMime = null, uploadStatus = null, pendingDestination = null, duplicatePreview = null, captureForPublication = false, error = null) }
     }
@@ -360,6 +381,7 @@ internal class MetaDisplayController(private val vm: RealityViewModel) {
         key = null
         uploadId = null
         target = null
+        classification = PublicationClassification()
         owner = null
         matches = emptyList()
         answer = null
