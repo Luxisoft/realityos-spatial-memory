@@ -91,15 +91,21 @@ session permissions and request my involvement when necessary.
 
 </details>
 
-To start manually, open Docker and run from the project folder:
+To start manually, run from the project folder:
 
 **Windows — PowerShell**
+
+Install Docker Desktop first. On its first launch, open the application and complete its setup, using Linux containers with WSL2. The command below opens an installed Docker Desktop if the engine is unavailable and waits up to two minutes for it to respond.
 
 ```powershell
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\local\Start-RealityOS.ps1
 ```
 
+If you see `docker_engine` / `The system cannot find the file specified` or the wait expires, open Docker Desktop and resolve any startup or WSL2 message. Run `docker info`: it must show the **Server** section without connection errors. Check `docker context ls` if it still fails and select your local Docker Desktop context before retrying the command. Having the Docker CLI installed is not enough; the engine must be running.
+
 **Linux**
+
+Start the local Docker Engine service before running:
 
 ```bash
 bash scripts/local/start.sh

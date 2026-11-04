@@ -88,15 +88,21 @@ respeta los permisos de la sesión y solicita mi intervención cuando sea necesa
 
 </details>
 
-Para iniciar manualmente, abre Docker y ejecuta desde la carpeta del proyecto:
+Para iniciar manualmente, ejecuta desde la carpeta del proyecto:
 
 **Windows — PowerShell**
+
+Instala Docker Desktop primero. En su primer inicio, abre la aplicación y completa su configuración, usando contenedores Linux con WSL2. El siguiente comando abre Docker Desktop si está instalado y el motor no está disponible, y espera hasta dos minutos a que responda.
 
 ```powershell
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\local\Start-RealityOS.ps1
 ```
 
+Si aparece `docker_engine` / `The system cannot find the file specified` o se agota la espera, abre Docker Desktop y resuelve los avisos de inicio o WSL2. Ejecuta `docker info`: debe mostrar la sección **Server** sin errores de conexión. Revisa `docker context ls` si sigue fallando y selecciona tu contexto local de Docker Desktop antes de repetir el comando. Tener instalada la terminal de Docker no basta; el motor debe estar funcionando.
+
 **Linux**
+
+Inicia el servicio local de Docker Engine antes de ejecutar:
 
 ```bash
 bash scripts/local/start.sh

@@ -4,7 +4,7 @@ $ErrorActionPreference = 'Stop'
 . (Join-Path $PSScriptRoot 'Common.ps1')
 if ($env:OS -ne 'Windows_NT') { throw 'Este comando esta preparado para PowerShell en Windows con Docker Desktop.' }
 $root = Get-LocalRoot
-$info = Assert-LocalDocker $root
+$info = Assert-LocalDocker $root -StartDesktop
 if ($info.Architecture -notin @('amd64', 'x86_64')) { throw 'Esta instalacion local soporta Windows x64 / contenedores linux-amd64.' }
 $path = Join-Path $root '.env.local'
 if (!(Test-Path -LiteralPath $path)) {

@@ -12,6 +12,8 @@ Verificado en Docker Linux aislado: PostgreSQL 16 desde cero en `20261104_0039`,
 
 Backend/gateway: **591 pruebas aprobadas**, más la regresión adicional de reanudación de la cola local. Android: **290 pruebas unitarias aprobadas**; selector renderizado revisado en ES/EN, incluyendo 320 dp y texto al 200 %. Pasaron los scripts Postman y las pruebas Newman de acceso, renovación y errores. Pasaron `ktlintCheck`, `lintDebug`, compilaciones Debug/Release y compilación de pruebas Android. [Comprobante sin secretos](../../assets/local/verification.json).
 
+El inicio de Windows ahora abre Docker Desktop instalado si el motor local no está disponible y espera hasta dos minutos. Pasaron nueve casos de regresión en PowerShell 5.1 con comandos Docker/procesos simulados, cubriendo arranque, tiempo agotado y rechazo de contextos remotos; esto no verifica un inicio real de Desktop.
+
 Pendiente de validación externa: instalación Windows completa, teléfono físico/USB/voces, gafas y llamadas reales con la clave Meta del jurado. Las pruebas Linux/Docker no certifican estos recorridos. Los resultados históricos del servidor que siguen se conservan como referencia y no son requisitos de localhost. El despliegue remoto automático está desactivado; el instalador local no detiene ni modifica servidores históricos.
 
 ## Clasificación de publicaciones

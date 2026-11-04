@@ -1,4 +1,5 @@
 $ErrorActionPreference = 'Stop'
+& (Join-Path $PSScriptRoot 'docker-startup.tests.ps1')
 . (Join-Path $PSScriptRoot '../../scripts/local/Common.ps1')
 function Assert-Condition($Condition, [string]$Message) { if (!$Condition) { throw $Message } }
 $root = Join-Path ([IO.Path]::GetTempPath()) ('RealityOS local tests ' + [Guid]::NewGuid().ToString('N'))

@@ -12,6 +12,8 @@ Verified in an isolated Linux Docker project: empty PostgreSQL 16 bootstrap at `
 
 Backend/gateway: **591 tests passed**, followed by the additional local queue-resume regression. Android: **290 unit tests passed**; rendered selector states reviewed in EN and ES, including 320 dp and 200% text. Postman script checks and Newman authentication/refresh/failure checks passed. `ktlintCheck`, `lintDebug`, Debug/Release builds and Android test compilation passed. [Sanitized verification receipt](../../assets/local/verification.json).
 
+Windows startup now opens an installed Docker Desktop when the local engine is unavailable and waits up to two minutes for readiness. Nine PowerShell 5.1 regression cases passed with simulated Docker/process commands, covering startup, timeout and remote-context rejection; this does not verify a real Desktop startup.
+
 Pending external validation: complete Windows installation, physical phone/USB/audio voices, glasses and live requests using the judge's own Meta key. These are not claimed by the Linux/container tests. Historical server release details below are retained for traceability and are not prerequisites for this installation. Automatic remote deployments are disabled; the local installer does not stop or modify historical servers.
 
 ## Publication classification
