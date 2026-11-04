@@ -281,3 +281,15 @@ Use the owner's `icon_150` image as the app icon, moved into
 Apply `#017df7` only to `launcher_background`. Keep the existing colors and theme
 tokens inside app screens, components and buttons. Rebuild and deliver the
 canonical signed APK.
+
+## Owner correction: splash branding (2026-11-04)
+
+Use the owner's `logo_splash.png` for the native Android splash, rehomed as
+`android/app/src/main/res/drawable-nodpi/splash_logo.png`. Show
+`REALITYOS BY JOSE MARIN` below it. Preserve the current dark splash background,
+the separate launcher icon and the internal UI theme. Keep the supplied PNG
+unchanged and remove its temporary root copy after rehoming.
+
+The internal app logo also uses `icon_app.png`, displayed with a fully circular
+crop through one shared component. Apply it to entry/account headers and the app
+drawer. Keep the separate splash logo and the existing screen/button colors.

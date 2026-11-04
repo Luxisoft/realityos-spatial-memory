@@ -21,7 +21,7 @@ import androidx.compose.ui.unit.dp
 @Composable
 internal fun EntryBrandHeader(action: @Composable RowScope.() -> Unit = {}) {
     Row(Modifier.fillMaxWidth().padding(horizontal = 24.dp, vertical = 8.dp).heightIn(min = 48.dp), verticalAlignment = Alignment.CenterVertically) {
-        Image(painterResource(R.drawable.luxisoft_favicon_v9), null, Modifier.size(26.dp))
+        AppBrandIcon(Modifier.size(26.dp))
         Spacer(Modifier.width(9.dp))
         Text("RealityOS", style = MaterialTheme.typography.titleMedium)
         Spacer(Modifier.weight(1f))

@@ -6,7 +6,6 @@ import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -21,7 +20,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.platform.*
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.*
 import androidx.compose.ui.text.style.TextAlign
@@ -185,7 +183,7 @@ private fun AccountFormContent(onBack: () -> Unit, submit: suspend (String, JSON
                     Icon(Icons.AutoMirrored.Outlined.ArrowBack, stringResource(R.string.account_back), tint = MaterialTheme.colorScheme.onSurface)
                 }
                 Spacer(Modifier.width(4.dp))
-                Image(painterResource(R.drawable.luxisoft_favicon_v9), null, Modifier.size(26.dp))
+                AppBrandIcon(Modifier.size(26.dp))
                 Spacer(Modifier.width(9.dp))
                 Text("RealityOS", style = MaterialTheme.typography.titleMedium)
             }

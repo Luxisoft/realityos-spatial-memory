@@ -11,7 +11,8 @@
 
     <style name="Theme.RealityOS.Starting" parent="Theme.SplashScreen">
         <item name="windowSplashScreenBackground">@color/reality_ink</item>
-        <item name="windowSplashScreenAnimatedIcon">@drawable/luxisoft_favicon_v9</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/splash_logo_safe</item>
+        <item name="android:windowSplashScreenBrandingImage">@drawable/splash_branding</item>
         <item name="postSplashScreenTheme">@style/Theme.RealityOS</item>
     </style>
 </resources>

@@ -7,7 +7,6 @@
     <string name="facebook_access_hash_error">Facebook does not recognize this app signature. The developer must register its key hash.</string>
     <string name="content_open_menu">Open navigation menu</string>
     <string name="content_close_preview_controls">Close Display controls</string>
-    <string name="content_luxisoft_mark">LUXISOFT mark</string>
     <string name="status_ready">Ready</string>
 
     <string name="drawer_tagline">Shared spatial memory</string>

@@ -301,7 +301,7 @@ internal fun RealityDrawer(
                 modifier = Modifier.padding(start = 10.dp, top = 30.dp, bottom = 22.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                ImageMark(size = 46.dp)
+                AppBrandIcon(Modifier.size(46.dp))
                 Spacer(Modifier.width(12.dp))
                 Column {
                     Text("RealityOS", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)

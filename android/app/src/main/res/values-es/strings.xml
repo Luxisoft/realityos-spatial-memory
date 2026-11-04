@@ -7,7 +7,6 @@
     <string name="facebook_access_hash_error">Facebook no reconoce la firma de esta app. Es necesario registrar su hash de clave.</string>
     <string name="content_open_menu">Abrir menú de navegación</string>
     <string name="content_close_preview_controls">Cerrar controles de Display</string>
-    <string name="content_luxisoft_mark">Símbolo LUXISOFT</string>
     <string name="status_ready">Listo</string>
 
     <string name="drawer_tagline">Memoria espacial compartida</string>
