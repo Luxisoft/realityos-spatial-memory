@@ -189,3 +189,12 @@ Preserve Police's three access accounts and their avatars. Source portraits and
 their provenance/hash manifest are in `simulator/workspaces/police-people/`.
 Keep this as record data, with internal simulation metadata and no automatic
 biometric authorization/enrollment. Do not restore the former Police scenes.
+
+Latest owner correction (2026-11-04): the ten Police case portraits and their
+case information must also be group publications, linked to the existing records.
+Meta Social Media has ten synthetic searchable profiles with three private
+references each, plus one ordinary image-and-text publication for each of its
+three access accounts. Use their separate avatars for these introductions;
+never publish biometric references. This supersedes the earlier empty-gallery
+and record-only instructions. Initialize these additions once and preserve edits,
+deletions, memberships and existing consent gates. Do not modify biometric code.
