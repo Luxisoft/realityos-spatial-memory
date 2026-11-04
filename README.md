@@ -26,7 +26,72 @@ Android app for saving photos, videos and records in groups and searching eviden
 
 ## 1. Start
 
-Download and extract the [repository](https://github.com/Luxisoft/realityos-spatial-memory/archive/refs/heads/main.zip), start Docker and run from the project folder:
+Download and extract the [repository](https://github.com/Luxisoft/realityos-spatial-memory/archive/refs/heads/main.zip). Open the project folder.
+
+<a id="deploy-muse"></a>
+
+<details>
+<summary><strong>Muse · install everything on localhost (copy prompt)</strong></summary>
+
+Paste this prompt into a **Muse session with terminal access to your computer**:
+
+```text
+You are Muse, my installation agent. Install RealityOS and leave it running on
+localhost on this computer. Execute the work through verification; respect the
+session permissions and request my involvement when necessary.
+
+1. Read AGENTS.md, MUSE.md, docs/en/README.md, the scripts in scripts/local/ and
+   infrastructure/docker-compose.local.yml. Work on this checkout and the
+   realityos-local Docker project. Preserve my changes, credentials and data;
+   leave other services and remote servers intact.
+
+2. Detect Windows x64/PowerShell or Linux x64/Bash. Prepare missing dependencies
+   and check local Docker, Linux containers, Compose, at least 4 CPU cores,
+   8 GiB RAM and 25 GiB free Docker storage. Use port 8080; if occupied, identify
+   the process and explain the conflict before stopping another service.
+   On Windows, verify Docker Desktop with WSL2. If system permission or a reboot
+   is needed, explain the step and continue after it is completed.
+
+3. If .env.local is missing, create it from .env.local.example. Ask me to enter
+   my Meta MODEL_API_KEY in that private file or my local terminal, never in
+   chat. Do not expose keys or copy production credentials. The launcher
+   generates internal secrets. Preserve existing local configuration.
+
+4. Run the appropriate launcher from the repository root:
+   Windows: powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\local\Start-RealityOS.ps1
+   Linux: bash scripts/local/start.sh
+   Wait for PostgreSQL, Redis, API and worker; inspect errors and fix their cause.
+   Use the existing initialization for three groups and nine accounts. Preserve
+   edits and deletions on restart, along with permissions and consent.
+
+5. Prepare JDK 21 LTS, Android SDK 36 and Platform Tools. On Windows, check user
+   and system JAVA_HOME: the user value takes precedence. Build from android/
+   with the Gradle Wrapper for your OS and these arguments:
+   -PlocalDevelopment=true -PrealityosApiBaseUrl=http://localhost:8080/v1 :app:assembleDebug
+   Check that REALITYOS_API_BASE_URL does not override this local URL.
+   Keep the APK at android/app/build/outputs/apk/debug/app-debug.apk.
+
+6. Check adb devices. On the selected Android 12+ phone or emulator, run
+   adb reverse tcp:8080 tcp:8080 and install the APK with adb install -r. If
+   multiple devices are connected, ask me to choose one and use adb -s with its
+   serial. If connection or device authorization is missing, explain the pending
+   step. Verify the local account selector and installed offline ES/EN voices
+   when device access is available.
+
+7. Run Test-RealityOS.ps1 with PowerShell or bash scripts/local/test.sh.
+   Check http://localhost:8080/health/ready, /docs, /v1/openapi.json and
+   /v1/auth/local-accounts. Verify sign-in and an evidence query with existing
+   data; wait for indexing or report its actual error. Distinguish model
+   availability from an AI query that was actually executed.
+
+8. Report the local URL, APK path, status of all four services, start/stop
+   commands and completed checks. State any pending device or provider
+   validation. Leave the installation running.
+```
+
+</details>
+
+To start manually, open Docker and run from the project folder:
 
 **Windows — PowerShell**
 

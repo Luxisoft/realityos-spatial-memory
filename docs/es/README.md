@@ -24,7 +24,71 @@ App Android para guardar fotos, videos y expedientes en grupos y consultar evide
 
 ## 1. Iniciar
 
-Descarga y extrae el [repositorio](https://github.com/Luxisoft/realityos-spatial-memory/archive/refs/heads/main.zip), abre Docker y ejecuta desde la carpeta del proyecto:
+Descarga y extrae el [repositorio](https://github.com/Luxisoft/realityos-spatial-memory/archive/refs/heads/main.zip). Abre la carpeta del proyecto.
+
+<a id="deploy-muse"></a>
+
+<details>
+<summary><strong>Muse · instalar todo en localhost (copiar prompt)</strong></summary>
+
+Pega este prompt en una sesión de **Muse con acceso a la terminal de tu computadora**:
+
+```text
+Eres Muse, mi agente de instalación. Instala y deja funcionando RealityOS en
+localhost en esta computadora. Ejecuta el trabajo hasta verificar el resultado;
+respeta los permisos de la sesión y solicita mi intervención cuando sea necesaria.
+
+1. Lee AGENTS.md, MUSE.md, docs/es/README.md, los scripts de scripts/local/ y
+   infrastructure/docker-compose.local.yml. Trabaja sobre este checkout y el
+   proyecto Docker realityos-local. Conserva mis cambios, credenciales y datos;
+   mantén intactos los otros servicios y los servidores remotos.
+
+2. Detecta Windows x64/PowerShell o Linux x64/Bash. Prepara las dependencias que
+   falten y comprueba Docker local, contenedores Linux, Compose, al menos 4 CPU,
+   8 GiB de RAM y 25 GiB libres para Docker. Usa el puerto 8080; si está ocupado,
+   identifica el proceso y explícame el conflicto antes de detener otro servicio.
+   En Windows, verifica Docker Desktop con WSL2. Si se necesita un permiso o
+   reinicio del sistema, indícalo y continúa después de completarlo.
+
+3. Si falta .env.local, créalo desde .env.local.example. Pídeme introducir mi
+   MODEL_API_KEY de Meta en ese archivo privado o en mi terminal local; nunca en
+   el chat. No muestres claves ni copies credenciales productivas. El instalador
+   genera los secretos internos. Conserva la configuración local existente.
+
+4. Ejecuta desde la raíz el instalador correspondiente:
+   Windows: powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\local\Start-RealityOS.ps1
+   Linux: bash scripts/local/start.sh
+   Espera a PostgreSQL, Redis, API y worker; revisa los errores y corrige su causa.
+   Usa la preparación existente de los tres grupos y nueve cuentas. Conserva
+   ediciones y eliminaciones al reiniciar, así como permisos y consentimiento.
+
+5. Prepara JDK 21 LTS, Android SDK 36 y Platform Tools. En Windows revisa
+   JAVA_HOME de usuario y sistema: el de usuario tiene prioridad. Compila desde
+   android/ con el Gradle Wrapper de tu sistema y estos argumentos:
+   -PlocalDevelopment=true -PrealityosApiBaseUrl=http://localhost:8080/v1 :app:assembleDebug
+   Comprueba que REALITYOS_API_BASE_URL no sobrescriba esa URL local.
+   Conserva el APK en android/app/build/outputs/apk/debug/app-debug.apk.
+
+6. Comprueba adb devices. En el teléfono o emulador Android 12+ elegido, ejecuta
+   adb reverse tcp:8080 tcp:8080 e instala el APK con adb install -r. Si hay varios
+   dispositivos, pide elegir uno y usa adb -s con su identificador. Si falta
+   conectar o autorizar el dispositivo, indícame el paso pendiente. Verifica el
+   selector local y las voces ES/EN instaladas sin conexión cuando tengas acceso.
+
+7. Ejecuta Test-RealityOS.ps1 con PowerShell o bash scripts/local/test.sh.
+   Comprueba http://localhost:8080/health/ready, /docs, /v1/openapi.json y
+   /v1/auth/local-accounts. Verifica acceso y una consulta de evidencia con los
+   datos existentes; espera a la indexación o informa su error real. Distingue
+   disponibilidad de modelos de una consulta IA efectivamente ejecutada.
+
+8. Entrega la URL local, ruta del APK, estado de los cuatro servicios, comandos
+   para iniciar/detener y comprobaciones realizadas. Señala cualquier validación
+   de dispositivo o proveedor pendiente. Deja la instalación funcionando.
+```
+
+</details>
+
+Para iniciar manualmente, abre Docker y ejecuta desde la carpeta del proyecto:
 
 **Windows — PowerShell**
 
