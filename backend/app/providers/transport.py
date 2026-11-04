@@ -32,6 +32,7 @@ def failure(client, response, phase):
 def request_json(client, method, path, **kwargs):
     extra = kwargs.pop("headers", {})
     phase = kwargs.pop("_phase", None) or kwargs.get("json", {}).get("model", "request")
+    explicit_timeout = kwargs.pop("timeout", None)
     positions = upload_positions(kwargs)
     last = None
     submitted = False
@@ -48,7 +49,7 @@ def request_json(client, method, path, **kwargs):
                     method,
                     f"{route.base_url}/{path.lstrip('/')}",
                     headers=route.request_headers(extra),
-                    timeout=client.settings.meta_timeout_seconds,
+                    timeout=explicit_timeout or client.settings.meta_timeout_seconds,
                     **kwargs,
                 )
                 if response.status_code < 400:
@@ -60,7 +61,11 @@ def request_json(client, method, path, **kwargs):
                 if not last.retryable:
                     raise last
             except httpx.HTTPError as exc:
-                last = MetaProviderError("Meta connection failed.", phase=phase, retryable=True)
+                last = MetaProviderError(
+                    f"Meta connection failed ({type(exc).__name__}).",
+                    phase=phase,
+                    retryable=True,
+                )
                 last.__cause__ = exc
                 if fallback:
                     fallback_log(route, type(exc).__name__)

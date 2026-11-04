@@ -87,7 +87,9 @@ class LiveMetaModelClient(MetaModelClient):
     def _data_url(image: bytes, mime_type: str) -> str:
         return f"data:{mime_type};base64,{base64.b64encode(image).decode('ascii')}"
 
-    def analyze_image(self, image: bytes, mime_type: str, context: str = "") -> ImageAnalysis:
+    def analyze_image(
+        self, image: bytes, mime_type: str, context: str = "", *, timeout: float | None = None
+    ) -> ImageAnalysis:
         instruction = (
             "Inspect this workspace image. Return only JSON with a detections array. "
             "Every human-readable detection field (label, category, spatial_description, "
@@ -118,7 +120,9 @@ class LiveMetaModelClient(MetaModelClient):
                 }
             ],
         }
-        payload = self._request("POST", "responses", json=body, _phase="detection").json()
+        payload = self._request(
+            "POST", "responses", json=body, _phase="detection", timeout=timeout
+        ).json()
         try:
             decoded = json.loads(self._output_text(payload))
             detections = [MetaDetection.model_validate(item) for item in decoded["detections"]]

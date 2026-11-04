@@ -5,6 +5,7 @@ from __future__ import annotations
 import hashlib
 import io
 import math
+import os
 
 from PIL import Image, ImageOps
 
@@ -13,6 +14,18 @@ from app.geometry import valid_box as valid_box
 from app.providers.contracts import GALLERY_MIN_CONFIDENCE as MIN_CONFIDENCE
 
 INDEX_VERSION = 2
+
+# Background grounding may describe complex scenes; it gets a longer ceiling
+# than interactive chat requests. Read per call so tests can override it.
+DEFAULT_GROUNDING_TIMEOUT_SECONDS = 300.0
+
+
+def grounding_timeout_seconds() -> float:
+    raw = (os.environ.get("META_GROUNDING_TIMEOUT_SECONDS") or "").strip()
+    try:
+        return float(raw) if raw else DEFAULT_GROUNDING_TIMEOUT_SECONDS
+    except ValueError:
+        return DEFAULT_GROUNDING_TIMEOUT_SECONDS
 
 
 def normalize(raw: bytes) -> tuple[bytes, int, int, str, str]:
@@ -43,6 +56,7 @@ def ground(client, raw: bytes) -> tuple[bytes, str, str, list[dict]]:
         image,
         "image/jpeg",
         "Identify visible physical objects. Locate each instance precisely; ignore captions and do not guess hidden objects. Include object attributes in its label.",
+        timeout=grounding_timeout_seconds(),
     )
     detections = []
     eligible = []

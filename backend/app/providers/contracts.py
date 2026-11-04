@@ -94,7 +94,9 @@ class VideoTrackingResult:
 
 class MetaModelClient(ABC):
     @abstractmethod
-    def analyze_image(self, image: bytes, mime_type: str, context: str = "") -> ImageAnalysis: ...
+    def analyze_image(
+        self, image: bytes, mime_type: str, context: str = "", *, timeout: float | None = None
+    ) -> ImageAnalysis: ...
 
     @abstractmethod
     def segment(

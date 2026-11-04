@@ -40,6 +40,13 @@ def frames(db, asset):
                     continue
                 pattern = str(Path(directory) / f"{mode}-%04d.jpg")
                 escaped = expression.replace(",", r"\,")
+                # Bound frame size so uploads and model inference stay within
+                # the detection timeout; boxes are normalized so grounding
+                # stays valid at any resolution.
+                filters = (
+                    f"setpts=PTS-STARTPTS,select={escaped},"
+                    r"scale=min(iw\,1280):-2,showinfo"
+                )
                 command = [
                     "ffmpeg",
                     "-hide_banner",
@@ -48,7 +55,7 @@ def frames(db, asset):
                     "-i",
                     str(source),
                     "-vf",
-                    f"setpts=PTS-STARTPTS,select={escaped},showinfo",
+                    filters,
                     "-fps_mode",
                     "vfr",
                     "-frames:v",

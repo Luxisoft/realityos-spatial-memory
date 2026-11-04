@@ -47,7 +47,9 @@ class MockMetaModelClient(MetaModelClient):
             for c in candidates
         ]
 
-    def analyze_image(self, image: bytes, mime_type: str, context: str = "") -> ImageAnalysis:
+    def analyze_image(
+        self, image: bytes, mime_type: str, context: str = "", *, timeout: float | None = None
+    ) -> ImageAnalysis:
         hint = context.casefold()
         catalog = [
             ("yellow drill", "power tool", 0.96),
