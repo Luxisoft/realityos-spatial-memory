@@ -151,18 +151,12 @@ read -r -p 'Connection IP:port from phone: ' connection_address
 /c/platform-tools/adb.exe devices
 ```
 
-4. Copy the full identifier from the first column of `adb devices`, without the word `device`. Run this line and enter it when prompted:
+4. Leave **exactly one device connected** in `adb devices` and check that its status is `device`. Disconnect other phones and close emulators. From the project root, copy this entire block to install and open the app; ADB selects the connected device automatically:
 
 ```bash
-read -r -p 'Connected device identifier: ' phone_address
-```
-
-In the same terminal, install and open the app:
-
-```bash
-/c/platform-tools/adb.exe -s "$phone_address" reverse tcp:8080 tcp:8080 &&
-/c/platform-tools/adb.exe -s "$phone_address" install -r android/app/build/outputs/apk/debug/app-debug.apk &&
-/c/platform-tools/adb.exe -s "$phone_address" shell am start -n com.luxisoft.realityos.local/com.luxisoft.realityos.MainActivity
+/c/platform-tools/adb.exe reverse tcp:8080 tcp:8080 &&
+/c/platform-tools/adb.exe install -r android/app/build/outputs/apk/debug/app-debug.apk &&
+/c/platform-tools/adb.exe shell am start -n com.luxisoft.realityos.local/com.luxisoft.realityos.MainActivity
 ```
 
 Keep the wireless connection active to use the backend. If it disconnects or you open another terminal, repeat steps 3–4 with the current address; pairing is not needed again while the computer remains saved. If the connection times out, check that the network allows devices to communicate; guest networks may block this. [Official ADB reference](https://developer.android.com/tools/adb#connect-to-a-device-over-wi-fi).

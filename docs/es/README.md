@@ -151,18 +151,12 @@ read -r -p 'Connection IP:port from phone: ' connection_address
 /c/platform-tools/adb.exe devices
 ```
 
-4. Copia el identificador completo de la primera columna de `adb devices`, sin la palabra `device`. Ejecuta esta línea e introdúcelo cuando lo pida:
+4. Deja **un solo dispositivo conectado** en `adb devices` y comprueba que su estado sea `device`. Desconecta otros teléfonos y cierra los emuladores. Desde la raíz del proyecto, copia este bloque completo para instalar y abrir la app; ADB selecciona el dispositivo conectado automáticamente:
 
 ```bash
-read -r -p 'Connected device identifier: ' phone_address
-```
-
-En la misma terminal, instala y abre la app:
-
-```bash
-/c/platform-tools/adb.exe -s "$phone_address" reverse tcp:8080 tcp:8080 &&
-/c/platform-tools/adb.exe -s "$phone_address" install -r android/app/build/outputs/apk/debug/app-debug.apk &&
-/c/platform-tools/adb.exe -s "$phone_address" shell am start -n com.luxisoft.realityos.local/com.luxisoft.realityos.MainActivity
+/c/platform-tools/adb.exe reverse tcp:8080 tcp:8080 &&
+/c/platform-tools/adb.exe install -r android/app/build/outputs/apk/debug/app-debug.apk &&
+/c/platform-tools/adb.exe shell am start -n com.luxisoft.realityos.local/com.luxisoft.realityos.MainActivity
 ```
 
 Mantén la conexión inalámbrica activa para usar el backend. Si se desconecta o abres otra terminal, repite los pasos 3–4 con la dirección actual; no hace falta vincular de nuevo mientras el computador siga guardado. Si la conexión se agota, comprueba que la red permita comunicación entre dispositivos; las redes de invitados pueden bloquearla. [Referencia oficial de ADB](https://developer.android.com/tools/adb#connect-to-a-device-over-wi-fi).
