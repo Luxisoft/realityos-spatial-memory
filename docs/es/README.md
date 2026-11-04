@@ -76,8 +76,6 @@ Introduce tu clave Meta cuando se solicite. El instalador genera `.env.local`; m
 
 Los comandos de inicio, diagnóstico y parada muestran una barra de progreso en inglés basada en etapas completadas. La consola se limita a resúmenes, advertencias, errores y confirmaciones de éxito; oculta las líneas de descarga de paquetes. Una etapa larga puede mantener el mismo porcentaje mientras trabaja. El 100 % indica que terminó el comando; la indexación en segundo plano puede continuar después.
 
-En Windows, añade `-NoCache` al comando de inicio para reconstruir las dependencias sin reutilizar capas de construcción. Esto no reinicia los datos: probar su primera carga también requiere eliminar los contenedores de `realityos-local` y sus volúmenes `postgres_data`/`redis_data`, lo que borra los datos locales. Conserva `.env.local` para reutilizar tu configuración privada. La barra usa texto sencillo para evitar superposiciones en la terminal de VS Code.
-
 <a id="deploy-muse"></a>
 
 <details>
