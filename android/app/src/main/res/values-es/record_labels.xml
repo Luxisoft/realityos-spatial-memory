@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="record_label_description">Descripción</string>
+    <string name="record_label_reference">Referencia</string>
+    <string name="record_label_status">Estado</string>
+    <string name="record_label_note">Nota</string>
+    <string name="record_label_last_seen_location">Última ubicación observada</string>
+    <string name="record_label_identifier">Identificador</string>
+    <string name="record_label_birth_date">Fecha de nacimiento</string>
+    <string name="record_label_allergies_reviewed_at">Revisión de alergias</string>
+    <string name="record_label_ingredient">Ingrediente</string>
+    <string name="record_label_concentration">Concentración</string>
+    <string name="record_label_state">Estado</string>
+    <string name="record_label_valid_from">Válido desde</string>
+    <string name="record_label_valid_until">Válido hasta</string>
+    <string name="record_label_substance">Sustancia</string>
+    <string name="record_label_person">Persona</string>
+    <string name="record_label_case">Caso</string>
+    <string name="record_label_encounter">Atención</string>
+    <string name="record_label_event">Evento</string>
+    <string name="record_label_object">Objeto</string>
+    <string name="record_label_prescription">Prescripción</string>
+    <string name="record_label_allergy">Alergia</string>
+    <string name="record_label_administration">Administración</string>
+</resources>

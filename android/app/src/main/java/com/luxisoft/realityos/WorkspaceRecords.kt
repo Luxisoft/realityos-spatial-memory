@@ -55,12 +55,12 @@ private fun WorkspaceRecordsContent(workspaceId: String, canWrite: Boolean, onBa
     val openedAttachment = attachment
     if (openedAttachment != null) {
         MediaViewerScreen(
-            title = selected?.optString("title").orEmpty(),
+            title = selected?.storedText("title").orEmpty(),
             mediaUrl = profileMediaUrl(openedAttachment.getString("url")),
             thumbnailUrl = "",
             mimeType = openedAttachment.optString("mime_type"),
             authToken = SocialSession.token,
-            noteText = selected?.optJSONObject("data")?.optString("note").orEmpty(),
+            noteText = selected?.storedObject("data")?.optString("note").orEmpty(),
             noteSource = "text",
             metaLines = listOf(selected?.optString("occurred_at").orEmpty()),
             onClose = { attachment = null }
@@ -132,16 +132,15 @@ private fun WorkspaceRecordsContent(workspaceId: String, canWrite: Boolean, onBa
             rows.forEach { row ->
                 OutlinedButton(onClick = { open(row.getString("id")) }, enabled = !busy, modifier = Modifier.fillMaxWidth()) {
                     Column(Modifier.fillMaxWidth()) {
-                        Text(row.getString("title"))
-                        Text(row.getString("external_id") + " · " + row.getString("kind"), style = MaterialTheme.typography.bodySmall)
-                        if (row.optBoolean("simulated")) Text(stringResource(R.string.records_simulated), style = MaterialTheme.typography.labelSmall)
+                        Text(row.storedText("title"))
+                        Text(row.getString("external_id") + " · " + recordFieldLabel(row.getString("kind")), style = MaterialTheme.typography.bodySmall)
                         if (row.optString("kind") == "person" && row.optBoolean("biometric_authorized")) Text(stringResource(R.string.records_face_authorized), style = MaterialTheme.typography.labelSmall)
                     }
                 }
             }
             if (hasMore) OutlinedButton(onClick = { offset += 50 }, enabled = !busy) { Text(stringResource(R.string.records_more)) }
         } else {
-            Text(item.getString("title"), style = MaterialTheme.typography.titleLarge)
+            Text(item.storedText("title"), style = MaterialTheme.typography.titleLarge)
             Text(item.getString("external_id") + " · v" + item.getInt("version"))
             Text(item.getString("occurred_at"), style = MaterialTheme.typography.bodySmall)
             if (item.optString("kind") == "person") {
@@ -150,13 +149,13 @@ private fun WorkspaceRecordsContent(workspaceId: String, canWrite: Boolean, onBa
                     Text(stringResource(R.string.records_face_candidate), style = MaterialTheme.typography.bodySmall)
                 }
             }
-            val data = item.optJSONObject("data") ?: JSONObject()
-            data.keys().forEach { key -> Text("$key: ${data.opt(key)}") }
+            val data = item.storedObject("data")
+            data.keys().forEach { key -> Text("${recordFieldLabel(key)}: ${data.opt(key)}") }
             Text(stringResource(R.string.records_related), style = MaterialTheme.typography.titleMedium)
             val related = item.optJSONArray("related") ?: JSONArray()
             (0 until related.length()).forEach { i ->
                 val row = related.getJSONObject(i)
-                TextButton(onClick = { open(row.getString("id")) }, enabled = !busy) { Text(row.getString("title")) }
+                TextButton(onClick = { open(row.getString("id")) }, enabled = !busy) { Text(row.storedText("title")) }
             }
             if (item.optString("kind") == "person") key(item.getString("id")) { MedicationCheckForm(workspaceId, item) }
             Text(stringResource(R.string.records_timeline), style = MaterialTheme.typography.titleMedium)
@@ -200,7 +199,7 @@ private fun WorkspaceRecordsContent(workspaceId: String, canWrite: Boolean, onBa
                 if (file.optString("mime_type").startsWith("video/")) {
                     OutlinedButton(onClick = { attachment = file }) { Text(stringResource(R.string.records_video)) }
                 } else {
-                    DatabaseImage(model = profileImageRequest(androidx.compose.ui.platform.LocalContext.current, file.getString("url")), contentDescription = item.getString("title"), modifier = Modifier.fillMaxWidth().height(240.dp).clickable { attachment = file })
+                    DatabaseImage(model = profileImageRequest(androidx.compose.ui.platform.LocalContext.current, file.getString("url")), contentDescription = item.storedText("title"), modifier = Modifier.fillMaxWidth().height(240.dp).clickable { attachment = file })
                     if (item.optString("kind") == "person" && canWrite) {
                         val needsBasis = !item.optBoolean("biometric_authorized")
                         OutlinedButton(enabled = !busy && (!needsBasis || biometricBasis.isNotBlank()), onClick = {

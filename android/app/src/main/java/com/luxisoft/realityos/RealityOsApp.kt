@@ -30,11 +30,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.facebook.login.LoginManager
 import com.luxisoft.realityos.host.*
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
 internal enum class HostDestination {
     GALLERY,
@@ -213,7 +210,7 @@ private fun RealityHostShell(
 
     ModalNavigationDrawer(
         drawerState = drawerState,
-        gesturesEnabled = drawerState.isOpen || (!previewControlsOpen && !mediaViewerOpen && !profileEditOpen && !groupAdminOpen && selected == HostDestination.GALLERY),
+        gesturesEnabled = drawerState.isOpen,
         drawerContent = {
             RealityDrawer(
                 experienceStore = experienceStore,
@@ -229,16 +226,9 @@ private fun RealityHostShell(
                 },
                 onLogout = {
                     viewModel.cancelPhoneCapture()
-                    val identity = SocialSession.identity
                     scope.launch {
-                        withContext(Dispatchers.IO) {
-                            runCatching { SocialSession.request("auth/logout", org.json.JSONObject(), identity) }
-                        }
-                        if (SocialSession.isCurrent(identity)) {
-                            SocialSession.clearIfCurrent(identity)
-                            LoginManager.getInstance().logOut()
-                        }
                         drawerState.close()
+                        SocialSession.signOut()
                     }
                 }
             )

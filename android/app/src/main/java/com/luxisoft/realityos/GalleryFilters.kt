@@ -60,16 +60,23 @@ internal fun GalleryFilterButton(
         options = null
         try {
             options = fetchOptions(bar.selectedId)
-        } catch (cancelled: CancellationException) { throw cancelled }
-        catch (failure: Exception) { error = failure.message.orEmpty() }
-        finally { loading = false }
+        } catch (cancelled: CancellationException) {
+            throw cancelled
+        } catch (failure: Exception) {
+            error = failure.message.orEmpty()
+        } finally {
+            loading = false
+        }
     }
     fun optionsFor(key: String): List<JSONObject> = storageRows(options?.optJSONArray(key) ?: JSONArray()).map { item ->
-        if (bar.selectedId == null && item.optString("workspace_name").isNotBlank()) JSONObject(item.toString()).put("name", item.optString("name") + " · " + item.optString("workspace_name")) else item
+        if (bar.selectedId == null && item.optString("workspace_name").isNotBlank()) JSONObject(item.toString()).apply { remove("display_text") }.put("name", item.storedText("name") + " · " + item.optString("workspace_name")) else item
     }
     val config = LocalConfiguration.current
     Box {
-        IconButton(onClick = { draft = bar.filters; open = true }, modifier = Modifier.testTag("gallery-filter")) {
+        IconButton(onClick = {
+            draft = bar.filters
+            open = true
+        }, modifier = Modifier.testTag("gallery-filter")) {
             Icon(Icons.Default.FilterList, localizedText(R.string.gallery_filters), tint = if (bar.filters.active) MaterialTheme.colorScheme.primary else LocalContentColor.current)
         }
         DropdownMenu(expanded = open, onDismissRequest = { open = false }, modifier = Modifier.widthIn(max = (config.screenWidthDp - 24).dp).heightIn(max = (config.screenHeightDp * .8f).dp)) {
@@ -88,8 +95,14 @@ internal fun GalleryFilterButton(
                     TextButton(onClick = { retry++ }) { Text(localizedText(R.string.ui_retry)) }
                 }
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                    TextButton(onClick = { bar.onFilters(GalleryFilterSelection()); open = false }) { Text(localizedText(R.string.gallery_clear)) }
-                    Button(enabled = draft.valid && !loading && error.isBlank(), onClick = { bar.onFilters(draft); open = false }) { Text(localizedText(R.string.gallery_apply)) }
+                    TextButton(onClick = {
+                        bar.onFilters(GalleryFilterSelection())
+                        open = false
+                    }) { Text(localizedText(R.string.gallery_clear)) }
+                    Button(enabled = draft.valid && !loading && error.isBlank(), onClick = {
+                        bar.onFilters(draft)
+                        open = false
+                    }) { Text(localizedText(R.string.gallery_apply)) }
                 }
             }
         }
@@ -103,8 +116,16 @@ private fun GalleryDateField(label: String, value: LocalDate?, onChange: (LocalD
     OutlinedButton(onClick = { open = true }, modifier = Modifier.fillMaxWidth()) { Text(label + ": " + (value?.toString() ?: localizedText(R.string.gallery_any_date))) }
     if (open) {
         val picker = rememberDatePickerState(initialSelectedDateMillis = value?.atStartOfDay(ZoneOffset.UTC)?.toInstant()?.toEpochMilli())
-        DatePickerDialog(onDismissRequest = { open = false }, confirmButton = { TextButton(onClick = { onChange(picker.selectedDateMillis?.let { Instant.ofEpochMilli(it).atZone(ZoneOffset.UTC).toLocalDate() }); open = false }) { Text(localizedText(R.string.ui_accept)) } }, dismissButton = {
-            TextButton(onClick = { onChange(null); open = false }) { Text(localizedText(R.string.gallery_clear)) }
+        DatePickerDialog(onDismissRequest = { open = false }, confirmButton = {
+            TextButton(onClick = {
+                onChange(picker.selectedDateMillis?.let { Instant.ofEpochMilli(it).atZone(ZoneOffset.UTC).toLocalDate() })
+                open = false
+            }) { Text(localizedText(R.string.ui_accept)) }
+        }, dismissButton = {
+            TextButton(onClick = {
+                onChange(null)
+                open = false
+            }) { Text(localizedText(R.string.gallery_clear)) }
         }) { DatePicker(picker) }
     }
 }

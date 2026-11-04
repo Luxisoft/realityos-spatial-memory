@@ -52,6 +52,7 @@ from app.security import (
     hash_device_credential,
     verify_password,
 )
+from app.stored_display import display_text
 
 logger = logging.getLogger(__name__)
 
@@ -256,6 +257,7 @@ async def list_workspaces(user: User = Depends(get_current_user), db: Session = 
             id=workspace.id,
             name=workspace.name,
             description=workspace.description,
+            display_text=display_text(workspace),
             created_at=workspace.created_at,
             role=role.value,
             created_by_me=workspace.created_by_id == user.id,
@@ -287,6 +289,7 @@ async def create_workspace(
         id=workspace.id,
         name=workspace.name,
         description=workspace.description,
+        display_text=display_text(workspace),
         created_at=workspace.created_at,
         role=Role.ADMIN.value,
         created_by_me=True,

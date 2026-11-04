@@ -30,6 +30,7 @@ from app.social_features.models import (
 )
 from app.social_features.publication_visibility import publication_content
 from app.social_features.schemas import ProfileSearchRequest, ProfileUpdate
+from app.stored_display import display_text
 
 """Facebook identities and explicitly shared audiovisual publications."""
 
@@ -104,6 +105,7 @@ def _public_profile_payload(target: User, db: Session) -> dict:
             else None
         ),
         "headline": custom.headline if custom else "",
+        "display_text": display_text(custom) if custom else {},
         "biography": custom.biography if custom else "",
         "phone": custom.phone if custom else "",
         "website": custom.website if custom else "",

@@ -1,0 +1,3140 @@
+{
+  "version": 1,
+  "groups": [
+    {
+      "id": "09f6bc06-8d36-5e69-a050-6f690fe1168b",
+      "fields": {
+        "name": {
+          "source": "Pacific Ridge Police Department",
+          "en": "Pacific Ridge Police Department",
+          "es": "Pacific Ridge Police Department"
+        },
+        "description": {
+          "source": "Local evaluation · fictional scenario",
+          "en": "Incident review, evidence documentation and coordination between shifts.",
+          "es": "Revisión de incidentes, documentación de evidencias y coordinación entre turnos."
+        }
+      },
+      "terms": [
+        {
+          "kind": "category",
+          "name": "Equipos y accesorios",
+          "fields": {
+            "name": {
+              "source": "Equipos y accesorios",
+              "en": "Equipment and accessories",
+              "es": "Equipos y accesorios"
+            }
+          }
+        },
+        {
+          "kind": "tag",
+          "name": "Cámara",
+          "fields": {
+            "name": {
+              "source": "Cámara",
+              "en": "Camera",
+              "es": "Cámara"
+            }
+          }
+        },
+        {
+          "kind": "tag",
+          "name": "Llaves",
+          "fields": {
+            "name": {
+              "source": "Llaves",
+              "en": "Keys",
+              "es": "Llaves"
+            }
+          }
+        },
+        {
+          "kind": "tag",
+          "name": "Reloj",
+          "fields": {
+            "name": {
+              "source": "Reloj",
+              "en": "Watch",
+              "es": "Reloj"
+            }
+          }
+        },
+        {
+          "kind": "category",
+          "name": "Videovigilancia",
+          "fields": {
+            "name": {
+              "source": "Videovigilancia",
+              "en": "Video surveillance",
+              "es": "Videovigilancia"
+            }
+          }
+        },
+        {
+          "kind": "tag",
+          "name": "Cámara de seguridad",
+          "fields": {
+            "name": {
+              "source": "Cámara de seguridad",
+              "en": "Security camera",
+              "es": "Cámara de seguridad"
+            }
+          }
+        },
+        {
+          "kind": "tag",
+          "name": "Exterior",
+          "fields": {
+            "name": {
+              "source": "Exterior",
+              "en": "Outdoors",
+              "es": "Exterior"
+            }
+          }
+        },
+        {
+          "kind": "category",
+          "name": "Documentación",
+          "fields": {
+            "name": {
+              "source": "Documentación",
+              "en": "Documentation",
+              "es": "Documentación"
+            }
+          }
+        },
+        {
+          "kind": "tag",
+          "name": "Portapapeles",
+          "fields": {
+            "name": {
+              "source": "Portapapeles",
+              "en": "Clipboard",
+              "es": "Portapapeles"
+            }
+          }
+        },
+        {
+          "kind": "tag",
+          "name": "Periódico",
+          "fields": {
+            "name": {
+              "source": "Periódico",
+              "en": "Newspaper",
+              "es": "Periódico"
+            }
+          }
+        },
+        {
+          "kind": "tag",
+          "name": "Escritorio",
+          "fields": {
+            "name": {
+              "source": "Escritorio",
+              "en": "Desk",
+              "es": "Escritorio"
+            }
+          }
+        },
+        {
+          "kind": "tag",
+          "name": "Cuadernos",
+          "fields": {
+            "name": {
+              "source": "Cuadernos",
+              "en": "Notebooks",
+              "es": "Cuadernos"
+            }
+          }
+        },
+        {
+          "kind": "tag",
+          "name": "Documentos",
+          "fields": {
+            "name": {
+              "source": "Documentos",
+              "en": "Documents",
+              "es": "Documentos"
+            }
+          }
+        },
+        {
+          "kind": "tag",
+          "name": "Bolígrafo",
+          "fields": {
+            "name": {
+              "source": "Bolígrafo",
+              "en": "Pen",
+              "es": "Bolígrafo"
+            }
+          }
+        },
+        {
+          "kind": "tag",
+          "name": "Notas adhesivas",
+          "fields": {
+            "name": {
+              "source": "Notas adhesivas",
+              "en": "Sticky notes",
+              "es": "Notas adhesivas"
+            }
+          }
+        },
+        {
+          "kind": "category",
+          "name": "Equipos de seguridad",
+          "fields": {
+            "name": {
+              "source": "Equipos de seguridad",
+              "en": "Security equipment",
+              "es": "Equipos de seguridad"
+            }
+          }
+        },
+        {
+          "kind": "tag",
+          "name": "Chalecos",
+          "fields": {
+            "name": {
+              "source": "Chalecos",
+              "en": "Vests",
+              "es": "Chalecos"
+            }
+          }
+        },
+        {
+          "kind": "tag",
+          "name": "Cascos",
+          "fields": {
+            "name": {
+              "source": "Cascos",
+              "en": "Helmets",
+              "es": "Cascos"
+            }
+          }
+        },
+        {
+          "kind": "tag",
+          "name": "Soporte de cámara",
+          "fields": {
+            "name": {
+              "source": "Soporte de cámara",
+              "en": "Camera mount",
+              "es": "Soporte de cámara"
+            }
+          }
+        },
+        {
+          "kind": "category",
+          "name": "Objetos personales",
+          "fields": {
+            "name": {
+              "source": "Objetos personales",
+              "en": "Personal belongings",
+              "es": "Objetos personales"
+            }
+          }
+        },
+        {
+          "kind": "tag",
+          "name": "Billetera",
+          "fields": {
+            "name": {
+              "source": "Billetera",
+              "en": "Wallet",
+              "es": "Billetera"
+            }
+          }
+        },
+        {
+          "kind": "tag",
+          "name": "Teléfono",
+          "fields": {
+            "name": {
+              "source": "Teléfono",
+              "en": "Phone",
+              "es": "Teléfono"
+            }
+          }
+        },
+        {
+          "kind": "tag",
+          "name": "Taza",
+          "fields": {
+            "name": {
+              "source": "Taza",
+              "en": "Mug",
+              "es": "Taza"
+            }
+          }
+        },
+        {
+          "kind": "tag",
+          "name": "Casco",
+          "fields": {
+            "name": {
+              "source": "Casco",
+              "en": "Helmet",
+              "es": "Casco"
+            }
+          }
+        },
+        {
+          "kind": "tag",
+          "name": "Chaleco",
+          "fields": {
+            "name": {
+              "source": "Chaleco",
+              "en": "Vest",
+              "es": "Chaleco"
+            }
+          }
+        },
+        {
+          "kind": "tag",
+          "name": "Interior",
+          "fields": {
+            "name": {
+              "source": "Interior",
+              "en": "Indoors",
+              "es": "Interior"
+            }
+          }
+        },
+        {
+          "kind": "tag",
+          "name": "Fotografías",
+          "fields": {
+            "name": {
+              "source": "Fotografías",
+              "en": "Photographs",
+              "es": "Fotografías"
+            }
+          }
+        },
+        {
+          "kind": "tag",
+          "name": "Radio portátil",
+          "fields": {
+            "name": {
+              "source": "Radio portátil",
+              "en": "Handheld radio",
+              "es": "Radio portátil"
+            }
+          }
+        },
+        {
+          "kind": "tag",
+          "name": "Protección auditiva",
+          "fields": {
+            "name": {
+              "source": "Protección auditiva",
+              "en": "Hearing protection",
+              "es": "Protección auditiva"
+            }
+          }
+        },
+        {
+          "kind": "category",
+          "name": "Registro de evidencias",
+          "fields": {
+            "name": {
+              "source": "Registro de evidencias",
+              "en": "Evidence documentation",
+              "es": "Registro de evidencias"
+            }
+          }
+        },
+        {
+          "kind": "tag",
+          "name": "Pinzas",
+          "fields": {
+            "name": {
+              "source": "Pinzas",
+              "en": "Forceps",
+              "es": "Pinzas"
+            }
+          }
+        },
+        {
+          "kind": "tag",
+          "name": "Bolsa de evidencias",
+          "fields": {
+            "name": {
+              "source": "Bolsa de evidencias",
+              "en": "Evidence bag",
+              "es": "Bolsa de evidencias"
+            }
+          }
+        },
+        {
+          "kind": "tag",
+          "name": "Cinta delimitadora",
+          "fields": {
+            "name": {
+              "source": "Cinta delimitadora",
+              "en": "Barrier tape",
+              "es": "Cinta delimitadora"
+            }
+          }
+        },
+        {
+          "kind": "tag",
+          "name": "Protección personal",
+          "fields": {
+            "name": {
+              "source": "Protección personal",
+              "en": "Personal protection",
+              "es": "Protección personal"
+            }
+          }
+        }
+      ],
+      "records": [
+        {
+          "id": "86042ca2-a420-508c-bc92-8e15d9bf78e8",
+          "fields": {
+            "title": {
+              "source": "Pacific Ridge Police Department — Caso 1",
+              "en": "Pacific Ridge Police Department — Case 1",
+              "es": "Pacific Ridge Police Department — Caso 1"
+            },
+            "data": {
+              "source": {
+                "description": "Expediente de seguimiento con observaciones y registros relacionados.",
+                "reference": "security-case-1",
+                "status": "open"
+              },
+              "en": {
+                "description": "Follow-up case file with observations and related records.",
+                "reference": "security-case-1",
+                "status": "Open"
+              },
+              "es": {
+                "description": "Expediente de seguimiento con observaciones y registros relacionados.",
+                "reference": "security-case-1",
+                "status": "Abierto"
+              }
+            }
+          }
+        },
+        {
+          "id": "0a44c61e-2f62-55b4-9371-5a573a6e7b71",
+          "fields": {
+            "title": {
+              "source": "Observación de turno 1",
+              "en": "Shift observation 1",
+              "es": "Observación de turno 1"
+            },
+            "data": {
+              "source": {
+                "note": "Linterna amarilla y destornillador rojo vistos en mesa de evidencias.",
+                "last_seen_location": "evidence-desk"
+              },
+              "en": {
+                "note": "Yellow flashlight and red screwdriver last seen on the evidence desk.",
+                "last_seen_location": "Evidence desk"
+              },
+              "es": {
+                "note": "Linterna amarilla y destornillador rojo vistos en mesa de evidencias.",
+                "last_seen_location": "Mesa de evidencias"
+              }
+            }
+          }
+        },
+        {
+          "id": "546ddc2a-3681-5353-8bea-ddd08ad88585",
+          "fields": {
+            "title": {
+              "source": "Linterna amarilla",
+              "en": "Yellow flashlight",
+              "es": "Linterna amarilla"
+            },
+            "data": {
+              "source": {
+                "last_seen_location": "evidence-desk"
+              },
+              "en": {
+                "last_seen_location": "Evidence desk"
+              },
+              "es": {
+                "last_seen_location": "Mesa de evidencias"
+              }
+            }
+          }
+        },
+        {
+          "id": "99a5fbdc-6159-5646-94f7-b3a3082ecfb6",
+          "fields": {
+            "title": {
+              "source": "Pacific Ridge Police Department — Caso 2",
+              "en": "Pacific Ridge Police Department — Case 2",
+              "es": "Pacific Ridge Police Department — Caso 2"
+            },
+            "data": {
+              "source": {
+                "description": "Expediente de seguimiento con observaciones y registros relacionados.",
+                "reference": "security-case-2",
+                "status": "open"
+              },
+              "en": {
+                "description": "Follow-up case file with observations and related records.",
+                "reference": "security-case-2",
+                "status": "Open"
+              },
+              "es": {
+                "description": "Expediente de seguimiento con observaciones y registros relacionados.",
+                "reference": "security-case-2",
+                "status": "Abierto"
+              }
+            }
+          }
+        },
+        {
+          "id": "983cc117-bc78-57b9-87e1-c2cc56affab3",
+          "fields": {
+            "title": {
+              "source": "Observación de turno 2",
+              "en": "Shift observation 2",
+              "es": "Observación de turno 2"
+            },
+            "data": {
+              "source": {
+                "note": "Linterna amarilla y destornillador rojo vistos en mesa de evidencias.",
+                "last_seen_location": "evidence-desk"
+              },
+              "en": {
+                "note": "Yellow flashlight and red screwdriver last seen on the evidence desk.",
+                "last_seen_location": "Evidence desk"
+              },
+              "es": {
+                "note": "Linterna amarilla y destornillador rojo vistos en mesa de evidencias.",
+                "last_seen_location": "Mesa de evidencias"
+              }
+            }
+          }
+        },
+        {
+          "id": "0e8116b0-dc4f-530c-8d48-befa2b08e0f2",
+          "fields": {
+            "title": {
+              "source": "Destornillador rojo",
+              "en": "Red screwdriver",
+              "es": "Destornillador rojo"
+            },
+            "data": {
+              "source": {
+                "last_seen_location": "evidence-desk"
+              },
+              "en": {
+                "last_seen_location": "Evidence desk"
+              },
+              "es": {
+                "last_seen_location": "Mesa de evidencias"
+              }
+            }
+          }
+        },
+        {
+          "id": "5aa2d7d7-cce8-5a82-a903-5f4ab5513aef",
+          "fields": {
+            "title": {
+              "source": "Pacific Ridge Police Department — Caso 3",
+              "en": "Pacific Ridge Police Department — Case 3",
+              "es": "Pacific Ridge Police Department — Caso 3"
+            },
+            "data": {
+              "source": {
+                "description": "Expediente de seguimiento con observaciones y registros relacionados.",
+                "reference": "security-case-3",
+                "status": "open"
+              },
+              "en": {
+                "description": "Follow-up case file with observations and related records.",
+                "reference": "security-case-3",
+                "status": "Open"
+              },
+              "es": {
+                "description": "Expediente de seguimiento con observaciones y registros relacionados.",
+                "reference": "security-case-3",
+                "status": "Abierto"
+              }
+            }
+          }
+        },
+        {
+          "id": "ca91dafc-2e63-51d1-a524-65dcfe3152a1",
+          "fields": {
+            "title": {
+              "source": "Observación de turno 3",
+              "en": "Shift observation 3",
+              "es": "Observación de turno 3"
+            },
+            "data": {
+              "source": {
+                "note": "Linterna amarilla y destornillador rojo vistos en mesa de evidencias.",
+                "last_seen_location": "evidence-desk"
+              },
+              "en": {
+                "note": "Yellow flashlight and red screwdriver last seen on the evidence desk.",
+                "last_seen_location": "Evidence desk"
+              },
+              "es": {
+                "note": "Linterna amarilla y destornillador rojo vistos en mesa de evidencias.",
+                "last_seen_location": "Mesa de evidencias"
+              }
+            }
+          }
+        },
+        {
+          "id": "86ae3e7d-5691-5f4e-b435-903a6ff98cd9",
+          "fields": {
+            "title": {
+              "source": "Carpeta negra",
+              "en": "Black folder",
+              "es": "Carpeta negra"
+            },
+            "data": {
+              "source": {
+                "last_seen_location": "evidence-desk"
+              },
+              "en": {
+                "last_seen_location": "Evidence desk"
+              },
+              "es": {
+                "last_seen_location": "Mesa de evidencias"
+              }
+            }
+          }
+        }
+      ],
+      "publications": [
+        {
+          "id": "9723cbb1-23db-58cd-87bd-a8a925624cc0",
+          "fields": {
+            "caption": {
+              "source": "black and gray camera near brass colored keys",
+              "en": "black and gray camera near brass colored keys",
+              "es": "Cámara negra y gris junto a llaves de color latón"
+            }
+          }
+        },
+        {
+          "id": "7fed9e64-0e13-58f2-8163-c1a8f969d8ff",
+          "fields": {
+            "caption": {
+              "source": "a security camera installed on the outside wall",
+              "en": "a security camera installed on the outside wall",
+              "es": "Cámara de seguridad instalada en una pared exterior"
+            }
+          }
+        },
+        {
+          "id": "faad69ee-e9c0-5928-a3a7-96824cf00c95",
+          "fields": {
+            "caption": {
+              "source": "clipboard and newspaper on white table",
+              "en": "clipboard and newspaper on white table",
+              "es": "Portapapeles y periódico sobre una mesa blanca"
+            }
+          }
+        },
+        {
+          "id": "ebef78bd-749c-5bac-a204-a23ac7d5476a",
+          "fields": {
+            "caption": {
+              "source": "black notebook and paper on the clipboard",
+              "en": "black notebook and paper on the clipboard",
+              "es": "Cuaderno negro y papel en un portapapeles"
+            }
+          }
+        },
+        {
+          "id": "5e03d5ee-9e7a-5c14-a114-099a99c9c89a",
+          "fields": {
+            "caption": {
+              "source": "clipboard with paper beside a black pen",
+              "en": "clipboard with paper beside a black pen",
+              "es": "Portapapeles con papel junto a un bolígrafo negro"
+            }
+          }
+        },
+        {
+          "id": "9b29f9a2-d68e-5bc2-a7ec-519d3b838ddc",
+          "fields": {
+            "caption": {
+              "source": "a clipboard with paper",
+              "en": "a clipboard with paper",
+              "es": "Portapapeles con papel"
+            }
+          }
+        },
+        {
+          "id": "85a415d5-5324-58a7-933d-20a2f0039000",
+          "fields": {
+            "caption": {
+              "source": "yellow safety vests and helmets",
+              "en": "yellow safety vests and helmets",
+              "es": "Chalecos de seguridad amarillos y cascos"
+            }
+          }
+        },
+        {
+          "id": "1d4cd6f0-f215-5e52-b8a2-a423a9a3ab2f",
+          "fields": {
+            "caption": {
+              "source": "a close up shot of a security camera",
+              "en": "a close up shot of a security camera",
+              "es": "Primer plano de una cámara de seguridad"
+            }
+          }
+        },
+        {
+          "id": "173b1bc4-f268-5183-a3cc-86abc76c88ba",
+          "fields": {
+            "caption": {
+              "source": "coffee wallet keys and accessories",
+              "en": "coffee wallet keys and accessories",
+              "es": "Café, billetera, llaves y accesorios"
+            }
+          }
+        },
+        {
+          "id": "93b60eee-4b66-5397-a376-9e8ac47613c8",
+          "fields": {
+            "caption": {
+              "source": "security camera on a building",
+              "en": "security camera on a building",
+              "es": "Cámara de seguridad en un edificio"
+            }
+          }
+        },
+        {
+          "id": "410958f8-b950-516a-b405-7b0469ffd751",
+          "fields": {
+            "caption": {
+              "source": "worker in helmet and vest with documents in hand",
+              "en": "worker in helmet and vest with documents in hand",
+              "es": "Trabajador con casco y chaleco y documentos en la mano"
+            }
+          }
+        },
+        {
+          "id": "587910cc-d30e-5cd0-8e50-b39b833543ed",
+          "fields": {
+            "caption": {
+              "source": "ceiling mounted security camera in indoor setting",
+              "en": "ceiling mounted security camera in indoor setting",
+              "es": "Cámara de seguridad montada en el techo de un interior"
+            }
+          }
+        },
+        {
+          "id": "4512b140-7aa5-539f-8497-bf50b039a4f2",
+          "fields": {
+            "caption": {
+              "source": "Reviewing materials on an investigation desk",
+              "en": "Reviewing materials on an investigation desk",
+              "es": "Revisión de materiales sobre una mesa de investigación"
+            }
+          }
+        },
+        {
+          "id": "e0ec120a-a5f5-5426-9af1-e35238910b4c",
+          "fields": {
+            "caption": {
+              "source": "Close-up communication with a handheld radio",
+              "en": "Close-up communication with a handheld radio",
+              "es": "Comunicación de cerca con una radio portátil"
+            }
+          }
+        },
+        {
+          "id": "f9bad34e-60ba-5559-9928-ac3cf65ff925",
+          "fields": {
+            "caption": {
+              "source": "Collecting a key with tweezers",
+              "en": "Collecting a key with tweezers",
+              "es": "Recogida de una llave con pinzas"
+            }
+          }
+        },
+        {
+          "id": "67778e50-bfe0-5fcb-981e-40f35139119c",
+          "fields": {
+            "caption": {
+              "source": "Photographing a staged evidence scene",
+              "en": "Photographing a staged evidence scene",
+              "es": "Fotografía de una escena de evidencias preparada"
+            }
+          }
+        }
+      ],
+      "profiles": [
+        {
+          "id": "6b70a3aa-0e7b-5234-8245-a923d31bd2ec",
+          "fields": {
+            "headline": {
+              "source": "Investigations supervisor · Pacific Ridge Police Department",
+              "en": "Investigations supervisor · Pacific Ridge Police Department",
+              "es": "Supervisor de investigaciones · Pacific Ridge Police Department"
+            },
+            "biography": {
+              "source": "Coordinates incident review, evidence handovers and field documentation for the investigations team. Twelve years of experience in patrol and investigative support, with a focus on clear records, chain of custody and communication between shifts.",
+              "en": "Coordinates incident review, evidence handovers and field documentation for the investigations team. Twelve years of experience in patrol and investigative support, with a focus on clear records, chain of custody and communication between shifts.",
+              "es": "Coordina la revisión de incidentes, la entrega de evidencias y la documentación de campo del equipo de investigaciones. Cuenta con doce años de experiencia en patrullaje y apoyo investigativo, con énfasis en expedientes claros, cadena de custodia y comunicación entre turnos."
+            },
+            "gender": {
+              "source": "male",
+              "en": "Male",
+              "es": "Masculino"
+            },
+            "social_links": {
+              "source": [
+                {
+                  "label": "Professional profile",
+                  "url": "https://pacific-ridge.example.com/team/alex-rivera"
+                },
+                {
+                  "label": "Work group",
+                  "url": "https://pacific-ridge.example.com/team"
+                }
+              ],
+              "en": [
+                {
+                  "label": "Professional profile",
+                  "url": "https://pacific-ridge.example.com/team/alex-rivera"
+                },
+                {
+                  "label": "Work group",
+                  "url": "https://pacific-ridge.example.com/team"
+                }
+              ],
+              "es": [
+                {
+                  "label": "Perfil profesional",
+                  "url": "https://pacific-ridge.example.com/team/alex-rivera"
+                },
+                {
+                  "label": "Grupo de trabajo",
+                  "url": "https://pacific-ridge.example.com/team"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "id": "002698d6-5b51-5f23-a6b7-8f9ac69767a8",
+          "fields": {
+            "headline": {
+              "source": "Crime scene investigator · Pacific Ridge Police Department",
+              "en": "Crime scene investigator · Pacific Ridge Police Department",
+              "es": "Investigadora de escenas del delito · Pacific Ridge Police Department"
+            },
+            "biography": {
+              "source": "Documents incident scenes, prepares photographic records and coordinates evidence collection with investigators. Specializes in scene organization, traceable observations and consistent handovers between field and laboratory teams.",
+              "en": "Documents incident scenes, prepares photographic records and coordinates evidence collection with investigators. Specializes in scene organization, traceable observations and consistent handovers between field and laboratory teams.",
+              "es": "Documenta las escenas de incidentes, prepara registros fotográficos y coordina la recogida de evidencias con los investigadores. Se especializa en la organización de escenas, observaciones trazables y entregas consistentes entre los equipos de campo y laboratorio."
+            },
+            "gender": {
+              "source": "female",
+              "en": "Female",
+              "es": "Femenino"
+            },
+            "social_links": {
+              "source": [
+                {
+                  "label": "Professional profile",
+                  "url": "https://pacific-ridge.example.com/team/maya-johnson"
+                },
+                {
+                  "label": "Work group",
+                  "url": "https://pacific-ridge.example.com/team"
+                }
+              ],
+              "en": [
+                {
+                  "label": "Professional profile",
+                  "url": "https://pacific-ridge.example.com/team/maya-johnson"
+                },
+                {
+                  "label": "Work group",
+                  "url": "https://pacific-ridge.example.com/team"
+                }
+              ],
+              "es": [
+                {
+                  "label": "Perfil profesional",
+                  "url": "https://pacific-ridge.example.com/team/maya-johnson"
+                },
+                {
+                  "label": "Grupo de trabajo",
+                  "url": "https://pacific-ridge.example.com/team"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "id": "9e1da782-88e0-5d07-b552-c5303c08721c",
+          "fields": {
+            "headline": {
+              "source": "Evidence and records technician · Pacific Ridge Police Department",
+              "en": "Evidence and records technician · Pacific Ridge Police Department",
+              "es": "Técnico de evidencias y expedientes · Pacific Ridge Police Department"
+            },
+            "biography": {
+              "source": "Maintains the evidence inventory, verifies intake records and prepares material for authorized case review. Supports investigators with organized attachments, equipment checks and accurate records of every evidence transfer.",
+              "en": "Maintains the evidence inventory, verifies intake records and prepares material for authorized case review. Supports investigators with organized attachments, equipment checks and accurate records of every evidence transfer.",
+              "es": "Mantiene el inventario de evidencias, verifica los registros de ingreso y prepara material para la revisión autorizada de casos. Apoya a los investigadores con adjuntos organizados, comprobaciones de equipos y registros precisos de cada traslado de evidencias."
+            },
+            "gender": {
+              "source": "male",
+              "en": "Male",
+              "es": "Masculino"
+            },
+            "social_links": {
+              "source": [
+                {
+                  "label": "Professional profile",
+                  "url": "https://pacific-ridge.example.com/team/daniel-kim"
+                },
+                {
+                  "label": "Work group",
+                  "url": "https://pacific-ridge.example.com/team"
+                }
+              ],
+              "en": [
+                {
+                  "label": "Professional profile",
+                  "url": "https://pacific-ridge.example.com/team/daniel-kim"
+                },
+                {
+                  "label": "Work group",
+                  "url": "https://pacific-ridge.example.com/team"
+                }
+              ],
+              "es": [
+                {
+                  "label": "Perfil profesional",
+                  "url": "https://pacific-ridge.example.com/team/daniel-kim"
+                },
+                {
+                  "label": "Grupo de trabajo",
+                  "url": "https://pacific-ridge.example.com/team"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "749f3aad-1543-55d1-9633-03f0cf443a1a",
+      "fields": {
+        "name": {
+          "source": "California Valley Medical Center",
+          "en": "California Valley Medical Center",
+          "es": "California Valley Medical Center"
+        },
+        "description": {
+          "source": "Local evaluation · fictional scenario",
+          "en": "Nursing handovers, care records and patient follow-up.",
+          "es": "Entregas de enfermería, registros de atención y seguimiento de pacientes."
+        }
+      },
+      "terms": [
+        {
+          "kind": "category",
+          "name": "Insumos médicos",
+          "fields": {
+            "name": {
+              "source": "Insumos médicos",
+              "en": "Medical supplies",
+              "es": "Insumos médicos"
+            }
+          }
+        },
+        {
+          "kind": "tag",
+          "name": "Estanterías",
+          "fields": {
+            "name": {
+              "source": "Estanterías",
+              "en": "Shelves",
+              "es": "Estanterías"
+            }
+          }
+        },
+        {
+          "kind": "tag",
+          "name": "Bandejas",
+          "fields": {
+            "name": {
+              "source": "Bandejas",
+              "en": "Trays",
+              "es": "Bandejas"
+            }
+          }
+        },
+        {
+          "kind": "tag",
+          "name": "Recipientes",
+          "fields": {
+            "name": {
+              "source": "Recipientes",
+              "en": "Containers",
+              "es": "Recipientes"
+            }
+          }
+        },
+        {
+          "kind": "tag",
+          "name": "Gasas",
+          "fields": {
+            "name": {
+              "source": "Gasas",
+              "en": "Gauze",
+              "es": "Gasas"
+            }
+          }
+        },
+        {
+          "kind": "tag",
+          "name": "Depresores linguales",
+          "fields": {
+            "name": {
+              "source": "Depresores linguales",
+              "en": "Tongue depressors",
+              "es": "Depresores linguales"
+            }
+          }
+        },
+        {
+          "kind": "category",
+          "name": "Equipos clínicos",
+          "fields": {
+            "name": {
+              "source": "Equipos clínicos",
+              "en": "Clinical equipment",
+              "es": "Equipos clínicos"
+            }
+          }
+        },
+        {
+          "kind": "tag",
+          "name": "Balanza",
+          "fields": {
+            "name": {
+              "source": "Balanza",
+              "en": "Scale",
+              "es": "Balanza"
+            }
+          }
+        },
+        {
+          "kind": "category",
+          "name": "Instrumental clínico",
+          "fields": {
+            "name": {
+              "source": "Instrumental clínico",
+              "en": "Clinical instruments",
+              "es": "Instrumental clínico"
+            }
+          }
+        },
+        {
+          "kind": "tag",
+          "name": "Tijeras",
+          "fields": {
+            "name": {
+              "source": "Tijeras",
+              "en": "Scissors",
+              "es": "Tijeras"
+            }
+          }
+        },
+        {
+          "kind": "tag",
+          "name": "Pinzas",
+          "fields": {
+            "name": {
+              "source": "Pinzas",
+              "en": "Forceps",
+              "es": "Pinzas"
+            }
+          }
+        },
+        {
+          "kind": "tag",
+          "name": "Jeringas",
+          "fields": {
+            "name": {
+              "source": "Jeringas",
+              "en": "Syringes",
+              "es": "Jeringas"
+            }
+          }
+        },
+        {
+          "kind": "tag",
+          "name": "Estetoscopio",
+          "fields": {
+            "name": {
+              "source": "Estetoscopio",
+              "en": "Stethoscope",
+              "es": "Estetoscopio"
+            }
+          }
+        },
+        {
+          "kind": "tag",
+          "name": "Cinta métrica",
+          "fields": {
+            "name": {
+              "source": "Cinta métrica",
+              "en": "Tape measure",
+              "es": "Cinta métrica"
+            }
+          }
+        },
+        {
+          "kind": "category",
+          "name": "Espacios clínicos",
+          "fields": {
+            "name": {
+              "source": "Espacios clínicos",
+              "en": "Clinical spaces",
+              "es": "Espacios clínicos"
+            }
+          }
+        },
+        {
+          "kind": "tag",
+          "name": "Camas",
+          "fields": {
+            "name": {
+              "source": "Camas",
+              "en": "Beds",
+              "es": "Camas"
+            }
+          }
+        },
+        {
+          "kind": "tag",
+          "name": "Carro de suministros",
+          "fields": {
+            "name": {
+              "source": "Carro de suministros",
+              "en": "Supply cart",
+              "es": "Carro de suministros"
+            }
+          }
+        },
+        {
+          "kind": "tag",
+          "name": "Mobiliario",
+          "fields": {
+            "name": {
+              "source": "Mobiliario",
+              "en": "Furniture",
+              "es": "Mobiliario"
+            }
+          }
+        },
+        {
+          "kind": "tag",
+          "name": "Lavamanos",
+          "fields": {
+            "name": {
+              "source": "Lavamanos",
+              "en": "Sink",
+              "es": "Lavamanos"
+            }
+          }
+        },
+        {
+          "kind": "tag",
+          "name": "Monitores",
+          "fields": {
+            "name": {
+              "source": "Monitores",
+              "en": "Monitors",
+              "es": "Monitores"
+            }
+          }
+        },
+        {
+          "kind": "tag",
+          "name": "Carro de equipos",
+          "fields": {
+            "name": {
+              "source": "Carro de equipos",
+              "en": "Equipment cart",
+              "es": "Carro de equipos"
+            }
+          }
+        },
+        {
+          "kind": "tag",
+          "name": "Instrumental dental",
+          "fields": {
+            "name": {
+              "source": "Instrumental dental",
+              "en": "Dental instruments",
+              "es": "Instrumental dental"
+            }
+          }
+        },
+        {
+          "kind": "tag",
+          "name": "Guantes",
+          "fields": {
+            "name": {
+              "source": "Guantes",
+              "en": "Gloves",
+              "es": "Guantes"
+            }
+          }
+        },
+        {
+          "kind": "tag",
+          "name": "Instrumental de exploración",
+          "fields": {
+            "name": {
+              "source": "Instrumental de exploración",
+              "en": "Examination instruments",
+              "es": "Instrumental de exploración"
+            }
+          }
+        },
+        {
+          "kind": "tag",
+          "name": "Cajones",
+          "fields": {
+            "name": {
+              "source": "Cajones",
+              "en": "Drawers",
+              "es": "Cajones"
+            }
+          }
+        },
+        {
+          "kind": "tag",
+          "name": "Mesa de instrumental",
+          "fields": {
+            "name": {
+              "source": "Mesa de instrumental",
+              "en": "Instrument table",
+              "es": "Mesa de instrumental"
+            }
+          }
+        },
+        {
+          "kind": "category",
+          "name": "Logística clínica",
+          "fields": {
+            "name": {
+              "source": "Logística clínica",
+              "en": "Clinical logistics",
+              "es": "Logística clínica"
+            }
+          }
+        },
+        {
+          "kind": "tag",
+          "name": "Traslado",
+          "fields": {
+            "name": {
+              "source": "Traslado",
+              "en": "Transport",
+              "es": "Traslado"
+            }
+          }
+        }
+      ],
+      "records": [
+        {
+          "id": "688b9e79-c447-5e40-be26-34e52519da46",
+          "fields": {
+            "title": {
+              "source": "California Valley Medical Center — Caso 1",
+              "en": "California Valley Medical Center — Case 1",
+              "es": "California Valley Medical Center — Caso 1"
+            },
+            "data": {
+              "source": {
+                "description": "Expediente de seguimiento con observaciones y registros relacionados.",
+                "reference": "hospital-case-1",
+                "status": "open"
+              },
+              "en": {
+                "description": "Follow-up case file with observations and related records.",
+                "reference": "hospital-case-1",
+                "status": "Open"
+              },
+              "es": {
+                "description": "Expediente de seguimiento con observaciones y registros relacionados.",
+                "reference": "hospital-case-1",
+                "status": "Abierto"
+              }
+            }
+          }
+        },
+        {
+          "id": "f1bd850d-d6e4-5639-bc10-028947ed7706",
+          "fields": {
+            "title": {
+              "source": "Observación de turno 1",
+              "en": "Shift observation 1",
+              "es": "Observación de turno 1"
+            },
+            "data": {
+              "source": {
+                "note": "Carro de preparación revisado; envase de medicación y hoja de verificación.",
+                "last_seen_location": "medicine-cart"
+              },
+              "en": {
+                "note": "Preparation cart checked; medication container and checklist.",
+                "last_seen_location": "Medication cart"
+              },
+              "es": {
+                "note": "Carro de preparación revisado; envase de medicación y hoja de verificación.",
+                "last_seen_location": "Carro de medicación"
+              }
+            }
+          }
+        },
+        {
+          "id": "14aac29c-8dc0-5e7a-aa66-8a23efe3f6e1",
+          "fields": {
+            "title": {
+              "source": "Carro de medicación",
+              "en": "Medication cart",
+              "es": "Carro de medicación"
+            },
+            "data": {
+              "source": {
+                "last_seen_location": "medicine-cart"
+              },
+              "en": {
+                "last_seen_location": "Medication cart"
+              },
+              "es": {
+                "last_seen_location": "Carro de medicación"
+              }
+            }
+          }
+        },
+        {
+          "id": "88e6f12c-f0ba-5571-9c03-ead740cea457",
+          "fields": {
+            "title": {
+              "source": "California Valley Medical Center — Caso 2",
+              "en": "California Valley Medical Center — Case 2",
+              "es": "California Valley Medical Center — Caso 2"
+            },
+            "data": {
+              "source": {
+                "description": "Expediente de seguimiento con observaciones y registros relacionados.",
+                "reference": "hospital-case-2",
+                "status": "open"
+              },
+              "en": {
+                "description": "Follow-up case file with observations and related records.",
+                "reference": "hospital-case-2",
+                "status": "Open"
+              },
+              "es": {
+                "description": "Expediente de seguimiento con observaciones y registros relacionados.",
+                "reference": "hospital-case-2",
+                "status": "Abierto"
+              }
+            }
+          }
+        },
+        {
+          "id": "334e983a-5092-516c-9889-a1be49b2cb9a",
+          "fields": {
+            "title": {
+              "source": "Observación de turno 2",
+              "en": "Shift observation 2",
+              "es": "Observación de turno 2"
+            },
+            "data": {
+              "source": {
+                "note": "Carro de preparación revisado; envase de medicación y hoja de verificación.",
+                "last_seen_location": "medicine-cart"
+              },
+              "en": {
+                "note": "Preparation cart checked; medication container and checklist.",
+                "last_seen_location": "Medication cart"
+              },
+              "es": {
+                "note": "Carro de preparación revisado; envase de medicación y hoja de verificación.",
+                "last_seen_location": "Carro de medicación"
+              }
+            }
+          }
+        },
+        {
+          "id": "ffc178d1-e849-5797-a4c7-03eaf02e1822",
+          "fields": {
+            "title": {
+              "source": "Bolígrafo azul",
+              "en": "Blue pen",
+              "es": "Bolígrafo azul"
+            },
+            "data": {
+              "source": {
+                "last_seen_location": "medicine-cart"
+              },
+              "en": {
+                "last_seen_location": "Medication cart"
+              },
+              "es": {
+                "last_seen_location": "Carro de medicación"
+              }
+            }
+          }
+        },
+        {
+          "id": "c414e440-7711-578a-adb9-019eaea0310f",
+          "fields": {
+            "title": {
+              "source": "California Valley Medical Center — Caso 3",
+              "en": "California Valley Medical Center — Case 3",
+              "es": "California Valley Medical Center — Caso 3"
+            },
+            "data": {
+              "source": {
+                "description": "Expediente de seguimiento con observaciones y registros relacionados.",
+                "reference": "hospital-case-3",
+                "status": "open"
+              },
+              "en": {
+                "description": "Follow-up case file with observations and related records.",
+                "reference": "hospital-case-3",
+                "status": "Open"
+              },
+              "es": {
+                "description": "Expediente de seguimiento con observaciones y registros relacionados.",
+                "reference": "hospital-case-3",
+                "status": "Abierto"
+              }
+            }
+          }
+        },
+        {
+          "id": "b345c77a-f9b6-5118-bc92-ff3455631a9d",
+          "fields": {
+            "title": {
+              "source": "Observación de turno 3",
+              "en": "Shift observation 3",
+              "es": "Observación de turno 3"
+            },
+            "data": {
+              "source": {
+                "note": "Carro de preparación revisado; envase de medicación y hoja de verificación.",
+                "last_seen_location": "medicine-cart"
+              },
+              "en": {
+                "note": "Preparation cart checked; medication container and checklist.",
+                "last_seen_location": "Medication cart"
+              },
+              "es": {
+                "note": "Carro de preparación revisado; envase de medicación y hoja de verificación.",
+                "last_seen_location": "Carro de medicación"
+              }
+            }
+          }
+        },
+        {
+          "id": "5a9cb47b-aa3a-5dba-835e-b0daccaba2d0",
+          "fields": {
+            "title": {
+              "source": "Guantes desechables",
+              "en": "Disposable gloves",
+              "es": "Guantes desechables"
+            },
+            "data": {
+              "source": {
+                "last_seen_location": "medicine-cart"
+              },
+              "en": {
+                "last_seen_location": "Medication cart"
+              },
+              "es": {
+                "last_seen_location": "Carro de medicación"
+              }
+            }
+          }
+        },
+        {
+          "id": "4f248758-9347-50f6-9f62-0cc8c9cdb1a3",
+          "fields": {
+            "title": {
+              "source": "Ana Solis",
+              "en": "Ana Solis",
+              "es": "Ana Solis"
+            },
+            "data": {
+              "source": {
+                "identifier": "HOSPITAL-001",
+                "birth_date": "1960-03-14",
+                "description": "Información personal y registros de atención relacionados.",
+                "allergies_reviewed_at": "2026-11-02T08:00:00-05:00"
+              },
+              "en": {
+                "identifier": "HOSPITAL-001",
+                "birth_date": "1960-03-14",
+                "description": "Personal information and related care records.",
+                "allergies_reviewed_at": "2026-11-02T08:00:00-05:00"
+              },
+              "es": {
+                "identifier": "HOSPITAL-001",
+                "birth_date": "1960-03-14",
+                "description": "Información personal y registros de atención relacionados.",
+                "allergies_reviewed_at": "2026-11-02T08:00:00-05:00"
+              }
+            }
+          }
+        },
+        {
+          "id": "621a97f8-c37a-5638-8ad0-79f92dd82b89",
+          "fields": {
+            "title": {
+              "source": "Atención de Ana Solis",
+              "en": "Care for Ana Solis",
+              "es": "Atención de Ana Solis"
+            },
+            "data": {
+              "source": {
+                "note": "Sesión de revisión contextual y seguimiento."
+              },
+              "en": {
+                "note": "Context review and follow-up session."
+              },
+              "es": {
+                "note": "Sesión de revisión contextual y seguimiento."
+              }
+            }
+          }
+        },
+        {
+          "id": "d048be67-95c3-55b4-9110-a99747794bba",
+          "fields": {
+            "title": {
+              "source": "Prescripción 1",
+              "en": "Prescription 1",
+              "es": "Prescripción 1"
+            },
+            "data": {
+              "source": {
+                "ingredient": "Medicamento registrado",
+                "concentration": "10 mg",
+                "state": "active",
+                "valid_from": "2026-11-01T00:00:00Z",
+                "valid_until": "2026-11-30T23:59:59Z"
+              },
+              "en": {
+                "ingredient": "Recorded medication",
+                "concentration": "10 mg",
+                "state": "Active",
+                "valid_from": "2026-11-01T00:00:00Z",
+                "valid_until": "2026-11-30T23:59:59Z"
+              },
+              "es": {
+                "ingredient": "Medicamento registrado",
+                "concentration": "10 mg",
+                "state": "Activo",
+                "valid_from": "2026-11-01T00:00:00Z",
+                "valid_until": "2026-11-30T23:59:59Z"
+              }
+            }
+          }
+        },
+        {
+          "id": "e9946400-f2bc-5033-bfee-6fa29aa338e9",
+          "fields": {
+            "title": {
+              "source": "Robert Lane",
+              "en": "Robert Lane",
+              "es": "Robert Lane"
+            },
+            "data": {
+              "source": {
+                "identifier": "HOSPITAL-002",
+                "birth_date": "1969-03-14",
+                "description": "Información personal y registros de atención relacionados.",
+                "allergies_reviewed_at": "2026-11-02T08:00:00-05:00"
+              },
+              "en": {
+                "identifier": "HOSPITAL-002",
+                "birth_date": "1969-03-14",
+                "description": "Personal information and related care records.",
+                "allergies_reviewed_at": "2026-11-02T08:00:00-05:00"
+              },
+              "es": {
+                "identifier": "HOSPITAL-002",
+                "birth_date": "1969-03-14",
+                "description": "Información personal y registros de atención relacionados.",
+                "allergies_reviewed_at": "2026-11-02T08:00:00-05:00"
+              }
+            }
+          }
+        },
+        {
+          "id": "65ec15fd-4973-51ce-ae50-0fe219982985",
+          "fields": {
+            "title": {
+              "source": "Atención de Robert Lane",
+              "en": "Care for Robert Lane",
+              "es": "Atención de Robert Lane"
+            },
+            "data": {
+              "source": {
+                "note": "Sesión de revisión contextual y seguimiento."
+              },
+              "en": {
+                "note": "Context review and follow-up session."
+              },
+              "es": {
+                "note": "Sesión de revisión contextual y seguimiento."
+              }
+            }
+          }
+        },
+        {
+          "id": "69d6a127-0b63-5380-b7ce-fb7bdb46964c",
+          "fields": {
+            "title": {
+              "source": "Prescripción 2",
+              "en": "Prescription 2",
+              "es": "Prescripción 2"
+            },
+            "data": {
+              "source": {
+                "ingredient": "Medicamento registrado",
+                "concentration": "10 mg",
+                "state": "active",
+                "valid_from": "2026-11-01T00:00:00Z",
+                "valid_until": "2026-11-30T23:59:59Z"
+              },
+              "en": {
+                "ingredient": "Recorded medication",
+                "concentration": "10 mg",
+                "state": "Active",
+                "valid_from": "2026-11-01T00:00:00Z",
+                "valid_until": "2026-11-30T23:59:59Z"
+              },
+              "es": {
+                "ingredient": "Medicamento registrado",
+                "concentration": "10 mg",
+                "state": "Activo",
+                "valid_from": "2026-11-01T00:00:00Z",
+                "valid_until": "2026-11-30T23:59:59Z"
+              }
+            }
+          }
+        },
+        {
+          "id": "7d64b769-6908-53c4-8a7f-0f9fe9de6217",
+          "fields": {
+            "title": {
+              "source": "Alerta de alergia",
+              "en": "Allergy alert",
+              "es": "Alerta de alergia"
+            },
+            "data": {
+              "source": {
+                "substance": "Medicamento registrado"
+              },
+              "en": {
+                "substance": "Recorded medication"
+              },
+              "es": {
+                "substance": "Medicamento registrado"
+              }
+            }
+          }
+        },
+        {
+          "id": "b1505b95-5528-5850-ad35-a0cce93c6340",
+          "fields": {
+            "title": {
+              "source": "Fatima Nasser",
+              "en": "Fatima Nasser",
+              "es": "Fatima Nasser"
+            },
+            "data": {
+              "source": {
+                "identifier": "HOSPITAL-003",
+                "birth_date": "1978-03-14",
+                "description": "Información personal y registros de atención relacionados.",
+                "allergies_reviewed_at": "2026-11-02T08:00:00-05:00"
+              },
+              "en": {
+                "identifier": "HOSPITAL-003",
+                "birth_date": "1978-03-14",
+                "description": "Personal information and related care records.",
+                "allergies_reviewed_at": "2026-11-02T08:00:00-05:00"
+              },
+              "es": {
+                "identifier": "HOSPITAL-003",
+                "birth_date": "1978-03-14",
+                "description": "Información personal y registros de atención relacionados.",
+                "allergies_reviewed_at": "2026-11-02T08:00:00-05:00"
+              }
+            }
+          }
+        },
+        {
+          "id": "52fb65f3-08cf-5b5b-81a8-eb1c26487dc9",
+          "fields": {
+            "title": {
+              "source": "Atención de Fatima Nasser",
+              "en": "Care for Fatima Nasser",
+              "es": "Atención de Fatima Nasser"
+            },
+            "data": {
+              "source": {
+                "note": "Sesión de revisión contextual y seguimiento."
+              },
+              "en": {
+                "note": "Context review and follow-up session."
+              },
+              "es": {
+                "note": "Sesión de revisión contextual y seguimiento."
+              }
+            }
+          }
+        },
+        {
+          "id": "8711530b-7ee5-5433-a48e-a14450e60a23",
+          "fields": {
+            "title": {
+              "source": "Prescripción 3",
+              "en": "Prescription 3",
+              "es": "Prescripción 3"
+            },
+            "data": {
+              "source": {
+                "ingredient": "Medicamento registrado",
+                "concentration": "10 mg",
+                "state": "active",
+                "valid_from": "2026-11-01T00:00:00Z",
+                "valid_until": "2026-11-30T23:59:59Z"
+              },
+              "en": {
+                "ingredient": "Recorded medication",
+                "concentration": "10 mg",
+                "state": "Active",
+                "valid_from": "2026-11-01T00:00:00Z",
+                "valid_until": "2026-11-30T23:59:59Z"
+              },
+              "es": {
+                "ingredient": "Medicamento registrado",
+                "concentration": "10 mg",
+                "state": "Activo",
+                "valid_from": "2026-11-01T00:00:00Z",
+                "valid_until": "2026-11-30T23:59:59Z"
+              }
+            }
+          }
+        },
+        {
+          "id": "7549bc37-8270-58e2-839f-dca54d120c41",
+          "fields": {
+            "title": {
+              "source": "Administración previamente registrada",
+              "en": "Previously recorded administration",
+              "es": "Administración previamente registrada"
+            },
+            "data": {
+              "source": {
+                "ingredient": "Medicamento registrado",
+                "concentration": "10 mg"
+              },
+              "en": {
+                "ingredient": "Recorded medication",
+                "concentration": "10 mg"
+              },
+              "es": {
+                "ingredient": "Medicamento registrado",
+                "concentration": "10 mg"
+              }
+            }
+          }
+        }
+      ],
+      "publications": [
+        {
+          "id": "ddb2f22e-be3e-53c3-9856-8b6c33f0c618",
+          "fields": {
+            "caption": {
+              "source": "assorted medical supplies on a stainless tray and shelf",
+              "en": "assorted medical supplies on a stainless tray and shelf",
+              "es": "Insumos médicos variados en una bandeja de acero inoxidable y un estante"
+            }
+          }
+        },
+        {
+          "id": "5b2d8ccd-1473-55f8-80b8-c8e9d7ec45ea",
+          "fields": {
+            "caption": {
+              "source": "close up photo of medical supplies",
+              "en": "close up photo of medical supplies",
+              "es": "Fotografía de cerca de insumos médicos"
+            }
+          }
+        },
+        {
+          "id": "b6bfb2e9-7d7d-5bcf-a76e-3977b2a82ffd",
+          "fields": {
+            "caption": {
+              "source": "photo of medical tools",
+              "en": "photo of medical tools",
+              "es": "Fotografía de instrumental médico"
+            }
+          }
+        },
+        {
+          "id": "7ad7979a-f2dc-50d1-b850-b093a35b5325",
+          "fields": {
+            "caption": {
+              "source": "medical tools on the table",
+              "en": "medical tools on the table",
+              "es": "Instrumental médico sobre la mesa"
+            }
+          }
+        },
+        {
+          "id": "aa328da6-72c1-5c97-a716-8d42ea83ac62",
+          "fields": {
+            "caption": {
+              "source": "stethoscope and tape measure on white surface",
+              "en": "stethoscope and tape measure on white surface",
+              "es": "Estetoscopio y cinta métrica sobre una superficie blanca"
+            }
+          }
+        },
+        {
+          "id": "0787c13b-240a-5dea-88c6-bf74fb22efd0",
+          "fields": {
+            "caption": {
+              "source": "an empty hospital bed",
+              "en": "an empty hospital bed",
+              "es": "Cama de hospital vacía"
+            }
+          }
+        },
+        {
+          "id": "9b16b6fb-5358-5f64-b071-45e5f801a1b4",
+          "fields": {
+            "caption": {
+              "source": "furniture and fixtures in a hospital room",
+              "en": "furniture and fixtures in a hospital room",
+              "es": "Mobiliario e instalaciones en una habitación de hospital"
+            }
+          }
+        },
+        {
+          "id": "033f86b3-fbab-57b0-a222-bc3422de9d55",
+          "fields": {
+            "caption": {
+              "source": "hospital equipment with monitors",
+              "en": "hospital equipment with monitors",
+              "es": "Equipamiento hospitalario con monitores"
+            }
+          }
+        },
+        {
+          "id": "a3999644-600e-55e6-9ccd-d202def3feb4",
+          "fields": {
+            "caption": {
+              "source": "table with prepared syringes and other medical instruments",
+              "en": "table with prepared syringes and other medical instruments",
+              "es": "Mesa con jeringas preparadas y otros instrumentos médicos"
+            }
+          }
+        },
+        {
+          "id": "2ed20376-7167-5c90-9bfb-6c48d63cb8ad",
+          "fields": {
+            "caption": {
+              "source": "set of dental tools spread out on a tray",
+              "en": "set of dental tools spread out on a tray",
+              "es": "Instrumental dental distribuido sobre una bandeja"
+            }
+          }
+        },
+        {
+          "id": "22bd86bf-3d5b-5761-84d8-f8c33d92b67e",
+          "fields": {
+            "caption": {
+              "source": "medical equipment in tray",
+              "en": "medical equipment in tray",
+              "es": "Equipo médico en una bandeja"
+            }
+          }
+        },
+        {
+          "id": "25cfd729-2e51-594a-bca0-2ba3e8b41f64",
+          "fields": {
+            "caption": {
+              "source": "medical syringe on sterile tray in hospital setting",
+              "en": "medical syringe on sterile tray in hospital setting",
+              "es": "Jeringa médica sobre una bandeja estéril en un hospital"
+            }
+          }
+        },
+        {
+          "id": "5fe6823a-e69f-5b77-9d4c-fe619a274978",
+          "fields": {
+            "caption": {
+              "source": "Selecting instruments from a drawer",
+              "en": "Selecting instruments from a drawer",
+              "es": "Selección de instrumentos de un cajón"
+            }
+          }
+        },
+        {
+          "id": "1fa396f5-e86e-5bfa-b1e6-9b6fffed47fa",
+          "fields": {
+            "caption": {
+              "source": "Handling instruments on a surgical tray",
+              "en": "Handling instruments on a surgical tray",
+              "es": "Manipulación de instrumentos en una bandeja quirúrgica"
+            }
+          }
+        },
+        {
+          "id": "f66cbb9f-4c13-5fc1-9d44-7911f765cc7d",
+          "fields": {
+            "caption": {
+              "source": "Transporting supplies along a hallway",
+              "en": "Transporting supplies along a hallway",
+              "es": "Traslado de suministros por un pasillo"
+            }
+          }
+        },
+        {
+          "id": "56a6f690-c7c7-50f3-9297-4404341f26ef",
+          "fields": {
+            "caption": {
+              "source": "Preparing supplies on a medical tray",
+              "en": "Preparing supplies on a medical tray",
+              "es": "Preparación de suministros en una bandeja médica"
+            }
+          }
+        }
+      ],
+      "profiles": [
+        {
+          "id": "484b7800-2745-5aa4-aa0f-3d3ed603acf6",
+          "fields": {
+            "headline": {
+              "source": "Registered nurse and unit coordinator · California Valley Medical Center",
+              "en": "Registered nurse and unit coordinator · California Valley Medical Center",
+              "es": "Enfermera y coordinadora de unidad · California Valley Medical Center"
+            },
+            "biography": {
+              "source": "Coordinates the nursing shift, patient handovers and follow-up documentation. Fifteen years of experience in inpatient care, with an emphasis on organized observations, medication-record verification and clear communication with the care team.",
+              "en": "Coordinates the nursing shift, patient handovers and follow-up documentation. Fifteen years of experience in inpatient care, with an emphasis on organized observations, medication-record verification and clear communication with the care team.",
+              "es": "Coordina el turno de enfermería, las entregas de pacientes y la documentación de seguimiento. Cuenta con quince años de experiencia en hospitalización, con énfasis en observaciones organizadas, verificación de registros de medicación y comunicación clara con el equipo asistencial."
+            },
+            "gender": {
+              "source": "female",
+              "en": "Female",
+              "es": "Femenino"
+            },
+            "social_links": {
+              "source": [
+                {
+                  "label": "Professional profile",
+                  "url": "https://california-valley.example.com/team/elena-marquez"
+                },
+                {
+                  "label": "Work group",
+                  "url": "https://california-valley.example.com/team"
+                }
+              ],
+              "en": [
+                {
+                  "label": "Professional profile",
+                  "url": "https://california-valley.example.com/team/elena-marquez"
+                },
+                {
+                  "label": "Work group",
+                  "url": "https://california-valley.example.com/team"
+                }
+              ],
+              "es": [
+                {
+                  "label": "Perfil profesional",
+                  "url": "https://california-valley.example.com/team/elena-marquez"
+                },
+                {
+                  "label": "Grupo de trabajo",
+                  "url": "https://california-valley.example.com/team"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "id": "9467affe-fe04-5ed8-ae5c-4d4bb7c5ac23",
+          "fields": {
+            "headline": {
+              "source": "Registered nurse, inpatient care · California Valley Medical Center",
+              "en": "Registered nurse, inpatient care · California Valley Medical Center",
+              "es": "Enfermero de hospitalización · California Valley Medical Center"
+            },
+            "biography": {
+              "source": "Provides bedside nursing support and keeps patient observations and shift notes up to date. Works with the unit coordinator to prepare care handovers, organize supplies and document completed tasks for the next team.",
+              "en": "Provides bedside nursing support and keeps patient observations and shift notes up to date. Works with the unit coordinator to prepare care handovers, organize supplies and document completed tasks for the next team.",
+              "es": "Brinda apoyo de enfermería junto a la cama del paciente y mantiene actualizadas las observaciones y notas de turno. Trabaja con la coordinación de unidad para preparar entregas de atención, organizar suministros y documentar las tareas completadas para el siguiente equipo."
+            },
+            "gender": {
+              "source": "male",
+              "en": "Male",
+              "es": "Masculino"
+            },
+            "social_links": {
+              "source": [
+                {
+                  "label": "Professional profile",
+                  "url": "https://california-valley.example.com/team/mateo-rios"
+                },
+                {
+                  "label": "Work group",
+                  "url": "https://california-valley.example.com/team"
+                }
+              ],
+              "en": [
+                {
+                  "label": "Professional profile",
+                  "url": "https://california-valley.example.com/team/mateo-rios"
+                },
+                {
+                  "label": "Work group",
+                  "url": "https://california-valley.example.com/team"
+                }
+              ],
+              "es": [
+                {
+                  "label": "Perfil profesional",
+                  "url": "https://california-valley.example.com/team/mateo-rios"
+                },
+                {
+                  "label": "Grupo de trabajo",
+                  "url": "https://california-valley.example.com/team"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "id": "63297a1b-bc7f-52df-9b76-cf3c33739bb7",
+          "fields": {
+            "headline": {
+              "source": "Registered nurse and follow-up coordinator · California Valley Medical Center",
+              "en": "Registered nurse and follow-up coordinator · California Valley Medical Center",
+              "es": "Enfermera y coordinadora de seguimiento · California Valley Medical Center"
+            },
+            "biography": {
+              "source": "Coordinates patient follow-up, discharge documentation and communication with families and the care team. Focuses on clear instructions, complete records and continuity between inpatient care and scheduled reviews.",
+              "en": "Coordinates patient follow-up, discharge documentation and communication with families and the care team. Focuses on clear instructions, complete records and continuity between inpatient care and scheduled reviews.",
+              "es": "Coordina el seguimiento de pacientes, la documentación de alta y la comunicación con las familias y el equipo asistencial. Se centra en instrucciones claras, expedientes completos y continuidad entre la hospitalización y las revisiones programadas."
+            },
+            "gender": {
+              "source": "female",
+              "en": "Female",
+              "es": "Femenino"
+            },
+            "social_links": {
+              "source": [
+                {
+                  "label": "Professional profile",
+                  "url": "https://california-valley.example.com/team/sarah-chen"
+                },
+                {
+                  "label": "Work group",
+                  "url": "https://california-valley.example.com/team"
+                }
+              ],
+              "en": [
+                {
+                  "label": "Professional profile",
+                  "url": "https://california-valley.example.com/team/sarah-chen"
+                },
+                {
+                  "label": "Work group",
+                  "url": "https://california-valley.example.com/team"
+                }
+              ],
+              "es": [
+                {
+                  "label": "Perfil profesional",
+                  "url": "https://california-valley.example.com/team/sarah-chen"
+                },
+                {
+                  "label": "Grupo de trabajo",
+                  "url": "https://california-valley.example.com/team"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "8fd12f4c-0152-5300-874d-a162e05b0830",
+      "fields": {
+        "name": {
+          "source": "Sonoran Neurological Institute",
+          "en": "Sonoran Neurological Institute",
+          "es": "Sonoran Neurological Institute"
+        },
+        "description": {
+          "source": "Local evaluation · fictional scenario",
+          "en": "Daily routines, personal reminders and rehabilitation follow-up.",
+          "es": "Rutinas diarias, recordatorios personales y seguimiento de rehabilitación."
+        }
+      },
+      "terms": [
+        {
+          "kind": "category",
+          "name": "Lectura y documentos",
+          "fields": {
+            "name": {
+              "source": "Lectura y documentos",
+              "en": "Reading and documents",
+              "es": "Lectura y documentos"
+            }
+          }
+        },
+        {
+          "kind": "tag",
+          "name": "Libros",
+          "fields": {
+            "name": {
+              "source": "Libros",
+              "en": "Books",
+              "es": "Libros"
+            }
+          }
+        },
+        {
+          "kind": "tag",
+          "name": "Gafas",
+          "fields": {
+            "name": {
+              "source": "Gafas",
+              "en": "Glasses",
+              "es": "Gafas"
+            }
+          }
+        },
+        {
+          "kind": "tag",
+          "name": "Taza",
+          "fields": {
+            "name": {
+              "source": "Taza",
+              "en": "Mug",
+              "es": "Taza"
+            }
+          }
+        },
+        {
+          "kind": "tag",
+          "name": "Cuadernos",
+          "fields": {
+            "name": {
+              "source": "Cuadernos",
+              "en": "Notebooks",
+              "es": "Cuadernos"
+            }
+          }
+        },
+        {
+          "kind": "category",
+          "name": "Cocina y hogar",
+          "fields": {
+            "name": {
+              "source": "Cocina y hogar",
+              "en": "Kitchen and home",
+              "es": "Cocina y hogar"
+            }
+          }
+        },
+        {
+          "kind": "tag",
+          "name": "Utensilios",
+          "fields": {
+            "name": {
+              "source": "Utensilios",
+              "en": "Utensils",
+              "es": "Utensilios"
+            }
+          }
+        },
+        {
+          "kind": "tag",
+          "name": "Rallador",
+          "fields": {
+            "name": {
+              "source": "Rallador",
+              "en": "Grater",
+              "es": "Rallador"
+            }
+          }
+        },
+        {
+          "kind": "tag",
+          "name": "Tabla de cortar",
+          "fields": {
+            "name": {
+              "source": "Tabla de cortar",
+              "en": "Cutting board",
+              "es": "Tabla de cortar"
+            }
+          }
+        },
+        {
+          "kind": "tag",
+          "name": "Bolígrafo",
+          "fields": {
+            "name": {
+              "source": "Bolígrafo",
+              "en": "Pen",
+              "es": "Bolígrafo"
+            }
+          }
+        },
+        {
+          "kind": "category",
+          "name": "Escritorio",
+          "fields": {
+            "name": {
+              "source": "Escritorio",
+              "en": "Desk",
+              "es": "Escritorio"
+            }
+          }
+        },
+        {
+          "kind": "tag",
+          "name": "Monedas",
+          "fields": {
+            "name": {
+              "source": "Monedas",
+              "en": "Coins",
+              "es": "Monedas"
+            }
+          }
+        },
+        {
+          "kind": "tag",
+          "name": "Teclado",
+          "fields": {
+            "name": {
+              "source": "Teclado",
+              "en": "Keyboard",
+              "es": "Teclado"
+            }
+          }
+        },
+        {
+          "kind": "tag",
+          "name": "Café",
+          "fields": {
+            "name": {
+              "source": "Café",
+              "en": "Coffee",
+              "es": "Café"
+            }
+          }
+        },
+        {
+          "kind": "tag",
+          "name": "Cucharas",
+          "fields": {
+            "name": {
+              "source": "Cucharas",
+              "en": "Spoons",
+              "es": "Cucharas"
+            }
+          }
+        },
+        {
+          "kind": "tag",
+          "name": "Estanterías",
+          "fields": {
+            "name": {
+              "source": "Estanterías",
+              "en": "Shelves",
+              "es": "Estanterías"
+            }
+          }
+        },
+        {
+          "kind": "tag",
+          "name": "Lavamanos",
+          "fields": {
+            "name": {
+              "source": "Lavamanos",
+              "en": "Sink",
+              "es": "Lavamanos"
+            }
+          }
+        },
+        {
+          "kind": "category",
+          "name": "Objetos personales",
+          "fields": {
+            "name": {
+              "source": "Objetos personales",
+              "en": "Personal belongings",
+              "es": "Objetos personales"
+            }
+          }
+        },
+        {
+          "kind": "tag",
+          "name": "Llaves",
+          "fields": {
+            "name": {
+              "source": "Llaves",
+              "en": "Keys",
+              "es": "Llaves"
+            }
+          }
+        },
+        {
+          "kind": "tag",
+          "name": "Billetera",
+          "fields": {
+            "name": {
+              "source": "Billetera",
+              "en": "Wallet",
+              "es": "Billetera"
+            }
+          }
+        },
+        {
+          "kind": "tag",
+          "name": "Bolso",
+          "fields": {
+            "name": {
+              "source": "Bolso",
+              "en": "Bag",
+              "es": "Bolso"
+            }
+          }
+        },
+        {
+          "kind": "tag",
+          "name": "Portátil",
+          "fields": {
+            "name": {
+              "source": "Portátil",
+              "en": "Laptop",
+              "es": "Portátil"
+            }
+          }
+        },
+        {
+          "kind": "tag",
+          "name": "Mesa",
+          "fields": {
+            "name": {
+              "source": "Mesa",
+              "en": "Table",
+              "es": "Mesa"
+            }
+          }
+        },
+        {
+          "kind": "tag",
+          "name": "Documentos",
+          "fields": {
+            "name": {
+              "source": "Documentos",
+              "en": "Documents",
+              "es": "Documentos"
+            }
+          }
+        },
+        {
+          "kind": "tag",
+          "name": "Escritorio",
+          "fields": {
+            "name": {
+              "source": "Escritorio",
+              "en": "Desk",
+              "es": "Escritorio"
+            }
+          }
+        }
+      ],
+      "records": [
+        {
+          "id": "72545ffc-3213-5f6f-9da9-ccbeeec2e1f0",
+          "fields": {
+            "title": {
+              "source": "Sonoran Neurological Institute — Caso 1",
+              "en": "Sonoran Neurological Institute — Case 1",
+              "es": "Sonoran Neurological Institute — Caso 1"
+            },
+            "data": {
+              "source": {
+                "description": "Expediente de seguimiento con observaciones y registros relacionados.",
+                "reference": "memory-case-1",
+                "status": "open"
+              },
+              "en": {
+                "description": "Follow-up case file with observations and related records.",
+                "reference": "memory-case-1",
+                "status": "Open"
+              },
+              "es": {
+                "description": "Expediente de seguimiento con observaciones y registros relacionados.",
+                "reference": "memory-case-1",
+                "status": "Abierto"
+              }
+            }
+          }
+        },
+        {
+          "id": "7691d3c7-d04e-5005-ab8b-6434d7426f52",
+          "fields": {
+            "title": {
+              "source": "Observación de turno 1",
+              "en": "Shift observation 1",
+              "es": "Observación de turno 1"
+            },
+            "data": {
+              "source": {
+                "note": "Documentos rojos y llaves vistos sobre el escritorio.",
+                "last_seen_location": "memory-desk"
+              },
+              "en": {
+                "note": "Red documents and keys last seen on the desk.",
+                "last_seen_location": "Desk"
+              },
+              "es": {
+                "note": "Documentos rojos y llaves vistos sobre el escritorio.",
+                "last_seen_location": "Escritorio"
+              }
+            }
+          }
+        },
+        {
+          "id": "057e3ead-3e38-5b76-89ba-06816595d2a9",
+          "fields": {
+            "title": {
+              "source": "Carpeta roja de documentos",
+              "en": "Red document folder",
+              "es": "Carpeta roja de documentos"
+            },
+            "data": {
+              "source": {
+                "last_seen_location": "memory-desk"
+              },
+              "en": {
+                "last_seen_location": "Desk"
+              },
+              "es": {
+                "last_seen_location": "Escritorio"
+              }
+            }
+          }
+        },
+        {
+          "id": "87a58a12-ea0a-5f05-b491-8979aea353f6",
+          "fields": {
+            "title": {
+              "source": "Sonoran Neurological Institute — Caso 2",
+              "en": "Sonoran Neurological Institute — Case 2",
+              "es": "Sonoran Neurological Institute — Caso 2"
+            },
+            "data": {
+              "source": {
+                "description": "Expediente de seguimiento con observaciones y registros relacionados.",
+                "reference": "memory-case-2",
+                "status": "open"
+              },
+              "en": {
+                "description": "Follow-up case file with observations and related records.",
+                "reference": "memory-case-2",
+                "status": "Open"
+              },
+              "es": {
+                "description": "Expediente de seguimiento con observaciones y registros relacionados.",
+                "reference": "memory-case-2",
+                "status": "Abierto"
+              }
+            }
+          }
+        },
+        {
+          "id": "eaf1d8a1-4a40-5f56-b936-45bfac7fb1d0",
+          "fields": {
+            "title": {
+              "source": "Observación de turno 2",
+              "en": "Shift observation 2",
+              "es": "Observación de turno 2"
+            },
+            "data": {
+              "source": {
+                "note": "Documentos rojos y llaves vistos sobre el escritorio.",
+                "last_seen_location": "memory-desk"
+              },
+              "en": {
+                "note": "Red documents and keys last seen on the desk.",
+                "last_seen_location": "Desk"
+              },
+              "es": {
+                "note": "Documentos rojos y llaves vistos sobre el escritorio.",
+                "last_seen_location": "Escritorio"
+              }
+            }
+          }
+        },
+        {
+          "id": "b02c2c11-3bc6-58df-b4d9-789bb855328c",
+          "fields": {
+            "title": {
+              "source": "Llaves de latón",
+              "en": "Brass keys",
+              "es": "Llaves de latón"
+            },
+            "data": {
+              "source": {
+                "last_seen_location": "memory-desk"
+              },
+              "en": {
+                "last_seen_location": "Desk"
+              },
+              "es": {
+                "last_seen_location": "Escritorio"
+              }
+            }
+          }
+        },
+        {
+          "id": "f2e365aa-4ab6-5034-9b6a-6a50449d3199",
+          "fields": {
+            "title": {
+              "source": "Sonoran Neurological Institute — Caso 3",
+              "en": "Sonoran Neurological Institute — Case 3",
+              "es": "Sonoran Neurological Institute — Caso 3"
+            },
+            "data": {
+              "source": {
+                "description": "Expediente de seguimiento con observaciones y registros relacionados.",
+                "reference": "memory-case-3",
+                "status": "open"
+              },
+              "en": {
+                "description": "Follow-up case file with observations and related records.",
+                "reference": "memory-case-3",
+                "status": "Open"
+              },
+              "es": {
+                "description": "Expediente de seguimiento con observaciones y registros relacionados.",
+                "reference": "memory-case-3",
+                "status": "Abierto"
+              }
+            }
+          }
+        },
+        {
+          "id": "56dd429b-0746-5f0c-a86e-a104fd24a6ba",
+          "fields": {
+            "title": {
+              "source": "Observación de turno 3",
+              "en": "Shift observation 3",
+              "es": "Observación de turno 3"
+            },
+            "data": {
+              "source": {
+                "note": "Documentos rojos y llaves vistos sobre el escritorio.",
+                "last_seen_location": "memory-desk"
+              },
+              "en": {
+                "note": "Red documents and keys last seen on the desk.",
+                "last_seen_location": "Desk"
+              },
+              "es": {
+                "note": "Documentos rojos y llaves vistos sobre el escritorio.",
+                "last_seen_location": "Escritorio"
+              }
+            }
+          }
+        },
+        {
+          "id": "0d0c9674-b9f2-5d36-a4c8-6e0baef8d1bc",
+          "fields": {
+            "title": {
+              "source": "Cuaderno azul",
+              "en": "Blue notebook",
+              "es": "Cuaderno azul"
+            },
+            "data": {
+              "source": {
+                "last_seen_location": "memory-desk"
+              },
+              "en": {
+                "last_seen_location": "Desk"
+              },
+              "es": {
+                "last_seen_location": "Escritorio"
+              }
+            }
+          }
+        },
+        {
+          "id": "fe9df370-e695-594b-a70b-cfeff6cc12fe",
+          "fields": {
+            "title": {
+              "source": "Luis Moreno",
+              "en": "Luis Moreno",
+              "es": "Luis Moreno"
+            },
+            "data": {
+              "source": {
+                "identifier": "MEMORY-001",
+                "birth_date": "1960-03-14",
+                "description": "Información personal y registros de atención relacionados.",
+                "allergies_reviewed_at": "2026-11-02T08:00:00-05:00"
+              },
+              "en": {
+                "identifier": "MEMORY-001",
+                "birth_date": "1960-03-14",
+                "description": "Personal information and related care records.",
+                "allergies_reviewed_at": "2026-11-02T08:00:00-05:00"
+              },
+              "es": {
+                "identifier": "MEMORY-001",
+                "birth_date": "1960-03-14",
+                "description": "Información personal y registros de atención relacionados.",
+                "allergies_reviewed_at": "2026-11-02T08:00:00-05:00"
+              }
+            }
+          }
+        },
+        {
+          "id": "e4e5d0da-e64b-5af2-b566-86dbaac2b0e5",
+          "fields": {
+            "title": {
+              "source": "Atención de Luis Moreno",
+              "en": "Care for Luis Moreno",
+              "es": "Atención de Luis Moreno"
+            },
+            "data": {
+              "source": {
+                "note": "Sesión de revisión contextual y seguimiento."
+              },
+              "en": {
+                "note": "Context review and follow-up session."
+              },
+              "es": {
+                "note": "Sesión de revisión contextual y seguimiento."
+              }
+            }
+          }
+        },
+        {
+          "id": "70fa8b6f-116f-5284-8640-c7f1ee5f7425",
+          "fields": {
+            "title": {
+              "source": "Recordatorio de Luis Moreno",
+              "en": "Reminder for Luis Moreno",
+              "es": "Recordatorio de Luis Moreno"
+            },
+            "data": {
+              "source": {
+                "note": "Última observación: documentos sobre el escritorio. No hay evidencia de movimientos posteriores."
+              },
+              "en": {
+                "note": "Last seen: documents on the desk. There is no evidence of later movement."
+              },
+              "es": {
+                "note": "Última observación: documentos sobre el escritorio. No hay evidencia de movimientos posteriores."
+              }
+            }
+          }
+        },
+        {
+          "id": "832a5033-a416-5cdb-8ad3-e90de23ee1b1",
+          "fields": {
+            "title": {
+              "source": "Grace Wilson",
+              "en": "Grace Wilson",
+              "es": "Grace Wilson"
+            },
+            "data": {
+              "source": {
+                "identifier": "MEMORY-002",
+                "birth_date": "1969-03-14",
+                "description": "Información personal y registros de atención relacionados.",
+                "allergies_reviewed_at": "2026-11-02T08:00:00-05:00"
+              },
+              "en": {
+                "identifier": "MEMORY-002",
+                "birth_date": "1969-03-14",
+                "description": "Personal information and related care records.",
+                "allergies_reviewed_at": "2026-11-02T08:00:00-05:00"
+              },
+              "es": {
+                "identifier": "MEMORY-002",
+                "birth_date": "1969-03-14",
+                "description": "Información personal y registros de atención relacionados.",
+                "allergies_reviewed_at": "2026-11-02T08:00:00-05:00"
+              }
+            }
+          }
+        },
+        {
+          "id": "d9999c86-5eb9-5994-8b42-2280f0c8822e",
+          "fields": {
+            "title": {
+              "source": "Atención de Grace Wilson",
+              "en": "Care for Grace Wilson",
+              "es": "Atención de Grace Wilson"
+            },
+            "data": {
+              "source": {
+                "note": "Sesión de revisión contextual y seguimiento."
+              },
+              "en": {
+                "note": "Context review and follow-up session."
+              },
+              "es": {
+                "note": "Sesión de revisión contextual y seguimiento."
+              }
+            }
+          }
+        },
+        {
+          "id": "1e57ff38-9a87-5708-8ed6-48e55d74ac88",
+          "fields": {
+            "title": {
+              "source": "Recordatorio de Grace Wilson",
+              "en": "Reminder for Grace Wilson",
+              "es": "Recordatorio de Grace Wilson"
+            },
+            "data": {
+              "source": {
+                "note": "Última observación: documentos sobre el escritorio. No hay evidencia de movimientos posteriores."
+              },
+              "en": {
+                "note": "Last seen: documents on the desk. There is no evidence of later movement."
+              },
+              "es": {
+                "note": "Última observación: documentos sobre el escritorio. No hay evidencia de movimientos posteriores."
+              }
+            }
+          }
+        },
+        {
+          "id": "876313fb-fa6a-5328-b927-5cb372d42095",
+          "fields": {
+            "title": {
+              "source": "Hiro Tanaka",
+              "en": "Hiro Tanaka",
+              "es": "Hiro Tanaka"
+            },
+            "data": {
+              "source": {
+                "identifier": "MEMORY-003",
+                "birth_date": "1978-03-14",
+                "description": "Información personal y registros de atención relacionados.",
+                "allergies_reviewed_at": "2026-11-02T08:00:00-05:00"
+              },
+              "en": {
+                "identifier": "MEMORY-003",
+                "birth_date": "1978-03-14",
+                "description": "Personal information and related care records.",
+                "allergies_reviewed_at": "2026-11-02T08:00:00-05:00"
+              },
+              "es": {
+                "identifier": "MEMORY-003",
+                "birth_date": "1978-03-14",
+                "description": "Información personal y registros de atención relacionados.",
+                "allergies_reviewed_at": "2026-11-02T08:00:00-05:00"
+              }
+            }
+          }
+        },
+        {
+          "id": "bcda9359-df99-5530-aecd-e2adb0a60395",
+          "fields": {
+            "title": {
+              "source": "Atención de Hiro Tanaka",
+              "en": "Care for Hiro Tanaka",
+              "es": "Atención de Hiro Tanaka"
+            },
+            "data": {
+              "source": {
+                "note": "Sesión de revisión contextual y seguimiento."
+              },
+              "en": {
+                "note": "Context review and follow-up session."
+              },
+              "es": {
+                "note": "Sesión de revisión contextual y seguimiento."
+              }
+            }
+          }
+        },
+        {
+          "id": "8910fbe2-bb0a-5ad0-8739-3d1ecdd3859a",
+          "fields": {
+            "title": {
+              "source": "Recordatorio de Hiro Tanaka",
+              "en": "Reminder for Hiro Tanaka",
+              "es": "Recordatorio de Hiro Tanaka"
+            },
+            "data": {
+              "source": {
+                "note": "Última observación: documentos sobre el escritorio. No hay evidencia de movimientos posteriores."
+              },
+              "en": {
+                "note": "Last seen: documents on the desk. There is no evidence of later movement."
+              },
+              "es": {
+                "note": "Última observación: documentos sobre el escritorio. No hay evidencia de movimientos posteriores."
+              }
+            }
+          }
+        }
+      ],
+      "publications": [
+        {
+          "id": "ed6bb82e-ef8a-50e2-b346-e93f51390c0b",
+          "fields": {
+            "caption": {
+              "source": "white ceramic mug on brown wooden table",
+              "en": "white ceramic mug on brown wooden table",
+              "es": "Taza de cerámica blanca sobre una mesa de madera marrón"
+            }
+          }
+        },
+        {
+          "id": "16844f87-15e3-5f8f-b511-ebe3c2e4e4ea",
+          "fields": {
+            "caption": {
+              "source": "top view of open books and glasses on table",
+              "en": "top view of open books and glasses on table",
+              "es": "Vista superior de libros abiertos y gafas sobre una mesa"
+            }
+          }
+        },
+        {
+          "id": "00bdf7c0-0d45-508d-bca4-11c3b77bfeda",
+          "fields": {
+            "caption": {
+              "source": "kitchen utensils hanging on the wall",
+              "en": "kitchen utensils hanging on the wall",
+              "es": "Utensilios de cocina colgados en la pared"
+            }
+          }
+        },
+        {
+          "id": "f3d67a52-037e-5553-a50b-3188c379f5ef",
+          "fields": {
+            "caption": {
+              "source": "notebooks on the table",
+              "en": "notebooks on the table",
+              "es": "Cuadernos sobre la mesa"
+            }
+          }
+        },
+        {
+          "id": "11a5b4e6-b37e-58d1-b8b2-56fcd9eb13cb",
+          "fields": {
+            "caption": {
+              "source": "pen and notebook beside some coins and keyboard",
+              "en": "pen and notebook beside some coins and keyboard",
+              "es": "Bolígrafo y cuaderno junto a monedas y un teclado"
+            }
+          }
+        },
+        {
+          "id": "be1f0429-a83a-5c19-9387-ae68dc5062b7",
+          "fields": {
+            "caption": {
+              "source": "close up of a keyboard and a book",
+              "en": "close up of a keyboard and a book",
+              "es": "Primer plano de un teclado y un libro"
+            }
+          }
+        },
+        {
+          "id": "ffc8f4e0-f194-5024-ad16-f8ae9c7cb907",
+          "fields": {
+            "caption": {
+              "source": "kitchen utensils",
+              "en": "kitchen utensils",
+              "es": "Utensilios de cocina"
+            }
+          }
+        },
+        {
+          "id": "e6c3d823-2325-5ca6-90e4-561302192d3e",
+          "fields": {
+            "caption": {
+              "source": "glasses lying on books pile",
+              "en": "glasses lying on books pile",
+              "es": "Gafas sobre una pila de libros"
+            }
+          }
+        },
+        {
+          "id": "32e0ed83-14a9-5ced-b38c-91e29601e593",
+          "fields": {
+            "caption": {
+              "source": "close up of kitchen utensils",
+              "en": "close up of kitchen utensils",
+              "es": "Primer plano de utensilios de cocina"
+            }
+          }
+        },
+        {
+          "id": "594d75d5-08ca-5276-a6bf-6998ed225d82",
+          "fields": {
+            "caption": {
+              "source": "kitchen interior with counter and shelves with utensils",
+              "en": "kitchen interior with counter and shelves with utensils",
+              "es": "Interior de cocina con encimera y estantes con utensilios"
+            }
+          }
+        },
+        {
+          "id": "26b12ba8-2a28-5c39-8fa6-5b47fb04b96c",
+          "fields": {
+            "caption": {
+              "source": "keys beside a leather wallet",
+              "en": "keys beside a leather wallet",
+              "es": "Llaves junto a una billetera de cuero"
+            }
+          }
+        },
+        {
+          "id": "69fd262f-8857-5f36-8cda-105686d9645e",
+          "fields": {
+            "caption": {
+              "source": "real estate investment concept with house keys",
+              "en": "real estate investment concept with house keys",
+              "es": "Concepto de inversión inmobiliaria con llaves de una vivienda"
+            }
+          }
+        },
+        {
+          "id": "a25d5c9e-6877-535b-b2ea-3d9583ead9d5",
+          "fields": {
+            "caption": {
+              "source": "Utensils during kitchen preparation",
+              "en": "Utensils during kitchen preparation",
+              "es": "Utensilios durante la preparación en la cocina"
+            }
+          }
+        },
+        {
+          "id": "65677e64-96fc-5ec8-bc77-4549727ad18c",
+          "fields": {
+            "caption": {
+              "source": "Packing personal belongings in a work bag",
+              "en": "Packing personal belongings in a work bag",
+              "es": "Organización de objetos personales en un bolso de trabajo"
+            }
+          }
+        },
+        {
+          "id": "0ddce542-a416-573c-9641-b2513ead631e",
+          "fields": {
+            "caption": {
+              "source": "Picking up keys and sunglasses",
+              "en": "Picking up keys and sunglasses",
+              "es": "Recogida de llaves y gafas de sol"
+            }
+          }
+        },
+        {
+          "id": "4ff28d86-2d80-5d59-beb6-b12e501b8598",
+          "fields": {
+            "caption": {
+              "source": "Documents on a working desk",
+              "en": "Documents on a working desk",
+              "es": "Documentos sobre un escritorio de trabajo"
+            }
+          }
+        }
+      ],
+      "profiles": [
+        {
+          "id": "e2547625-1c50-5379-8e4c-f7d8221074ee",
+          "fields": {
+            "headline": {
+              "source": "Occupational therapist and care coordinator · Sonoran Neurological Institute",
+              "en": "Occupational therapist and care coordinator · Sonoran Neurological Institute",
+              "es": "Terapeuta ocupacional y coordinador de atención · Sonoran Neurological Institute"
+            },
+            "biography": {
+              "source": "Coordinates daily-living support and follow-up plans with the rehabilitation team. Helps organize routines, personal reminders and records of familiar objects so that patients and their authorized care network can review useful context together.",
+              "en": "Coordinates daily-living support and follow-up plans with the rehabilitation team. Helps organize routines, personal reminders and records of familiar objects so that patients and their authorized care network can review useful context together.",
+              "es": "Coordina el apoyo en actividades de la vida diaria y los planes de seguimiento con el equipo de rehabilitación. Ayuda a organizar rutinas, recordatorios personales y registros de objetos familiares para que los pacientes y su red de atención autorizada puedan revisar juntos el contexto útil."
+            },
+            "gender": {
+              "source": "male",
+              "en": "Male",
+              "es": "Masculino"
+            },
+            "social_links": {
+              "source": [
+                {
+                  "label": "Professional profile",
+                  "url": "https://sonoran-neurological.example.com/team/noah-brooks"
+                },
+                {
+                  "label": "Work group",
+                  "url": "https://sonoran-neurological.example.com/team"
+                }
+              ],
+              "en": [
+                {
+                  "label": "Professional profile",
+                  "url": "https://sonoran-neurological.example.com/team/noah-brooks"
+                },
+                {
+                  "label": "Work group",
+                  "url": "https://sonoran-neurological.example.com/team"
+                }
+              ],
+              "es": [
+                {
+                  "label": "Perfil profesional",
+                  "url": "https://sonoran-neurological.example.com/team/noah-brooks"
+                },
+                {
+                  "label": "Grupo de trabajo",
+                  "url": "https://sonoran-neurological.example.com/team"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "id": "6330f2dc-676c-5832-88dc-47d55549a5f3",
+          "fields": {
+            "headline": {
+              "source": "Neuropsychologist · Sonoran Neurological Institute",
+              "en": "Neuropsychologist · Sonoran Neurological Institute",
+              "es": "Neuropsicóloga · Sonoran Neurological Institute"
+            },
+            "biography": {
+              "source": "Works with the interdisciplinary team on cognitive assessment records and follow-up appointments. Organizes patient observations, session summaries and family guidance, keeping clinical interpretation separate from recorded reminders and visual evidence.",
+              "en": "Works with the interdisciplinary team on cognitive assessment records and follow-up appointments. Organizes patient observations, session summaries and family guidance, keeping clinical interpretation separate from recorded reminders and visual evidence.",
+              "es": "Trabaja con el equipo interdisciplinario en los registros de evaluación cognitiva y las citas de seguimiento. Organiza observaciones de pacientes, resúmenes de sesiones y orientación familiar, manteniendo separada la interpretación clínica de los recordatorios registrados y la evidencia visual."
+            },
+            "gender": {
+              "source": "female",
+              "en": "Female",
+              "es": "Femenino"
+            },
+            "social_links": {
+              "source": [
+                {
+                  "label": "Professional profile",
+                  "url": "https://sonoran-neurological.example.com/team/lucia-vega"
+                },
+                {
+                  "label": "Work group",
+                  "url": "https://sonoran-neurological.example.com/team"
+                }
+              ],
+              "en": [
+                {
+                  "label": "Professional profile",
+                  "url": "https://sonoran-neurological.example.com/team/lucia-vega"
+                },
+                {
+                  "label": "Work group",
+                  "url": "https://sonoran-neurological.example.com/team"
+                }
+              ],
+              "es": [
+                {
+                  "label": "Perfil profesional",
+                  "url": "https://sonoran-neurological.example.com/team/lucia-vega"
+                },
+                {
+                  "label": "Grupo de trabajo",
+                  "url": "https://sonoran-neurological.example.com/team"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "id": "c5f99273-0b59-5322-a730-7587d63e2d87",
+          "fields": {
+            "headline": {
+              "source": "Rehabilitation assistant · Sonoran Neurological Institute",
+              "en": "Rehabilitation assistant · Sonoran Neurological Institute",
+              "es": "Asistente de rehabilitación · Sonoran Neurological Institute"
+            },
+            "biography": {
+              "source": "Supports scheduled rehabilitation activities, prepares materials and documents daily observations for the care team. Helps patients organize familiar objects and routines and keeps follow-up notes ready for the supervising professionals.",
+              "en": "Supports scheduled rehabilitation activities, prepares materials and documents daily observations for the care team. Helps patients organize familiar objects and routines and keeps follow-up notes ready for the supervising professionals.",
+              "es": "Apoya las actividades programadas de rehabilitación, prepara materiales y documenta observaciones diarias para el equipo asistencial. Ayuda a los pacientes a organizar objetos familiares y rutinas, y mantiene listas las notas de seguimiento para los profesionales supervisores."
+            },
+            "gender": {
+              "source": "male",
+              "en": "Male",
+              "es": "Masculino"
+            },
+            "social_links": {
+              "source": [
+                {
+                  "label": "Professional profile",
+                  "url": "https://sonoran-neurological.example.com/team/owen-patel"
+                },
+                {
+                  "label": "Work group",
+                  "url": "https://sonoran-neurological.example.com/team"
+                }
+              ],
+              "en": [
+                {
+                  "label": "Professional profile",
+                  "url": "https://sonoran-neurological.example.com/team/owen-patel"
+                },
+                {
+                  "label": "Work group",
+                  "url": "https://sonoran-neurological.example.com/team"
+                }
+              ],
+              "es": [
+                {
+                  "label": "Perfil profesional",
+                  "url": "https://sonoran-neurological.example.com/team/owen-patel"
+                },
+                {
+                  "label": "Grupo de trabajo",
+                  "url": "https://sonoran-neurological.example.com/team"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

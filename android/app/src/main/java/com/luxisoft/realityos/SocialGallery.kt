@@ -7,346 +7,32 @@ import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
-import com.luxisoft.realityos.host.GalleryActions
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
+import com.luxisoft.realityos.host.GalleryActions
+import java.io.File
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.json.JSONArray
 import org.json.JSONObject
-import java.io.File
-import java.net.HttpURLConnection
-import java.net.URL
-
-/** Human sessions are independent from the wearable's device credential. */
-internal object SocialSession {
-    private var preferences: android.content.SharedPreferences? = null
-    private val sessionLock = Any()
-    private val refreshLock = Any()
-    private var sessionGeneration by mutableStateOf(0L)
-    private var refreshToken: String? = null
-    @Volatile
-    var token: String? = null
-    var active by mutableStateOf(false)
-    var isGuest by mutableStateOf(false)
-    // True only between a fresh Facebook login and capture/verification: it must
-    // survive the login-gate -> host-shell SocialGallery instance switch.
-    var freshLogin by mutableStateOf(false)
-    var passwordAccount by mutableStateOf(false)
-    var passwordAccountConfirmed by mutableStateOf(false)
-    val accountEntryAllowed: Boolean get() = passwordAccount && passwordAccountConfirmed
-    var localAccount by mutableStateOf(false)
-    var localAccountConfirmed by mutableStateOf(false)
-    val localEntryAllowed: Boolean get() = LocalAccessPolicy.canSkipFaceEntry(
-        BuildConfig.DEBUG, BuildConfig.LOCAL_DEVELOPMENT,
-        BuildConfig.DEFAULT_REALITYOS_API_BASE_URL, localAccount && localAccountConfirmed,
-    )
-    // One-shot notice for the login screen: denial/expiry messages are set in the
-    // host-shell instance but shown in the login-gate instance after the switch.
-    var loginNotice: String? = null
-    var workWorkspaceId: String? = null
-    var workspaceId: String? = null
-    var profilePictureUrl by mutableStateOf<String?>(null)
-    fun initialize(context: android.content.Context) {
-        preferences = androidx.security.crypto.EncryptedSharedPreferences.create(
-            context, "realityos-facebook-session",
-            androidx.security.crypto.MasterKey.Builder(context).setKeyScheme(androidx.security.crypto.MasterKey.KeyScheme.AES256_GCM).build(),
-            androidx.security.crypto.EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
-            androidx.security.crypto.EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM,
-        )
-        // Facebook user IDs and grants belong to a particular Meta app.
-        // Never resume a session created for a different App ID.
-        if (preferences?.getString("facebook_app_id", null) != BuildConfig.FACEBOOK_APP_ID) {
-            clear()
-            return
-        }
-        val savedBase = preferences?.getString("session_api_base", null)
-        if (savedBase != null && savedBase != BuildConfig.DEFAULT_REALITYOS_API_BASE_URL) {
-            clear()
-            return
-        }
-        localAccount = BuildConfig.LOCAL_DEVELOPMENT && preferences?.getBoolean("local_account", false) == true
-        localAccountConfirmed = false
-        passwordAccount = preferences?.getBoolean("password_account", false) == true
-        passwordAccountConfirmed = false
-        token = preferences?.getString("access", null)
-        refreshToken = preferences?.getString("refresh", null)
-        workspaceId = preferences?.getString("workspace", null)
-        isGuest = preferences?.getBoolean("guest", false) == true && token != null
-        active = token != null && refreshToken != null && workspaceId != null
-    }
-    fun remember(response: JSONObject) = synchronized(sessionLock) {
-        sessionGeneration++
-        rememberTokens(response)
-    }
-    private fun rememberTokens(response: JSONObject) {
-        token = response.getString("access_token")
-        refreshToken = response.getString("refresh_token")
-        isGuest = response.optBoolean("is_guest")
-        if (response.has("password_account")) {
-            passwordAccount = response.optBoolean("password_account")
-            passwordAccountConfirmed = passwordAccount
-        }
-        if (response.has("local_access")) {
-            localAccount = LocalAccessPolicy.canSkipFaceEntry(
-                BuildConfig.DEBUG, BuildConfig.LOCAL_DEVELOPMENT,
-                BuildConfig.DEFAULT_REALITYOS_API_BASE_URL, response.optBoolean("local_access"),
-            )
-            localAccountConfirmed = localAccount
-        }
-        preferences?.edit()?.putString("access", token)?.putString("refresh", refreshToken)
-            ?.putBoolean("password_account", passwordAccount)
-            ?.putBoolean("local_account", localAccount)
-            ?.putString("session_api_base", BuildConfig.DEFAULT_REALITYOS_API_BASE_URL)
-            ?.putString("facebook_app_id", BuildConfig.FACEBOOK_APP_ID)
-            ?.putString("workspace", workspaceId)?.putBoolean("guest", isGuest)?.apply()
-    }
-    fun clear(): Unit = synchronized(sessionLock) {
-        sessionGeneration++
-        AppNotices.pending.value = emptyList()
-        active = false; token = null; refreshToken = null; workspaceId = null; isGuest = false
-        workWorkspaceId = null
-        profilePictureUrl = null
-        freshLogin = false
-        localAccount = false
-        localAccountConfirmed = false
-        passwordAccount = false
-        passwordAccountConfirmed = false
-        loginNotice = null
-        preferences?.edit()?.clear()?.apply()
-    }
-    val identity: Long get() = synchronized(sessionLock) { sessionGeneration }
-    fun isCurrent(identity: Long): Boolean = synchronized(sessionLock) { identity == sessionGeneration }
-    fun requireCurrent(identity: Long) { sessionSnapshot(identity) }
-    fun clearIfCurrent(identity: Long): Unit = synchronized(sessionLock) {
-        if (identity == sessionGeneration) clear()
-    }
-    fun refreshAccess(identity: Long, rejectedAccess: String): String {
-        val session = sessionSnapshot(identity)
-        return requireNotNull(refreshSession(session.copy(access = rejectedAccess)).access)
-    }
-    private data class RequestSession(val generation: Long, val access: String?, val refresh: String?)
-    private fun sessionSnapshot(generation: Long? = null): RequestSession = synchronized(sessionLock) {
-        check(generation == null || generation == sessionGeneration) { localizedText(R.string.storage_session_changed) }
-        RequestSession(sessionGeneration, token, refreshToken)
-    }
-    private fun expireSession(session: RequestSession): Nothing = synchronized(sessionLock) {
-        sessionSnapshot(session.generation)
-        // A late rejection must not erase credentials renewed by another request.
-        check(token == session.access && refreshToken == session.refresh) { localizedText(R.string.storage_session_changed) }
-        val wasGuest = isGuest || passwordAccount
-        val message = if (wasGuest) localizedText(R.string.ui_your_session_expired_sign_in_again) else localizedText(R.string.ui_your_session_expired_continue_with_facebook_again)
-        clear()
-        loginNotice = message
-        error(message)
-    }
-    private fun refreshSession(session: RequestSession, timeoutMillis: Int = 30000): RequestSession = synchronized(refreshLock) {
-        val current = sessionSnapshot(session.generation)
-        // Profile, connections, chat and uploads share one rotating refresh token.
-        // Reuse a completed renewal; never submit that one-use token twice.
-        if (current.access != session.access || current.refresh != session.refresh) return@synchronized current
-        if (current.refresh == null) expireSession(current)
-        val refreshed = JSONObject(requestOnce("auth/refresh", "POST", JSONObject().put("refresh_token", current.refresh), false, timeoutMillis, current))
-        synchronized(sessionLock) {
-            sessionSnapshot(session.generation)
-            rememberTokens(refreshed)
-            sessionSnapshot(session.generation)
-        }
-    }
-    fun request(path: String, payload: JSONObject? = null, identity: Long = this.identity): String {
-        return requestJson(path, if (payload == null) "GET" else "POST", payload, identity)
-    }
-    fun searchWorkspaceRecords(workspaceId: String, payload: JSONObject): String = requestOnce(
-        "workspaces/$workspaceId/records/search", "POST", payload, true, 180000,
-    )
-
-    fun chatTranslations(payload: JSONObject? = null, ids: List<Int> = emptyList()): String = requestOnce(
-        if (payload != null) "chat/history/prepare" else "chat/history/translations?ids=${ids.joinToString(",")}",
-        if (payload != null) "POST" else "GET", payload, true, 5000,
-    )
-
-    fun publicationInformation(payload: JSONObject, prepare: Boolean = false): String = requestOnce(
-        if (prepare) "gallery/evidence/information/prepare" else "gallery/evidence/information",
-        "POST", payload, true, if (prepare) 60000 else 4000
-    )
-
-    fun requestJson(path: String, method: String, payload: JSONObject? = null, identity: Long = this.identity): String {
-        return requestOnce(path, method, payload, true, session = sessionSnapshot(identity))
-    }
-    internal var openJsonConnection: (String) -> HttpURLConnection = { path ->
-        URL("${BuildConfig.DEFAULT_REALITYOS_API_BASE_URL}/$path").openConnection() as HttpURLConnection
-    }
-    private fun requestOnce(path: String, method: String, payload: JSONObject?, mayRefresh: Boolean, timeoutMillis: Int = 30000, session: RequestSession = sessionSnapshot()): String {
-        sessionSnapshot(session.generation)
-        val connection = openJsonConnection(path)
-        if (path in setOf("auth/register", "auth/resend-confirmation", "auth/forgot-password", "auth/change-pending-email")) connection.setRequestProperty("Accept-Language", AccountRequestLanguage.value)
-        connection.setRequestProperty("X-Client-Version", BuildConfig.VERSION_NAME)
-        connection.connectTimeout = minOf(15000, timeoutMillis)
-        connection.readTimeout = timeoutMillis
-        session.access?.let { connection.setRequestProperty("Authorization", "Bearer $it") }
-        return try {
-            connection.requestMethod = method
-            if (payload != null) {
-                connection.doOutput = true
-                connection.setRequestProperty("Content-Type", "application/json")
-                connection.outputStream.bufferedWriter().use { it.write(payload.toString()) }
-            }
-            val status = connection.responseCode
-            sessionSnapshot(session.generation)
-            val authenticatedAccountRoute = path in setOf("auth/me", "auth/local-session", "auth/account-session", "auth/account-capture-profile", "auth/logout")
-            if (connection.responseCode == 409 && path in setOf("auth/register", "auth/change-pending-email")) {
-                val body = connection.errorStream?.bufferedReader()?.use { it.readText() }.orEmpty()
-                accountConflict(path, 409, body)?.let { throw it }
-            }
-            if (connection.responseCode !in 200..299) {
-                accountFailure(path, connection.responseCode)?.let { throw it }
-            }
-            if (status == 401 && mayRefresh && session.refresh != null && (!path.startsWith("auth/") || authenticatedAccountRoute)) {
-                val renewed = refreshSession(session, timeoutMillis)
-                return requestOnce(path, method, payload, false, timeoutMillis, renewed)
-            }
-            if (status == 401 && (path == "auth/refresh" || session.refresh == null && (!path.startsWith("auth/") || authenticatedAccountRoute))) {
-                expireSession(session)
-            }
-            if (connection.responseCode !in 200..299) error(localizedText(R.string.ui_could_not_complete_the_request_1_d, connection.responseCode))
-            connection.inputStream.bufferedReader().use { it.readText() }.also { sessionSnapshot(session.generation) }
-        } finally { connection.disconnect() }
-    }
-    /** Stream captured clips from private storage; retries reuse the caller's request key. */
-    fun requestMultipartFile(path: String, fields: Map<String, String>, file: File, mime: String): String =
-        multipartFileOnce(path, fields, file, mime, true)
-
-    private fun multipartFileOnce(path: String, fields: Map<String, String>, file: File, mime: String, mayRefresh: Boolean, session: RequestSession = sessionSnapshot()): String {
-        sessionSnapshot(session.generation)
-        val boundary = "RealityOS-${java.util.UUID.randomUUID()}"
-        val connection = openJsonConnection(path)
-        connection.requestMethod = "POST"
-        connection.connectTimeout = 15000
-        connection.readTimeout = 60000
-        connection.doOutput = true
-        connection.setChunkedStreamingMode(64 * 1024)
-        connection.setRequestProperty("Content-Type", "multipart/form-data; boundary=$boundary")
-        session.access?.let { connection.setRequestProperty("Authorization", "Bearer $it") }
-        return try {
-            connection.outputStream.buffered().use { output ->
-                fun text(value: String) = output.write(value.toByteArray(Charsets.UTF_8))
-                fields.forEach { (name, value) ->
-                    text("--$boundary\r\nContent-Disposition: form-data; name=\"$name\"\r\n\r\n$value\r\n")
-                }
-                text("--$boundary\r\nContent-Disposition: form-data; name=\"file\"; filename=\"${file.name}\"\r\nContent-Type: $mime\r\n\r\n")
-                file.inputStream().use { it.copyTo(output) }
-                text("\r\n--$boundary--\r\n")
-            }
-            val status = connection.responseCode
-            sessionSnapshot(session.generation)
-            if (status == 401 && mayRefresh && session.refresh != null) {
-                val renewed = refreshSession(session)
-                multipartFileOnce(path, fields, file, mime, false, renewed)
-            } else {
-                if (status == 401 && session.refresh == null) expireSession(session)
-                check(connection.responseCode in 200..299) { localizedText(R.string.ui_upload_failed_1_d, connection.responseCode) }
-                connection.inputStream.bufferedReader().use { it.readText() }.also { sessionSnapshot(session.generation) }
-            }
-        } finally { connection.disconnect() }
-    }
-
-    fun requestMultipart(path: String, fields: Map<String, String>, fileBytes: ByteArray, filename: String, mimeType: String, fieldName: String? = null): String {
-        return requestMultipartOnce(path, fields, fileBytes, filename, mimeType, fieldName, true)
-    }
-    private fun requestMultipartOnce(path: String, fields: Map<String, String>, fileBytes: ByteArray, filename: String, mimeType: String, requestedFieldName: String?, mayRefresh: Boolean, session: RequestSession = sessionSnapshot()): String {
-        sessionSnapshot(session.generation)
-        val boundary = "RealityOS-${java.util.UUID.randomUUID()}"
-        val fieldName = requestedFieldName ?: if (path == "faces/search" || path == "display/face-group-links") "probe" else "file"
-        val connection = openJsonConnection(path)
-        connection.requestMethod = "POST"
-        connection.setRequestProperty("X-Client-Version", BuildConfig.VERSION_NAME)
-        connection.connectTimeout = 15000
-        // Image identification and evidence matching can require several provider calls.
-        connection.readTimeout = if (path == "queries/image") 180000 else 60000
-        connection.doOutput = true
-        connection.setRequestProperty("Content-Type", "multipart/form-data; boundary=$boundary")
-        session.access?.let { connection.setRequestProperty("Authorization", "Bearer $it") }
-        return try {
-            val output = java.io.DataOutputStream(connection.outputStream)
-            fun text(value: String) = output.write(value.toByteArray(Charsets.UTF_8))
-            fields.forEach { (name, value) ->
-                text("--$boundary\r\nContent-Disposition: form-data; name=\"$name\"\r\n\r\n")
-                text(value)
-                text("\r\n")
-            }
-            text("--$boundary\r\nContent-Disposition: form-data; name=\"$fieldName\"; filename=\"$filename\"\r\nContent-Type: $mimeType\r\n\r\n")
-            output.write(fileBytes)
-            text("\r\n--$boundary--\r\n")
-            output.flush()
-            val status = connection.responseCode
-            sessionSnapshot(session.generation)
-            if (status == 401 && mayRefresh && session.refresh != null) {
-                val renewed = refreshSession(session)
-                return requestMultipartOnce(path, fields, fileBytes, filename, mimeType, requestedFieldName, false, renewed)
-            }
-            if (status == 401 && session.refresh == null) expireSession(session)
-            if (connection.responseCode == 403 && path.startsWith("faces/")) error(localizedText(R.string.ui_face_search_requires_your_biometric_consent))
-            if (connection.responseCode !in 200..299) {
-                val detail = connection.errorStream?.bufferedReader()?.use { it.readText() }.orEmpty()
-                recognitionPhotoFailure(path, connection.responseCode, detail)?.let { error(it) }
-                publicationUploadFailure(path, connection.responseCode, detail)?.let { error(it) }
-                error(localizedHttpError(connection.responseCode))
-            }
-            connection.inputStream.bufferedReader().use { it.readText() }.also { sessionSnapshot(session.generation) }
-        } finally { connection.disconnect() }
-    }
-
-    fun download(path: String, identity: Long, maximum: Int): ByteArray = downloadOnce(path, maximum, sessionSnapshot(identity), true)
-
-    private fun downloadOnce(path: String, maximum: Int, session: RequestSession, mayRefresh: Boolean): ByteArray {
-        sessionSnapshot(session.generation)
-        val connection = openJsonConnection(path)
-        connection.instanceFollowRedirects = false
-        connection.connectTimeout = 15000
-        connection.readTimeout = 90000
-        session.access?.let { connection.setRequestProperty("Authorization", "Bearer $it") }
-        return try {
-            val status = connection.responseCode
-            sessionSnapshot(session.generation)
-            if (status == 401 && mayRefresh && session.refresh != null) {
-                return downloadOnce(path, maximum, refreshSession(session), false)
-            }
-            if (status == 401 && session.refresh == null) expireSession(session)
-            check(status == 200) { localizedHttpError(status) }
-            check(connection.contentLengthLong <= maximum) { "Resource exceeds download limit" }
-            connection.inputStream.use { input ->
-                val output = java.io.ByteArrayOutputStream()
-                val buffer = ByteArray(32768)
-                while (true) {
-                    val count = input.read(buffer)
-                    if (count < 0) break
-                    sessionSnapshot(session.generation)
-                    check(output.size() + count <= maximum) { "Resource exceeds download limit" }
-                    output.write(buffer, 0, count)
-                }
-                output.toByteArray().also { sessionSnapshot(session.generation) }
-            }
-        } finally { connection.disconnect() }
-    }
-}
 
 @Composable
 @SuppressLint("LocalContextGetResourceValueCall")
@@ -356,7 +42,7 @@ fun SocialGallery(
     onViewerChange: (Boolean) -> Unit = {},
     galleryBar: GalleryTopBarState? = null,
     onAdminDrawerChange: (Boolean) -> Unit = {},
-    capturePublicationRevision: Long = 0,
+    capturePublicationRevision: Long = 0
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
@@ -403,7 +89,11 @@ fun SocialGallery(
     var identityVerified by remember { mutableStateOf<Boolean?>(null) }
     var deniedLastTime by remember { mutableStateOf(false) }
     val resumedSession = remember { SocialSession.token != null }
-    val publicationUploader = rememberPublicationUploader(onPublished = { cursor = null; endReached = false; revision++ }, onBusy = { publishing = it })
+    val publicationUploader = rememberPublicationUploader(onPublished = {
+        cursor = null
+        endReached = false
+        revision++
+    }, onBusy = { publishing = it })
     PublicationUploadDialog(publicationUploader)
     fun uploadWorkPublication(photo: PendingPublishPhoto, noteText: String, noteSource: String, classification: PublicationClassification) {
         val target = groupId ?: return
@@ -466,8 +156,11 @@ fun SocialGallery(
     }
 
     fun launchWorkPhoneCameraChecked() {
-        if (ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) launchWorkPhoneCamera()
-        else askWorkCamera.launch(Manifest.permission.CAMERA)
+        if (ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
+            launchWorkPhoneCamera()
+        } else {
+            askWorkCamera.launch(Manifest.permission.CAMERA)
+        }
     }
 
     fun onWorkCameraOption() {
@@ -477,8 +170,11 @@ fun SocialGallery(
             error = ""
             try {
                 val bytes = withContext(Dispatchers.IO) { viewModel.captureStillForPublish() }
-                if (bytes != null) stageWorkPhoto(bytes, "image/jpeg", "camara.jpg")
-                else launchWorkPhoneCameraChecked()
+                if (bytes != null) {
+                    stageWorkPhoto(bytes, "image/jpeg", "camara.jpg")
+                } else {
+                    launchWorkPhoneCameraChecked()
+                }
             } catch (failure: Exception) {
                 error = failure.message.orEmpty()
             } finally {
@@ -488,37 +184,72 @@ fun SocialGallery(
     }
 
     fun requireFreshLogin() {
-        SocialSession.clear(); if (!BuildConfig.LOCAL_DEVELOPMENT) com.facebook.login.LoginManager.getInstance().logOut()
-        authenticated = false; posts = emptyList(); faceCaptureDone = null; identityVerified = null
+        SocialSession.clear()
+        if (!BuildConfig.LOCAL_DEVELOPMENT) com.facebook.login.LoginManager.getInstance().logOut()
+        authenticated = false
+        posts = emptyList()
+        faceCaptureDone = null
+        identityVerified = null
         deniedLastTime = false
         SocialSession.loginNotice = context.getString(R.string.face_login_required)
     }
     fun runRequest(action: suspend () -> Unit) {
-        scope.launch { try { action() } catch (cancelled: kotlinx.coroutines.CancellationException) { throw cancelled } catch (e: Exception) {
-            error = e.message ?: localizedText(R.string.ui_connection_error)
-            if (SocialSession.token == null && SocialSession.loginNotice == null) SocialSession.loginNotice = error
-        } }
+        scope.launch {
+            try {
+                action()
+            } catch (cancelled: kotlinx.coroutines.CancellationException) {
+                throw cancelled
+            } catch (e: Exception) {
+                error = e.message ?: localizedText(R.string.ui_connection_error)
+                if (SocialSession.token == null && SocialSession.loginNotice == null) SocialSession.loginNotice = error
+            }
+        }
     }
     galleryBar?.let { bar ->
         bar.filters = filters
-        bar.onFilters = { filters = it; cursor = null; endReached = false; pageLoaded = false; posts = emptyList(); revision++ }
-        bar.onCreate = { groupText = ""; groupPin = ""; draftCategories = emptyList(); draftTags = emptyList(); groupDialog = "create" }
+        bar.onFilters = {
+            filters = it
+            cursor = null
+            endReached = false
+            pageLoaded = false
+            posts = emptyList()
+            revision++
+        }
+        bar.onCreate = {
+            groupText = ""
+            groupPin = ""
+            draftCategories = emptyList()
+            draftTags = emptyList()
+            groupDialog = "create"
+        }
         bar.onRecords = { showRecords = true }
         bar.onImport = { showImport = true }
         bar.loading = groupsLoading
         bar.options = if (authenticated) {
             groups.map { WorkspaceOption(it.optString("id"), it.optString("name"), it.optString("role")) }
-        } else emptyList()
+        } else {
+            emptyList()
+        }
         bar.selectedId = groupId
         bar.publishEnabled = !loading && !publishing && !groupsLoading && groups.isNotEmpty()
         val currentGroup = groups.firstOrNull { it.optString("id") == groupId }
         val iCanInvite = currentGroup != null && GroupAdminPolicy.canInvite(currentGroup.optString("role"), currentGroup.optBoolean("can_invite"))
         bar.showInvite = groupId != null && iCanInvite
         bar.showAdmin = groupId != null && iCanInvite
-        bar.onSelect = { groupId = it; SocialSession.workWorkspaceId = it; posts = emptyList(); pageLoaded = false; cursor = null; endReached = false }
+        bar.onSelect = {
+            groupId = it
+            SocialSession.workWorkspaceId = it
+            posts = emptyList()
+            pageLoaded = false
+            cursor = null
+            endReached = false
+        }
         bar.onPublish = {
-            if (groupId == null) error = localizedText(R.string.ui_select_a_workspace_to_publish)
-            else workPublishMenu = true
+            if (groupId == null) {
+                error = localizedText(R.string.ui_select_a_workspace_to_publish)
+            } else {
+                workPublishMenu = true
+            }
         }
         bar.onInvite = {
             groupText = ""
@@ -528,13 +259,19 @@ fun SocialGallery(
             inviteLoading = true
             runRequest {
                 try {
-                groupText = withContext(Dispatchers.IO) { JSONObject(SocialSession.request("groups/$groupId/invite", JSONObject())).getString("code") }
-                groupPin = if (iCanInvite) {
-                    try {
-                        withContext(Dispatchers.IO) { JSONObject(SocialSession.request("groups/$groupId/pin")).getString("join_pin") }
-                    } catch (_: Exception) { "" }
-                } else ""
-                } finally { inviteLoading = false }
+                    groupText = withContext(Dispatchers.IO) { JSONObject(SocialSession.request("groups/$groupId/invite", JSONObject())).getString("code") }
+                    groupPin = if (iCanInvite) {
+                        try {
+                            withContext(Dispatchers.IO) { JSONObject(SocialSession.request("groups/$groupId/pin")).getString("join_pin") }
+                        } catch (_: Exception) {
+                            ""
+                        }
+                    } else {
+                        ""
+                    }
+                } finally {
+                    inviteLoading = false
+                }
             }
         }
         bar.onAdmin = { showAdministration = true }
@@ -547,11 +284,19 @@ fun SocialGallery(
         }
         if (LocalAccountEntry(viewModel, onSuccess = { authenticated = true })) return
         LaunchedEffect(Unit) {
-            SocialSession.loginNotice?.let { error = it; SocialSession.loginNotice = null }
+            SocialSession.loginNotice?.let {
+                error = it
+                SocialSession.loginNotice = null
+            }
         }
         FacebookAccessScreen(loginBusy, error, entryConsent, onConsentChange = { entryConsent = it }, onLogin = {
-            startFacebookAccess(context, scope, viewModel,
-                onBusy = { loginBusy = it }, onError = { error = it }, onSuccess = {
+            startFacebookAccess(
+                context,
+                scope,
+                viewModel,
+                onBusy = { loginBusy = it },
+                onError = { error = it },
+                onSuccess = {
                     // Set before SocialSession.active flips: the host-shell gallery
                     // instance reads it on mount.
                     SocialSession.freshLogin = true
@@ -559,8 +304,10 @@ fun SocialGallery(
                         withContext(Dispatchers.IO) { SocialSession.request("faces/consent", JSONObject().put("confirm", true)) }
                         authenticated = true
                     }
-                })
-        }, onGuest = { showAccountEntry = true
+                }
+            )
+        }, onGuest = {
+            showAccountEntry = true
         }, onWelcome = onWelcome)
         return
     }
@@ -584,16 +331,31 @@ fun SocialGallery(
         }
     }
     if (!SocialSession.isGuest && !SocialSession.localEntryAllowed && !SocialSession.accountEntryAllowed && (faceCaptureDone != true || identityVerified != true || deniedLastTime)) {
-        if (faceCaptureDone == null || identityVerified == null) Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { CircularProgressIndicator() }
-        else FaceCaptureScreen(hasCapture = faceCaptureDone == true && !deniedLastTime,
-            onDone = { faceCaptureDone = true; identityVerified = true; deniedLastTime = false; SocialSession.freshLogin = false },
-            onDenied = { message ->
-                SocialSession.clear(); if (!BuildConfig.LOCAL_DEVELOPMENT) com.facebook.login.LoginManager.getInstance().logOut()
-                authenticated = false; posts = emptyList(); faceCaptureDone = null; identityVerified = null
-                deniedLastTime = true; SocialSession.loginNotice = message
-            },
-            allowPhoto = SocialSession.freshLogin,
-            onRequireLogin = { requireFreshLogin() })
+        if (faceCaptureDone == null || identityVerified == null) {
+            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { CircularProgressIndicator() }
+        } else {
+            FaceCaptureScreen(
+                hasCapture = faceCaptureDone == true && !deniedLastTime,
+                onDone = {
+                    faceCaptureDone = true
+                    identityVerified = true
+                    deniedLastTime = false
+                    SocialSession.freshLogin = false
+                },
+                onDenied = { message ->
+                    SocialSession.clear()
+                    if (!BuildConfig.LOCAL_DEVELOPMENT) com.facebook.login.LoginManager.getInstance().logOut()
+                    authenticated = false
+                    posts = emptyList()
+                    faceCaptureDone = null
+                    identityVerified = null
+                    deniedLastTime = true
+                    SocialSession.loginNotice = message
+                },
+                allowPhoto = SocialSession.freshLogin,
+                onRequireLogin = { requireFreshLogin() }
+            )
+        }
         return
     }
     LaunchedEffect(capturePublicationRevision) {
@@ -611,9 +373,13 @@ fun SocialGallery(
         error = ""
         try {
             val result = withContext(Dispatchers.IO) {
-                JSONObject(SocialSession.request("gallery/page?limit=30" +
-                    (groupId?.let { "&workspace_id=$it" } ?: "") +
-                    (cursor?.let { "&cursor=${Uri.encode(it)}" } ?: "") + "&" + filters.query()))
+                JSONObject(
+                    SocialSession.request(
+                        "gallery/page?limit=30" +
+                            (groupId?.let { "&workspace_id=$it" } ?: "") +
+                            (cursor?.let { "&cursor=${Uri.encode(it)}" } ?: "") + "&" + filters.query()
+                    )
+                )
             }
             val values = result.getJSONArray("items")
             val page = (0 until values.length()).map { values.getJSONObject(it) }
@@ -621,8 +387,14 @@ fun SocialGallery(
             nextCursor = result.optText("next_cursor")
             endReached = nextCursor == null
             liked = posts.filter { it.optBoolean("liked") }.map { it.getString("id") }.toSet()
-        } catch (e: Exception) { if (e is kotlinx.coroutines.CancellationException) throw e; pageFailed = true; error = e.message.orEmpty() }
-        finally { loading = false; pageLoaded = true }
+        } catch (e: Exception) {
+            if (e is kotlinx.coroutines.CancellationException) throw e
+            pageFailed = true
+            error = e.message.orEmpty()
+        } finally {
+            loading = false
+            pageLoaded = true
+        }
     }
     LaunchedEffect(authenticated, revision) {
         if (!authenticated) return@LaunchedEffect
@@ -634,15 +406,18 @@ fun SocialGallery(
                 groupId = groups.first().getString("id")
                 SocialSession.workWorkspaceId = groupId
             }
-        } catch (e: Exception) { if (e is kotlinx.coroutines.CancellationException) throw e; error = e.message.orEmpty() }
-        finally { groupsLoading = false }
+        } catch (e: Exception) {
+            if (e is kotlinx.coroutines.CancellationException) throw e
+            error = e.message.orEmpty()
+        } finally {
+            groupsLoading = false
+        }
     }
     if (showRecords && groupId != null) {
         WorkspaceRecords(groupId!!, canWrite = groups.firstOrNull { it.optString("id") == groupId }?.optString("role") in setOf("admin", "register"), onBack = { showRecords = false })
         return
     }
     Column(Modifier.fillMaxSize()) {
-
         if (selected == null) galleryBar?.let { GalleryActions(it) }
         NoticeEffect(error, { error = "" })
         if (publishing) LinearProgressIndicator(Modifier.fillMaxWidth())
@@ -657,11 +432,22 @@ fun SocialGallery(
                 Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     Icon(Icons.Default.PhotoLibrary, null, modifier = Modifier.size(58.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
                     Text(localizedText(if (filters.active) R.string.gallery_no_results else R.string.ui_no_publications_in_this_workspace_yet), color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    if (groupsLoading) SkeletonList(Modifier.padding(16.dp), rows = 2)
-                    else if (groups.isEmpty()) {
+                    if (groupsLoading) {
+                        SkeletonList(Modifier.padding(16.dp), rows = 2)
+                    } else if (groups.isEmpty()) {
                         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            OutlinedButton(onClick = { groupText = ""; groupPin = ""; draftCategories = emptyList(); draftTags = emptyList(); groupDialog = "create" }) { Text(localizedText(R.string.ui_create_group)) }
-                            Button(onClick = { groupText = ""; groupPin = ""; groupDialog = "join" }) { Text(localizedText(R.string.ui_join)) }
+                            OutlinedButton(onClick = {
+                                groupText = ""
+                                groupPin = ""
+                                draftCategories = emptyList()
+                                draftTags = emptyList()
+                                groupDialog = "create"
+                            }) { Text(localizedText(R.string.ui_create_group)) }
+                            Button(onClick = {
+                                groupText = ""
+                                groupPin = ""
+                                groupDialog = "join"
+                            }) { Text(localizedText(R.string.ui_join)) }
                         }
                     }
                 }
@@ -671,16 +457,22 @@ fun SocialGallery(
                 items(posts, key = { it.getString("id") }) { post ->
                     PublicationThumbnail(post, Modifier.padding(1.dp).aspectRatio(0.75f)) { selected = post }
                 }
-                if (authenticated && posts.isNotEmpty()) item(span = { GridItemSpan(maxLineSpan) }) {
-                    val loadMore = GalleryPagingPolicy.shouldLoadMore(loading, endReached)
-                    Box(Modifier.fillMaxWidth().heightIn(min = 56.dp), contentAlignment = Alignment.Center) {
-                        if (loading) CircularProgressIndicator(Modifier.size(24.dp))
-                        else if (!loadMore) Text(
-                            localizedText(R.string.ui_no_more_publications),
-                            style = MaterialTheme.typography.labelMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                        else LaunchedEffect(posts.size, groupId) { cursor = nextCursor }
+                if (authenticated && posts.isNotEmpty()) {
+                    item(span = { GridItemSpan(maxLineSpan) }) {
+                        val loadMore = GalleryPagingPolicy.shouldLoadMore(loading, endReached)
+                        Box(Modifier.fillMaxWidth().heightIn(min = 56.dp), contentAlignment = Alignment.Center) {
+                            if (loading) {
+                                CircularProgressIndicator(Modifier.size(24.dp))
+                            } else if (!loadMore) {
+                                Text(
+                                    localizedText(R.string.ui_no_more_publications),
+                                    style = MaterialTheme.typography.labelMedium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            } else {
+                                LaunchedEffect(posts.size, groupId) { cursor = nextCursor }
+                            }
+                        }
                     }
                 }
             }
@@ -694,32 +486,42 @@ fun SocialGallery(
         try {
             val result = withContext(Dispatchers.IO) { JSONArray(SocialSession.request("gallery/${post.getString("id")}/comments")) }
             comments = (0 until result.length()).map { result.getJSONObject(it) }
-        } catch (failure: Exception) { if (failure is kotlinx.coroutines.CancellationException) throw failure; error = failure.message.orEmpty() }
-        finally { commentsLoading = false }
+        } catch (failure: Exception) {
+            if (failure is kotlinx.coroutines.CancellationException) throw failure
+            error = failure.message.orEmpty()
+        } finally {
+            commentsLoading = false
+        }
     }
     selected?.let { post ->
         val likedNow = post.getString("id") in liked
         MediaViewerScreen(
-            title = post.optString("caption"),
+            title = post.storedText("caption"),
             mediaUrl = "${BuildConfig.DEFAULT_REALITYOS_API_BASE_URL}/${post.getString("media_url")}",
             thumbnailUrl = "${BuildConfig.DEFAULT_REALITYOS_API_BASE_URL}/${post.getString("thumbnail_url")}",
             mimeType = post.optString("mime_type"),
             authToken = SocialSession.token,
-            noteText = post.optString("note_text"),
+            noteText = post.storedText("note_text"),
             noteSource = post.optString("note_source"),
             metaLines = listOf(
                 publicationClassificationText(post),
                 post.optJSONObject("owner")?.optString("display_name").orEmpty().let { if (it.isNotBlank()) localizedText(R.string.ui_by_1_s, it) else "" },
-                post.optString("published_at").substringBefore("T").let { if (it.isNotBlank()) localizedText(R.string.ui_published_on_1_s, it) else "" },
+                post.optString("published_at").substringBefore("T").let { if (it.isNotBlank()) localizedText(R.string.ui_published_on_1_s, it) else "" }
             ),
             commentsLoading = commentsLoading,
             comments = comments.map { ViewerComment(it.getString("id"), it.getString("text")) },
-            onCommentClick = { reply = it; interaction = "comment" },
+            onCommentClick = {
+                reply = it
+                interaction = "comment"
+            },
             topActions = {
                 IconButton(onClick = { interaction = if (likedNow) "unlike" else "like" }) {
                     Icon(if (likedNow) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder, contentDescription = if (likedNow) localizedText(R.string.ui_unlike) else "Like", tint = Color.White)
                 }
-                IconButton(onClick = { interaction = "comment"; reply = null }) { Icon(Icons.Filled.Comment, contentDescription = localizedText(R.string.ui_comment), tint = Color.White) }
+                IconButton(onClick = {
+                    interaction = "comment"
+                    reply = null
+                }) { Icon(Icons.Filled.Comment, contentDescription = localizedText(R.string.ui_comment), tint = Color.White) }
                 IconButton(onClick = { interaction = "report" }) { Icon(Icons.Filled.Flag, contentDescription = localizedText(R.string.ui_report), tint = Color.White) }
                 if (post.optBoolean("owned")) {
                     IconButton(onClick = { editingClassification = post }) { Icon(Icons.Filled.Label, localizedText(R.string.catalog_classify), tint = Color.White) }
@@ -727,47 +529,77 @@ fun SocialGallery(
                     IconButton(onClick = { interaction = "remove" }) { Icon(Icons.Filled.Delete, contentDescription = localizedText(R.string.ui_delete), tint = Color.White) }
                 }
             },
-            onClose = { selected = null },
+            onClose = { selected = null }
         )
         interaction?.let { action ->
             var shareGroup by remember(action) { mutableStateOf<String?>(null) }
             var shareClassification by remember(shareGroup) { mutableStateOf(PublicationClassification()) }
             var shareValid by remember(shareGroup) { mutableStateOf(false) }
-            AlertDialog(onDismissRequest = { interaction = null }, title = { Text(if (reply != null) localizedText(R.string.ui_reply) else action) },
+            AlertDialog(
+                onDismissRequest = { interaction = null },
+                title = { Text(if (reply != null) localizedText(R.string.ui_reply) else action) },
                 text = {
-                    if (action in listOf("comment", "report")) OutlinedTextField(value = text, onValueChange = { text = it }, label = { Text(localizedText(R.string.ui_text)) })
-                    else if (action == "work") Column(Modifier.verticalScroll(rememberScrollState())) {
-                        Text(localizedText(R.string.ui_choose_the_group_to_share_this_publication_with))
-                        if (groupsLoading) SkeletonList(rows = 3)
-                        else if (groups.isEmpty()) Text(localizedText(R.string.ui_create_or_join_a_group_from_work))
-                        shareGroup?.let { ClassificationFields(it, shareClassification, onValid = { shareValid = it }) { value -> shareClassification = value } }
-                        groups.forEach { group ->
-                            TextButton(onClick = { shareGroup = group.getString("id") }) {
-                                Text((if (shareGroup == group.getString("id")) "✓ " else "") + group.getString("name"))
+                    if (action in listOf("comment", "report")) {
+                        OutlinedTextField(value = text, onValueChange = { text = it }, label = { Text(localizedText(R.string.ui_text)) })
+                    } else if (action == "work") {
+                        Column(Modifier.verticalScroll(rememberScrollState())) {
+                            Text(localizedText(R.string.ui_choose_the_group_to_share_this_publication_with))
+                            if (groupsLoading) {
+                                SkeletonList(rows = 3)
+                            } else if (groups.isEmpty()) {
+                                Text(localizedText(R.string.ui_create_or_join_a_group_from_work))
+                            }
+                            shareGroup?.let { ClassificationFields(it, shareClassification, onValid = { shareValid = it }) { value -> shareClassification = value } }
+                            groups.forEach { group ->
+                                TextButton(onClick = { shareGroup = group.getString("id") }) {
+                                    Text((if (shareGroup == group.getString("id")) "✓ " else "") + group.getString("name"))
+                                }
                             }
                         }
+                    } else {
+                        Text(
+                            if (action == "public") {
+                                localizedText(R.string.ui_the_content_will_be_visible_to_all_users)
+                            } else if (action == "remove") {
+                                localizedText(R.string.ui_the_publication_will_no_longer_appear_in_the_gallery_the_original_evidence_is_preserv)
+                            } else {
+                                localizedText(R.string.ui_confirm_reaction)
+                            }
+                        )
                     }
-                    else Text(if (action == "public") localizedText(R.string.ui_the_content_will_be_visible_to_all_users) else if (action == "remove") localizedText(R.string.ui_the_publication_will_no_longer_appear_in_the_gallery_the_original_evidence_is_preserv) else localizedText(R.string.ui_confirm_reaction))
                 },
-                confirmButton = { TextButton(enabled = action != "work" || shareValid, onClick = {
-                    runRequest {
-                        withContext(Dispatchers.IO) {
-                            if (action in listOf("public", "work")) {
-                                if (action == "work" && shareGroup == null) error(localizedText(R.string.ui_select_a_group_in_work))
-                                SocialSession.request("gallery/${post.getString("id")}/share", shareClassification.json().put("workspace_id", shareGroup))
-                            } else if (action == "remove") SocialSession.request("gallery/${post.getString("id")}/remove", JSONObject())
-                            else SocialSession.request("gallery/${post.getString("id")}/interactions", JSONObject().put("action", action).put("text", text).apply { reply?.let { put("parent_id", it) } })
+                confirmButton = {
+                    TextButton(enabled = action != "work" || shareValid, onClick = {
+                        runRequest {
+                            withContext(Dispatchers.IO) {
+                                if (action in listOf("public", "work")) {
+                                    if (action == "work" && shareGroup == null) error(localizedText(R.string.ui_select_a_group_in_work))
+                                    SocialSession.request("gallery/${post.getString("id")}/share", shareClassification.json().put("workspace_id", shareGroup))
+                                } else if (action == "remove") {
+                                    SocialSession.request("gallery/${post.getString("id")}/remove", JSONObject())
+                                } else {
+                                    SocialSession.request("gallery/${post.getString("id")}/interactions", JSONObject().put("action", action).put("text", text).apply { reply?.let { put("parent_id", it) } })
+                                }
+                            }
+                            if (action == "like") liked = liked + post.getString("id")
+                            if (action == "unlike") liked = liked - post.getString("id")
+                            if (action == "comment") {
+                                val result = withContext(Dispatchers.IO) { JSONArray(SocialSession.request("gallery/${post.getString("id")}/comments")) }
+                                comments = (0 until result.length()).map { result.getJSONObject(it) }
+                            }
+                            interaction = null
+                            text = ""
+                            if (action in listOf("work", "remove")) {
+                                selected = null
+                                cursor = null
+                                endReached = false
+                                revision++
+                            }
                         }
-                        if (action == "like") liked = liked + post.getString("id")
-                        if (action == "unlike") liked = liked - post.getString("id")
-                        if (action == "comment") {
-                            val result = withContext(Dispatchers.IO) { JSONArray(SocialSession.request("gallery/${post.getString("id")}/comments")) }
-                            comments = (0 until result.length()).map { result.getJSONObject(it) }
-                        }
-                        interaction = null; text = ""
-                        if (action in listOf("work", "remove")) { selected = null; cursor = null; endReached = false; revision++ }
-                    }
-                }) { Text(localizedText(R.string.ui_confirm)) } }, dismissButton = { TextButton(onClick = { interaction = null }) { Text(localizedText(R.string.ui_cancel)) } })
+                    }) { Text(localizedText(R.string.ui_confirm)) }
+                },
+                dismissButton = { TextButton(onClick = { interaction = null }) { Text(localizedText(R.string.ui_cancel)) } }
+            )
         }
     }
     if (workPublishMenu) {
@@ -780,13 +612,20 @@ fun SocialGallery(
                         Icon(Icons.Filled.CameraAlt, contentDescription = null)
                         Text(localizedText(R.string.ui_take_photo))
                     }
-                    Row(Modifier.fillMaxWidth().clickable { workPublishMenu = false; pickWorkPublication.launch("image/*") }.padding(vertical = 12.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Row(
+                        Modifier.fillMaxWidth().clickable {
+                            workPublishMenu = false
+                            pickWorkPublication.launch("image/*")
+                        }.padding(vertical = 12.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
                         Icon(Icons.Filled.PhotoLibrary, contentDescription = null)
                         Text(localizedText(R.string.ui_choose_image))
                     }
                 }
             },
-            confirmButton = {},
+            confirmButton = {}
         )
     }
     if (workNoteDialog) {
@@ -798,12 +637,17 @@ fun SocialGallery(
                     workPendingPhoto = null
                     uploadWorkPublication(pending, noteText, noteSource, classification)
                 },
-                onDismiss = { workNoteDialog = false; workPendingPhoto = null },
+                onDismiss = {
+                    workNoteDialog = false
+                    workPendingPhoto = null
+                }
             )
         }
     }
     groupDialog?.let { action ->
-        AlertDialog(onDismissRequest = { groupDialog = null }, title = { Text(if (action == "invite") localizedText(R.string.ui_invitation_code) else localizedText(R.string.ui_work_group)) },
+        AlertDialog(
+            onDismissRequest = { groupDialog = null },
+            title = { Text(if (action == "invite") localizedText(R.string.ui_invitation_code) else localizedText(R.string.ui_work_group)) },
             text = {
                 Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     if (action == "create") CatalogDraftFields(draftCategories, draftTags, { draftCategories = it }, { draftTags = it })
@@ -832,68 +676,108 @@ fun SocialGallery(
                     }) { Icon(Icons.Default.ContentCopy, localizedText(R.string.ui_copy)) }
                     TextButton(onClick = {
                         val code = if (action == "created") groupPin else groupText
-                        context.startActivity(android.content.Intent.createChooser(android.content.Intent(android.content.Intent.ACTION_SEND).apply {
-                            type = "text/plain"
-                            putExtra(android.content.Intent.EXTRA_TEXT, localizedText(R.string.share_group_invitation, code))
-                        }, localizedText(R.string.ui_invite)))
+                        context.startActivity(
+                            android.content.Intent.createChooser(
+                                android.content.Intent(android.content.Intent.ACTION_SEND).apply {
+                                    type = "text/plain"
+                                    putExtra(android.content.Intent.EXTRA_TEXT, localizedText(R.string.share_group_invitation, code))
+                                },
+                                localizedText(R.string.ui_invite)
+                            )
+                        )
                     }) { Text(localizedText(R.string.share_invitation)) }
                 }
                 TextButton(onClick = {
-                if (action == "create" && (draftCategories.isEmpty() || draftTags.isEmpty())) { error = localizedText(R.string.catalog_owner_needed) }
-                else if (action == "invite" || action == "created") groupDialog = null else runRequest {
-                    if (action == "create") {
-                        val created = withContext(Dispatchers.IO) { JSONObject(SocialSession.request("groups", JSONObject().put("name", groupText).put("categories", JSONArray(draftCategories)).put("tags", JSONArray(draftTags)))) }
-                        groupId = created.getString("id")
-                        SocialSession.workWorkspaceId = groupId
-                        showImport = true
-                        groupPin = created.optString("join_pin")
-                        groupText = ""
-                        groupDialog = "created"
+                    if (action == "create" && (draftCategories.isEmpty() || draftTags.isEmpty())) {
+                        error = localizedText(R.string.catalog_owner_needed)
+                    } else if (action == "invite" || action == "created") {
+                        groupDialog = null
                     } else {
-                        val route = GroupJoinPolicy.route(groupText)
-                        val joined = withContext(Dispatchers.IO) {
-                            JSONObject(SocialSession.request(
-                                if (route == GroupJoinPolicy.Route.PIN) "groups/join-by-pin" else "groups/join",
-                                JSONObject().put(if (route == GroupJoinPolicy.Route.PIN) "pin" else "code", groupText),
-                            ))
+                        runRequest {
+                            if (action == "create") {
+                                val created = withContext(Dispatchers.IO) { JSONObject(SocialSession.request("groups", JSONObject().put("name", groupText).put("categories", JSONArray(draftCategories)).put("tags", JSONArray(draftTags)))) }
+                                groupId = created.getString("id")
+                                SocialSession.workWorkspaceId = groupId
+                                showImport = true
+                                groupPin = created.optString("join_pin")
+                                groupText = ""
+                                groupDialog = "created"
+                            } else {
+                                val route = GroupJoinPolicy.route(groupText)
+                                val joined = withContext(Dispatchers.IO) {
+                                    JSONObject(
+                                        SocialSession.request(
+                                            if (route == GroupJoinPolicy.Route.PIN) "groups/join-by-pin" else "groups/join",
+                                            JSONObject().put(if (route == GroupJoinPolicy.Route.PIN) "pin" else "code", groupText)
+                                        )
+                                    )
+                                }
+                                groupId = joined.optString("workspace_id").ifBlank { joined.optString("id") }
+                                SocialSession.workWorkspaceId = groupId
+                                showImport = true
+                                groupDialog = null
+                                groupText = ""
+                            }
+                            val result = withContext(Dispatchers.IO) { JSONArray(SocialSession.request("workspaces")) }
+                            groups = (0 until result.length()).map { result.getJSONObject(it) }.filter { !it.getString("name").startsWith("home:") }
                         }
-                        groupId = joined.optString("workspace_id").ifBlank { joined.optString("id") }
-                        SocialSession.workWorkspaceId = groupId
-                        showImport = true
-                        groupDialog = null; groupText = ""
                     }
-                    val result = withContext(Dispatchers.IO) { JSONArray(SocialSession.request("workspaces")) }
-                    groups = (0 until result.length()).map { result.getJSONObject(it) }.filter { !it.getString("name").startsWith("home:") }
-                }
-            }) { Text(localizedText(R.string.ui_accept)) } }, dismissButton = { TextButton(onClick = { groupDialog = null }) { Text(localizedText(R.string.ui_cancel)) } })
+                }) { Text(localizedText(R.string.ui_accept)) }
+            },
+            dismissButton = { TextButton(onClick = { groupDialog = null }) { Text(localizedText(R.string.ui_cancel)) } }
+        )
     }
     if (faceConsentAsk) {
-        AlertDialog(onDismissRequest = { faceConsentAsk = false },
+        AlertDialog(
+            onDismissRequest = { faceConsentAsk = false },
             title = { Text(stringResource(R.string.face_consent_title)) },
             text = { Text(stringResource(R.string.face_consent_body)) },
-            confirmButton = { TextButton(onClick = {
-                runRequest {
-                    withContext(Dispatchers.IO) { SocialSession.request("faces/consent", JSONObject().put("confirm", true)) }
-                    faceConsentAsk = false
-                }
-            }) { Text(stringResource(R.string.face_consent_accept)) } },
-            dismissButton = { TextButton(onClick = { faceConsentAsk = false }) { Text(stringResource(R.string.face_consent_later)) } })
+            confirmButton = {
+                TextButton(onClick = {
+                    runRequest {
+                        withContext(Dispatchers.IO) { SocialSession.request("faces/consent", JSONObject().put("confirm", true)) }
+                        faceConsentAsk = false
+                    }
+                }) { Text(stringResource(R.string.face_consent_accept)) }
+            },
+            dismissButton = { TextButton(onClick = { faceConsentAsk = false }) { Text(stringResource(R.string.face_consent_later)) } }
+        )
     }
     editingClassification?.let { post ->
         ClassificationDialog(post.optString("workspace_id"), publicationClassification(post), onSave = { value ->
             val updated = withContext(Dispatchers.IO) { JSONObject(SocialSession.requestJson("gallery/${post.getString("id")}/classification", "PATCH", value.json())) }
             post.put("category", updated.opt("category")).put("tags", updated.getJSONArray("tags"))
             selected = JSONObject(post.toString())
-            cursor = null; endReached = false; revision++
+            cursor = null
+            endReached = false
+            revision++
         }, onClose = { editingClassification = null })
     }
     LaunchedEffect(showAdministration) { onAdminDrawerChange(showAdministration) }
     DisposableEffect(Unit) { onDispose { onAdminDrawerChange(false) } }
-    if (showImport && groupId != null && groupDialog == null) GroupPublicationPicker(groupId!!, onClose = { showImport = false }, onImported = { cursor = null; endReached = false; revision++ })
-    if (showAdministration && groupId != null) SocialAdministration(
-        groupId!!,
-        onDismiss = { showAdministration = false },
-        onChanged = { cursor = null; endReached = false; revision++ },
-        onGroupDeleted = { groupId = null; showAdministration = false; cursor = null; endReached = false; revision++ },
-    )
+    if (showImport && groupId != null && groupDialog == null) {
+        GroupPublicationPicker(groupId!!, onClose = { showImport = false }, onImported = {
+            cursor = null
+            endReached = false
+            revision++
+        })
+    }
+    if (showAdministration && groupId != null) {
+        SocialAdministration(
+            groupId!!,
+            onDismiss = { showAdministration = false },
+            onChanged = {
+                cursor = null
+                endReached = false
+                revision++
+            },
+            onGroupDeleted = {
+                groupId = null
+                showAdministration = false
+                cursor = null
+                endReached = false
+                revision++
+            }
+        )
+    }
 }

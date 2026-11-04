@@ -112,6 +112,7 @@ class User(TimestampMixin, Base):
 
 class Workspace(TimestampMixin, Base):
     __tablename__ = "workspaces"
+    display_text: Mapped[dict] = mapped_column(JSON, default=dict, nullable=False)
 
     id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
     name: Mapped[str] = mapped_column(String(160), unique=True, nullable=False)

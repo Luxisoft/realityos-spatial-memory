@@ -44,9 +44,14 @@ internal fun GroupPublicationPicker(workspaceId: String, onClose: () -> Unit, on
                 }
                 rows = (rows + storageRows(page.getJSONArray("items"))).distinctBy { it.optString("original_id").ifBlank { it.getString("id") } }
                 cursor = page.optText("next_cursor")
-            } catch (cancelled: CancellationException) { throw cancelled }
-            catch (error: Exception) { failed = true; AppNotices.show(error.message.orEmpty(), NoticeKind.ERROR) }
-            finally { loading = false }
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (error: Exception) {
+                failed = true
+                AppNotices.show(error.message.orEmpty(), NoticeKind.ERROR)
+            } finally {
+                loading = false
+            }
         }
     }
     LaunchedEffect(workspaceId) { load() }
@@ -60,18 +65,23 @@ internal fun GroupPublicationPicker(workspaceId: String, onClose: () -> Unit, on
                             val id = post.getString("id")
                             val inGroup = post.optString("workspace_id") == workspaceId
                             Column {
-                            Row(Modifier.fillMaxWidth().clickable(enabled = !busy && !inGroup && (id in selected || selected.size < 100)) { selected = if (id in selected) selected - id else selected + id }.padding(vertical = 8.dp)) {
-                                Checkbox(checked = inGroup || id in selected, enabled = !busy && !inGroup && (id in selected || selected.size < 100), onCheckedChange = { checked -> selected = if (checked) selected + id else selected - id })
-                                Text(post.optString("caption").ifBlank { localizedText(R.string.evidence_publication) }, Modifier.weight(1f).padding(8.dp))
-                                DatabaseImage(profileImageRequest(context, post.getString("thumbnail_url")), null, Modifier.size(64.dp))
-                            }
-                            if (id in selected) TextButton(onClick = { classifying = id }) { Text(localizedText(R.string.catalog_classify) + if (classifications[id]?.complete == true) " ✓" else "") }
+                                Row(Modifier.fillMaxWidth().clickable(enabled = !busy && !inGroup && (id in selected || selected.size < 100)) { selected = if (id in selected) selected - id else selected + id }.padding(vertical = 8.dp)) {
+                                    Checkbox(checked = inGroup || id in selected, enabled = !busy && !inGroup && (id in selected || selected.size < 100), onCheckedChange = { checked -> selected = if (checked) selected + id else selected - id })
+                                    Text(post.storedText("caption").ifBlank { localizedText(R.string.evidence_publication) }, Modifier.weight(1f).padding(8.dp))
+                                    DatabaseImage(profileImageRequest(context, post.getString("thumbnail_url")), null, Modifier.size(64.dp))
+                                }
+                                if (id in selected) TextButton(onClick = { classifying = id }) { Text(localizedText(R.string.catalog_classify) + if (classifications[id]?.complete == true) " ✓" else "") }
                             }
                         }
-                        if (loading) item { CircularProgressIndicator() }
-                        else if (failed) item { TextButton(onClick = { load() }) { Text(localizedText(R.string.ui_retry)) } }
-                        else if (cursor != null) item { TextButton(onClick = { load() }) { Text(localizedText(R.string.storage_more)) } }
-                        else if (rows.isEmpty()) item { Text(localizedText(R.string.ui_no_publications_in_this_workspace_yet)) }
+                        if (loading) {
+                            item { CircularProgressIndicator() }
+                        } else if (failed) {
+                            item { TextButton(onClick = { load() }) { Text(localizedText(R.string.ui_retry)) } }
+                        } else if (cursor != null) {
+                            item { TextButton(onClick = { load() }) { Text(localizedText(R.string.storage_more)) } }
+                        } else if (rows.isEmpty()) {
+                            item { Text(localizedText(R.string.ui_no_publications_in_this_workspace_yet)) }
+                        }
                     }
                     TextButton(enabled = selected.isNotEmpty() && !busy, onClick = { applyAll = true }) { Text(localizedText(R.string.catalog_apply_all)) }
                     Button(enabled = selected.isNotEmpty() && selected.all { classifications[it]?.complete == true } && !busy, onClick = {
@@ -82,9 +92,13 @@ internal fun GroupPublicationPicker(workspaceId: String, onClose: () -> Unit, on
                                 AppNotices.show(localizedText(R.string.storage_done), NoticeKind.SUCCESS)
                                 onImported()
                                 onClose()
-                            } catch (cancelled: CancellationException) { throw cancelled }
-                            catch (error: Exception) { AppNotices.show(error.message.orEmpty(), NoticeKind.ERROR) }
-                            finally { busy = false }
+                            } catch (cancelled: CancellationException) {
+                                throw cancelled
+                            } catch (error: Exception) {
+                                AppNotices.show(error.message.orEmpty(), NoticeKind.ERROR)
+                            } finally {
+                                busy = false
+                            }
                         }
                     }) { Text(localizedText(R.string.storage_import) + " (${selected.size})") }
                     TextButton(onClick = onClose, enabled = !busy) { Text(localizedText(R.string.ui_close)) }
@@ -95,9 +109,15 @@ internal fun GroupPublicationPicker(workspaceId: String, onClose: () -> Unit, on
     if (classifying != null || applyAll) {
         val key = classifying
         ClassificationDialog(workspaceId, initial = if (applyAll) batchValue else classifications[key] ?: PublicationClassification(), onSave = { value ->
-            if (applyAll) { batchValue = value; classifications = classifications + selected.associateWith { value } }
-            else if (key != null) classifications = classifications + (key to value)
-        }, onClose = { classifying = null; applyAll = false })
+            if (applyAll) {
+                batchValue = value
+                classifications = classifications + selected.associateWith { value }
+            } else if (key != null) {
+                classifications = classifications + (key to value)
+            }
+        }, onClose = {
+            classifying = null
+            applyAll = false
+        })
     }
-
 }

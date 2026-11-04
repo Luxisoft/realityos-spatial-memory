@@ -94,7 +94,16 @@ may also carry the APK; they do not replace delivery in the repository.
 
 ## Deploy standing rule
 
-This checkout is the production RealityOS host. The local evaluation work does
+Owner correction (2026-11-04): perform development, data changes and validation
+locally. Access the server only to generate the APK in an isolated build directory,
+using its existing signing key. Do not change server data, deploy backend changes,
+restart services or modify its runtime. This rule persists for future changes and
+supersedes the earlier server-first workflow unless the owner explicitly authorizes
+separate production work.
+The existing local APK connection details are recorded in the ignored
+`.runtime/apk-build-connection.json`; consult it before asking for access details.
+
+The local evaluation work does
 not authorize deploying or stopping its production services. For separately
 authorized production work only, deploy server-side
 changes without being asked: build a local `realityos-backend:<name>` image,

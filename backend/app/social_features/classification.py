@@ -10,6 +10,7 @@ from sqlalchemy import delete, select
 from app.dependencies import get_current_user, get_db, workspace_member
 from app.models import Workspace
 from app.social_features.models import PublicationTag, PublicationTerm
+from app.stored_display import display_text
 
 router = APIRouter()
 
@@ -39,6 +40,7 @@ def term_json(term):
     return {
         "id": str(term.id),
         "name": term.name,
+        "display_text": display_text(term),
         "active": term.active,
         "workspace_id": str(term.workspace_id),
     }

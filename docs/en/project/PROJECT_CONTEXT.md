@@ -12,7 +12,7 @@ Current working map. Read the [conventions](../../../AGENTS.md), check [verified
 | --- | --- |
 | `backend/app/` | API and contracts shared with the worker: HTTP, providers, processing, accounts, social features, records and storage. |
 | `backend/app/faces.py` | Isolated biometrics protected by AGENTS.md. |
-| `backend/alembic/versions/` | Alembic schema; documented current revision `20261103_0038`. |
+| `backend/alembic/versions/` | Alembic schema; current local revision `20261104_0040`. |
 | `android/` | Only app: Kotlin/Compose, CameraX, DAT and native Display; Mock Device Kit only in Debug. |
 | `meta-gateway/` | Restricted egress to allowlisted Meta routes. |
 | `infrastructure/` | Compose for postgres, redis, api, worker, scheduler and proxy; TLS and gateway. |

@@ -8,7 +8,9 @@ The group owner adds categories and tags during group creation and can rename, a
 
 Publishing requires one category and between one and twenty active tags from the selected group. Written or transcribed notes remain optional. Changing groups clears the selection. An empty catalog blocks publication and explains that the group owner must complete it.
 
-Names appear as entered by the owner; controls are available in English and Spanish. Renaming preserves associations. Archiving preserves existing publication labels and historical filter options while preventing new selections. Manual classification does not become visual evidence or replace object analysis.
+The 87 existing terms in the three local groups have authored Spanish and English names saved in the database. Categories, tags, thumbnails, filters and the viewer select the saved language without translating when a screen opens. Identifiers and associations stay unchanged. Prepared publications, records and descriptive profile fields also retain both versions in the database.
+
+The reviewed copy lives in `simulator/local/display-text.json` and is installed once, without recreating deleted rows or replacing owner edits. No new service, model, queue or automatic translator is involved. Proper names, identifiers and dates are unchanged. Later edits keep the owner's wording and stop showing outdated copy that no longer matches. Archiving preserves existing publication labels and historical filter options while preventing new selections. Manual classification does not become visual evidence or replace object analysis.
 
 ## Thumbnails and filtering
 

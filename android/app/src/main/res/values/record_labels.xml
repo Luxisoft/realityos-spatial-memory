@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="record_label_description">Description</string>
+    <string name="record_label_reference">Reference</string>
+    <string name="record_label_status">Status</string>
+    <string name="record_label_note">Note</string>
+    <string name="record_label_last_seen_location">Last seen at</string>
+    <string name="record_label_identifier">Identifier</string>
+    <string name="record_label_birth_date">Date of birth</string>
+    <string name="record_label_allergies_reviewed_at">Allergies reviewed</string>
+    <string name="record_label_ingredient">Ingredient</string>
+    <string name="record_label_concentration">Concentration</string>
+    <string name="record_label_state">State</string>
+    <string name="record_label_valid_from">Valid from</string>
+    <string name="record_label_valid_until">Valid until</string>
+    <string name="record_label_substance">Substance</string>
+    <string name="record_label_person">Person</string>
+    <string name="record_label_case">Case</string>
+    <string name="record_label_encounter">Care encounter</string>
+    <string name="record_label_event">Event</string>
+    <string name="record_label_object">Object</string>
+    <string name="record_label_prescription">Prescription</string>
+    <string name="record_label_allergy">Allergy</string>
+    <string name="record_label_administration">Administration</string>
+</resources>

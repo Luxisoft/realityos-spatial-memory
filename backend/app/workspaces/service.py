@@ -6,6 +6,7 @@ from fastapi import HTTPException
 from sqlalchemy import select
 
 from app.social_features.models import Publication
+from app.stored_display import display_text
 from app.workspaces.models import ImportRun, Record, RecordMedia, RecordRevision
 
 
@@ -17,6 +18,7 @@ def record_json(row):
         "external_id": row.external_id,
         "kind": row.kind,
         "title": row.title,
+        "display_text": display_text(row),
         "version": row.version,
         "status": row.status,
         "data": row.data,

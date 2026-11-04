@@ -8,7 +8,9 @@ El dueño del grupo añade categorías y tags al crearlo, y puede renombrarlos, 
 
 Publicar exige una categoría y entre uno y veinte tags activos del grupo seleccionado. La nota escrita o transcrita sigue siendo opcional. Si cambia el grupo, hay que volver a elegir la clasificación. Un catálogo vacío bloquea la publicación y señala que debe completarlo el dueño.
 
-Los nombres se muestran como los escribe el dueño; los controles están disponibles en español e inglés. Renombrar conserva las asociaciones. Archivar conserva las etiquetas de publicaciones anteriores y las opciones históricas del filtro, pero impide nuevas selecciones. La clasificación manual no se convierte en evidencia visual ni sustituye al análisis de objetos.
+Los 87 términos existentes de los tres grupos locales tienen nombres redactados y guardados en español e inglés. Categorías, tags, miniaturas, filtros y visor leen la versión del idioma seleccionado sin traducir al abrir la pantalla. Los identificadores y asociaciones permanecen iguales. Las publicaciones, los expedientes y los textos descriptivos de los perfiles preparados también conservan ambas versiones en la base de datos.
+
+La copia revisada está en `simulator/local/display-text.json` y se incorpora una sola vez, sin recrear filas borradas ni sustituir ediciones del propietario. No hay un nuevo servicio, modelo, cola ni traductor automático. Los nombres propios, identificadores y fechas no se traducen. Una edición posterior conserva el texto del dueño y deja de mostrar una versión antigua que ya no corresponde. Archivar conserva las etiquetas de publicaciones anteriores y las opciones históricas del filtro, pero impide nuevas selecciones. La clasificación manual no se convierte en evidencia visual ni sustituye al análisis de objetos.
 
 ## Miniaturas y búsqueda
 

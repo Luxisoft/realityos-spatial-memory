@@ -73,6 +73,7 @@ class ChatAudio(TimestampMixin, Base):
 
 class PublicationTerm(TimestampMixin, Base):
     __tablename__ = "publication_terms"
+    display_text: Mapped[dict] = mapped_column(JSON, default=dict, nullable=False)
     __table_args__ = (
         UniqueConstraint("workspace_id", "kind", "name_key", name="uq_publication_term_name"),
     )
@@ -98,6 +99,7 @@ class PublicationTag(Base):
 
 class Publication(TimestampMixin, Base):
     __tablename__ = "publications"
+    display_text: Mapped[dict] = mapped_column(JSON, default=dict, nullable=False)
     __table_args__ = (
         UniqueConstraint("owner_id", "source", "source_ref", name="uq_publication_source"),
         UniqueConstraint("shared_from_id", "workspace_id", name="uq_publication_group_copy"),
@@ -204,6 +206,7 @@ class UserProfile(TimestampMixin, Base):
     """Public profile fields plus the owner's single private, replaceable CV."""
 
     __tablename__ = "user_profiles"
+    display_text: Mapped[dict] = mapped_column(JSON, default=dict, nullable=False)
 
     user_id: Mapped[uuid.UUID] = mapped_column(
         ForeignKey("users.id", ondelete="CASCADE"), primary_key=True

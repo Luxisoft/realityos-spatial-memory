@@ -38,6 +38,7 @@ class WorkspaceCreate(BaseModel):
 
 
 class WorkspaceResponse(FromAttributes):
+    display_text: dict = Field(default_factory=dict)
     id: uuid.UUID
     name: str
     description: str | None

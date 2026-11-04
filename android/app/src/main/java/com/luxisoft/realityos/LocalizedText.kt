@@ -2,14 +2,15 @@ package com.luxisoft.realityos
 
 import android.content.Context
 import android.content.res.Configuration
-import androidx.annotation.StringRes
 import androidx.annotation.PluralsRes
+import androidx.annotation.StringRes
 import java.util.Locale
 
 /** Resources for callbacks and services, where a Compose resource is unavailable. */
 internal object LocalizedText {
     private lateinit var application: Context
     private lateinit var experience: RealityExperienceStore
+    val languageTag: String get() = if (::experience.isInitialized) experience.selectedLanguage().languageTag else "en"
 
     fun initialize(context: Context) {
         application = context.applicationContext
@@ -26,15 +27,12 @@ internal object LocalizedText {
 
     fun get(@StringRes id: Int, vararg arguments: Any): String = resources().getString(id, *arguments)
 
-    fun quantity(@PluralsRes id: Int, count: Int, vararg arguments: Any): String =
-        resources().getQuantityString(id, count, *arguments)
+    fun quantity(@PluralsRes id: Int, count: Int, vararg arguments: Any): String = resources().getQuantityString(id, count, *arguments)
 }
 
-internal fun localizedText(@StringRes id: Int, vararg arguments: Any): String =
-    LocalizedText.get(id, *arguments)
+internal fun localizedText(@StringRes id: Int, vararg arguments: Any): String = LocalizedText.get(id, *arguments)
 
-internal fun localizedQuantityText(@PluralsRes id: Int, count: Int, vararg arguments: Any): String =
-    LocalizedText.quantity(id, count, *arguments)
+internal fun localizedQuantityText(@PluralsRes id: Int, count: Int, vararg arguments: Any): String = LocalizedText.quantity(id, count, *arguments)
 
 internal fun localizedHttpError(status: Int): String = when (status) {
     401 -> localizedText(R.string.ui_your_session_expired_sign_in_again)

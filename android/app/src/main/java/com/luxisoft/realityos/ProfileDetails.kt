@@ -186,7 +186,7 @@ internal fun ProfileInformation(
         add(ProfileInfoItem(localizedText(R.string.ui_age), if (age.isBlank()) "" else localizedText(R.string.ui_1_s_years_old, age), Icons.Default.Badge))
         add(ProfileInfoItem(localizedText(R.string.ui_phone), phone, Icons.Default.Phone))
         add(ProfileInfoItem(localizedText(R.string.ui_birthday), profileBirthdayLabel(profile.optString("birthday")), Icons.Default.Cake))
-        add(ProfileInfoItem(localizedText(R.string.ui_gender), profile.optString("gender"), Icons.Default.Person))
+        add(ProfileInfoItem(localizedText(R.string.ui_gender), profile.storedText("gender"), Icons.Default.Person))
         add(ProfileInfoItem(localizedText(R.string.ui_website), website, Icons.Default.Language) { onOpenLink(website) })
         if (links.isEmpty()) add(ProfileInfoItem(localizedText(R.string.ui_social_network), "-", Icons.Default.Link))
         links.forEach { link ->

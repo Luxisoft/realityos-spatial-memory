@@ -37,6 +37,7 @@ from app.social_features.publication_visibility import (
     require_publication_content,
 )
 from app.social_features.schemas import Interaction, Publish, Share
+from app.stored_display import display_text
 
 """Facebook identities and explicitly shared audiovisual publications."""
 
@@ -162,6 +163,7 @@ def _publication_payload(post: Publication, viewer: User, db: Session) -> dict:
         "id": str(post.id),
         "original_id": str(post.shared_from_id or post.id),
         "caption": post.caption,
+        "display_text": display_text(post),
         **classification_json(db, post),
         "note_text": post.note_text,
         "note_source": post.note_source,

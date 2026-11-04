@@ -79,8 +79,8 @@ internal fun rememberProfileState(userId: String? = null): ProfileState {
     return state
 }
 
-internal fun profileLinks(profile: JSONObject): List<EditableProfileLink> {
-    val values = profile.optJSONArray("social_links") ?: JSONArray()
+internal fun profileLinks(profile: JSONObject, localized: Boolean = false): List<EditableProfileLink> {
+    val values = if (localized) profile.storedArray("social_links") else profile.optJSONArray("social_links") ?: JSONArray()
     return (0 until values.length()).map { index ->
         values.getJSONObject(index).let { EditableProfileLink(it.optString("label"), it.optString("url")) }
     }
@@ -142,10 +142,10 @@ internal fun ProfileHeader(
                             }
                         }
                     }
-                    ProfileInformation(current, current.optString("headline"), current.optString("phone"), current.optString("website"), profileLinks(current), { openLink(it) })
+                    ProfileInformation(current, current.storedText("headline"), current.optString("phone"), current.optString("website"), profileLinks(current, localized = true), { openLink(it) })
                     Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                         Icon(Icons.Default.Description, null)
-                        Text(current.optText("biography") ?: "-", style = MaterialTheme.typography.bodyMedium)
+                        Text(current.storedText("biography").takeIf { it.isNotBlank() } ?: "-", style = MaterialTheme.typography.bodyMedium)
                     }
                     val friends = if (facebookProfile) current.optJSONArray("friends") ?: JSONArray() else JSONArray()
                     for (index in 0 until minOf(friends.length(), 6)) {
@@ -168,7 +168,7 @@ internal fun ProfileHeader(
             ) {
                 val navigation = onBack ?: onMenu
                 if (navigation != null) {
-                    IconButton(onClick = navigation, modifier = Modifier.size(48.dp).testTag("host-menu-button")) {
+                    Box(modifier = Modifier.requiredSize(48.dp).clip(CircleShape).clickable(role = Role.Button, onClick = navigation).testTag("host-menu-button"), contentAlignment = Alignment.Center) {
                         Icon(if (onBack != null) Icons.Default.ArrowBack else Icons.Default.Menu, localizedText(if (onBack != null) R.string.ui_back else R.string.content_open_menu))
                     }
                 }
@@ -260,10 +260,13 @@ internal fun ProfileHeader(
                     }
                 }
                 if (onSearch != null) {
-                    IconButton(onClick = {
-                        expanded = false
-                        onSearch()
-                    }, modifier = Modifier.size(48.dp).testTag("host-search-button")) {
+                    Box(
+                        modifier = Modifier.requiredSize(48.dp).clip(CircleShape).clickable(role = Role.Button, onClick = {
+                            expanded = false
+                            onSearch()
+                        }).testTag("host-search-button"),
+                        contentAlignment = Alignment.Center
+                    ) {
                         Icon(painterResource(R.drawable.ic_muse), localizedText(R.string.ui_search), Modifier.size(30.dp))
                     }
                 }
@@ -285,7 +288,7 @@ private fun ProfileEditor(state: ProfileState, onClose: () -> Unit) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val current = state.profile ?: return
-    var headline by rememberSaveable { mutableStateOf(current.optString("headline")) }
+    var headline by rememberSaveable { mutableStateOf(current.storedText("headline")) }
     var biography by rememberSaveable { mutableStateOf(current.optString("biography")) }
     var phone by rememberSaveable { mutableStateOf(current.optString("phone")) }
     var website by rememberSaveable { mutableStateOf(current.optString("website")) }

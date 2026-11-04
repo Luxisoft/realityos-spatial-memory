@@ -34,6 +34,7 @@ class ImportRun(TimestampMixin, Base):
 
 class Record(TimestampMixin, Base):
     __tablename__ = "workspace_records"
+    display_text: Mapped[dict] = mapped_column(JSON, default=dict, nullable=False)
     __table_args__ = (UniqueConstraint("connection_id", "external_id"),)
     id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
     workspace_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("workspaces.id"), index=True)

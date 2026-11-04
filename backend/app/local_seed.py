@@ -11,6 +11,7 @@ from sqlalchemy import select, text
 
 from app.accounts.models import PasswordAccount
 from app.local_catalog import FIXTURES, catalog, local_id
+from app.local_display import install_display_text
 from app.local_models import LocalEvaluationState
 from app.local_runtime import validate_local_settings
 from app.models import MediaAsset, MediaKind, Role, User, Workspace, WorkspaceMember, Zone
@@ -94,6 +95,7 @@ def seed_evaluation(db, settings, root=FIXTURES):
         db.execute(text("SELECT pg_advisory_xact_lock(7265616)"))
     previous = db.get(LocalEvaluationState, RECEIPT)
     if previous:
+        install_display_text(db, settings, root)
         return {"initialized": False, **previous.counts}
     if db.scalar(select(User.id).limit(1)) is not None:
         raise ValueError(
@@ -242,6 +244,7 @@ def seed_evaluation(db, settings, root=FIXTURES):
     digest = hashlib.sha256(json.dumps(data, sort_keys=True).encode()).hexdigest()
     db.add(LocalEvaluationState(name=RECEIPT, manifest_hash=digest, counts=counts))
     db.flush()
+    install_display_text(db, settings, root)
     return {"initialized": True, **counts}
 
 

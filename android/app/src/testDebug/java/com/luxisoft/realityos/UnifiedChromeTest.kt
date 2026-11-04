@@ -74,10 +74,11 @@ class UnifiedChromeTest {
         // Tap the portrait away from its separately clickable edit badge.
         compose.onNodeWithTag("profile-avatar").performTouchInput { click(androidx.compose.ui.geometry.Offset(8f, 8f)) }
         compose.runOnIdle { assertEquals(listOf("gallery"), actions) }
-        compose.onNodeWithTag("profile-glasses").performClick()
-        compose.onNodeWithTag("host-search-button").performClick()
+        compose.onNodeWithTag("host-menu-button").performTouchInput { click() }
+        compose.onNodeWithTag("profile-glasses").performTouchInput { click() }
+        compose.onNodeWithTag("host-search-button").performTouchInput { click() }
         compose.onNodeWithTag("host-preview-controls-button").performClick()
-        compose.runOnIdle { assertEquals(listOf("gallery", "glasses", "search", "controls"), actions) }
+        compose.runOnIdle { assertEquals(listOf("gallery", "menu", "glasses", "search", "controls"), actions) }
         capture("collapsed-$name")
         compose.onNodeWithTag("profile-expand").performClick()
         compose.mainClock.advanceTimeBy(500)
@@ -88,7 +89,7 @@ class UnifiedChromeTest {
         assertTrue(details.bottom <= avatar.top)
         capture("expanded-$name")
         compose.onNodeWithTag("profile-edit").performClick()
-        compose.runOnIdle { assertEquals(listOf("gallery", "glasses", "search", "controls", "edit"), actions) }
+        compose.runOnIdle { assertEquals(listOf("gallery", "menu", "glasses", "search", "controls", "edit"), actions) }
     }
 
     private fun capture(name: String) {

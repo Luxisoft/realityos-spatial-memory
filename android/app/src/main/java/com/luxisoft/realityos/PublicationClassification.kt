@@ -38,17 +38,26 @@ internal fun CatalogSelect(label: String, options: List<JSONObject>, selected: S
     var expanded by remember { mutableStateOf(false) }
     Box(Modifier.fillMaxWidth()) {
         OutlinedButton(onClick = { expanded = true }, enabled = enabled, modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)) {
-            Text(label + ": " + options.filter { it.optString("id") in selected }.joinToString { it.optString("name") }.ifBlank { localizedText(R.string.catalog_select) }, Modifier.weight(1f), maxLines = 2, overflow = TextOverflow.Ellipsis)
+            Text(label + ": " + options.filter { it.optString("id") in selected }.joinToString { it.storedText("name") }.ifBlank { localizedText(R.string.catalog_select) }, Modifier.weight(1f), maxLines = 2, overflow = TextOverflow.Ellipsis)
             Icon(Icons.Default.ArrowDropDown, null)
         }
         DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }, modifier = Modifier.heightIn(max = 320.dp)) {
             options.forEach { option ->
                 val id = option.getString("id")
-                DropdownMenuItem(text = { Text(option.getString("name")) }, leadingIcon = {
-                    if (multiple) Checkbox(checked = id in selected, onCheckedChange = null)
-                    else RadioButton(selected = id in selected, onClick = null)
+                DropdownMenuItem(text = { Text(option.storedText("name")) }, leadingIcon = {
+                    if (multiple) {
+                        Checkbox(checked = id in selected, onCheckedChange = null)
+                    } else {
+                        RadioButton(selected = id in selected, onClick = null)
+                    }
                 }, onClick = {
-                    onSelect(if (multiple) { if (id in selected) selected - id else selected + id } else setOf(id))
+                    onSelect(
+                        if (multiple) {
+                            if (id in selected) selected - id else selected + id
+                        } else {
+                            setOf(id)
+                        }
+                    )
                     if (!multiple) expanded = false
                 })
             }
@@ -68,9 +77,13 @@ internal fun ClassificationFields(workspaceId: String, value: PublicationClassif
         error = ""
         try {
             catalog = withContext(Dispatchers.IO) { JSONObject(SocialSession.request("groups/$workspaceId/publication-catalog")) }
-        } catch (cancelled: CancellationException) { throw cancelled }
-        catch (failure: Exception) { error = failure.message.orEmpty() }
-        finally { loading = false }
+        } catch (cancelled: CancellationException) {
+            throw cancelled
+        } catch (failure: Exception) {
+            error = failure.message.orEmpty()
+        } finally {
+            loading = false
+        }
     }
     val categories = storageRows(catalog?.optJSONArray("categories") ?: JSONArray()).filter { it.optBoolean("active") }
     val tags = storageRows(catalog?.optJSONArray("tags") ?: JSONArray()).filter { it.optBoolean("active") }
@@ -107,39 +120,47 @@ internal fun ClassificationDialog(workspaceId: String, initial: PublicationClass
         TextButton(enabled = valid && !busy, onClick = {
             scope.launch {
                 busy = true
-                try { onSave(value); onClose() }
-                catch (cancelled: CancellationException) { throw cancelled }
-                catch (failure: Exception) { error = failure.message.orEmpty() }
-                finally { busy = false }
+                try {
+                    onSave(value)
+                    onClose()
+                } catch (cancelled: CancellationException) {
+                    throw cancelled
+                } catch (failure: Exception) {
+                    error = failure.message.orEmpty()
+                } finally {
+                    busy = false
+                }
             }
         }) { Text(localizedText(R.string.ui_accept)) }
     }, dismissButton = { TextButton(onClick = onClose, enabled = !busy) { Text(localizedText(R.string.ui_cancel)) } })
 }
 
 internal fun publicationClassificationText(post: JSONObject): String = buildList {
-    post.optJSONObject("category")?.optText("name")?.let { add(it) }
-    addAll(storageRows(post.optJSONArray("tags") ?: JSONArray()).map { "#" + it.optString("name") })
+    post.optJSONObject("category")?.storedText("name")?.takeIf { it.isNotBlank() }?.let { add(it) }
+    addAll(storageRows(post.optJSONArray("tags") ?: JSONArray()).map { "#" + it.storedText("name") })
 }.joinToString(" · ")
 
 @Composable
 internal fun PublicationThumbnail(post: JSONObject, modifier: Modifier = Modifier, onClick: () -> Unit) {
     val context = LocalContext.current
     Box(modifier.clickable(onClick = onClick)) {
-        DatabaseImage(profileImageRequest(context, post.optString("thumbnail_url")), post.optString("caption"), Modifier.fillMaxSize(), contentScale = ContentScale.Crop)
+        DatabaseImage(profileImageRequest(context, post.optString("thumbnail_url")), post.storedText("caption"), Modifier.fillMaxSize(), contentScale = ContentScale.Crop)
         if (post.optString("mime_type").startsWith("video/")) {
             Surface(Modifier.align(Alignment.Center).size(36.dp).testTag("publication-video"), shape = MaterialTheme.shapes.extraLarge, color = Color.Black.copy(alpha = .55f)) {
                 Icon(Icons.Default.PlayArrow, localizedText(R.string.profile_play_video), tint = Color.White, modifier = Modifier.padding(6.dp))
             }
         }
-        val category = post.optJSONObject("category")?.optText("name")
+        val category = post.optJSONObject("category")?.storedText("name")?.takeIf { it.isNotBlank() }
         val tags = storageRows(post.optJSONArray("tags") ?: JSONArray())
         if (category != null || tags.isNotEmpty()) {
             Surface(Modifier.align(Alignment.BottomStart).padding(4.dp).fillMaxWidth().testTag("publication-classification"), shape = MaterialTheme.shapes.extraSmall, color = MaterialTheme.colorScheme.surface.copy(alpha = .92f)) {
                 Column(Modifier.padding(horizontal = 5.dp, vertical = 3.dp)) {
                     category?.let { Text(it, style = MaterialTheme.typography.labelSmall, maxLines = 1, overflow = TextOverflow.Ellipsis) }
-                    if (tags.isNotEmpty()) Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text(tags.take(2).joinToString(" · ") { "#" + it.optString("name") }, Modifier.weight(1f), style = MaterialTheme.typography.labelSmall, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                        if (tags.size > 2) Text(" +${tags.size - 2}", style = MaterialTheme.typography.labelSmall)
+                    if (tags.isNotEmpty()) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text(tags.take(2).joinToString(" · ") { "#" + it.storedText("name") }, Modifier.weight(1f), style = MaterialTheme.typography.labelSmall, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                            if (tags.size > 2) Text(" +${tags.size - 2}", style = MaterialTheme.typography.labelSmall)
+                        }
                     }
                 }
             }
@@ -165,7 +186,10 @@ private fun CatalogDraftList(label: String, values: List<String>, onChange: (Lis
     }
     Row(verticalAlignment = Alignment.CenterVertically) {
         OutlinedTextField(draft, { draft = it.take(80) }, Modifier.weight(1f), label = { Text(label) }, singleLine = true)
-        IconButton(enabled = draft.isNotBlank() && values.none { it.equals(draft.trim(), true) }, onClick = { onChange(values + draft.trim()); draft = "" }) { Icon(Icons.Default.Add, localizedText(R.string.catalog_add)) }
+        IconButton(enabled = draft.isNotBlank() && values.none { it.equals(draft.trim(), true) }, onClick = {
+            onChange(values + draft.trim())
+            draft = ""
+        }) { Icon(Icons.Default.Add, localizedText(R.string.catalog_add)) }
     }
 }
 
@@ -181,13 +205,20 @@ internal fun GroupCatalogEditor(workspaceId: String, onChanged: () -> Unit) {
     var error by remember { mutableStateOf("") }
     val scope = rememberCoroutineScope()
     LaunchedEffect(workspaceId, revision) {
-        try { catalog = withContext(Dispatchers.IO) { JSONObject(SocialSession.request("groups/$workspaceId/publication-catalog")) } }
-        catch (cancelled: CancellationException) { throw cancelled }
-        catch (failure: Exception) { error = failure.message.orEmpty() }
+        try {
+            catalog = withContext(Dispatchers.IO) { JSONObject(SocialSession.request("groups/$workspaceId/publication-catalog")) }
+        } catch (cancelled: CancellationException) {
+            throw cancelled
+        } catch (failure: Exception) {
+            error = failure.message.orEmpty()
+        }
     }
     if (error.isNotBlank()) {
         Text(error, color = MaterialTheme.colorScheme.error)
-        TextButton(onClick = { error = ""; revision++ }) { Text(localizedText(R.string.ui_retry)) }
+        TextButton(onClick = {
+            error = ""
+            revision++
+        }) { Text(localizedText(R.string.ui_retry)) }
     }
     if (catalog?.optBoolean("can_manage") != true) return
     Text(localizedText(R.string.catalog_title), style = MaterialTheme.typography.titleMedium, modifier = Modifier.padding(top = 16.dp))
@@ -199,26 +230,47 @@ internal fun GroupCatalogEditor(workspaceId: String, onChanged: () -> Unit) {
                     val path = "groups/$workspaceId/publication-catalog/" + (editing?.getString("id") ?: kind)
                     SocialSession.requestJson(path, if (editing == null) "POST" else "PATCH", JSONObject().put("name", name).put("active", active))
                 }
-                show = false; revision++; onChanged()
-            } catch (cancelled: CancellationException) { throw cancelled }
-            catch (failure: Exception) { error = failure.message.orEmpty() }
-            finally { busy = false }
+                show = false
+                revision++
+                onChanged()
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (failure: Exception) {
+                error = failure.message.orEmpty()
+            } finally {
+                busy = false
+            }
         }
     }
     listOf("categories" to "category", "tags" to "tag").forEach { (key, type) ->
         Text(localizedText(if (type == "category") R.string.catalog_categories else R.string.catalog_tags), style = MaterialTheme.typography.titleSmall)
         storageRows(catalog?.optJSONArray(key) ?: JSONArray()).forEach { term ->
-            TextButton(onClick = { editing = term; kind = type; name = term.getString("name"); show = true }) {
-                Text(term.getString("name") + if (term.optBoolean("active")) "" else " · " + localizedText(R.string.catalog_archived))
+            TextButton(onClick = {
+                editing = term
+                kind = type
+                name = term.getString("name")
+                show = true
+            }) {
+                Text(term.storedText("name") + if (term.optBoolean("active")) "" else " · " + localizedText(R.string.catalog_archived))
             }
         }
-        TextButton(onClick = { editing = null; kind = type; name = ""; show = true }) { Icon(Icons.Default.Add, null); Text(localizedText(R.string.catalog_add)) }
-    }
-    if (show) AlertDialog(onDismissRequest = { if (!busy) show = false }, title = { Text(localizedText(R.string.catalog_title)) }, text = {
-        Column {
-            OutlinedTextField(name, { name = it.take(80) }, label = { Text(localizedText(R.string.ui_name)) }, enabled = !busy)
-            if (editing != null) TextButton(onClick = { save(editing?.optBoolean("active") != true) }, enabled = !busy && name.isNotBlank()) { Text(localizedText(if (editing?.optBoolean("active") == true) R.string.catalog_archive else R.string.catalog_restore)) }
-            if (error.isNotBlank()) Text(error, color = MaterialTheme.colorScheme.error)
+        TextButton(onClick = {
+            editing = null
+            kind = type
+            name = ""
+            show = true
+        }) {
+            Icon(Icons.Default.Add, null)
+            Text(localizedText(R.string.catalog_add))
         }
-    }, confirmButton = { TextButton(onClick = { save(editing?.optBoolean("active") ?: true) }, enabled = !busy && name.isNotBlank()) { Text(localizedText(R.string.ui_accept)) } }, dismissButton = { TextButton(onClick = { show = false }, enabled = !busy) { Text(localizedText(R.string.ui_cancel)) } })
+    }
+    if (show) {
+        AlertDialog(onDismissRequest = { if (!busy) show = false }, title = { Text(localizedText(R.string.catalog_title)) }, text = {
+            Column {
+                OutlinedTextField(name, { name = it.take(80) }, label = { Text(localizedText(R.string.ui_name)) }, enabled = !busy)
+                if (editing != null) TextButton(onClick = { save(editing?.optBoolean("active") != true) }, enabled = !busy && name.isNotBlank()) { Text(localizedText(if (editing?.optBoolean("active") == true) R.string.catalog_archive else R.string.catalog_restore)) }
+                if (error.isNotBlank()) Text(error, color = MaterialTheme.colorScheme.error)
+            }
+        }, confirmButton = { TextButton(onClick = { save(editing?.optBoolean("active") ?: true) }, enabled = !busy && name.isNotBlank()) { Text(localizedText(R.string.ui_accept)) } }, dismissButton = { TextButton(onClick = { show = false }, enabled = !busy) { Text(localizedText(R.string.ui_cancel)) } })
+    }
 }

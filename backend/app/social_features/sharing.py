@@ -60,6 +60,7 @@ def import_publications(db, user, workspace_id, publication_ids, classifications
             published_at=post.published_at,
         )
         for name in (
+            "display_text",
             "caption",
             "note_text",
             "note_source",

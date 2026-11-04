@@ -159,6 +159,13 @@ async def records(
         query = query.where(
             Record.title.ilike(f"%{q}%", escape="\\")
             | Record.external_id.ilike(f"%{q}%", escape="\\")
+            | (
+                (Record.display_text["title"]["source"].as_string() == Record.title)
+                & (
+                    Record.display_text["title"]["en"].as_string().ilike(f"%{q}%", escape="\\")
+                    | Record.display_text["title"]["es"].as_string().ilike(f"%{q}%", escape="\\")
+                )
+            )
         )
     return [
         record_json(row)
