@@ -60,7 +60,8 @@ git lfs pull
 
 Espera a que termine sin errores. `git lfs pull` descarga también los videos de `simulator/media/` necesarios para inicializar los datos locales. Si Git informa un conflicto con cambios locales, resuélvelo antes de continuar; conserva tus archivos privados.
 
-Para iniciar manualmente, ejecuta desde la carpeta del proyecto:
+Si ya completaste la instalación en este PC, usa la [actualización rápida](#local-updates)
+para aplicar correcciones. Para la primera instalación, ejecuta desde la carpeta del proyecto:
 
 **Windows — Git Bash**
 
@@ -183,10 +184,50 @@ Si modificas Android, sigue la [guía de compilación](integrations/ANDROID.md#b
 | Qué cambió | Qué ejecutar |
 | --- | --- |
 | Código o recursos Android | El servidor compila y sube el APK al repositorio. Repite los comandos de actualización e instalación anteriores; para cambios propios, sigue la [guía de compilación](#android-build). |
-| Código del backend o configuración del servidor | Ejecuta `Start-RealityOS.ps1` para reconstruir/iniciar los servicios locales. Se conservan los datos existentes. |
-| Expedientes, publicaciones o medios locales preparados | Ejecuta `git pull`, `git lfs pull` y el inicio local (`Start-RealityOS.ps1` en Windows; `bash scripts/local/start.sh` en Linux). Las adiciones SQL versionadas conservan ediciones, eliminaciones y membresías. |
+| Código del backend o configuración de API/worker | Usa la [actualización rápida](#local-updates): reutiliza la imagen instalada y reinicia API/worker con el código actual. |
+| Expedientes, publicaciones o medios locales preparados | Usa la [actualización rápida](#local-updates). Las adiciones SQL versionadas conservan ediciones, eliminaciones y membresías. |
+| Dependencias Python, Dockerfile o imagen base | Usa `Start-RealityOS.ps1` (Windows) o `make local-start` (Linux) para reconstruir la imagen. Las capas de dependencias y modelos se reutilizan cuando sus entradas no cambian. |
 | Contrato de la API que utiliza Android | Actualiza tanto el backend como el APK. |
 | Solo documentación | No hace falta reconstruir la app ni los contenedores. |
+
+<a id="local-updates"></a>
+
+**Actualización rápida de una instalación existente — Windows / Git Bash:**
+
+```bash
+git pull --ff-only &&
+git lfs pull &&
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File ./scripts/local/Update-RealityOS.ps1
+```
+
+En Linux, usa `git pull --ff-only && git lfs pull && make local-update`.
+
+Este comando reutiliza la imagen y los modelos ya instalados. Comprueba primero
+la instalación local y la compatibilidad de dependencias. Si el worker está
+procesando tareas, conserva los servicios en marcha y pide reintentar cuando
+termine. Cuando está disponible, detiene API/worker, aplica las migraciones
+pendientes e inicia ambos con el código actual.
+PostgreSQL, Redis, sus volúmenes y `.env.local` se conservan. El código, los scripts
+y los recursos locales se montan en lectura desde este repositorio; conserva la
+carpeta mientras uses los contenedores.
+
+Si falta la instalación o cambian las dependencias, el comando lo indica antes de
+detener servicios y remite al instalador completo. No ejecuta compilaciones,
+descargas de modelos ni comprobaciones externas de proveedores. La duración
+depende de las migraciones y del arranque; no se ha medido en tu PC. Al terminar,
+cierra y vuelve a abrir la app para renovar sus datos.
+
+Si falla una migración o el arranque, el comando muestra el error y conserva los
+volúmenes. El worker solo arranca después de que la API esté lista; si el fallo
+ocurre más tarde, los procesos nuevos ya iniciados se conservan para no cortar
+tareas. Corrige el error indicado y repite la actualización. No borres los
+volúmenes ni repitas la instalación desde cero.
+
+Si una interrupción deja el worker pausado y el comando avisa que no pudo
+restaurarlo, comprueba que no haya otra actualización en curso y ejecuta
+`powershell.exe -NoProfile -ExecutionPolicy Bypass -File ./scripts/local/Update-RealityOS.ps1 -ResumeWorker`
+(Linux: `bash scripts/local/update.sh --resume-worker`). Esto solo recupera la
+pausa registrada por el actualizador; después repite la actualización normal.
 
 `/c/platform-tools/adb.exe install -r` conserva los datos con el mismo identificador y firma. Las compilaciones publicadas desde este servidor mantienen esa firma; una compilación de otra computadora o CI puede usar otra. No desinstales automáticamente ante un conflicto. Consulta [instalación con ADB](https://developer.android.com/tools/adb#move).
 

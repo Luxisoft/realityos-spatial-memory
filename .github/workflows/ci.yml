@@ -45,6 +45,8 @@ jobs:
       - run: python scripts/check_structure.py
       - run: ruff check backend tests
       - run: ruff check scripts/architecture_rules.py scripts/check_structure.py
+      - name: Test quick local updates without Docker
+        run: bash tests/local/update.tests.sh
       - run: ruff format --check backend/app/http backend/app/providers backend/app/processing backend/app/social_features backend/app/routes.py backend/app/meta.py backend/app/services.py backend/app/social.py tests/social tests/test_architecture_contract.py tests/conftest.py scripts/check_structure.py
       - run: ruff format --check backend/app/runtime backend/app/local backend/app/config.py backend/app/db.py tests/test_architecture_boundaries.py tests/test_runtime_profiles.py tests/test_schema_bootstrap.py tests/test_local_upgrade_safety.py tests/postgres_support.py scripts/architecture_rules.py
       - name: Test with disposable PostgreSQL as an unprivileged user
@@ -83,9 +85,12 @@ jobs:
             if ($errors.Count) { throw ($errors | Out-String) }
           }
           ./tests/local/powershell.tests.ps1
+          ./tests/local/update.tests.ps1
       - name: Validate Windows PowerShell 5.1 compatibility
         shell: powershell
-        run: ./tests/local/powershell.tests.ps1
+        run: |
+          ./tests/local/powershell.tests.ps1
+          ./tests/local/update.tests.ps1
 
   android:
     runs-on: ubuntu-latest

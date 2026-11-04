@@ -4,6 +4,8 @@
 
 Setup and usage are collected in the **[English README](../README.md)**.
 
+For an existing installation, see the [quick update](../README.md#local-updates).
+
 <a id="android"></a>
 
 [Install Android](../README.md#android).

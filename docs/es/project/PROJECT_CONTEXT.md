@@ -45,4 +45,10 @@ Lee las [convenciones](../../../AGENTS.md), el [estado verificado](IMPLEMENTATIO
 
 Desde la raíz: `make docs-check`, `make architecture-check`, `make lint`, `make test` y `make android-check`, según el cambio. Las pruebas PostgreSQL crean clusters temporales en `.runtime/`, separados de los servicios existentes. No declarar como realizadas pruebas de dispositivo, proveedores externos, Docker o Windows que no se ejecutaron.
 
+La primera instalación usa `Start-RealityOS.ps1` o `make local-start`. Para
+correcciones de código/datos en una instalación existente, usar
+`Update-RealityOS.ps1` o `make local-update`: reutilizan la imagen instalada y
+montan las fuentes locales en lectura. Cambios de dependencias o imagen base
+requieren el instalador completo. Ver [actualizaciones](../README.md#local-updates).
+
 Los cambios se entregan en `main` según AGENTS.md; el despliegue remoto requiere autorización separada. El APK Debug canónico está en `android/app/build/outputs/apk/debug/app-debug.apk`, bajo Git LFS y con la firma existente. Un cambio Android o de contrato requiere reconstruirlo; el estado de esa validación se registra por entrega.

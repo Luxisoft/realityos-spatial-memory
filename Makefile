@@ -4,7 +4,7 @@ GATEWAY_ENV_FILE ?= infrastructure/gateway/runtime.env
 DOCS_PYTHON ?= $(if $(wildcard .venv/bin/python),.venv/bin/python,python3)
 
 help:
-	@printf '%s\n' 'make install | lint | test | docs-check | architecture-check | format-check | android-check | api | migrate | seed | compose-up | gateway-api | runtime-dirs'
+	@printf '%s\n' 'make install | lint | test | docs-check | architecture-check | format-check | android-check | api | migrate | seed | local-start | local-update | local-test | compose-up | gateway-api | runtime-dirs'
 
 install:
 	python3 -m venv .venv
@@ -59,12 +59,15 @@ android-check:
 
 # Primary localhost installation; Windows uses the PowerShell launcher.
 local-help:
-	@printf '%s\n' 'See docs/en/deployment/DEPLOYMENT_LOCALHOST.md. Windows: powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\local\Start-RealityOS.ps1'
+	@printf '%s\n' 'See docs/en/deployment/DEPLOYMENT_LOCALHOST.md. Windows first install: Start-RealityOS.ps1; existing installation: Update-RealityOS.ps1, under scripts/local/.'
 
 .PHONY: local-help
 
 local-start:
 	bash scripts/local/start.sh
+
+local-update:
+	bash scripts/local/update.sh
 
 local-stop:
 	bash scripts/local/stop.sh
@@ -72,4 +75,4 @@ local-stop:
 local-test:
 	bash scripts/local/test.sh
 
-.PHONY: local-start local-stop local-test compose-up
+.PHONY: local-start local-update local-stop local-test compose-up

@@ -24,6 +24,25 @@ The local retirement removes Sonoran/Memory access and exclusive content from ex
 
 Postman keeps Localhost requests and Server requests. Local examples are derived from the initialized database; Server requests stays disabled, without an active URL or credentials. Previous permission to publish test passwords does not apply to new exports.
 
+## Local updates without rebuilding
+
+`Start-RealityOS.ps1` and `make local-start` retain full installation support.
+`Update-RealityOS.ps1` and `make local-update` reuse the installed image for code
+corrections and SQL revisions. They first verify the local composition,
+containers and dependencies; they do not build images, download models or run
+external provider diagnostics. API and worker mount only the required local
+sources and resources, read-only. PostgreSQL, Redis, their volumes and private
+configuration are preserved.
+
+The Dockerfile installs dependencies and prepares models before copying code,
+so application changes do not invalidate those layers. Final packaging was
+checked offline, retaining package metadata and extras. This delivery changes
+neither Android nor the HTTP contract; it keeps the canonical APK recorded below.
+
+Validation uses simulated Docker commands and source checks; no Docker build,
+real Windows deployment or timing measurement on the owner's PC was performed.
+Those checks remain pending. No production services or data were changed.
+
 ## Publication filters and classification
 
 Filters apply every valid category, tag, author, date or text change without an
@@ -41,8 +60,8 @@ have no judicial status tags. Meta uses personal introduction/community or
 video/everyday life tags. A fresh installation has 17 active terms, without the
 former scene-topic tags. The update preserves edits,
 deletions, permissions, unknown states and pending uploads; it does not change
-media or private references. Localhost applies it through the regular startup
-after updating the repository.
+media or private references. Localhost applies it through the quick update or
+full startup after updating the repository.
 
 The approved taxonomy update passed **54 distinct tests**: 18 new migration
 cases on SQLite and isolated PostgreSQL, two new API tests for exact ES/EN terms,

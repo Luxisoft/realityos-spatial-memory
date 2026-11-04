@@ -1,5 +1,6 @@
 # Shared PowerShell 5.1+/7 helpers. Every Compose call is scoped to realityos-local.
 Set-StrictMode -Version Latest
+$script:LocalUpdateImage = $null
 [Threading.Thread]::CurrentThread.CurrentUICulture = [Globalization.CultureInfo]::GetCultureInfo('en-US')
 
 function Get-LocalRoot { return (Resolve-Path (Join-Path $PSScriptRoot '../..')).Path }
@@ -118,8 +119,10 @@ function Write-LocalDockerSummary([string]$Line, [hashtable]$Values, [hashtable]
     if ($message -and $State.Seen.Add("$level $message")) { Write-Host "[$level] $message" }
 }
 
-function Invoke-LocalDocker([string]$Root, [string[]]$DockerArguments, [switch]$Quiet, [switch]$AllowFailure) {
+function Invoke-LocalDocker([string]$Root, [string[]]$DockerArguments, [switch]$Quiet, [switch]$AllowFailure, [string]$InputText) {
     $values = Get-LocalEnvironment $Root
+    if ($values.ContainsKey('REALITYOS_LOCAL_IMAGE')) { throw 'REALITYOS_LOCAL_IMAGE is reserved for the updater; remove it from .env.local.' }
+    if ($script:LocalUpdateImage -and $script:LocalUpdateImage -notmatch '^sha256:[0-9a-f]{64}$') { throw 'Invalid internal local image pin.' }
     $saved = @{}
     # An exported production password/image/URL must not override .env.local.
     foreach ($key in $values.Keys) {
@@ -127,14 +130,26 @@ function Invoke-LocalDocker([string]$Root, [string[]]$DockerArguments, [switch]$
         $saved[$key] = [Environment]::GetEnvironmentVariable($key, 'Process')
         Remove-Item -LiteralPath ('Env:' + $key) -ErrorAction SilentlyContinue
     }
+    if (!$saved.ContainsKey('REALITYOS_LOCAL_IMAGE')) {
+        $saved['REALITYOS_LOCAL_IMAGE'] = [Environment]::GetEnvironmentVariable('REALITYOS_LOCAL_IMAGE', 'Process')
+    }
+    Remove-Item Env:REALITYOS_LOCAL_IMAGE -ErrorAction SilentlyContinue
+    if ($script:LocalUpdateImage) {
+        $env:REALITYOS_LOCAL_IMAGE = $script:LocalUpdateImage
+    }
     $previous = $ErrorActionPreference
     $lines = New-Object 'System.Collections.Generic.List[string]'
     $summary = @{ Seen = New-Object 'System.Collections.Generic.HashSet[string]'; LastLine = ''; ErrorShown = $false }
     try {
         $ErrorActionPreference = 'Continue'
-        & docker @DockerArguments 2>&1 | ForEach-Object {
+        $receive = {
             if ($Quiet) { $lines.Add([string]$_) }
             else { Write-LocalDockerSummary ([string]$_) $values $summary }
+        }
+        if ($PSBoundParameters.ContainsKey('InputText')) {
+            $InputText | & docker @DockerArguments 2>&1 | ForEach-Object $receive
+        } else {
+            & docker @DockerArguments 2>&1 | ForEach-Object $receive
         }
         $code = $LASTEXITCODE
     } finally {
@@ -230,6 +245,7 @@ function Assert-LocalDocker([string]$Root, [switch]$StartDesktop, [int]$StartupT
 }
 
 function Assert-LocalConfiguration([hashtable]$Values) {
+    if ($Values.ContainsKey('REALITYOS_LOCAL_IMAGE')) { throw 'REALITYOS_LOCAL_IMAGE is reserved for the updater; remove it from .env.local.' }
     foreach ($key in $Values.Keys) {
         if ($key -match '^(DOCKER|COMPOSE)_') { throw 'Do not set DOCKER_* or COMPOSE_* in .env.local.' }
     }

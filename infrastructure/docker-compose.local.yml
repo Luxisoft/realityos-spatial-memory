@@ -1,12 +1,21 @@
 # Primary local installation. Never combine with historical production Compose files.
 name: realityos-local
 x-backend: &backend
-  image: realityos-local-backend:dev
+  image: ${REALITYOS_LOCAL_IMAGE:-realityos-local-backend:dev}
   build:
     context: ..
     dockerfile: backend/Dockerfile
     target: local
   env_file: ../.env.local
+  # Local updates reuse installed dependencies/models and read only these sources.
+  volumes:
+    - {type: bind, source: ../backend/app, target: /app/app, read_only: true, bind: {create_host_path: false}}
+    - {type: bind, source: ../backend/alembic, target: /app/alembic, read_only: true, bind: {create_host_path: false}}
+    - {type: bind, source: ../backend/alembic.ini, target: /app/alembic.ini, read_only: true, bind: {create_host_path: false}}
+    - {type: bind, source: ../backend/schema, target: /app/schema, read_only: true, bind: {create_host_path: false}}
+    - {type: bind, source: ../scripts/local, target: /scripts/local, read_only: true, bind: {create_host_path: false}}
+    - {type: bind, source: ../simulator/database, target: /simulator/database, read_only: true, bind: {create_host_path: false}}
+    - {type: bind, source: ../simulator/media, target: /simulator/media, read_only: true, bind: {create_host_path: false}}
   environment:
     REALITYOS_ENV_FILE: ""
     ENVIRONMENT: local

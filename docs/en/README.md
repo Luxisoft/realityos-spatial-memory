@@ -60,7 +60,8 @@ git lfs pull
 
 Wait for successful completion. `git lfs pull` also downloads the videos in `simulator/media/` required to initialize local data. If Git reports a conflict with local changes, resolve it before continuing; preserve your private files.
 
-To start manually, run from the project folder:
+If this PC already has a completed installation, use the [quick update](#local-updates)
+to apply corrections. For the first installation, run from the project folder:
 
 **Windows — Git Bash**
 
@@ -183,10 +184,50 @@ If you change Android, follow the [build guide](integrations/ANDROID.md#build). 
 | What changed | What to run |
 | --- | --- |
 | Android code or resources | The server builds and pushes the APK to the repository. Repeat the update and installation commands above; for your own changes, follow the [build guide](#android-build). |
-| Backend code or server configuration | Run `Start-RealityOS.ps1` to rebuild/start the local services. Existing data is preserved. |
-| Prepared local records, publications or media | Run `git pull`, `git lfs pull` and the local startup script (`Start-RealityOS.ps1` on Windows; `bash scripts/local/start.sh` on Linux). Versioned SQL additions preserve edits, deletions and memberships. |
+| Backend code or API/worker configuration | Use the [quick update](#local-updates): reuse the installed image and restart API/worker with the current code. |
+| Prepared local records, publications or media | Use the [quick update](#local-updates). Versioned SQL additions preserve edits, deletions and memberships. |
+| Python dependencies, Dockerfile or base image | Use `Start-RealityOS.ps1` (Windows) or `make local-start` (Linux) to rebuild the image. Dependency and model layers are reused when their inputs remain unchanged. |
 | The API contract used by Android | Update both the backend and the APK. |
 | Documentation only | No app or container rebuild is needed. |
+
+<a id="local-updates"></a>
+
+**Quick update of an existing installation — Windows / Git Bash:**
+
+```bash
+git pull --ff-only &&
+git lfs pull &&
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File ./scripts/local/Update-RealityOS.ps1
+```
+
+On Linux, use `git pull --ff-only && git lfs pull && make local-update`.
+
+This command reuses the installed image and models. It first checks the local
+installation and dependency compatibility. If the worker is busy, it keeps
+services running and asks you to retry once tasks finish. When the worker is
+available, it stops API/worker, applies pending migrations and starts both with
+the current code. PostgreSQL,
+Redis, their volumes and `.env.local` are preserved. Code, scripts and local
+resources are mounted read-only from this repository; keep the folder available
+while using the containers.
+
+If the installation is missing or dependencies change, the command explains this
+before stopping services and points to the full installer. It performs no builds,
+model downloads or external provider diagnostics. Duration depends on migrations
+and startup; it has not been measured on your PC. When finished, close and reopen
+the app to refresh its data.
+
+If a migration or startup fails, the command reports the error and preserves
+volumes. The worker starts only after the API is ready; if a later step fails,
+new processes already started are preserved to avoid interrupting tasks. Fix the
+reported error and repeat the update. Do not delete volumes or reinstall from
+scratch.
+
+If an interruption leaves the worker paused and the command reports that it
+could not restore it, ensure no other update is running and execute
+`powershell.exe -NoProfile -ExecutionPolicy Bypass -File ./scripts/local/Update-RealityOS.ps1 -ResumeWorker`
+(Linux: `bash scripts/local/update.sh --resume-worker`). This only recovers a
+pause recorded by the updater; then repeat the normal update.
 
 `/c/platform-tools/adb.exe install -r` retains data with the same application ID and signing key. Builds published from this server keep that signature; another computer or CI may use a different one. Do not uninstall automatically after a mismatch. See [ADB installation](https://developer.android.com/tools/adb#move).
 

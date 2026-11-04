@@ -24,6 +24,26 @@ El retiro local elimina el acceso y contenido exclusivo de Sonoran/Memory de las
 
 Postman mantiene Localhost requests y Server requests. Los ejemplos locales se derivan de la BD inicializada; Server requests permanece deshabilitado y sin URL activa ni credenciales. Las antiguas autorizaciones para contraseñas de prueba no se aplican a nuevas exportaciones.
 
+## Actualizaciones locales sin reconstrucción
+
+`Start-RealityOS.ps1` y `make local-start` conservan la instalación completa.
+`Update-RealityOS.ps1` y `make local-update` reutilizan la imagen instalada para
+correcciones de código y revisiones SQL. Verifican primero la composición local,
+los contenedores y las dependencias; no compilan imágenes, descargan modelos ni
+ejecutan diagnósticos de proveedores externos. API y worker montan únicamente
+las fuentes y los recursos locales necesarios en lectura. PostgreSQL, Redis,
+sus volúmenes y la configuración privada se conservan.
+
+El Dockerfile instala dependencias y prepara modelos antes de copiar el código,
+para que los cambios de aplicación no invaliden esas capas. El empaquetado final
+se comprobó sin red, conservando metadatos y extras del paquete. La entrega no
+cambia Android ni el contrato HTTP; conserva el APK canónico indicado abajo.
+
+La validación usa Docker simulado y comprobaciones de fuentes; no se ejecutó una
+compilación Docker, despliegue Windows real ni medición de duración en el PC del
+propietario. Esas verificaciones siguen pendientes. No se modificaron servicios
+ni datos productivos.
+
 ## Filtros y clasificación de publicaciones
 
 Los filtros aplican cada cambio válido de categoría, etiqueta, autor, fecha o
@@ -41,8 +61,8 @@ etiquetas de estado judicial. Meta utiliza presentación personal/comunidad o
 video/vida cotidiana. Una instalación nueva tiene 17 términos activos, sin las
 anteriores etiquetas sobre temas de la escena. La actualización respeta
 ediciones, eliminaciones, permisos, estados desconocidos y cargas pendientes;
-no cambia medios ni referencias privadas. Se aplica en localhost mediante el
-inicio habitual después de actualizar el repositorio.
+no cambia medios ni referencias privadas. Se aplica en localhost mediante la
+actualización rápida o el inicio completo después de actualizar el repositorio.
 
 La taxonomía aprobada pasó **54 pruebas distintas**: 18 casos nuevos de migración
 en SQLite y PostgreSQL aislado, dos pruebas nuevas de API para los términos ES/EN
