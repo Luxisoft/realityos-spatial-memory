@@ -217,4 +217,4 @@ for (const [index, target] of jury.item.entries()) {
     }
   }
 }
-console.log(`PASS: both destinations with prefilled quick starts; ${walk(scenarios).length} live scenario requests; ${walk(jury.item).length} total requests; ${guards} reference write guards; isolated server/local sessions. No HTTP requests.`);
+console.log(`PASS: both destinations with prefilled quick starts; ${walk(scenarios).length} local scenario requests; ${walk(jury.item).length} total requests; ${guards} reference write guards; isolated server/local sessions. No HTTP requests.`);

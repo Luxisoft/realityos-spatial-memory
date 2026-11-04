@@ -7,7 +7,7 @@ from typing import Literal
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from app.schemas import LocalizedGalleryInformation
-from app.social_features.classification import ClassificationInput
+from app.social_features.classification_schemas import ClassificationInput
 
 """Facebook identities and explicitly shared audiovisual publications."""
 

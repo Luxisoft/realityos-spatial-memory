@@ -20,9 +20,9 @@ class StoredDisplayTextTest {
         val post = JSONObject().put("category", term)
         try {
             experience.setLanguage(RealityLanguage.ENGLISH)
-            assertEquals("Keys", publicationClassificationText(post))
+            assertEquals("Keys", PublicationSummary.read(post).classificationText())
             experience.setLanguage(RealityLanguage.SPANISH)
-            assertEquals("Llaves", publicationClassificationText(post))
+            assertEquals("Llaves", PublicationSummary.read(post).classificationText())
             assertEquals("same-id", term.getString("id"))
             assertEquals("Llaves", term.getString("name"))
             assertEquals("User wording", JSONObject().put("name", "User wording").storedText("name"))

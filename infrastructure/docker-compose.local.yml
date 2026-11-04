@@ -5,8 +5,10 @@ x-backend: &backend
   build:
     context: ..
     dockerfile: backend/Dockerfile
+    target: local
   env_file: ../.env.local
   environment:
+    REALITYOS_ENV_FILE: ""
     ENVIRONMENT: local
     LOCAL_LOGIN_ENABLED: "true"
     LOCAL_EVALUATION_ENABLED: "true"

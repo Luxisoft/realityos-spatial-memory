@@ -68,3 +68,40 @@ def test_image_query_keeps_health_available(client, auth_headers, monkeypatch, s
 
     asyncio.run(exercise())
     assert health_available == [True]
+
+
+def test_text_query_keeps_health_available(client, auth_headers, monkeypatch):
+    workspace = client.post(
+        "/v1/workspaces", headers=auth_headers, json={"name": "Concurrent text query"}
+    ).json()["id"]
+    started, released = threading.Event(), threading.Event()
+    completed = []
+
+    def answer(*args, **kwargs):
+        started.set()
+        completed.append(released.wait(timeout=5))
+        return QueryResponse(found=False, message="No match", tts_text="No match")
+
+    monkeypatch.setattr("app.http.queries._answer_query", answer)
+
+    async def exercise():
+        transport = httpx.ASGITransport(app=client.app)
+        async with httpx.AsyncClient(
+            transport=transport, base_url="http://test"
+        ) as api:
+            pending = asyncio.create_task(
+                api.post(
+                    "/v1/queries",
+                    headers=auth_headers,
+                    json={"workspace_id": workspace, "question": "Find the keys"},
+                )
+            )
+            assert await asyncio.to_thread(started.wait, 10)
+            try:
+                assert (await api.get("/health/live")).status_code == 200
+            finally:
+                released.set()
+            assert (await pending).status_code == 200
+
+    asyncio.run(exercise())
+    assert completed == [True]

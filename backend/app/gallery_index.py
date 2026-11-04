@@ -15,8 +15,8 @@ from itertools import groupby
 from sqlalchemy import func, or_, select
 from sqlalchemy.orm import Session
 
-from app.meta import MetaModelClient, MetaProviderError
 from app.models import MediaAsset, MediaKind, User
+from app.providers.contracts import MetaModelClient, MetaProviderError
 from app.services import search_phrase
 
 FACE_TOKENS = ("persona", "personas", "rostro", "rostros", "face", "faces", "person", "people")
@@ -49,7 +49,7 @@ def index_publication(
     visible with ``indexed_at`` unset so a later backfill can pick it up.
     """
 
-    from app.social import Publication
+    from app.social_features.models import Publication
 
     publication = db.get(Publication, publication_id)
     if publication is None:
@@ -84,7 +84,6 @@ def index_publication(
                 client,
                 asset.original_bytes,
                 publication.owner_id,
-
                 publication.workspace_id,
                 older_than=publication,
             )
@@ -118,7 +117,7 @@ def index_publication(
 
 
 def _visible_scope(viewer: User, workspace_id: uuid.UUID | None):
-    from app.social import Publication
+    from app.social_features.models import Publication
     from app.social_features.publication_visibility import (
         authorized_publications,
         publication_content,
@@ -133,7 +132,7 @@ def _visible_scope(viewer: User, workspace_id: uuid.UUID | None):
 
 
 def _known_tags(db: Session, viewer: User) -> list[str]:
-    from app.social import Publication
+    from app.social_features.models import Publication
 
     rows = db.scalars(
         _visible_scope(viewer, None).order_by(Publication.published_at.desc()).limit(2000)
@@ -179,7 +178,8 @@ def search_gallery(
 ):
     """Return viewer-visible publications matching the question, newest first."""
 
-    from app.social import Publication, visible
+    from app.social_features.models import Publication
+    from app.social_features.publication_access import visible
 
     terms = expand_terms(question, _known_tags(db, viewer), client)
     if not terms:

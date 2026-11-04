@@ -124,7 +124,7 @@ def create_group(
     db.add(workspace)
     db.flush()
     db.add(WorkspaceMember(workspace_id=workspace.id, user_id=user.id, role=Role.ADMIN))
-    from app.social_features.classification import add_term
+    from app.social_features.classification_service import add_term
 
     for kind, names in (("category", payload.categories), ("tag", payload.tags)):
         for name in names:

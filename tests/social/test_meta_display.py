@@ -132,7 +132,7 @@ def test_search_scope_is_explicit_and_gallery_never_uses_registry(
         raise AssertionError("Registry must not run for a gallery query")
 
     with monkeypatch.context() as patch:
-        patch.setattr("app.http.common.multilingual_object_candidates", fail)
+        patch.setattr("app.processing.queries.multilingual_object_candidates", fail)
         result = client.post(
             "/v1/queries",
             headers=auth_headers,
@@ -145,7 +145,7 @@ def test_search_scope_is_explicit_and_gallery_never_uses_registry(
         assert result.status_code == 200, result.text
         assert result.json()["gallery_matches"]
     with monkeypatch.context() as patch:
-        patch.setattr("app.http.common._gallery_answer", fail)
+        patch.setattr("app.processing.queries._gallery_answer", fail)
         result = client.post(
             "/v1/queries",
             headers=auth_headers,

@@ -11,7 +11,6 @@ import java.util.concurrent.TimeUnit
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
 import okio.Buffer
-import org.json.JSONObject
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Rule
@@ -30,11 +29,11 @@ class LocalAccountChooserTest {
     private fun chooser(scale: Float) {
         val groups = listOf("Pacific Ridge Police Department", "Meta Social Media", "Sonoran Neurological Institute")
         val names = listOf("Alex Rivera", "Maya Johnson", "Daniel Kim", "Elena Marquez", "Mateo Rios", "Sarah Chen", "Noah Brooks", "Lucia Vega", "Owen Patel")
-        val accounts = names.mapIndexed { index, name -> JSONObject().put("id", index.toString()).put("username", "person-$index").put("display_name", name).put("workspace_name", groups[index / 3]) }
+        val accounts = names.mapIndexed { index, name -> LocalAccount(index.toString(), "person-$index", name, "group-${index / 3}", groups[index / 3]) }
         var selected = ""
         compose.setContent {
             CompositionLocalProvider(LocalDensity provides Density(LocalDensity.current.density, scale)) {
-                RealityOsTheme { LocalAccountChooser(accounts, false, false, {}, { selected = it.getString("id") }) }
+                RealityOsTheme { LocalAccountChooser(accounts, false, false, {}, { selected = it.id }) }
             }
         }
         names.forEach { compose.onNodeWithText(it).assertDoesNotExist() }
@@ -103,7 +102,7 @@ class LocalAccountChooserTest {
             photo.compress(android.graphics.Bitmap.CompressFormat.PNG, 100, bytes)
             photo.recycle()
             server.enqueue(MockResponse().setHeader("Content-Type", "image/png").setBody(Buffer().write(bytes.toByteArray())))
-            val account = JSONObject().put("username", "photo").put("picture_url", server.url("/avatar").toString())
+            val account = LocalAccount("photo", "photo", "Photo", "group", "Group", server.url("/avatar").toString())
             compose.setContent { RealityOsTheme { LocalAccountAvatar(account) } }
             compose.onNodeWithTag("local-avatar-photo").assertIsDisplayed()
             compose.waitUntil(10_000) {
@@ -123,7 +122,7 @@ class LocalAccountChooserTest {
     }
 
     @Test fun missingPhotoUsesTheIllustratedAvatar() {
-        val account = JSONObject().put("username", "missing")
+        val account = LocalAccount("missing", "missing", "Missing", "group", "Group")
         compose.setContent { RealityOsTheme { LocalAccountAvatar(account) } }
         compose.onNodeWithTag("local-avatar-missing").assertIsDisplayed()
         capture("default-avatar")
@@ -144,7 +143,7 @@ class LocalAccountChooserTest {
         )
         try {
             server.enqueue(MockResponse().setResponseCode(404))
-            val account = JSONObject().put("username", "failed").put("picture_url", server.url("/missing-avatar").toString())
+            val account = LocalAccount("failed", "failed", "Failed", "group", "Group", server.url("/missing-avatar").toString())
             compose.setContent { RealityOsTheme { LocalAccountAvatar(account) } }
             compose.onNodeWithTag("local-avatar-failed").assertIsDisplayed()
             compose.waitUntil(10_000) {

@@ -1,40 +1,14 @@
 [EN](../../en/testing/VIDEO_EVALUATION.md) · [RealityOS](../README.md) · [Postman](../api/POSTMAN.md)
 
-# Evaluación con videos reales
+# Evaluación local de videos
 
-Doce grabaciones con licencia, cuatro por cada grupo existente. Muestran acciones completas con objetos identificables: recoger llaves, guardar pertenencias, preparar instrumental, transportar muestras y revisar evidencia. Los escenarios son ficticios; el análisis y la evidencia deben proceder del proveedor real.
+El grupo Memory contiene cuatro grabaciones con licencia y dos objetos revisados por video. El SQL local instala sus bytes originales en la base de datos de la aplicación. Police contiene dieciséis publicaciones con retratos vinculadas a sus expedientes y tres videos; Meta Social Media contiene tres presentaciones de cuentas y tres videos. Las seis grabaciones añadidas están disponibles en las galerías de sus grupos. Los intervalos de objetos revisados que aparecen abajo corresponden a los cuatro videos de Memory.
 
-En Postman: **Server requests → 00 Live scenarios → Police / Nursing / Memory → Video …**. Cada consulta lleva la cuenta, el grupo y la pregunta. Las cuentas públicas están en [API](../api/API.md#quick-start). En Android, entra con la misma cuenta, selecciona su grupo y utiliza la pregunta indicada.
+En Postman abre **Localhost requests → 00 Local scenarios → Sonoran Neurological Institute → Video …**. Inicia los cuatro servicios locales y espera a que termine la indexación con tu clave privada de Meta. La selección de cuenta es automática y no requiere contraseñas publicadas. Server requests permanece desactivado.
 
-La respuesta debe recuperar la publicación indicada, un fotograma dentro del intervalo, el objeto señalado por SAM y el original descargable. `gallery_matches` contiene la evidencia de publicaciones aunque `found` sea `false`: ese campo corresponde a Register. «Última observación» describe lo que quedó grabado; no prueba que el objeto siga allí. Una preferencia de idioma guardada en la cuenta prevalece sobre el idioma solicitado.
+Cada consulta debe recuperar la publicación esperada, un fotograma dentro del intervalo observado, localización SAM y la descarga original. `gallery_matches` contiene evidencia aunque `found`, propio de Register, sea `false`. «Última vez visto» describe evidencia grabada, no la ubicación actual del objeto. El idioma guardado en la cuenta prevalece sobre el solicitado.
 
 ## Matriz de pruebas
-
-### Policía
-
-| Video y autor | Cuenta propietaria | Pregunta | Intervalo visible |
-| --- | --- | --- | --- |
-| [10482314](https://www.pexels.com/video/lifting-keys-from-ground-with-pliers-10482314/) · cottonbro studio | `alex-rivera` | Busca las llaves recogidas del suelo. | 0–11 s |
-| [10482314](https://www.pexels.com/video/lifting-keys-from-ground-with-pliers-10482314/) · cottonbro studio | `alex-rivera` | Busca el marcador amarillo de evidencia. | 0–9 s |
-| [10482446](https://www.pexels.com/video/technician-taking-picture-of-evidence-at-night-10482446/) · cottonbro studio | `alex-rivera` | Busca el maletín abierto de recolección de evidencias. | 0–26.76 s |
-| [10482446](https://www.pexels.com/video/technician-taking-picture-of-evidence-at-night-10482446/) · cottonbro studio | `alex-rivera` | Busca la cinta de delimitación. | 0–26.76 s |
-| [8382402](https://www.pexels.com/video/detective-reviewing-evidences-8382402/) · cottonbro studio | `maya-johnson` | Busca la lámpara articulada del escritorio. | 0–8 s |
-| [8382402](https://www.pexels.com/video/detective-reviewing-evidences-8382402/) · cottonbro studio | `maya-johnson` | Busca las fotografías impresas sobre la mesa. | 0–8 s |
-| [8963860](https://www.pexels.com/video/close-up-footage-of-a-man-using-walkie-talkie-8963860/) · Mikael Blomkvist | `daniel-kim` | Busca el radio de comunicación que sostiene en la mano. | 0–7.54 s |
-| [8963860](https://www.pexels.com/video/close-up-footage-of-a-man-using-walkie-talkie-8963860/) · Mikael Blomkvist | `daniel-kim` | Busca los protectores auditivos amarillos alrededor del cuello. | 0–7.54 s |
-
-### Enfermería
-
-| Video y autor | Cuenta propietaria | Pregunta | Intervalo visible |
-| --- | --- | --- | --- |
-| [8413544](https://www.pexels.com/video/syringes-on-metal-tray-8413544/) · SHVETS production | `elena-marquez` | Busca las jeringas de la bandeja. | 0–8.4 s |
-| [8413544](https://www.pexels.com/video/syringes-on-metal-tray-8413544/) · SHVETS production | `elena-marquez` | Busca las pinzas metálicas junto a la bandeja. | 0–8.4 s |
-| [8381611](https://www.pexels.com/video/medical-practitioner-walking-in-the-hallway-while-holding-a-cart-with-samples-of-specimen-8381611/) · Pavel Danilyuk | `elena-marquez` | Busca el carro de material en el pasillo. | 0–9.68 s |
-| [8381611](https://www.pexels.com/video/medical-practitioner-walking-in-the-hallway-while-holding-a-cart-with-samples-of-specimen-8381611/) · Pavel Danilyuk | `elena-marquez` | Busca los tubos de ensayo en el carro. | 3–9.68 s |
-| [6036527](https://www.pexels.com/video/a-person-getting-dental-tools-from-the-drawer-6036527/) · Gustavo Fring | `mateo-rios` | Busca los instrumentos dentales dentro del cajón. | 0–15.215 s |
-| [6036527](https://www.pexels.com/video/a-person-getting-dental-tools-from-the-drawer-6036527/) · Gustavo Fring | `mateo-rios` | Busca las pinzas del cajón de instrumental. | 0–15.215 s |
-| [7585003](https://www.pexels.com/video/assisting-with-medical-equipment-7585003/) · cottonbro studio | `sarah-chen` | Busca las tijeras sobre la tela azul. | 0–21.76 s |
-| [7585003](https://www.pexels.com/video/assisting-with-medical-equipment-7585003/) · cottonbro studio | `sarah-chen` | Busca el martillo del instrumental. | 0–21.76 s |
 
 ### Memoria
 
@@ -49,27 +23,23 @@ La respuesta debe recuperar la publicación indicada, un fotograma dentro del in
 | [8034068](https://www.pexels.com/video/man-looking-a-documents-8034068/) · Edmond Dantès | `owen-patel` | Busca los documentos con secciones amarillas. | 0–13.64 s |
 | [8034068](https://www.pexels.com/video/man-looking-a-documents-8034068/) · Edmond Dantès | `owen-patel` | Busca las gafas redondas de montura metálica. | 0–13.64 s |
 
+
 ## Ausencias y permisos
 
-Pregunta por un violín en cada grupo, en ES y EN: se espera `no_match` y ninguna evidencia inventada. Una cuenta de otro grupo debe recibir 403 al consultar el espacio y 403/404 al descargar su publicación.
+Busca un violín en ES y EN: no debe aparecer evidencia coincidente. Una cuenta ajena al grupo debe recibir 403 al consultar su espacio y 403/404 al descargar su publicación.
 
-## Procedencia y mantenimiento
+## Procedencia y reproducción
 
-Fuentes, autores, licencia, hashes y duración: [manifiesto de candidatos](../../../simulator/real-scenes/video-candidate-manifest.json). Preguntas, intervalos y publicaciones esperadas: [anotaciones de evaluación](../../../simulator/real-scenes/video-evaluation.json). Las anotaciones se prepararon revisando los videos y nunca se cargan como detecciones del modelo. Las revisiones conservan las preguntas iniciales que fallaron. Esta matriz es una demostración seleccionada, no una medición general de precisión. Se conservan las grabaciones completas, sin bucles, recortes arbitrarios ni ampliación desde baja resolución.
+Las fuentes, licencias y hashes SHA-256 se conservan en el [manifiesto de recursos](../../../simulator/media/manifest.csv). La [matriz QA](../../../tests/fixtures/video-evaluation.json) contiene preguntas, intervalos observados e historial de anotaciones. No almacena IDs operativos de publicaciones ni se carga como detecciones del modelo. Al generar Postman se resuelve el hash de cada grabación contra la publicación instalada por el mismo SQL de la aplicación local.
 
 ```bash
-python scripts/prepare_evaluation_videos.py
-# Run inside the authenticated backend runtime:
-python scripts/renew_evaluation_videos.py --phase inventory --journal .runtime/video-evaluation/journal.json
-python scripts/renew_evaluation_videos.py --phase stage --journal .runtime/video-evaluation/journal.json
-python scripts/renew_evaluation_videos.py --phase index --journal .runtime/video-evaluation/journal.json
-python scripts/verify_evaluation_videos.py --journal .runtime/video-evaluation/journal.json --output .runtime/video-evaluation/acceptance.json --resume
+make install
+.venv/bin/python scripts/build_api_docs.py
+make docs-check
 ```
 
-La activación exige 48 búsquedas positivas, seis negativas, seis pruebas de aislamiento, 12 descargas con hash correcto y revisión visual de los fotogramas. El recibo HTTP no aprueba por sí solo esa revisión visual. `activate` requiere además `--receipt` y `--credentials-file` privados; verifica los originales en el bucket, vincula su procedencia y selecciona la carpeta nueva para sincronización cada 15 minutos. Mantiene los identificadores de las 36 fotos.
+La documentación se genera en una base SQLite aislada en memoria. No conecta a un runtime instalado, inicia sesiones ni llama a proveedores. PostgreSQL local sigue siendo la fuente de verdad del runtime.
 
-Los comandos de preparación anteriores documentan esta entrega; no deben repetirse contra su estado final. Después de aceptar el reemplazo, el propietario pidió eliminar los videos antiguos y las copias sin uso. Esa limpieza se verificó por referencias y hashes exactos. El diario marca `retired_media_deleted=true`; `rollback` y la reactivación de la misma entrega se rechazan para impedir que se recree el material eliminado. Las consultas HTTP de evaluación siguen disponibles.
+## Evidencia de ejecución
 
-## Estado de la ejecución
-
-Activación completada: **12 videos, 48 consultas ES/EN, seis negativas, seis comprobaciones entre grupos y 12 originales verificados**. Los recuadros se revisaron sobre la evidencia real devuelta. El [recibo público](../../assets/storage/video-evaluation-verification.json) incluye la auditoría de conservación y dos recorridos completos de las nueve fuentes. Las 36 fotos y los expedientes existentes permanecen. Por solicitud del propietario se eliminaron los 12 videos antiguos, el candidato descartado y las copias obsoletas; no se mantienen para reversión. No se realizó validación física con Android o gafas en esta renovación.
+El [recibo histórico del servidor](../../assets/storage/video-evaluation-verification.json) documenta la evaluación anterior y sus grupos retirados. No es un resultado del conjunto local actual. La validación nueva con modelos reales y dispositivos Android/gafas requiere otra ejecución sobre la instalación local inicializada.

@@ -11,6 +11,8 @@ from app.main import create_app
 from app.models import User
 from app.security import hash_password
 
+pytest_plugins = ["postgres_support"]
+
 
 class APIClient:
     """Synchronous test wrapper around HTTPX's in-process ASGI transport."""
@@ -84,3 +86,40 @@ def auth_headers(client: APIClient) -> dict[str, str]:
     )
     assert response.status_code == 200, response.text
     return {"Authorization": f"Bearer {response.json()['access_token']}"}
+
+
+@pytest.fixture
+def evaluation(tmp_path, request, monkeypatch):
+    from app.local import bootstrap
+    from test_local_access import local_settings
+
+    app = create_app(
+        local_settings(tmp_path, local_evaluation_enabled=True, elevenlabs_api_key=None)
+    )
+    try:
+        Base.metadata.create_all(app.state.database.engine)
+        baseline = getattr(request, "param", "current") == "baseline"
+        with monkeypatch.context() as configuration:
+            if baseline:
+                configuration.setattr(bootstrap, "DATA_UPDATES", ())
+            with app.state.database.session_factory() as db:
+                result = bootstrap.seed_evaluation(db, app.state.settings)
+                assert result == {
+                    "initialized": True,
+                    "groups": 3,
+                    "users": 9,
+                    "records": 28 if baseline else 34,
+                    "attachments": 20 if baseline else 26,
+                    "publications": 29 if baseline else 41,
+                    "updates": {}
+                    if baseline
+                    else {
+                        "group-videos-v1": {"publications": 6},
+                        "police-records-v2": {"publications": 6},
+                    },
+                }
+                db.commit()
+        yield APIClient(app)
+    finally:
+        app.state.database.engine.dispose()
+        (tmp_path / "local.db").unlink(missing_ok=True)

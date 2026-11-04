@@ -17,8 +17,8 @@ from app.dependencies import get_current_user, get_db
 from app.models import User
 from app.social_features.display_annotations import render_face_group
 from app.social_features.evidence import evidence_image
-from app.social_features.gallery import thumbnail
-from app.social_features.uploads import publication_upload_preview
+from app.social_features.publication_media import publication_thumbnail
+from app.social_features.upload_service import upload_preview
 
 router = APIRouter()
 
@@ -32,10 +32,12 @@ class DisplayMediaRequest(BaseModel):
 
 
 def render(payload, user, db):
+    from fastapi.responses import Response
+
     if payload.kind == "evidence":
         response = evidence_image(payload.resource_id, ",".join(payload.labels), True, user, db)
     elif payload.kind == "upload":
-        response = publication_upload_preview(payload.resource_id, user, db)
+        response = Response(upload_preview(db, payload.resource_id, user))
     elif payload.kind == "avatar":
         from app.social_features.profiles import profile_avatar
 
@@ -49,11 +51,9 @@ def render(payload, user, db):
 
         response = record_enrollment_thumbnail(payload.resource_id, True, user, db)
     else:
-        response = thumbnail(payload.resource_id, user, db)
+        response = Response(publication_thumbnail(payload.resource_id, user, db))
     # Reserve space for date, confidence and controls on a 600px Display.
     # Contain the entire annotation; originals and regular gallery URLs are untouched.
-    from fastapi.responses import Response
-
     with Image.open(io.BytesIO(response.body)) as source:
         picture = ImageOps.contain(source.convert("RGB"), (600, 280))
         canvas = Image.new("RGB", (600, 280), "black")

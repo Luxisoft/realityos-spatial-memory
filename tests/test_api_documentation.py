@@ -8,6 +8,9 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / "scripts"))
+from postman_dataset import evaluation_dataset
+
 CONTRACT = Path(
     os.environ.get("REALITYOS_DOCS_CONTRACT", ROOT / "tests/contracts/openapi.json")
 )
@@ -135,9 +138,9 @@ def test_primary_catalog_request_fields_match_current_contract():
                         assert set(schema.get("required", [])) <= enabled
 
 
-def test_all_variables_are_declared_and_isolated_with_only_public_demo_credentials():
+def test_all_variables_are_declared_and_isolated_without_published_credentials():
     c = collection()
-    demo = json.loads((ROOT / "simulator/postman/demo.json").read_text())
+    demo = evaluation_dataset()["defaults"]
     variables = {v["key"]: v["value"] for v in c["variable"]}
     assert len(variables) == len(c["variable"])
     assert set(re.findall(r"{{([^}]+)}}", json.dumps(c))) <= variables.keys()
@@ -284,11 +287,11 @@ def test_auth_bodies_keep_existing_and_replacement_credentials_separate():
         assert reset["password"] == "{{" + prefix + "_new_password}}"
 
 
-def test_jury_download_has_all_inputs_for_existing_server_scenarios():
+def test_download_has_all_inputs_for_installed_local_scenarios():
     public = json.loads(
         (ROOT / "docs/postman/RealityOS.postman_collection.json").read_text()
     )
-    fixture = json.loads((ROOT / "simulator/postman/jury.json").read_text())
+    fixture = evaluation_dataset()
     variables = {v["key"]: v["value"] for v in public["variable"]}
     environment = json.loads(
         (ROOT / "docs/postman/RealityOS.public.postman_environment.json").read_text()
@@ -325,12 +328,13 @@ def test_jury_download_has_all_inputs_for_existing_server_scenarios():
         core = [
             item for item in target["item"] if not item["name"].startswith("Video ")
         ]
-        assert len(core) == 13
-        assert len({item["name"] for item in core}) == 13
+        expected_count = 13 if scenario["values"]["record_id"] else 10
+        assert len(core) == expected_count
+        assert len({item["name"] for item in core}) == expected_count
         assert variables[prefix + "base_url"] == "http://localhost:8080"
         for key, value in scenario["values"].items():
             assert variables[prefix + key] == value
-            assert value or key in {"email", "password"}
+            assert value or key in {"email", "password", "record_id", "record_question"}
         for key in ("access_token", "refresh_token", "session_identity"):
             assert variables[prefix + key] == ""
         for item in target["item"]:
@@ -379,7 +383,7 @@ def test_primary_collection_preserves_both_catalogs_and_local_defaults():
         assert refs <= values.keys()
         if target["name"] == "Localhost requests":
             assert all(
-                key.startswith(("localhost_", "security_", "hospital_", "memory_"))
+                key.startswith(("localhost_", "security_", "meta_social_", "memory_"))
                 for key in refs
             )
         else:
@@ -390,7 +394,7 @@ def test_primary_collection_preserves_both_catalogs_and_local_defaults():
     assert {v["key"]: v["value"] for v in local_env["values"]} == {
         key: value for key, value in values.items() if key.startswith("localhost_")
     }
-    fixture = json.loads((ROOT / "simulator/postman/jury.json").read_text())
+    fixture = evaluation_dataset()
     memory = next(s["values"] for s in fixture["scenarios"] if s["prefix"] == "memory")
     for key in ("email", "password", "workspace_id", "user_id"):
         assert values["localhost_" + key] == memory[key]

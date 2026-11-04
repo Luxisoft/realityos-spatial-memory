@@ -1,6 +1,8 @@
 from __future__ import annotations
 
+import os
 from functools import lru_cache
+from pathlib import Path
 from typing import Literal
 
 from pydantic import AnyHttpUrl, Field, SecretStr, field_validator
@@ -11,7 +13,7 @@ class Settings(BaseSettings):
     """Runtime configuration. Secrets are read from the environment only."""
 
     model_config = SettingsConfigDict(
-        env_file=(".env", ".env.facebook"),
+        env_file=None,
         env_file_encoding="utf-8",
         extra="ignore",
     )
@@ -117,4 +119,9 @@ class Settings(BaseSettings):
 
 @lru_cache
 def get_settings() -> Settings:
-    return Settings()
+    # Docker supplies the selected environment. CLI users can explicitly choose
+    # a file; importing an application module must never discover private files.
+    selected_file = os.getenv("REALITYOS_ENV_FILE") or None
+    if selected_file and not Path(selected_file).is_file():
+        raise FileNotFoundError("The explicitly selected REALITYOS_ENV_FILE does not exist.")
+    return Settings(_env_file=selected_file)

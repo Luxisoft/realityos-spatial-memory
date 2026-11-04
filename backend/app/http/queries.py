@@ -18,13 +18,13 @@ from PIL import Image
 from sqlalchemy.orm import Session
 
 from app.dependencies import get_current_device, get_current_user, get_db, workspace_member
-from app.http.common import _answer_query
 from app.meta import MetaProviderError, build_meta_client
 from app.models import (
     Device,
     Role,
     User,
 )
+from app.processing.queries import _answer_query
 from app.schemas import (
     QueryRequest,
     QueryResponse,
@@ -38,7 +38,7 @@ router = APIRouter()
 
 
 @router.post("/queries", response_model=QueryResponse)
-async def query(
+def query(
     payload: QueryRequest,
     request: Request,
     user: User = Depends(get_current_user),
@@ -111,7 +111,7 @@ def image_query(
 
 
 @router.post("/search/classify")
-async def classify_search_probe(
+def classify_search_probe(
     request: Request,
     workspace_id: uuid.UUID = Form(...),
     image: UploadFile = File(...),
@@ -126,7 +126,7 @@ async def classify_search_probe(
     workspace_member(workspace_id, user, db)
     if image.content_type not in {"image/jpeg", "image/png", "image/webp"}:
         raise HTTPException(status_code=415, detail="Only JPEG, PNG or WebP images are accepted.")
-    raw = await image.read()
+    raw = image.file.read(20 * 1024 * 1024 + 1)
     if not raw or len(raw) > 20 * 1024 * 1024:
         raise HTTPException(status_code=413, detail="Invalid image size.")
     try:
@@ -158,7 +158,7 @@ async def classify_search_probe(
 
 
 @router.post("/search/route")
-async def route_search_text(
+def route_search_text(
     payload: SearchRouteRequest,
     request: Request,
     user: User = Depends(get_current_user),
@@ -177,7 +177,7 @@ async def route_search_text(
 
 
 @router.post("/device/queries", response_model=QueryResponse)
-async def device_query(
+def device_query(
     payload: QueryRequest,
     request: Request,
     device: Device = Depends(get_current_device),
@@ -200,7 +200,7 @@ async def device_query(
 
 
 @router.post("/queries/audio", response_model=QueryResponse)
-async def audio_query(
+def audio_query(
     request: Request,
     workspace_id: uuid.UUID = Form(...),
     audio: UploadFile = File(...),
@@ -214,7 +214,7 @@ async def audio_query(
         raise HTTPException(
             status_code=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE, detail="Only WAV audio is accepted."
         )
-    raw = await audio.read()
+    raw = audio.file.read(32 * 1024 * 1024 + 1)
     if not raw or len(raw) > 32 * 1024 * 1024:
         raise HTTPException(
             status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE, detail="Invalid audio size."

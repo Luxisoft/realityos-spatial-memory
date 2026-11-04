@@ -70,8 +70,8 @@ class PublicationClassificationTest {
                 RealityOsTheme {
                     Surface(Modifier.fillMaxSize()) {
                         Row(Modifier.fillMaxWidth().padding(8.dp)) {
-                            PublicationThumbnail(post(false), Modifier.weight(1f).aspectRatio(.75f)) {}
-                            PublicationThumbnail(post(true), Modifier.weight(1f).aspectRatio(.75f)) {}
+                            PublicationThumbnail(PublicationSummary.read(post(false)), Modifier.weight(1f).aspectRatio(.75f)) {}
+                            PublicationThumbnail(PublicationSummary.read(post(true)), Modifier.weight(1f).aspectRatio(.75f)) {}
                         }
                     }
                 }

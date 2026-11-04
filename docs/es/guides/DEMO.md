@@ -1,103 +1,38 @@
-<p align="center">
-  <a href="../../en/guides/DEMO.md"><img src="../../assets/readme/language-en.svg" alt="Read in English" height="32"></a>
-  <a href="DEMO.md"><img src="../../assets/readme/language-es-active.svg" alt="Español — seleccionado" height="32"></a>
-</p>
+[English](../../en/guides/DEMO.md) · [Índice](../INDEX.md)
 
-# Recorridos de evaluación
+# Evaluación local y recursos de prueba
 
-> El recorrido vigente es localhost. Los resultados históricos descritos más abajo corresponden al servidor; no prueban la nueva instalación local.
+Los registros de cuentas, grupos, perfiles, expedientes, publicaciones, clasificación y traducciones residen en PostgreSQL. `simulator/database/` contiene únicamente SQL de instalación: se aplica una vez en la misma transacción que importa los originales y registra la revisión. API, Android y worker consultan las tablas de la aplicación.
 
+`simulator/media/` conserva los archivos originales para pruebas locales:
 
-**[Checklist operativo de aceptación](../testing/IMPLEMENTATION_CHECKLIST.md)** · [Láminas listas para cámara](../testing/QA_VISUAL_FIXTURES.md). Registra pruebas manuales y evidencia técnica por versión antes de cerrar la entrega.
+- `memory/`: escenas, expedientes y recursos de cuentas de Memory.
+- `police/`: dieciséis retratos de expedientes, recursos de cuentas y tres videos de parques.
+- `meta-social/`: avatares, referencias privadas de los perfiles sintéticos autorizados y tres videos de espacios públicos.
+- `shared/`: avatares compartidos de los escenarios.
+- `regression/`: imágenes de consulta, documentos y recursos históricos de pruebas; no se publican ni se importan como escenarios.
 
-Estos recorridos son ejemplos independientes de las capacidades de RealityOS. No forman una secuencia entre organizaciones ni agotan sus usos posibles. Cada prueba usa los datos y permisos de su propio espacio.
+`media/manifest.csv` conserva ruta, SHA-256, fuente, licencia y disponibilidad de cada archivo. `repository` identifica archivos entregados con el repositorio; `local-only` identifica generaciones previas conservadas únicamente en este checkout. El inventario es técnico y no contiene registros de publicaciones o perfiles.
 
-[← Proyecto](../README.md) · [Entrega de hackathon](../project/HACKATHON.md) · [Android](../integrations/ANDROID.md)
-
-Las nuevas pruebas de objetos usan [12 videos completos con consultas ES/EN e intervalos de evidencia](../testing/VIDEO_EVALUATION.md). La matriz indica qué buscar y qué resultado verificar.
-
-<a id="handoff"></a>
 <a id="access"></a>
 
-## Acceso local
-
-Inicia Docker siguiendo la [guía local](../deployment/DEPLOYMENT_LOCALHOST.md), instala el APK local y conecta el teléfono con `adb reverse tcp:8080 tcp:8080`. Elige una de las nueve cuentas. No necesitas contraseña, Facebook ni bucket. Los datos iniciales son ficticios y públicos; los modelos Meta usan tu clave. Los consentimientos y enrolamientos se realizan expresamente si quieres probar búsqueda facial.
-
-
-## Acceso local del jurado
-
-Los tres escenarios usan el selector local sin contraseñas. El catálogo del servidor está desactivado. Consulta la [guía API](../api/API.md#quick-start).
-
-
-## 1. Policial: caso, persona y evidencia
-
-| Paso | Acción | Resultado esperado |
-| --- | --- | --- |
-| 1 | En Trabajo, selecciona Pacific Ridge → Registros del espacio → caso 1. | Fuente, versión, evento relacionado y adjuntos. |
-| 2 | Lee las notas del turno y abre la imagen de evidencia. | Original y contexto del espacio seleccionado. |
-| 3 | Busca la linterna amarilla o el destornillador rojo. | Evidencia señalada, fuente y fecha de última observación. |
-| 4 | Abre una publicación del turno y revisa su autor y grupo. | Publicación ya cargada y vinculada al espacio policial. |
-
-El conjunto policial incluido contiene casos, eventos y objetos, sin expedientes persona enrolados. Los seis retratos preparados están en enfermería y memoria. Las alertas policiales automáticas y la conexión con una fuente institucional real siguen pendientes. [Video conceptual](../../../demo-video/policial_case.mp4)
-
-## 2. Enfermería: expediente preparado → comparación
-
-| Paso | Acción | Resultado esperado |
-| --- | --- | --- |
-| 1 | En Trabajo, selecciona California Valley Medical Center → Registros del espacio → Ana Solis. | Expediente ya cargado con su retrato; se abre dentro de la app. |
-| 2 | Abre el retrato y vuelve a los registros relacionados. | Atención, prescripción y notas de Ana, con fuente y fechas. |
-| 3 | Introduce los campos observados del ejemplo, incluida la concentración de **20 mg**, frente a la prescripción ficticia de **10 mg**. Confirma identidad y fecha en el formulario. | Diferencia de concentración con referencia a la prescripción. |
-| 4 | Revisa Robert Lane y Fatima Nasser. | Alergia relacionada de Robert y administración previa de Fatima, con fechas y fuente. |
-
-El comparador usa campos introducidos explícitamente: no lee automáticamente el envase, calcula dosis, prescribe ni registra administraciones. El profesional conserva la verificación clínica. [Video conceptual](../../../demo-video/nurse_case.mp4)
-
-## 3. Perfil y publicaciones preparadas
-
-| Paso | Acción | Resultado esperado |
-| --- | --- | --- |
-| 1 | En Perfil, comprueba el nombre y la foto de tu cuenta de prueba. | Perfil ya preparado con un avatar propio. |
-| 2 | Abre una de tus publicaciones. | Foto o video del escenario con su autor y grupo. |
-| 3 | Vuelve a Trabajo y revisa las publicaciones del grupo. | Contenido compartido por los tres trabajadores del escenario. |
-| 4 | Para comparar los escenarios, cierra sesión y entra con otra cuenta entregada por el responsable. | Cada cuenta abre su propio grupo y mantiene sus permisos. |
-
-El directorio sintético es independiente; no implica que todas sus cuentas estén disponibles para cada jurado. Las referencias Facebook son internas a sus flujos autorizados; no es una búsqueda facial global de Facebook. [Video conceptual](../../../demo-video/profile_found.mp4)
-
-## 4. Memoria: persona, recordatorio y última observación
-
-| Paso | Acción | Resultado esperado |
-| --- | --- | --- |
-| 1 | En Trabajo, selecciona Sonoran Neurological Institute → Registros del espacio → Luis Moreno. | Expediente autorizado con su retrato ya adjunto. |
-| 2 | Abre su recordatorio y evento relacionados. | Contexto guardado, fechas, notas y fuente. |
-| 3 | Pregunta dónde se vieron los documentos, las llaves de latón o el cuaderno azul. | Foto/fotograma señalado, ubicación y fecha de última observación. |
-| 4 | Pregunta por un objeto sin evidencia. | Sin coincidencia o evidencia suficiente; ninguna ubicación inventada. |
-
-La función recupera información registrada; no diagnostica ni trata condiciones de memoria. «Visto por última vez» no significa «sigue allí». [Video conceptual](../../../demo-video/memory.mp4)
-
-La búsqueda facial es una prueba adicional con captura explícita y sus propios permisos y consentimientos. Tener un avatar o abrir un expediente no enrola automáticamente una cuenta. El responsable prepara por separado cualquier demostración facial.
+El inicio local mediante `make local-start` o el lanzador PowerShell prepara el esquema y ejecuta el único inicializador. Los originales se almacenan en BYTEA. Un reinicio consulta los comprobantes de instalación y conserva ediciones, eliminaciones, membresías y revocaciones de consentimiento. No hay sincronización de los archivos de instalación con los registros del usuario. Android Debug y Postman permiten seleccionar las nueve cuentas locales sin contraseñas; el servidor no expone este acceso.
 
 <a id="video"></a>
 
-## Grabar la demo de tres minutos
+Los videos se publican mediante las mismas tablas y rutas de medios que las imágenes. Las consultas utilizan la evidencia indexada; no crean resultados anticipados ni autorizaciones biométricas. Las preguntas de validación están documentadas en [evaluación de video](../testing/VIDEO_EVALUATION.md).
 
-**Enlace a la grabación final: pendiente.** La guía exige un video accesible de tres minutos que destaque únicamente las funciones construidas durante la hackathon. Identifica la [base previa y las aportaciones nuevas](../project/HACKATHON.md#contributions); los videos conceptuales son material auxiliar.
+La revisión SQL `004-group-videos.sql` añade los seis videos solicitados una vez, sin reemplazar los expedientes ni las presentaciones existentes:
 
-| Tiempo | Qué mostrar en el producto | Evidencia |
-| --- | --- | --- |
-| 0:00–0:15 | Problema, alcance y qué se añadió durante el evento. | Distinguir la base existente de las funciones que se van a demostrar. |
-| 0:15–1:15 | Espacio autorizado, retrato de prueba, candidato facial y apertura del expediente. | Consentimiento, evidencia y similitud; confirmación humana del candidato. |
-| 1:15–1:50 | Notas, relaciones y adjuntos del expediente. | Fuente, versión y contexto consultable. |
-| 1:50–2:25 | Refinamiento SAM y evidencia de video añadidos durante el evento. | Fotograma, geometría y fecha de última observación; la consulta de objetos original es parte de la base. |
-| 2:25–2:45 | Interacción Android/DAT que pueda ejecutarse realmente. | Indicar teléfono, gafas físicas o simulador; rotular cualquier simulación. |
-| 2:45–3:00 | Un límite de permisos y el desglose de aportaciones. | Recurso restringido, enlace público al código y commits. |
-
-Ensaya el recorrido antes de grabar. Elige un espacio con datos preparados y oculta secretos, notificaciones y datos ajenos a la demo. No presentes una escena conceptual como ejecución real ni afirmes una prueba con gafas físicas si solo se usó el teléfono. Comprueba que el enlace final abra sin solicitar acceso y añádelo al README y a la candidatura.
-
-| Evidencia documentada | Pendiente |
+| Grupo | Videos de Pexels |
 | --- | --- |
-| Seis retratos enrolados por API; consulta de Ana Solis con InsightFace vivo. | Evaluación con retratos independientes y datos representativos. |
-| Importaciones HTTP, consultas contextuales, búsquedas de objetos y pruebas de permisos. | Fuente institucional real y recorridos completos con teléfono/gafas físicos. |
-| 48 recursos con licencia, incluidas grabaciones con movimiento real. | Grabación final del producto accesible al jurado. |
+| Policial | [Ibirapuera, 25757454](https://www.pexels.com/video/pessoas-caminhando-e-pedalando-no-parque-do-ibirapuera-25757454/), [parque en día nublado, 29401365](https://www.pexels.com/video/busy-park-walkway-on-an-overcast-day-29401365/), [Edimburgo, 30614848](https://www.pexels.com/video/busy-park-pathway-in-edinburgh-during-spring-30614848/) |
+| Meta Social Media | [acera urbana, 33802407](https://www.pexels.com/video/busy-city-sidewalk-with-people-walking-33802407/), [parque arbolado, 12557513](https://www.pexels.com/video/park-with-trees-and-pedestrians-12557513/), [parque en invierno, 3699519](https://www.pexels.com/video/people-spending-their-day-enjoying-the-park-in-winter-season-3699519/) |
 
-[Estado de implementación](../project/IMPLEMENTATION_STATUS.md) contiene las verificaciones fechadas. Este documento describe el guion; no declara una ejecución nueva de esos recorridos.
+Los MP4 se entregan mediante Git LFS, sin transcodificar. El propietario proporcionó el archivo 29401365 mediante Drive cuando Pexels rechazó la descarga directa; su procedencia queda registrada junto con su hash. Las instalaciones nuevas tienen 41 publicaciones: 19 en Policial, 6 en Meta Social Media y 16 en Memoria. La revisión `005-police-records.sql` añade los expedientes 11 y 12 con orden de arresto y del 13 al 16 como personas desaparecidas con orden de búsqueda. Cada uno comparte su retrato original con su publicación vinculada. Una actualización respeta grupos y membresías eliminados; no los recrea para insertar contenido.
 
-[← Proyecto](../README.md) · [English](../../en/guides/DEMO.md)
+Las referencias privadas nunca son publicaciones ni miniaturas públicas. Los datos internos de simulación y la procedencia se conservan. Los recursos históricos no recrean Hospital, Workshop ni otros grupos retirados.
+
+<a id="handoff"></a>
+
+Las revisiones nuevas de datos deben ser explícitas, transaccionales y tener pruebas de actualización y reinicio. No se deben añadir catálogos JSON, generadores de usuarios alternativos ni copias de registros en código. La entrega incluye la [colección Postman](../../postman/RealityOS.postman_collection.json) y el APK Debug canónico indicado en el README.

@@ -10,11 +10,6 @@ from sqlalchemy import desc, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
-from app.meta import (
-    MetaModelClient,
-    MetaProviderUncertainError,
-    VideoTrackPrompt,
-)
 from app.models import (
     CaptureSession,
     FactProvenance,
@@ -34,6 +29,11 @@ from app.models import (
 )
 from app.processing.search import normalize
 from app.processing.storage import materialized_media_file, media_sha256
+from app.providers.contracts import (
+    MetaModelClient,
+    MetaProviderUncertainError,
+    VideoTrackPrompt,
+)
 from app.video import (
     extract_representative_frames_from_file,
     materialized_video_clips,

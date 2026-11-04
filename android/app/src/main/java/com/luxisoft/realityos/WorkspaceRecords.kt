@@ -9,8 +9,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import java.net.URLEncoder
-import java.time.Instant
+import com.luxisoft.realityos.data.JsonApi
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -34,9 +33,12 @@ internal fun WorkspaceRecords(
 
 @Composable
 private fun WorkspaceRecordsContent(workspaceId: String, canWrite: Boolean, onBack: () -> Unit, request: suspend (String, JSONObject?) -> String, initialRecordId: String?) {
+    val repository = remember(workspaceId, request) {
+        WorkspaceRecordsRepository(workspaceId, JsonApi { path, _, payload -> withContext(Dispatchers.IO) { request(path, payload) } })
+    }
     var query by remember { mutableStateOf("") }
-    var rows by remember { mutableStateOf<List<JSONObject>>(emptyList()) }
-    var selected by remember { mutableStateOf<JSONObject?>(null) }
+    var rows by remember { mutableStateOf<List<WorkspaceRecord>>(emptyList()) }
+    var selected by remember { mutableStateOf<RecordDetails?>(null) }
     var attachment by remember { mutableStateOf<JSONObject?>(null) }
     var note by remember { mutableStateOf("") }
     var biometricBasis by remember { mutableStateOf("") }
@@ -51,18 +53,17 @@ private fun WorkspaceRecordsContent(workspaceId: String, canWrite: Boolean, onBa
     var offset by remember { mutableIntStateOf(0) }
     var hasMore by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
-    val base = "workspaces/$workspaceId/records"
     val openedAttachment = attachment
     if (openedAttachment != null) {
         MediaViewerScreen(
-            title = selected?.storedText("title").orEmpty(),
+            title = selected?.record?.title?.display().orEmpty(),
             mediaUrl = profileMediaUrl(openedAttachment.getString("url")),
             thumbnailUrl = "",
             mimeType = openedAttachment.optString("mime_type"),
             authToken = SocialSession.token,
-            noteText = selected?.storedObject("data")?.optString("note").orEmpty(),
+            noteText = selected?.fields()?.firstOrNull { it.first == "note" }?.second.orEmpty(),
             noteSource = "text",
-            metaLines = listOf(selected?.optString("occurred_at").orEmpty()),
+            metaLines = listOf(selected?.record?.occurredAt.orEmpty()),
             onClose = { attachment = null }
         )
         return
@@ -76,7 +77,7 @@ private fun WorkspaceRecordsContent(workspaceId: String, canWrite: Boolean, onBa
         detailBusy = true
         detailJob = scope.launch {
             try {
-                val response = withContext(Dispatchers.IO) { JSONObject(request("$base/$id", null)) }
+                val response = repository.detail(id)
                 if (operation == current) selected = response
             } catch (cancelled: CancellationException) {
                 throw cancelled
@@ -94,9 +95,8 @@ private fun WorkspaceRecordsContent(workspaceId: String, canWrite: Boolean, onBa
     LaunchedEffect(workspaceId, refresh, offset) {
         listBusy = true
         try {
-            val array = withContext(Dispatchers.IO) { JSONArray(request("$base?q=${URLEncoder.encode(query, "UTF-8")}&offset=$offset", null)) }
-            val page = (0 until array.length()).map { array.getJSONObject(it) }
-            rows = if (offset == 0) page else (rows + page).distinctBy { it.getString("id") }
+            val page = repository.list(query, offset)
+            rows = if (offset == 0) page else (rows + page).distinctBy { it.id }
             hasMore = page.size == 50
         } catch (cancelled: CancellationException) {
             throw cancelled
@@ -121,8 +121,8 @@ private fun WorkspaceRecordsContent(workspaceId: String, canWrite: Boolean, onBa
         Text(stringResource(R.string.records_title), style = MaterialTheme.typography.headlineSmall)
         if (busy) LinearProgressIndicator(Modifier.fillMaxWidth())
         NoticeEffect(message, { message = "" })
-        val item = selected
-        if (item == null) {
+        val details = selected
+        if (details == null) {
             OutlinedTextField(query, { query = it }, Modifier.fillMaxWidth(), singleLine = true, label = { Text(stringResource(R.string.records_search)) })
             Button(onClick = {
                 offset = 0
@@ -130,17 +130,18 @@ private fun WorkspaceRecordsContent(workspaceId: String, canWrite: Boolean, onBa
             }, enabled = !busy) { Text(stringResource(R.string.records_search)) }
             if (!busy && rows.isEmpty()) Text(stringResource(R.string.records_empty))
             rows.forEach { row ->
-                OutlinedButton(onClick = { open(row.getString("id")) }, enabled = !busy, modifier = Modifier.fillMaxWidth()) {
+                OutlinedButton(onClick = { open(row.id) }, enabled = !busy, modifier = Modifier.fillMaxWidth()) {
                     Column(Modifier.fillMaxWidth()) {
-                        Text(row.storedText("title"))
-                        Text(row.getString("external_id") + " · " + recordFieldLabel(row.getString("kind")), style = MaterialTheme.typography.bodySmall)
-                        if (row.optString("kind") == "person" && row.optBoolean("biometric_authorized")) Text(stringResource(R.string.records_face_authorized), style = MaterialTheme.typography.labelSmall)
+                        Text(row.title.display())
+                        Text(row.externalId + " · " + recordFieldLabel(row.kind), style = MaterialTheme.typography.bodySmall)
+                        if (row.kind == "person" && row.biometricAuthorized) Text(stringResource(R.string.records_face_authorized), style = MaterialTheme.typography.labelSmall)
                     }
                 }
             }
             if (hasMore) OutlinedButton(onClick = { offset += 50 }, enabled = !busy) { Text(stringResource(R.string.records_more)) }
         } else {
-            Text(item.storedText("title"), style = MaterialTheme.typography.titleLarge)
+            val item = details.legacyDocument()
+            Text(details.record.title.display(), style = MaterialTheme.typography.titleLarge)
             Text(item.getString("external_id") + " · v" + item.getInt("version"))
             Text(item.getString("occurred_at"), style = MaterialTheme.typography.bodySmall)
             if (item.optString("kind") == "person") {
@@ -149,21 +150,16 @@ private fun WorkspaceRecordsContent(workspaceId: String, canWrite: Boolean, onBa
                     Text(stringResource(R.string.records_face_candidate), style = MaterialTheme.typography.bodySmall)
                 }
             }
-            val data = item.storedObject("data")
-            data.keys().forEach { key -> Text("${recordFieldLabel(key)}: ${data.opt(key)}") }
+            details.fields().forEach { (field, value) -> Text("${recordFieldLabel(field)}: $value") }
             Text(stringResource(R.string.records_related), style = MaterialTheme.typography.titleMedium)
-            val related = item.optJSONArray("related") ?: JSONArray()
-            (0 until related.length()).forEach { i ->
-                val row = related.getJSONObject(i)
-                TextButton(onClick = { open(row.getString("id")) }, enabled = !busy) { Text(row.storedText("title")) }
+            details.related.forEach { row ->
+                TextButton(onClick = { open(row.id) }, enabled = !busy) { Text(row.title.display()) }
             }
             if (item.optString("kind") == "person") key(item.getString("id")) { MedicationCheckForm(workspaceId, item) }
             Text(stringResource(R.string.records_timeline), style = MaterialTheme.typography.titleMedium)
-            val notes = item.optJSONArray("notes") ?: JSONArray()
-            (0 until notes.length()).forEach { i ->
-                val n = notes.getJSONObject(i)
-                Text(n.getString("occurred_at"), style = MaterialTheme.typography.labelSmall)
-                Text(n.getString("text"))
+            details.notes.forEach { entry ->
+                Text(entry.occurredAt, style = MaterialTheme.typography.labelSmall)
+                Text(entry.text)
             }
             if (canWrite) {
                 OutlinedTextField(note, { note = it }, Modifier.fillMaxWidth(), enabled = !busy, label = { Text(stringResource(R.string.records_note)) })
@@ -174,8 +170,7 @@ private fun WorkspaceRecordsContent(workspaceId: String, canWrite: Boolean, onBa
                     detailBusy = true
                     detailJob = scope.launch {
                         try {
-                            withContext(Dispatchers.IO) { request("$base/${item.getString("id")}/notes", JSONObject().put("text", submittedNote).put("occurred_at", Instant.now().toString())) }
-                            val response = withContext(Dispatchers.IO) { JSONObject(request("$base/${item.getString("id")}", null)) }
+                            val response = repository.addNote(details.record.id, submittedNote)
                             if (operation == current) {
                                 note = ""
                                 selected = response
@@ -212,7 +207,7 @@ private fun WorkspaceRecordsContent(workspaceId: String, canWrite: Boolean, onBa
                                     val payload = JSONObject().put("record_id", item.getString("id")).put("record_media_id", file.getString("id"))
                                     if (basis.isNotBlank()) payload.put("biometric_basis", basis)
                                     withContext(Dispatchers.IO) { request("faces/record-enroll", payload) }
-                                    val response = withContext(Dispatchers.IO) { JSONObject(request("$base/${item.getString("id")}", null)) }
+                                    val response = repository.detail(item.getString("id"))
                                     if (operation == current) {
                                         biometricBasis = ""
                                         selected = response

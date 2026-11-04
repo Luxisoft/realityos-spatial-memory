@@ -33,6 +33,7 @@ services:
     build:
       context: ..
       dockerfile: backend/Dockerfile
+      target: server
     env_file:
       - ../.env
       - path: ../.env.facebook
@@ -40,9 +41,13 @@ services:
       - path: ../.env.storage
         required: false
     environment:
+      REALITYOS_ENV_FILE: ""
+      ENVIRONMENT: production
+      LOCAL_LOGIN_ENABLED: "false"
+      LOCAL_EVALUATION_ENABLED: "false"
       DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-realityos}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-realityos}
       REDIS_URL: redis://redis:6379/0
-    command: ["sh", "-c", "alembic upgrade head && exec uvicorn app.main:app --host 0.0.0.0 --port 8000"]
+    command: ["sh", "-c", "python -m app.runtime.schema && exec uvicorn app.main:app --host 0.0.0.0 --port 8000"]
     depends_on:
       postgres:
         condition: service_healthy
@@ -61,11 +66,16 @@ services:
     build:
       context: ..
       dockerfile: backend/Dockerfile
+      target: server
     env_file:
       - ../.env
       - path: ../.env.storage
         required: false
     environment:
+      REALITYOS_ENV_FILE: ""
+      ENVIRONMENT: production
+      LOCAL_LOGIN_ENABLED: "false"
+      LOCAL_EVALUATION_ENABLED: "false"
       DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-realityos}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-realityos}
       REDIS_URL: redis://redis:6379/0
     command: ["celery", "-A", "app.tasks.celery_app", "worker", "--loglevel=INFO", "--autoscale=1,0", "--max-tasks-per-child=1", "--prefetch-multiplier=1"]
@@ -86,6 +96,10 @@ services:
       - path: ../.env.storage
         required: false
     environment:
+      REALITYOS_ENV_FILE: ""
+      ENVIRONMENT: production
+      LOCAL_LOGIN_ENABLED: "false"
+      LOCAL_EVALUATION_ENABLED: "false"
       DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-realityos}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-realityos}
       REDIS_URL: redis://redis:6379/0
     command: ["celery", "-A", "app.tasks.celery_app", "beat", "--loglevel=WARNING", "--schedule=/tmp/storage-beat"]

@@ -10,8 +10,9 @@ from meta_sam_parser import (
     parse_responses_stream,
 )
 
+from app.geometry import overlap, valid_box
+from app.providers.contracts import GALLERY_MIN_CONFIDENCE as MIN_CONFIDENCE
 from app.providers.contracts import MetaProviderError, SegmentationResult
-from app.social_features.visual import MIN_CONFIDENCE, overlap, valid_box
 
 
 def segment_confirmed_concept(client, image, width, height, label, expected_box):

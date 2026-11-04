@@ -116,7 +116,6 @@ def enable_default_sync(db, row):
     rule = StorageSync(
         connection_id=row.id,
         prefix=row.prefix,
-
         workspace_id=row.workspace_id,
         interval_minutes=15,
         enabled=True,
@@ -243,7 +242,7 @@ def content(
         "Accept-Ranges": "bytes",
     }
     if range_header := request.headers.get("range"):
-        from app.social_features.gallery import _parse_range
+        from app.processing.media_ranges import _parse_range
 
         bounds = _parse_range(range_header.strip(), len(raw))
         if bounds is None:
@@ -410,7 +409,6 @@ def create_sync(
     rule = StorageSync(
         connection_id=row.id,
         prefix=prefix,
-
         workspace_id=payload.workspace_id,
         interval_minutes=payload.interval_minutes,
         enabled=payload.enabled,

@@ -5,19 +5,22 @@ from sqlalchemy import select
 
 from app.social_features.evidence_models import GalleryEvidence, PublicationTranslation
 from app.social_features.models import Publication
-from app.social_features.uploads import check_destination
+from app.social_features.publication_access import check_destination
 
 
 def import_publications(db, user, workspace_id, publication_ids, classifications=None):
     check_destination(db, user, workspace_id)
     # Same-owner serialization prevents duplicate copies across simultaneous requests.
     db.refresh(user, with_for_update=True)
-    from app.social_features.gallery import get_post
+    from app.social_features.publication_access import get_post
 
     originals = [get_post(key, user, db) for key in dict.fromkeys(publication_ids)]
     if any(post.owner_id != user.id for post in originals):
         raise HTTPException(403, "Only your own publications can be imported.")
-    from app.social_features.classification import set_classification, validate_classification
+    from app.social_features.classification_service import (
+        set_classification,
+        validate_classification,
+    )
 
     classifications = classifications or {}
     for post in originals:
@@ -36,7 +39,7 @@ def import_publications(db, user, workspace_id, publication_ids, classifications
         )
         if copy:
             selection = classifications[post.id]
-            from app.social_features.classification import classification_json
+            from app.social_features.classification_service import classification_json
 
             current = classification_json(db, copy)
             if str(copy.category_id) != str(selection.category_id) or {

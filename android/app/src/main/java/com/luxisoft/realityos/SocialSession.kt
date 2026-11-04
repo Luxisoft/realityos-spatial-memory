@@ -1,6 +1,8 @@
 package com.luxisoft.realityos
 
 import androidx.compose.runtime.*
+import com.luxisoft.realityos.data.JsonHttpTransport
+import com.luxisoft.realityos.data.SessionCredentials
 import java.io.File
 import java.net.HttpURLConnection
 import java.net.URL
@@ -71,6 +73,8 @@ internal object SocialSession {
         isGuest = preferences?.getBoolean("guest", false) == true && token != null
         active = token != null && refreshToken != null && workspaceId != null
     }
+    fun remember(credentials: SessionCredentials) = remember(credentials.toJson())
+
     fun remember(response: JSONObject) = synchronized(sessionLock) {
         sessionGeneration++
         rememberTokens(response)
@@ -204,41 +208,25 @@ internal object SocialSession {
     }
     private fun requestOnce(path: String, method: String, payload: JSONObject?, mayRefresh: Boolean, timeoutMillis: Int = 30000, session: RequestSession = sessionSnapshot()): String {
         sessionSnapshot(session.generation)
-        val connection = openJsonConnection(path)
-        if (path in setOf("auth/register", "auth/resend-confirmation", "auth/forgot-password", "auth/change-pending-email")) connection.setRequestProperty("Accept-Language", AccountRequestLanguage.value)
-        connection.setRequestProperty("X-Client-Version", BuildConfig.VERSION_NAME)
-        connection.connectTimeout = minOf(15000, timeoutMillis)
-        connection.readTimeout = timeoutMillis
-        session.access?.let { connection.setRequestProperty("Authorization", "Bearer $it") }
-        return try {
-            connection.requestMethod = method
-            if (payload != null) {
-                connection.doOutput = true
-                connection.setRequestProperty("Content-Type", "application/json")
-                connection.outputStream.bufferedWriter().use { it.write(payload.toString()) }
-            }
-            val status = connection.responseCode
-            sessionSnapshot(session.generation)
-            val authenticatedAccountRoute = path in setOf("auth/me", "auth/local-session", "auth/account-session", "auth/account-capture-profile", "auth/logout")
-            if (connection.responseCode == 409 && path in setOf("auth/register", "auth/change-pending-email")) {
-                val body = connection.errorStream?.bufferedReader()?.use { it.readText() }.orEmpty()
-                accountConflict(path, 409, body)?.let { throw it }
-            }
-            if (connection.responseCode !in 200..299) {
-                accountFailure(path, connection.responseCode)?.let { throw it }
-            }
-            if (status == 401 && mayRefresh && session.refresh != null && (!path.startsWith("auth/") || authenticatedAccountRoute)) {
-                val renewed = refreshSession(session, timeoutMillis)
-                return requestOnce(path, method, payload, false, timeoutMillis, renewed)
-            }
-            if (status == 401 && path != "auth/logout" && (path == "auth/refresh" || session.refresh == null && (!path.startsWith("auth/") || authenticatedAccountRoute))) {
-                expireSession(session)
-            }
-            if (connection.responseCode !in 200..299) error(localizedText(R.string.ui_could_not_complete_the_request_1_d, connection.responseCode))
-            connection.inputStream.bufferedReader().use { it.readText() }.also { sessionSnapshot(session.generation) }
-        } finally {
-            connection.disconnect()
+        val headers = buildMap {
+            put("X-Client-Version", BuildConfig.VERSION_NAME)
+            if (path in setOf("auth/register", "auth/resend-confirmation", "auth/forgot-password", "auth/change-pending-email")) put("Accept-Language", AccountRequestLanguage.value)
+            session.access?.let { put("Authorization", "Bearer $it") }
         }
+        val result = JsonHttpTransport.exchange(openJsonConnection(path), method, payload, headers, timeoutMillis)
+        sessionSnapshot(session.generation)
+        val authenticatedAccountRoute = path in setOf("auth/me", "auth/local-session", "auth/account-session", "auth/account-capture-profile", "auth/logout")
+        if (result.status == 409 && path in setOf("auth/register", "auth/change-pending-email")) {
+            accountConflict(path, 409, result.body)?.let { throw it }
+        }
+        if (result.status !in 200..299) accountFailure(path, result.status)?.let { throw it }
+        if (result.status == 401 && mayRefresh && session.refresh != null && (!path.startsWith("auth/") || authenticatedAccountRoute)) {
+            val renewed = refreshSession(session, timeoutMillis)
+            return requestOnce(path, method, payload, false, timeoutMillis, renewed)
+        }
+        if (result.status == 401 && path != "auth/logout" && (path == "auth/refresh" || session.refresh == null && (!path.startsWith("auth/") || authenticatedAccountRoute))) expireSession(session)
+        if (result.status !in 200..299) error(localizedText(R.string.ui_could_not_complete_the_request_1_d, result.status))
+        return result.body
     }
 
     /** Stream captured clips from private storage; retries reuse the caller's request key. */

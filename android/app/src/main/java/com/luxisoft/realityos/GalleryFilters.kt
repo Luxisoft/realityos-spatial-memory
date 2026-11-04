@@ -1,6 +1,5 @@
 package com.luxisoft.realityos
 
-import android.net.Uri
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.FilterList
@@ -12,44 +11,18 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import java.time.Instant
 import java.time.LocalDate
-import java.time.ZoneId
 import java.time.ZoneOffset
 import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
-import org.json.JSONArray
-import org.json.JSONObject
-
-internal data class GalleryFilterSelection(
-    val categories: Set<String> = emptySet(),
-    val tags: Set<String> = emptySet(),
-    val owners: Set<String> = emptySet(),
-    val from: LocalDate? = null,
-    val through: LocalDate? = null,
-    val text: String = ""
-) {
-    val active: Boolean get() = categories.isNotEmpty() || tags.isNotEmpty() || owners.isNotEmpty() || from != null || through != null || text.isNotBlank()
-    val valid: Boolean get() = from == null || through == null || !through.isBefore(from)
-    fun query(zone: ZoneId = ZoneId.systemDefault()): String = buildList {
-        categories.sorted().forEach { add("category_ids=" + Uri.encode(it)) }
-        tags.sorted().forEach { add("tag_ids=" + Uri.encode(it)) }
-        owners.sorted().forEach { add("owner_ids=" + Uri.encode(it)) }
-        from?.let { add("published_from=" + Uri.encode(it.atStartOfDay(zone).toInstant().toString())) }
-        through?.let { add("published_before=" + Uri.encode(it.plusDays(1).atStartOfDay(zone).toInstant().toString())) }
-        if (text.isNotBlank()) add("description_q=" + Uri.encode(text.trim()))
-    }.joinToString("&")
-}
 
 @Composable
 internal fun GalleryFilterButton(
     bar: GalleryTopBarState,
-    fetchOptions: suspend (String?) -> JSONObject = { workspaceId ->
-        withContext(Dispatchers.IO) { JSONObject(SocialSession.request("gallery/filter-options" + (workspaceId?.let { "?workspace_id=${Uri.encode(it)}" } ?: ""))) }
-    }
+    fetchOptions: (suspend (String?) -> PublicationCatalog)? = null
 ) {
+    val repository = remember(SocialSession.identity) { GalleryRepository() }
     var open by remember { mutableStateOf(false) }
     var draft by remember { mutableStateOf(bar.filters) }
-    var options by remember(bar.selectedId) { mutableStateOf<JSONObject?>(null) }
+    var options by remember(bar.selectedId) { mutableStateOf<PublicationCatalog?>(null) }
     var error by remember { mutableStateOf("") }
     var loading by remember { mutableStateOf(false) }
     var retry by remember { mutableIntStateOf(0) }
@@ -59,7 +32,7 @@ internal fun GalleryFilterButton(
         error = ""
         options = null
         try {
-            options = fetchOptions(bar.selectedId)
+            options = fetchOptions?.invoke(bar.selectedId) ?: repository.filterOptions(bar.selectedId)
         } catch (cancelled: CancellationException) {
             throw cancelled
         } catch (failure: Exception) {
@@ -67,9 +40,6 @@ internal fun GalleryFilterButton(
         } finally {
             loading = false
         }
-    }
-    fun optionsFor(key: String): List<JSONObject> = storageRows(options?.optJSONArray(key) ?: JSONArray()).map { item ->
-        if (bar.selectedId == null && item.optString("workspace_name").isNotBlank()) JSONObject(item.toString()).apply { remove("display_text") }.put("name", item.storedText("name") + " · " + item.optString("workspace_name")) else item
     }
     val config = LocalConfiguration.current
     Box {
@@ -83,9 +53,9 @@ internal fun GalleryFilterButton(
             Column(Modifier.widthIn(min = 240.dp, max = 360.dp).padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text(localizedText(R.string.gallery_filters), style = MaterialTheme.typography.titleMedium)
                 if (loading) LinearProgressIndicator(Modifier.fillMaxWidth())
-                CatalogSelect(localizedText(R.string.catalog_categories), optionsFor("categories"), draft.categories, enabled = !loading) { draft = draft.copy(categories = it) }
-                CatalogSelect(localizedText(R.string.catalog_tags), optionsFor("tags"), draft.tags, enabled = !loading) { draft = draft.copy(tags = it) }
-                CatalogSelect(localizedText(R.string.gallery_authors), optionsFor("owners"), draft.owners, enabled = !loading) { draft = draft.copy(owners = it) }
+                CatalogSelect(localizedText(R.string.catalog_categories), options?.categories.orEmpty(), draft.categories, enabled = !loading, showWorkspace = bar.selectedId == null) { draft = draft.copy(categories = it) }
+                CatalogSelect(localizedText(R.string.catalog_tags), options?.tags.orEmpty(), draft.tags, enabled = !loading, showWorkspace = bar.selectedId == null) { draft = draft.copy(tags = it) }
+                CatalogSelect(localizedText(R.string.gallery_authors), options?.owners.orEmpty(), draft.owners, enabled = !loading, showWorkspace = bar.selectedId == null) { draft = draft.copy(owners = it) }
                 GalleryDateField(localizedText(R.string.gallery_from), draft.from) { draft = draft.copy(from = it) }
                 GalleryDateField(localizedText(R.string.gallery_through), draft.through) { draft = draft.copy(through = it) }
                 OutlinedTextField(draft.text, { draft = draft.copy(text = it.take(500)) }, label = { Text(localizedText(R.string.gallery_description)) }, modifier = Modifier.fillMaxWidth())

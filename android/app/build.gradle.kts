@@ -150,6 +150,16 @@ dependencies {
 }
 
 val refactoredKotlin = files(
+    fileTree("src/main/java/com/luxisoft/realityos/data") { include("**/*.kt") },
+    fileTree("src/main/java/com/luxisoft/realityos/ui") { include("**/*.kt") },
+    "src/main/java/com/luxisoft/realityos/SocialSession.kt",
+    "src/main/java/com/luxisoft/realityos/SocialGallery.kt",
+    "src/main/java/com/luxisoft/realityos/PublicationClassification.kt",
+    "src/main/java/com/luxisoft/realityos/GalleryFilters.kt",
+    "src/debug/java/com/luxisoft/realityos/LocalAccountRepository.kt",
+    "src/testDebug/java/com/luxisoft/realityos/FeatureRepositoriesTest.kt",
+    "src/testDebug/java/com/luxisoft/realityos/GalleryFiltersTest.kt",
+    "src/testDebug/java/com/luxisoft/realityos/LocalLogoutTest.kt",
     "src/main/java/com/luxisoft/realityos/RecognitionPhotoUpload.kt",
     "src/testDebug/java/com/luxisoft/realityos/RecognitionPhotoUploadTest.kt",
     "src/testDebug/java/com/luxisoft/realityos/AppNoticeTest.kt",

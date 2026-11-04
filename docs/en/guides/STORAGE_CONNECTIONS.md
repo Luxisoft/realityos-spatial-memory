@@ -28,14 +28,10 @@ JPEG, PNG, WebP and MP4 publications use the existing analysis and duplicate rev
 
 Keep `STORAGE_ENCRYPTION_KEY` stable in private runtime configuration, shared by API and worker. The scheduler emits jobs; the worker processes them. Group membership and connection revision are checked again before download and publication. HTTPS/public-address validation, pinned addresses, TLS verification and rejected redirects remain enforced.
 
-## Licensed evaluation scenes
+## Local evaluation media
 
-`simulator/real-scenes/catalog.json` and `manifest.json` describe 36 preserved photos and 12 complete videos: four per existing security, nursing and memory group. Recordings retain their original duration (7–29 seconds) and at least native 720p resolution. Sources, authors, licenses and hashes document provenance; downloaded files are ignored by Git.
+Local evaluation initializes application tables from versioned SQL in `simulator/database/` and imports the originals from the organized `simulator/media/` tree into PostgreSQL BYTEA. Source URLs, licenses, hashes and fixture paths are recorded in `simulator/media/manifest.csv` for provenance. They are not an alternative publication database.
 
-The [video matrix](../testing/VIDEO_EVALUATION.md) contains ES/EN queries and expected intervals. `scripts/prepare_evaluation_videos.py` prepares only videos and reuses verified bytes. `scripts/renew_evaluation_videos.py` manages inventory, staging, real analysis, acceptance, activation and rollback with a private journal. It does not recreate accounts, groups or records.
+The local runtime does not use buckets or remote imports. Its three groups contain 41 publications. Postman examples query a disposable database initialized with the same SQL; video questions and observed intervals live in the [QA matrix](../testing/VIDEO_EVALUATION.md).
 
-Synchronization selects `demo/v2/{scenario}/{username}/evaluation-v3/` within the nine existing connections, every 15 minutes. All 36 photos keep their identifiers. At the owner's explicit request, replaced videos, the rejected candidate and 96 obsolete remote copies were deleted, including `evaluation-v2-rollback/`. The active generation retains its 48 scenes. QA stays under `demo/v1/qa/`.
-
-Keep only the active folder selected; legacy preparation tools reject the versioned renewal. `scripts/prepare_bucket_demo.py` now honors the manifest's explicit folder and owner. Read/write credentials stay in private files and are not included in Postman.
-
-Check the dated [implementation status](../project/IMPLEMENTATION_STATUS.md) for executed R2/API checks. Phone and glasses acceptance require separate device evidence.
+Server storage integration remains a separate server capability. Its historical execution evidence is dated in [implementation status](../project/IMPLEMENTATION_STATUS.md); local preparation does not change remote sources or server data.

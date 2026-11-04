@@ -28,12 +28,10 @@ from app.social_features.models import (
     Publication,
     UserProfile,
 )
+from app.social_features.notes import _checked_note as _checked_note
 from app.social_features.publication_visibility import publication_content
 from app.social_features.schemas import ProfileSearchRequest, ProfileUpdate
 from app.stored_display import display_text
-
-"""Facebook identities and explicitly shared audiovisual publications."""
-
 
 router = APIRouter()
 
@@ -405,13 +403,6 @@ async def transcribe_note(
     return {"text": transcription.text, "simulated": transcription.simulated}
 
 
-def _checked_note(note_text: str, note_source: str) -> tuple[str, str]:
-    if note_source not in ("", "voice", "text"):
-        raise HTTPException(422, "note_source must be voice or text.")
-    note = note_text.strip()
-    return note, note_source if note else ""
-
-
 @router.post("/me/profile/cv/retry")
 def retry_cv(
     request: Request,
@@ -489,7 +480,7 @@ def search_profiles(
     db: Session = Depends(get_db),
 ):
     from app.meta import MetaProviderError, build_meta_client
-    from app.social_features.gallery import _publication_payload
+    from app.social_features.gallery_queries import publication_payloads
 
     if not user.is_guest:
         if payload.user_id is None:
@@ -603,7 +594,7 @@ def search_profiles(
             haystack = f"{publication.caption} {publication.search_text}".casefold()
             if wanted and not any(term in haystack for term in wanted):
                 continue
-            media_matches.append(_publication_payload(publication, user, db))
+            media_matches.append(publication)
             if len(media_matches) >= 12:
                 break
         if len(media_matches) >= 12:
@@ -612,6 +603,6 @@ def search_profiles(
         "answer": answer.text,
         "response_language": language,
         "profiles": profiles,
-        "media_matches": media_matches,
+        "media_matches": publication_payloads(media_matches, user, db),
         "simulated": answer.simulated,
     }

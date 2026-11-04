@@ -9,8 +9,8 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.accounts.models import PasswordAccount
+from app.audit import _audit
 from app.dependencies import get_current_user, get_db, workspace_member
-from app.http.common import _audit
 from app.models import Role, User, WorkspaceMember
 from app.security import hash_password
 from app.workspaces.routes import router

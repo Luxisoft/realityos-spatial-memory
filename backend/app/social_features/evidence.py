@@ -28,7 +28,7 @@ router = APIRouter()
 
 
 def readable_post(db, post_id, user):
-    from app.social_features.gallery import get_post
+    from app.social_features.publication_access import get_post
 
     alias = db.get(PublicationDuplicate, post_id)
     return get_post(alias.canonical_id if alias else post_id, user, db)
@@ -66,8 +66,8 @@ class GallerySearch:
 
 def search_evidence(db, user, question, client, limit=6, *, workspace_id=None):
     from app.gallery_index import _visible_scope
-    from app.social_features.gallery import visible
     from app.social_features.models import Publication
+    from app.social_features.publication_access import visible
     from app.social_features.retrieval_terms import KINDS, classify_terms
 
     scope = _visible_scope(user, workspace_id).where(Publication.hidden.is_(False))

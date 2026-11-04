@@ -27,4 +27,6 @@ Run from the root with dependencies installed. Migrations and processing require
 make gateway-api
 ```
 
+The gateway reads injected environment variables. It does not discover `.env`. `make gateway-api` explicitly selects `infrastructure/gateway/runtime.env`; use `GATEWAY_ENV_FILE=/path/to/gateway.env` to choose another private file. Direct Uvicorn execution can select it with `META_GATEWAY_ENV_FILE`. A missing selected file fails before startup. Compose uses `META_GATEWAY_ENV_FILE` to select its host env file and injects its values, with file loading disabled inside the container. Copy the tracked `runtime.env.example` only when preparing an authorized gateway environment; keep its populated counterpart private.
+
 [DEPLOYMENT GATEWAY ](../deployment/DEPLOYMENT_GATEWAY.md) · [DEPLOYMENT DIRECT ](../deployment/DEPLOYMENT_DIRECT.md) · [TTS ](TTS.md)

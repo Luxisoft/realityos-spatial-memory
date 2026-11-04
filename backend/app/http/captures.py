@@ -16,15 +16,9 @@ from fastapi import (
 )
 from sqlalchemy.orm import Session
 
+from app.audit import _audit
 from app.dependencies import get_current_device, get_current_user, get_db, workspace_member
-from app.http.common import (
-    _active_assignment,
-    _audit,
-    _capture_response,
-    _job_response,
-    _session_response,
-    _store_capture,
-)
+from app.http.common import _store_capture
 from app.models import (
     CaptureSession,
     CaptureStatus,
@@ -35,6 +29,8 @@ from app.models import (
     User,
     Zone,
 )
+from app.processing.presentation import _capture_response, _job_response, _session_response
+from app.processing.queries import _active_assignment
 from app.schemas import (
     CaptureResponse,
     DeviceSessionCreate,
@@ -53,7 +49,7 @@ router = APIRouter()
 
 
 @router.post("/sessions", response_model=SessionResponse, status_code=status.HTTP_201_CREATED)
-async def create_session(
+def create_session(
     payload: SessionCreate, user: User = Depends(get_current_user), db: Session = Depends(get_db)
 ):
     workspace_member(payload.workspace_id, user, db, {Role.ADMIN, Role.REGISTER})
@@ -76,7 +72,7 @@ async def create_session(
 
 
 @router.get("/sessions/{session_id}", response_model=SessionResponse)
-async def get_session(
+def get_session(
     session_id: uuid.UUID, user: User = Depends(get_current_user), db: Session = Depends(get_db)
 ):
     session = db.get(CaptureSession, session_id)
@@ -89,7 +85,7 @@ async def get_session(
 
 
 @router.post("/sessions/{session_id}/close", response_model=SessionResponse)
-async def close_session(
+def close_session(
     session_id: uuid.UUID, user: User = Depends(get_current_user), db: Session = Depends(get_db)
 ):
     session = db.get(CaptureSession, session_id)
@@ -115,7 +111,7 @@ async def close_session(
 @router.post(
     "/device/sessions", response_model=SessionResponse, status_code=status.HTTP_201_CREATED
 )
-async def create_device_session(
+def create_device_session(
     payload: DeviceSessionCreate,
     device: Device = Depends(get_current_device),
     db: Session = Depends(get_db),
@@ -151,7 +147,7 @@ async def create_device_session(
 
 
 @router.post("/device/sessions/{session_id}/close", response_model=SessionResponse)
-async def close_device_session(
+def close_device_session(
     session_id: uuid.UUID,
     device: Device = Depends(get_current_device),
     db: Session = Depends(get_db),
@@ -177,7 +173,7 @@ async def close_device_session(
 
 
 @router.post("/captures", response_model=CaptureResponse, status_code=status.HTTP_201_CREATED)
-async def create_capture(
+def create_capture(
     request: Request,
     session_id: uuid.UUID = Form(...),
     captured_at: datetime | None = Form(default=None),
@@ -191,7 +187,7 @@ async def create_capture(
             status_code=status.HTTP_404_NOT_FOUND, detail="Capture session not found."
         )
     workspace_member(session.workspace_id, user, db, {Role.ADMIN, Role.REGISTER})
-    return await _store_capture(
+    return _store_capture(
         request,
         session,
         captured_at,
@@ -204,7 +200,7 @@ async def create_capture(
 @router.post(
     "/device/captures", response_model=CaptureResponse, status_code=status.HTTP_201_CREATED
 )
-async def create_device_capture(
+def create_device_capture(
     request: Request,
     session_id: uuid.UUID = Form(...),
     captured_at: datetime | None = Form(default=None),
@@ -217,7 +213,7 @@ async def create_device_capture(
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Capture session not found."
         )
-    return await _store_capture(
+    return _store_capture(
         request,
         session,
         captured_at,
@@ -229,7 +225,7 @@ async def create_device_capture(
 
 
 @router.get("/captures/{capture_id}", response_model=CaptureResponse)
-async def get_capture(
+def get_capture(
     capture_id: uuid.UUID, user: User = Depends(get_current_user), db: Session = Depends(get_db)
 ):
     asset = db.get(MediaAsset, capture_id)
@@ -240,7 +236,7 @@ async def get_capture(
 
 
 @router.post("/captures/{capture_id}/process", response_model=JobResponse)
-async def process_capture(
+def process_capture(
     capture_id: uuid.UUID,
     request: Request,
     payload: ProcessingRequest | None = None,
@@ -275,7 +271,7 @@ async def process_capture(
 
 
 @router.post("/device/captures/{capture_id}/process", response_model=JobResponse)
-async def process_device_capture(
+def process_device_capture(
     capture_id: uuid.UUID,
     request: Request,
     payload: ProcessingRequest | None = None,
@@ -319,7 +315,7 @@ async def process_device_capture(
 
 
 @router.get("/device/jobs/{job_id}", response_model=JobResponse)
-async def get_device_job(
+def get_device_job(
     job_id: uuid.UUID,
     device: Device = Depends(get_current_device),
     db: Session = Depends(get_db),
@@ -349,7 +345,7 @@ async def get_device_job(
 
 
 @router.get("/jobs/{job_id}", response_model=JobResponse)
-async def get_job(
+def get_job(
     job_id: uuid.UUID, user: User = Depends(get_current_user), db: Session = Depends(get_db)
 ):
     job = db.get(ProcessingJob, job_id)

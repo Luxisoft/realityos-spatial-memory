@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import math
+import os
 import zlib
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
@@ -13,6 +14,9 @@ from app.schemas import (
     QueryInterpretation,
     SearchIntent,
 )
+
+# Shared policy; provider helpers must not import gallery application services.
+GALLERY_MIN_CONFIDENCE = float(os.environ.get("GALLERY_MIN_CONFIDENCE", "0.65"))
 
 
 class MetaProviderError(RuntimeError):

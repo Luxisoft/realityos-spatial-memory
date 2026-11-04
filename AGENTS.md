@@ -185,8 +185,9 @@ records and exclusive media with ten fictional person records and one supplied
 portrait each. Three have judicial arrest warrants; two of those three also have
 active proceedings; the other seven have no criminal history, warrants or
 proceedings. The owner confirmed the portraits depict fictional characters.
-Preserve Police's three access accounts and their avatars. Source portraits and
-their provenance/hash manifest are in `simulator/workspaces/police-people/`.
+Preserve Police's three access accounts and their avatars. Source portraits are in
+`simulator/media/police/portraits/`; provenance and hashes are in
+`simulator/media/manifest.csv`.
 Keep this as record data, with internal simulation metadata and no automatic
 biometric authorization/enrollment. Do not restore the former Police scenes.
 
@@ -199,8 +200,55 @@ never publish biometric references. This supersedes the earlier empty-gallery
 and record-only instructions. Initialize these additions once and preserve edits,
 deletions, memberships and existing consent gates. Do not modify biometric code.
 
-Keep all three groups on the same publication fixture structure and shared loader:
-`simulator/local/catalog.json`, `simulator/real-scenes/manifest.json`,
-`simulator/real-scenes/publication-classification.json` and
-`simulator/local/display-text.json`. Do not introduce parallel per-feature
-publication manifests or duplicate publication creation logic.
+## Owner correction: modular architecture and database authority (2026-11-04)
+
+All application records, including the local account selector, come from PostgreSQL.
+Do not add business-record JSON catalogs or replace them with embedded Python/Kotlin
+lists or YAML/CSV catalogs. SQL in `simulator/database/` is installation-only; use
+one transactional initializer and durable receipts. Existing edits, deletions,
+memberships and consent revocations must survive restarts. All three groups use
+one shared publication schema and loader; private social references remain isolated.
+
+Keep original local test images/videos organized under `simulator/media/`, with
+source/license/hash provenance in `manifest.csv`. The technical inventory is not
+an application query source. Do not recreate retired groups from historical media.
+
+Use one shared modular backend and explicit local/server compositions. Localhost
+means the owner's/judge's PC; this connected host is the RealityOS server; FRONTEND
+is the separate restricted Meta gateway host. Server images exclude simulator data.
+Do not deploy or change server data/runtime as part of repository refactoring.
+
+Keep HTTP adapters separate from services and database queries; keep Android
+presentation separate from repositories and transport. Reuse existing UI components
+and contracts. Remove replaced loaders, dead code and unused dependencies after
+checking consumers, migrations and tests. Historical migrations and protected
+biometric interfaces are retained. Run architecture dependency checks in addition
+to source-size checks.
+
+The owner explicitly authorized orchestration with multiple agents for this
+refactoring. Coordinate ownership of files and integrate verification before delivery.
+
+## Owner correction: group video publications (2026-11-04)
+
+Add the requested Pexels videos as ordinary local group publications: Police uses
+25757454, 29401365 and 30614848; Meta Social Media uses 33802407, 12557513 and
+3699519. Preserve the existing case publications, account introductions and Memory.
+Keep originals under `simulator/media/{police,meta-social}/videos/` with technical
+source/license/hash provenance. Apply the additive SQL revision once through the
+shared initializer; preserve later edits, deletions and memberships. These videos
+do not create person records, biometric enrollment or precomputed recognition claims.
+
+## Owner correction: additional Police records (2026-11-04)
+
+Preserve portraits `person-11.png` through `person-16.png` supplied by the owner
+under `simulator/media/police/portraits/`. Add each as a local scenario
+person record with a linked group publication, using the shared SQL initializer.
+Records 11 and 12 have active arrest warrants, without added convictions or active
+proceedings. Records 13, 14, 15 and 16 are reported missing and have active search
+orders, without arrest warrants or criminal history. Keep missing-person search orders distinct
+from arrest warrants in structured data and ES/EN presentation.
+
+The original ten cases remain intact: Police now has sixteen person records,
+five arrest warrants, two active proceedings, four missing-person search orders,
+and nineteen publications including the three park videos. No automatic biometric
+enrollment or authorization is implied. Preserve existing edits and deletions.

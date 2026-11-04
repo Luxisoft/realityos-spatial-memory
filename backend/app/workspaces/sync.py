@@ -16,7 +16,7 @@ from sqlalchemy.orm import Session
 from app.dependencies import get_current_user, get_db, workspace_member
 from app.models import Role, User
 from app.workspaces.models import Connection
-from app.workspaces.routes import authorize_connection, router
+from app.workspaces.routes import authorize_connection, server_router
 from app.workspaces.schemas import ImportBatch
 from app.workspaces.service import import_batch
 
@@ -60,7 +60,7 @@ def validate_source(url, settings):
     return httpx.URL(url).copy_with(host=addresses[0][4][0]), parsed.hostname
 
 
-@router.post("/workspaces/{workspace_id}/connections/{connection_id}/sync")
+@server_router.post("/workspaces/{workspace_id}/connections/{connection_id}/sync")
 async def sync(
     workspace_id: uuid.UUID,
     connection_id: uuid.UUID,

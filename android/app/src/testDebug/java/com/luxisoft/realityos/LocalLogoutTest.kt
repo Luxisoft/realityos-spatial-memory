@@ -33,7 +33,7 @@ class LocalLogoutTest {
             SocialSession.active = true
             SocialSession.openJsonConnection = { server.url("/$it").toUrl().openConnection() as HttpURLConnection }
             server.enqueue(MockResponse().setResponseCode(status).setBody("{}"))
-            val account = JSONObject().put("id", "one").put("username", "one").put("display_name", "Alex Rivera").put("workspace_name", "Pacific Ridge")
+            val account = LocalAccount("one", "one", "Alex Rivera", "pacific-ridge", "Pacific Ridge")
             compose.setContent {
                 val scope = rememberCoroutineScope()
                 RealityOsTheme {
@@ -46,6 +46,7 @@ class LocalLogoutTest {
             }
             compose.onNodeWithTag("drawer-logout").performTouchInput { click() }
             compose.waitUntil(10_000) { !SocialSession.active }
+            compose.onNodeWithTag("local-group-Pacific Ridge").performClick()
             compose.onNodeWithTag("local-account-one").assertIsDisplayed()
             assertFalse(compose.activity.isFinishing)
             assertNull(SocialSession.token)

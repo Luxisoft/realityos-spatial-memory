@@ -4,13 +4,6 @@ from fastapi import APIRouter
 
 from app.http import captures, identity, media, objects, queries, tts
 
-router = APIRouter()
-router.include_router(identity.router)
-router.include_router(captures.router)
-router.include_router(objects.router)
-router.include_router(queries.router)
-router.include_router(media.router)
-
 _ROUTE_ORDER = {
     "bootstrap_virtual_device": 0,
     "list_device_zones": 1,
@@ -62,5 +55,19 @@ _ROUTE_ORDER = {
     "display_highlighted_observation": 47,
     "highlighted_media": 48,
 }
-router.routes.sort(key=lambda route: _ROUTE_ORDER[route.endpoint.__name__])
-router.include_router(tts.router)
+
+
+def build_router(*, local: bool = False) -> APIRouter:
+    """Compose the shared API and explicitly enabled server capabilities."""
+    result = APIRouter()
+    if not local:
+        result.include_router(identity.server_router)
+    for feature in (identity, captures, objects, queries, media):
+        result.include_router(feature.router)
+    result.routes.sort(key=lambda route: _ROUTE_ORDER[route.endpoint.__name__])
+    if not local:
+        result.include_router(tts.router)
+    return result
+
+
+router = build_router()

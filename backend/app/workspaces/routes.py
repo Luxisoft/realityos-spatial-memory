@@ -21,6 +21,7 @@ from app.workspaces.schemas import ConnectionCreate, ImportBatch, NoteCreate
 from app.workspaces.service import import_batch, record_json
 
 router = APIRouter(tags=["workspace-data"])
+server_router = APIRouter(tags=["workspace-data"])
 
 
 def connection_json(row):
@@ -34,7 +35,7 @@ def connection_json(row):
     }
 
 
-async def integration(request: Request, db: Session = Depends(get_db)):
+def integration(request: Request, db: Session = Depends(get_db)):
     key = request.headers.get("X-RealityOS-Integration-Key", "")
     row = (
         db.scalar(
@@ -59,7 +60,7 @@ def authorize_connection(db, row):
     workspace_member(row.workspace_id, owner, db, {Role.ADMIN})
 
 
-@router.post("/workspaces/{workspace_id}/connections", status_code=201)
+@server_router.post("/workspaces/{workspace_id}/connections", status_code=201)
 async def create_connection(
     workspace_id: uuid.UUID,
     payload: ConnectionCreate,
@@ -88,8 +89,8 @@ async def create_connection(
     return {**connection_json(row), "integration_key": secret}
 
 
-@router.get("/workspaces/{workspace_id}/connections")
-async def connections(
+@server_router.get("/workspaces/{workspace_id}/connections")
+def connections(
     workspace_id: uuid.UUID, user: User = Depends(get_current_user), db: Session = Depends(get_db)
 ):
     workspace_member(workspace_id, user, db, {Role.ADMIN})
@@ -99,8 +100,8 @@ async def connections(
     ]
 
 
-@router.delete("/workspaces/{workspace_id}/connections/{connection_id}")
-async def revoke_connection(
+@server_router.delete("/workspaces/{workspace_id}/connections/{connection_id}")
+def revoke_connection(
     workspace_id: uuid.UUID,
     connection_id: uuid.UUID,
     user: User = Depends(get_current_user),
@@ -115,8 +116,8 @@ async def revoke_connection(
     return {"status": "revoked"}
 
 
-@router.post("/integrations/imports")
-async def ingest(
+@server_router.post("/integrations/imports")
+def ingest(
     payload: ImportBatch, source: Connection = Depends(integration), db: Session = Depends(get_db)
 ):
     # Serialize writes per source, including concurrent idempotent retries.
@@ -125,8 +126,8 @@ async def ingest(
     return import_batch(db, source, payload)
 
 
-@router.get("/integrations/imports/{run_id}")
-async def import_status(
+@server_router.get("/integrations/imports/{run_id}")
+def import_status(
     run_id: uuid.UUID, source: Connection = Depends(integration), db: Session = Depends(get_db)
 ):
     row = db.get(ImportRun, run_id)
@@ -143,7 +144,7 @@ def scoped_record(db, workspace_id, record_id):
 
 
 @router.get("/workspaces/{workspace_id}/records")
-async def records(
+def records(
     workspace_id: uuid.UUID,
     q: str = Query(default="", max_length=200),
     kind: str | None = None,
@@ -176,7 +177,7 @@ async def records(
 
 
 @router.get("/workspaces/{workspace_id}/records/{record_id}")
-async def record_detail(
+def record_detail(
     workspace_id: uuid.UUID,
     record_id: uuid.UUID,
     user: User = Depends(get_current_user),
@@ -232,7 +233,7 @@ async def record_detail(
 
 
 @router.post("/workspaces/{workspace_id}/records/{record_id}/notes", status_code=201)
-async def add_note(
+def add_note(
     workspace_id: uuid.UUID,
     record_id: uuid.UUID,
     payload: NoteCreate,
@@ -250,7 +251,7 @@ async def add_note(
 
 
 @router.get("/workspaces/{workspace_id}/records/{record_id}/revisions")
-async def revisions(
+def revisions(
     workspace_id: uuid.UUID,
     record_id: uuid.UUID,
     user: User = Depends(get_current_user),
@@ -275,7 +276,7 @@ class PublicationLink(__import__("pydantic").BaseModel):
 
 
 @router.post("/workspaces/{workspace_id}/records/{record_id}/publications", status_code=201)
-async def link_publication(
+def link_publication(
     workspace_id: uuid.UUID,
     record_id: uuid.UUID,
     payload: PublicationLink,

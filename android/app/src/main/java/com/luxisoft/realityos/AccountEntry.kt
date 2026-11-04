@@ -1,37 +1,22 @@
 package com.luxisoft.realityos
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
-import org.json.JSONObject
 
 @Composable
 internal fun AccountEntry(viewModel: RealityViewModel, onSuccess: () -> Unit, onBack: () -> Unit) {
+    val repository = remember(SocialSession.identity) { AccountRepository() }
     AccountForm(onBack = onBack) { mode, payload ->
         var identity = SocialSession.identity
         try {
-            val result = withContext(Dispatchers.IO) { JSONObject(SocialSession.request("auth/$mode", payload)) }
-            if (mode == "login") {
+            val login = repository.submit(mode, payload)
+            if (login != null) {
                 SocialSession.requireCurrent(identity)
-                SocialSession.token = result.getString("access_token")
-                val profile = withContext(Dispatchers.IO) {
-                    check(JSONObject(SocialSession.request("auth/account-session")).optBoolean("password_account"))
-                    JSONObject(SocialSession.request("auth/account-capture-profile", JSONObject()))
-                }
-                SocialSession.requireCurrent(identity)
-                SocialSession.workspaceId = profile.getString("workspace_id")
-                SocialSession.remember(result.put("password_account", true))
+                SocialSession.workspaceId = login.captureProfile.workspaceId
+                SocialSession.remember(login.credentials)
                 identity = SocialSession.identity
-                viewModel.useFacebookCaptureProfile(
-                    DeviceProvisioning(
-                        BuildConfig.DEFAULT_REALITYOS_API_BASE_URL,
-                        profile.getString("workspace_id"),
-                        profile.getString("device_id"),
-                        profile.getString("device_key"),
-                        profile.getString("workspace_name")
-                    )
-                )
+                viewModel.useFacebookCaptureProfile(login.captureProfile)
                 SocialSession.active = true
                 onSuccess()
             }

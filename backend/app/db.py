@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from collections.abc import Generator
+from contextlib import contextmanager
 
 from sqlalchemy import Engine, create_engine
 from sqlalchemy.orm import DeclarativeBase, Session, sessionmaker
@@ -21,6 +22,13 @@ class Database:
             expire_on_commit=False,
         )
 
+    def __enter__(self) -> Database:
+        return self
+
+    def __exit__(self, exc_type, exc_value, traceback) -> None:
+        self.engine.dispose()
+
+    @contextmanager
     def session(self) -> Generator[Session, None, None]:
         db = self.session_factory()
         try:

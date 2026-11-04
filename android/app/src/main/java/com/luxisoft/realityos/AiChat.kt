@@ -67,6 +67,8 @@ internal fun AiChat(
     val context = LocalContext.current
     val resources = LocalResources.current
     val scope = rememberCoroutineScope()
+    val repository = remember(SocialSession.identity) { ChatRepository() }
+    val groupsRepository = remember(SocialSession.identity) { GalleryRepository() }
     val guestsBlocked = SocialSession.isGuest
     var workspaceId by remember { mutableStateOf((SocialSession.workWorkspaceId ?: SocialSession.workspaceId).orEmpty()) }
     var input by remember { mutableStateOf("") }
@@ -159,12 +161,9 @@ internal fun AiChat(
             var requestedLanguage: String? = null
             try {
                 requestedLanguage = experienceStore.syncAccountLanguage().languageTag
-                val path = if (beforeId == null) "chat/history?limit=10" else "chat/history?limit=10&before_id=$beforeId"
-                val page = withContext(Dispatchers.IO) { JSONObject(SocialSession.request(path)) }
-                val array = page.optJSONArray("messages") ?: JSONArray()
+                val page = repository.history(beforeId)
                 val rows = withContext(Dispatchers.IO) {
-                    (0 until array.length()).map { index ->
-                        val mapped = mapHistoryRow(array.getJSONObject(index))
+                    page.messages.map { mapped ->
                         val probeId = mapped.serverId
                         if (mapped.role == ChatRole.USER && mapped.imagePreview == null && probeId != null) {
                             loadChatProbe(context, probeId)?.let { mapped.copy(imagePreview = it) } ?: mapped
@@ -174,7 +173,7 @@ internal fun AiChat(
                     }
                 }
                 if (requestedLanguage != experienceStore.selectedLanguage().languageTag) return@launch
-                historyExhausted = !page.optBoolean("has_more", false)
+                historyExhausted = !page.hasMore
                 mergeHistoryRows(rows, beforeId)
             } catch (_: Exception) {
                 if (beforeId != null) historyExhausted = true
@@ -201,36 +200,9 @@ internal fun AiChat(
         if (text.isBlank()) return
         scope.launch {
             try {
-                val payload = JSONObject().put("role", role).put("kind", kind).put("text", text)
-                if (!evidenceUrl.isNullOrBlank()) payload.put("evidence_url", evidenceUrl)
-                if (gallery.isNotEmpty()) {
-                    payload.put(
-                        "gallery",
-                        JSONArray().apply {
-                            gallery.take(6).forEach { thumb ->
-                                put(
-                                    thumb.toJson()
-                                )
-                            }
-                        }
-                    )
-                }
-                if (simulated) payload.put("simulated", true)
-                if (quickReplies.isNotEmpty()) {
-                    payload.put(
-                        "quick_replies",
-                        JSONArray().apply {
-                            quickReplies.take(4).forEach { reply ->
-                                put(JSONObject().put("id", reply.id).put("label", reply.label))
-                            }
-                        }
-                    )
-                }
-                if (faceAction) payload.put("face_action", true)
-                if (role == "ai") payload.put("response_language", responseLanguage ?: deviceLanguage)
-                val id = withContext(Dispatchers.IO) {
-                    JSONObject(SocialSession.request("chat/append", payload)).optInt("id")
-                }
+                val id = repository.append(
+                    ChatTurn(role, kind, text, evidenceUrl, gallery, simulated, quickReplies, faceAction, responseLanguage ?: deviceLanguage)
+                )
                 val index = messages.indexOfFirst { it.id == localId }
                 if (index >= 0 && id > 0) {
                     val paths = messages[index].audioPaths
@@ -321,9 +293,8 @@ internal fun AiChat(
 
     LaunchedEffect(Unit) {
         try {
-            val response = withContext(Dispatchers.IO) { JSONArray(SocialSession.request("workspaces")) }
-            val spaces = (0 until response.length()).map { response.getJSONObject(it) }
-            workspaceId = queryWorkspaceId(spaces.map { it.getString("id") to it.getString("name") }, SocialSession.workWorkspaceId, SocialSession.workspaceId)
+            val spaces = groupsRepository.groups()
+            workspaceId = queryWorkspaceId(spaces.map { it.id to it.name }, SocialSession.workWorkspaceId, SocialSession.workspaceId)
         } catch (_: Exception) {
         }
     }
@@ -411,11 +382,9 @@ internal fun AiChat(
             busy = true
             try {
                 val requestLanguage = experienceStore.syncAccountLanguage().languageTag
-                val response = withContext(Dispatchers.IO) {
-                    JSONObject(SocialSession.searchWorkspaceRecords(workspaceId, JSONObject().put("question", text).put("language", requestLanguage)))
-                }
-                val answer = response.optText("answer")?.ifBlank { chatText(R.string.chat_no_answer) } ?: chatText(R.string.chat_no_answer)
-                pushAi(answer, message = ChatMessage(role = ChatRole.AI, text = answer, speakText = answer, responseLanguage = response.optText("response_language") ?: requestLanguage))
+                val response = repository.answerRecords(workspaceId, text, requestLanguage)
+                val answer = response.text?.ifBlank { chatText(R.string.chat_no_answer) } ?: chatText(R.string.chat_no_answer)
+                pushAi(answer, message = ChatMessage(role = ChatRole.AI, text = answer, speakText = answer, responseLanguage = response.language ?: requestLanguage))
             } catch (failure: Exception) {
                 pushAi(chatText(R.string.chat_query_failed))
             } finally {
@@ -477,49 +446,21 @@ internal fun AiChat(
             busy = true
             try {
                 val requestLanguage = experienceStore.syncAccountLanguage().languageTag
-                val raw = withContext(Dispatchers.IO) {
-                    if (probe == null) {
-                        SocialSession.request(
-                            "queries",
-                            JSONObject().put("workspace_id", workspaceId).put("question", question)
-                                .put("language", requestLanguage)
-                        )
-                    } else {
-                        SocialSession.requestMultipart(
-                            "queries/image",
-                            mapOf(
-                                "workspace_id" to workspaceId,
-                                "question" to question,
-                                "language" to requestLanguage
-                            ),
-                            probe.bytes,
-                            "busqueda.jpg",
-                            probe.mime,
-                            fieldName = "image"
-                        )
-                    }
-                }
-                val response = JSONObject(raw)
-                val message = response.optText("message") ?: chatText(R.string.chat_no_evidence)
-                val speak = response.optText("tts_text") ?: message
-                val evidence = response.optText("highlighted_media_url")
-                val gallery = response.optJSONArray("gallery_matches")?.let { array ->
-                    (0 until array.length()).mapNotNull { index ->
-                        val item = array.optJSONObject(index) ?: return@mapNotNull null
-                        decodeGalleryThumb(item)
-                    }
-                } ?: emptyList()
+                val response = repository.query(workspaceId, question, requestLanguage, probe)
+                val message = response.text ?: chatText(R.string.chat_no_evidence)
+                val speak = response.speech ?: message
+                val evidence = response.evidenceUrl
                 pushAi(
                     message,
                     evidence,
                     ChatMessage(
                         role = ChatRole.AI,
                         text = message,
-                        gallery = gallery,
+                        gallery = response.gallery,
                         evidenceUrl = evidence,
-                        evidenceMediaId = response.optText("media_id").orEmpty(),
-                        responseLanguage = response.optText("response_language") ?: requestLanguage,
-                        simulated = response.optBoolean("simulated"),
+                        evidenceMediaId = response.mediaId,
+                        responseLanguage = response.language ?: requestLanguage,
+                        simulated = response.simulated,
                         speakText = speak
                     )
                 )
@@ -535,11 +476,7 @@ internal fun AiChat(
         scope.launch {
             routing = true
             val target = try {
-                withContext(Dispatchers.IO) {
-                    JSONObject(
-                        SocialSession.request("search/route", JSONObject().put("text", clean))
-                    ).optText("target") ?: "ask"
-                }
+                repository.routeText(clean)
             } catch (failure: Exception) {
                 routing = false
                 pendingProbe = null
@@ -629,19 +566,7 @@ internal fun AiChat(
         routeImageWithText(attachment, clean, false)
     }
 
-    suspend fun transcribeAudioFile(file: File): String = withContext(Dispatchers.IO) {
-        val bytes = file.readBytes()
-        JSONObject(
-            SocialSession.requestMultipart(
-                "notes/transcribe",
-                emptyMap(),
-                bytes,
-                "busqueda.m4a",
-                "audio/mp4",
-                fieldName = "audio"
-            )
-        ).optText("text").orEmpty().trim()
-    }
+    suspend fun transcribeAudioFile(file: File): String = repository.transcribe(file)
 
     fun sendVoiceFiles(files: List<File>) {
         scope.launch {
@@ -649,14 +574,7 @@ internal fun AiChat(
             try {
                 val parts = files.map { transcribeAudioFile(it) }.filter { it.length >= 2 }
                 val text = if (parts.size > 1) {
-                    withContext(Dispatchers.IO) {
-                        JSONObject(
-                            SocialSession.request(
-                                "notes/merge",
-                                JSONObject().put("texts", JSONArray(parts))
-                            )
-                        ).optText("text").orEmpty().trim()
-                    }
+                    repository.mergeTranscript(parts)
                 } else {
                     parts.joinToString(" ").trim()
                 }

@@ -4,7 +4,7 @@ from fastapi.security import HTTPAuthorizationCredentials
 from sqlalchemy.orm import Session
 
 from app.dependencies import bearer_scheme, get_current_device, get_current_user, get_db
-from app.http.common import _active_assignment
+from app.processing.queries import _active_assignment
 from app.providers.tts import SpeechUnavailable, synthesize
 from app.tts_contracts import SpeechRequest
 

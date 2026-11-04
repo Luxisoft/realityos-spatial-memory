@@ -25,7 +25,7 @@ Run this guide in **Git Bash**, from the project folder. Copy commands without t
 
 ### One-time preparation
 
-- Install [Git for Windows](https://gitforwindows.org/) with its Git LFS component. Git retrieves the project and LFS retrieves the included APK.
+- Install [Git for Windows](https://gitforwindows.org/) with its Git LFS component. Git retrieves the project and LFS retrieves the included APK and local videos.
 - Install [Docker Desktop](https://docs.docker.com/desktop/setup/install/windows-install/) with WSL2 and complete its first launch. Use Linux containers and allocate **4 CPU cores, 8 GiB RAM and 25 GiB free storage**.
 - Extract [Platform Tools for Windows](https://dl.google.com/android/repository/platform-tools-latest-windows.zip) into `C:\`, so **`C:\platform-tools\adb.exe`** exists. If you already have that folder, this step is complete. Commands use that path directly.
 - Connect an Android 12+ phone by USB, enable USB debugging and accept the authorization prompt on its screen.
@@ -52,7 +52,7 @@ git clone https://github.com/Luxisoft/realityos-spatial-memory.git &&
 cd realityos-spatial-memory
 ```
 
-If you already have it, open Git Bash at the project root, where `README.md` lives, and continue here. Update the code and APK:
+If you already have it, open Git Bash at the project root, where `README.md` lives, and continue here. Update the code, APK and local videos:
 
 ```bash
 git lfs install &&
@@ -60,7 +60,7 @@ git pull --ff-only &&
 git lfs pull
 ```
 
-Wait for successful completion. If Git reports a conflict with local changes, resolve it before continuing; preserve your private files.
+Wait for successful completion. `git lfs pull` also downloads the videos in `simulator/media/` required to initialize local data. If Git reports a conflict with local changes, resolve it before continuing; preserve your private files.
 
 To start manually, run from the project folder:
 
@@ -186,6 +186,7 @@ If you change Android, follow the [build guide](docs/en/integrations/ANDROID.md#
 | --- | --- |
 | Android code or resources | The server builds and pushes the APK to the repository. Repeat the update and installation commands above; for your own changes, follow the [build guide](#android-build). |
 | Backend code or server configuration | Run `Start-RealityOS.ps1` to rebuild/start the local services. Existing data is preserved. |
+| Prepared local records, publications or media | Run `git pull`, `git lfs pull` and the local startup script (`Start-RealityOS.ps1` on Windows; `bash scripts/local/start.sh` on Linux). Versioned SQL additions preserve edits, deletions and memberships. |
 | The API contract used by Android | Update both the backend and the APK. |
 | Documentation only | No app or container rebuild is needed. |
 
@@ -197,7 +198,7 @@ If you change Android, follow the [build guide](docs/en/integrations/ANDROID.md#
 
 [Search photographs](docs/en/testing/QA_VISUAL_FIXTURES.md): four Police scenes and ten social profile avatars for testing the prepared Meta Social Media directory. Open them on the computer as query inputs; they are not group publications or seeded records.
 
-Open the app and choose one of the **9 accounts across 3 groups: police, Meta Social Media and memory**. Groups start collapsed: tap one to see its accounts. Meta Social Media keeps Elena Marquez, Mateo Rios and Sarah Chen as its three access accounts and adds ten synthetic social profiles, each with a separate avatar and three private reference photos. Use the existing person search after granting search consent; the group gallery contains one introduction with an avatar and text from each of the three access accounts. Police contains ten case publications linked to ten person records with one portrait each: three active warrants, two active proceedings among those three, and seven clear records. Explore the gallery and records; to publish, select a group, category and tag. Wait for indexing to finish before searching.
+Open the app and choose one of the **9 accounts across 3 groups: police, Meta Social Media and memory**. Groups start collapsed: tap one to see its accounts. Meta Social Media keeps Elena Marquez, Mateo Rios and Sarah Chen as its three access accounts and adds ten synthetic social profiles, each with a separate avatar and three private reference photos. Use the existing person search after granting search consent; the group gallery contains one introduction with an avatar and text from each of the three access accounts, plus three videos. Police contains 16 person records with one portrait publication each, plus three videos. Five people have active arrest warrants; two of those also have active proceedings. Four separate missing-person records have active search orders, with no arrest warrants or criminal history. The other seven records have no criminal history, warrants or proceedings. Explore the gallery and records; to publish, select a group, category and tag. Wait for indexing to finish before searching.
 
 | Preview / video | Use |
 | --- | --- |

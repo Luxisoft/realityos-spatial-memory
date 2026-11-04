@@ -30,9 +30,10 @@ from app.social_features.schemas import FacebookLogin, GuestLogin
 
 
 router = APIRouter()
+session_router = APIRouter()
 
 
-@router.post("/auth/logout")
+@session_router.post("/auth/logout")
 def logout(user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     for token in db.scalars(
         select(RefreshToken).where(

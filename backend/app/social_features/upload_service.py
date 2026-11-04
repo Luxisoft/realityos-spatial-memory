@@ -9,7 +9,6 @@ from datetime import UTC, datetime
 from fastapi import HTTPException
 from sqlalchemy import select, text
 
-from app.meta import MetaProviderError
 from app.models import (
     CaptureSession,
     CaptureStatus,
@@ -20,6 +19,7 @@ from app.models import (
     Workspace,
     WorkspaceMember,
 )
+from app.providers.contracts import MetaProviderError
 from app.social_features.evidence_models import (
     GalleryEvidence,
     PublicationRevision,
@@ -131,13 +131,13 @@ def save_publication(db, upload, replace=None):
     )
     if member is None:
         raise HTTPException(403, "Workspace membership changed during analysis.")
-    from app.social_features.uploads import check_destination
+    from app.social_features.publication_access import check_destination
 
     check_destination(db, db.get(User, upload.owner_id), upload.workspace_id)
     from app.storage.lifecycle import check_upload_source
 
     check_upload_source(db, upload)
-    from app.social_features.classification import (
+    from app.social_features.classification_service import (
         classification_json,
         set_classification,
         validate_classification,
@@ -330,7 +330,7 @@ def process_upload(db, upload_id, client):
 
 def confirm_replace(db, upload, user):
     from app.dependencies import workspace_member
-    from app.social_features.gallery import get_post
+    from app.social_features.publication_access import get_post
 
     scope_lock(db, upload.owner_id, upload.workspace_id, wait=False)
     db.refresh(upload)
@@ -348,3 +348,22 @@ def confirm_replace(db, upload, user):
     with db.begin_nested():
         save_publication(db, upload, replace=post)
     return upload
+
+
+def owned(db, key, user):
+    upload = db.get(PublicationUpload, key)
+    if not upload or upload.owner_id != user.id:
+        raise HTTPException(404, "Upload unavailable.")
+    return upload
+
+
+def upload_preview(db, key, user):
+    """Read only the owner's upload and recheck its current workspace membership."""
+    from app.dependencies import workspace_member
+    from app.processing.previews import image_thumbnail
+    from app.social_features.video_uploads import preview_bytes
+
+    upload = owned(db, key, user)
+    if upload.workspace_id:
+        workspace_member(upload.workspace_id, user, db)
+    return image_thumbnail(preview_bytes(upload), (360, 480), quality=75)

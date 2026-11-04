@@ -6,15 +6,15 @@ import uuid
 from sqlalchemy import and_, func, or_, select
 from sqlalchemy.orm import Session
 
-from app.meta import (
-    MetaModelClient,
-    MetaProviderError,
-)
 from app.models import (
     ObjectAlias,
     ObjectObservation,
     TrackedObject,
     VerificationStatus,
+)
+from app.providers.contracts import (
+    MetaModelClient,
+    MetaProviderError,
 )
 
 

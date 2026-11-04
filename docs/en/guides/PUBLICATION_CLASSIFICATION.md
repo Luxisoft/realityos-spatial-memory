@@ -8,9 +8,9 @@ The group owner adds categories and tags during group creation and can rename, a
 
 Publishing requires one category and between one and twenty active tags from the selected group. Written or transcribed notes remain optional. Changing groups clears the selection. An empty catalog blocks publication and explains that the group owner must complete it.
 
-The 87 existing terms in the three local groups have authored Spanish and English names saved in the database. Categories, tags, thumbnails, filters and the viewer select the saved language without translating when a screen opens. Identifiers and associations stay unchanged. Prepared publications, records and descriptive profile fields also retain both versions in the database.
+The categories and tags in the three local groups have authored Spanish and English names saved in the database. Categories, tags, thumbnails, filters and the viewer select the saved language without translating when a screen opens. Identifiers and associations stay unchanged. Prepared publications, records and descriptive profile fields also retain both versions in the database.
 
-The reviewed copy lives in `simulator/local/display-text.json` and is installed once, without recreating deleted rows or replacing owner edits. No new service, model, queue or automatic translator is involved. Proper names, identifiers and dates are unchanged. Later edits keep the owner's wording and stop showing outdated copy that no longer matches. Archiving preserves existing publication labels and historical filter options while preventing new selections. Manual classification does not become visual evidence or replace object analysis.
+The reviewed copy and classification associations live in the versioned SQL seed under `simulator/database/` and are installed once, without recreating deleted rows or replacing owner edits. No new service, model, queue or automatic translator is involved. Proper names, identifiers and dates are unchanged. Later edits keep the owner's wording and stop showing outdated copy that no longer matches. Archiving preserves existing publication labels and historical filter options while preventing new selections. Manual classification does not become visual evidence or replace object analysis.
 
 ## Thumbnails and filtering
 
@@ -46,8 +46,8 @@ Folder synchronization every 15 minutes uses this same state for new files. In C
 
 Retries and subsequent synchronization do not approve pending candidates. Ownership, membership, catalog and source validity are rechecked. Disconnecting or changing the source cancels its candidates and preserves existing retirement rules without deleting remote objects.
 
-## Classifying existing publications
+## Local initialization and subsequent changes
 
-`simulator/real-scenes/publication-classification.json` maps the 48 reviewed existing publications to their original hashes and current groups. It includes no private media and creates no groups.
+The shared SQL seed installs the three group catalogs and classifies all 41 prepared publications in the same application tables used by normal uploads and queries. There is no separate classification manifest or publication database. Installation receipts prevent restart from recreating deleted rows or replacing owner edits.
 
-`scripts/classify_existing_publications.py` verifies the manifest without writing by default. `--apply` applies it and saves a private journal; repeating identical assignments is idempotent. `--rollback --journal PATH` checks a rollback and, with `--apply`, restores the previous classification if there have been no subsequent changes. Original bytes, dates, descriptions and interactions are retained. Deployment status and executed checks are recorded in [Implementation status](../project/IMPLEMENTATION_STATUS.md).
+Subsequent corrections use the authenticated catalog and classification APIs above. They preserve original media and enforce group ownership, membership and author permissions. Server storage import and synchronization are available only in the server composition; local evaluation imports its organized fixture bytes directly into BYTEA.

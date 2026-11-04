@@ -8,7 +8,7 @@ import httpx
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse, Response
 
-from realityos_meta_gateway.config import GatewaySettings
+from realityos_meta_gateway.config import GatewaySettings, get_settings
 
 logger = logging.getLogger("realityos.meta_gateway")
 
@@ -47,7 +47,7 @@ def create_app(
     settings: GatewaySettings | None = None,
     transport: httpx.AsyncBaseTransport | None = None,
 ) -> FastAPI:
-    settings = settings or GatewaySettings()
+    settings = settings or get_settings()
     app = FastAPI(title="RealityOS Meta Gateway", version="0.1.0", docs_url=None, redoc_url=None)
     app.state.settings = settings
     app.state.transport = transport

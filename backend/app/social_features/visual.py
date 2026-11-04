@@ -5,11 +5,13 @@ from __future__ import annotations
 import hashlib
 import io
 import math
-import os
 
 from PIL import Image, ImageOps
 
-MIN_CONFIDENCE = float(os.environ.get("GALLERY_MIN_CONFIDENCE", "0.65"))
+from app.geometry import overlap as overlap
+from app.geometry import valid_box as valid_box
+from app.providers.contracts import GALLERY_MIN_CONFIDENCE as MIN_CONFIDENCE
+
 INDEX_VERSION = 2
 
 
@@ -35,19 +37,6 @@ def similar(a: str, b: str) -> bool:
     return (int(a, 16) ^ int(b, 16)).bit_count() <= 10
 
 
-def valid_box(box) -> dict | None:
-    try:
-        x, y, w, h = (float(box[k]) for k in ("x", "y", "width", "height"))
-        if not all(math.isfinite(v) for v in (x, y, w, h)) or w <= 0 or h <= 0:
-            return None
-        left, top, right, bottom = max(0.0, x), max(0.0, y), min(1.0, x + w), min(1.0, y + h)
-        if right <= left or bottom <= top:
-            return None
-        return dict(x=left, y=top, width=right - left, height=bottom - top)
-    except (KeyError, TypeError, ValueError):
-        return None
-
-
 def ground(client, raw: bytes) -> tuple[bytes, str, str, list[dict]]:
     image, width, height, digest, phash = normalize(raw)
     analysis = client.analyze_image(
@@ -63,7 +52,7 @@ def ground(client, raw: bytes) -> tuple[bytes, str, str, list[dict]]:
             eligible.append(item.model_copy(update={"bounding_box": box}))
     localized = client.segment_gallery(image, width, height, eligible) if eligible else []
     if len(localized) != len(eligible):
-        from app.meta import MetaProviderError
+        from app.providers.contracts import MetaProviderError
 
         raise MetaProviderError("Incomplete SAM object groups.", phase="sam_localization")
     for item, result in zip(eligible, localized):
@@ -88,10 +77,3 @@ def ground(client, raw: bytes) -> tuple[bytes, str, str, list[dict]]:
             )
         )
     return image, digest, phash, detections
-
-
-def overlap(a, b):
-    area = max(0, min(a["x"] + a["width"], b["x"] + b["width"]) - max(a["x"], b["x"])) * max(
-        0, min(a["y"] + a["height"], b["y"] + b["height"]) - max(a["y"], b["y"])
-    )
-    return area / (a["width"] * a["height"] + b["width"] * b["height"] - area) if area else 0.0

@@ -14,21 +14,17 @@ from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
-from app.dependencies import get_current_user, get_db, workspace_member
+from app.dependencies import get_current_user, get_db
 from app.meta import build_meta_client
-from app.models import User, Workspace
-from app.social_features.classification import ClassificationInput, validate_classification
+from app.models import User
+from app.social_features.classification_schemas import ClassificationInput
+from app.social_features.classification_service import validate_classification
 from app.social_features.evidence_models import PublicationUpload
-from app.social_features.upload_service import confirm_replace, process_upload
+from app.social_features.publication_access import check_destination as check_destination
+from app.social_features.upload_service import confirm_replace, process_upload, upload_preview
+from app.social_features.upload_service import owned as owned
 
 router = APIRouter()
-
-
-def owned(db, key, user):
-    upload = db.get(PublicationUpload, key)
-    if not upload or upload.owner_id != user.id:
-        raise HTTPException(404, "Upload unavailable.")
-    return upload
 
 
 def payload(upload):
@@ -48,15 +44,6 @@ def payload(upload):
     )
 
 
-def check_destination(db, user, workspace_id):
-    if not workspace_id:
-        raise HTTPException(422, "Join or create a work group before publishing.")
-    workspace_member(workspace_id, user, db)
-    space = db.get(Workspace, workspace_id)
-    if not space or space.name.startswith("home:"):
-        raise HTTPException(422, "Choose a work group.")
-
-
 async def candidate(
     request,
     file,
@@ -71,7 +58,7 @@ async def candidate(
     tag_ids=None,
     allow_unclassified=False,
 ):
-    from app.social_features.profiles import _checked_note
+    from app.social_features.notes import _checked_note
 
     check_destination(db, user, workspace_id)
     if not allow_unclassified or category_id is not None or tag_ids:
@@ -235,20 +222,10 @@ def publication_upload_status(
 def publication_upload_preview(
     upload_id: uuid.UUID, user: User = Depends(get_current_user), db: Session = Depends(get_db)
 ):
-    upload = owned(db, upload_id, user)
-    if upload.workspace_id:
-        workspace_member(upload.workspace_id, user, db)
-    from app.social_features.video_uploads import preview_bytes
-
-    with Image.open(io.BytesIO(preview_bytes(upload))) as source:
-        from PIL import ImageOps
-
-        image = ImageOps.exif_transpose(source).convert("RGB")
-        image.thumbnail((360, 480))
-        output = io.BytesIO()
-        image.save(output, "JPEG")
     return Response(
-        output.getvalue(), media_type="image/jpeg", headers={"Cache-Control": "private, no-store"}
+        upload_preview(db, upload_id, user),
+        media_type="image/jpeg",
+        headers={"Cache-Control": "private, no-store"},
     )
 
 

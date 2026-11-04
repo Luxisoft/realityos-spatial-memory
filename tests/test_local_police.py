@@ -3,17 +3,16 @@ import uuid
 from pathlib import Path
 
 import pytest
-from app.local_catalog import catalog
 from app.local_models import LocalEvaluationState
 from app.models import MediaAsset, User, WorkspaceMember
 from app.social_features.models import Publication, UserProfile
 from app.workspaces.models import Record, RecordMedia
+from local_support import catalog
 from sqlalchemy import select
-from test_local_evaluation import evaluation  # noqa: F401
 
 
-def test_police_people_portraits_and_access(evaluation):  # noqa: F811
-    group, _, other = catalog()["groups"]
+def test_police_people_portraits_and_access(evaluation):
+    group, _, other = catalog(evaluation)["groups"]
 
     def login(user):
         token = evaluation.post(
@@ -25,15 +24,20 @@ def test_police_people_portraits_and_access(evaluation):  # noqa: F811
     other_headers = login(other["users"][0])
     base = f"/v1/workspaces/{group['id']}"
     rows = evaluation.get(base + "/records", headers=headers).json()
-    assert len(rows) == 10 and all(
+    assert len(rows) == 16 and all(
         r["kind"] == "person" and r["simulated"] for r in rows
     )
-    assert sum(r["data"]["has_active_warrant"] for r in rows) == 3
+    assert sum(r["data"]["has_active_warrant"] for r in rows) == 5
     assert sum(r["data"]["has_active_proceedings"] for r in rows) == 2
     assert all(
         not r["data"]["has_active_proceedings"] or r["data"]["has_active_warrant"]
         for r in rows
     )
+    missing = [r for r in rows if r["data"].get("has_active_search_order")]
+    assert len(missing) == 4
+    assert all(row["data"]["is_missing"] for row in missing)
+    assert all(not row["data"]["has_active_warrant"] for row in missing)
+    assert all(not row["data"]["has_active_proceedings"] for row in missing)
     assert all(not r["biometric_authorized"] for r in rows)
     hashes = set()
     for row in rows:
@@ -51,17 +55,24 @@ def test_police_people_portraits_and_access(evaluation):  # noqa: F811
         else:
             assert row["data"]["warrant_reference"] is None
             assert not row["data"]["has_active_proceedings"]
-    assert len(hashes) == 10
+    assert len(hashes) == 16
     with evaluation.app.state.database.session_factory() as db:
         assert (
             db.query(Publication).filter_by(workspace_id=uuid.UUID(group["id"])).count()
-            == 10
+            == 19
         )
 
 
-def test_police_replacement_is_atomic_and_preserves_accounts(evaluation, monkeypatch):  # noqa: F811
+@pytest.mark.parametrize("evaluation", ["baseline"], indirect=True)
+def test_police_replacement_is_atomic_and_preserves_accounts(evaluation, monkeypatch):
     monkeypatch.syspath_prepend(str(Path(__file__).resolve().parents[1] / "scripts"))
-    from refresh_local_police import RECEIPT, WORKSPACE, refresh_local_police
+    from app.local.upgrades import POLICE as WORKSPACE
+    from app.local.upgrades import upgrade_local_data
+
+    RECEIPT = "police-people-v1"
+
+    def refresh_local_police(db, settings):
+        return upgrade_local_data(db, settings).get(RECEIPT)
 
     settings = evaluation.app.state.settings
     with evaluation.app.state.database.session_factory() as db:

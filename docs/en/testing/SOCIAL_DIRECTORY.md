@@ -1,32 +1,18 @@
-<p align="center">
-  <a href="SOCIAL_DIRECTORY.md"><img src="../../assets/readme/language-en-active.svg" alt="English — selected" height="32"></a>
-  <a href="../../es/testing/SOCIAL_DIRECTORY.md"><img src="../../assets/readme/language-es.svg" alt="Leer en español" height="32"></a>
-</p>
+[Español](../../es/testing/SOCIAL_DIRECTORY.md) · [API / Postman](../api/API.md) · [Documentation](../INDEX.md)
 
-# Synthetic social directory
+# Local social directory
 
-[API / Postman](../api/API.md) · [All guides](../INDEX.md)
+Meta Social Media has ten synthetic searchable profiles, each with a separate avatar and three private reference photos. Its three access accounts publish one ordinary introduction each using their account avatars. The group also contains three ordinary video publications. Private references never appear as publications, generic media or result thumbnails.
 
-**Fictional identities for evaluation, processed through the real authorized pipeline.**
+Profile rows are installed from the versioned [social SQL seed](../../../simulator/database/002-social-profiles.sql). The local bootstrap uses the existing protected enrollment workflow and records its completion once. Restarts preserve edits and deletions. Group membership, consent and biometric permissions continue to apply; installing test data does not authorize other accounts or new subjects.
 
-[← Project](../README.md) · [Evaluation scenarios](../README.md#evaluate) · [Implementation status](../project/IMPLEMENTATION_STATUS.md)
-
-```mermaid
-flowchart LR
-    A[20 fictional identities] --> B[Source portrait anchors]
-    B --> C[10 Muse scenes per profile]
-    C --> D[BYTEA media + authorized enrollment]
-```
-
-| Location | What it contains |
+| Location | Purpose |
 | --- | --- |
-| [`source/`](../../../simulator/social-directory/source/) | Synthetic identity anchors. |
-| `muse/` — ignored | Ten different Muse-anchored scenes per profile, validated with InsightFace. |
-| `generated/` — ignored | Generated avatars. |
-| [`workshop/`](../../../simulator/social-directory/workshop/) | Fifteen views of the same workshop: nine day and six night, plus its original video. |
+| [Avatars](../../../simulator/media/meta-social/avatars/) | Separate images that may be displayed as profile avatars. |
+| [Private references](../../../simulator/media/meta-social/private-references/) | Three distinct references for each prepared synthetic profile. |
+| [Shared account avatars](../../../simulator/media/shared/accounts/) | Images for the nine local access accounts. |
+| [Media manifest](../../../simulator/media/manifest.csv) | Source, license and SHA-256 evidence for organized local resources. |
 
-[`PROFILE_ROWS`](../../../scripts/seed_social_directory.py) defines the 20 deterministic test identities. The [photo generator](../../../scripts/generate_directory_photos.py) creates their scenes; the importer uses the BYTEA and InsightFace path used for authorized social media. Directory profiles ship without synthetic videos.
+The application reads profiles, membership and publications from PostgreSQL. No JSON directory or parallel publication catalog serves queries. The SQL seed is an installation input; subsequent changes use the application tables and APIs.
 
-The “Mechanic Workshop” scenario has five members with day/night shifts. All identities are fictional and must remain identified as simulated. Membership, authorization and biometric permissions remain active; synthetic data does not bypass them.
-
-[Español →](../../es/testing/SOCIAL_DIRECTORY.md)
+Historical graphics retained for regression tests are under `simulator/media/regression/`. They do not create retired groups or additional profiles. The current local scope remains Police, Meta Social Media and Memory.

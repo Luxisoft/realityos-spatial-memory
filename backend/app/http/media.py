@@ -40,7 +40,7 @@ router = APIRouter()
 
 
 @router.get("/media/{media_id}")
-async def get_media(
+def get_media(
     media_id: uuid.UUID, user: User = Depends(get_current_user), db: Session = Depends(get_db)
 ) -> Response:
     asset = db.get(MediaAsset, media_id)
@@ -64,7 +64,7 @@ async def get_media(
 
 
 @router.get("/observations/{observation_id}/highlighted")
-async def highlighted_observation(
+def highlighted_observation(
     observation_id: uuid.UUID,
     user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
@@ -81,7 +81,7 @@ async def highlighted_observation(
 
 
 @router.get("/device/observations/{observation_id}/highlighted")
-async def device_highlighted_observation(
+def device_highlighted_observation(
     observation_id: uuid.UUID,
     device: Device = Depends(get_current_device),
     db: Session = Depends(get_db),
@@ -101,7 +101,7 @@ async def device_highlighted_observation(
 
 
 @router.get("/device/display/observations/{observation_id}/highlighted")
-async def display_highlighted_observation(
+def display_highlighted_observation(
     observation_id: uuid.UUID,
     token: str,
     request: Request,
@@ -143,7 +143,7 @@ async def display_highlighted_observation(
 
 
 @router.get("/media/{media_id}/highlighted")
-async def highlighted_media(
+def highlighted_media(
     media_id: uuid.UUID, user: User = Depends(get_current_user), db: Session = Depends(get_db)
 ) -> Response:
     """Compatibility endpoint; queries now use an observation-specific overlay."""

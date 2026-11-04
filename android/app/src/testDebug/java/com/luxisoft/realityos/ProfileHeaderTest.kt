@@ -138,7 +138,7 @@ class ProfileHeaderTest {
         val post = org.json.JSONObject().put("thumbnail_url", "").put("source", "simulator-work")
             .put("mime_type", "image/jpeg").put("category", org.json.JSONObject().put("name", "Equipment"))
             .put("tags", org.json.JSONArray().put(org.json.JSONObject().put("name", "Ready")))
-        compose.setContent { MaterialTheme { PublicationThumbnail(post, androidx.compose.ui.Modifier.size(120.dp)) {} } }
+        compose.setContent { MaterialTheme { PublicationThumbnail(PublicationSummary.read(post), androidx.compose.ui.Modifier.size(120.dp)) {} } }
         compose.onNodeWithTag("publication-simulated").assertDoesNotExist()
         compose.waitForIdle()
         compose.onNodeWithTag("publication-classification", useUnmergedTree = true).assertIsDisplayed()

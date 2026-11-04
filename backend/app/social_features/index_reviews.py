@@ -8,7 +8,7 @@ import uuid
 from sqlalchemy import select
 from sqlalchemy.orm import defer
 
-from app.meta import MetaProviderError
+from app.providers.contracts import MetaProviderError
 from app.schemas import MetaDetection
 from app.social_features.evidence_models import GalleryEvidence, GalleryIndexRun
 from app.social_features.review_localization import localize

@@ -66,7 +66,7 @@ class GalleryFiltersTest {
                     Surface {
                         GalleryFilterButton(bar) { group ->
                             requestedGroups += group
-                            JSONObject("""{"categories":[{"id":"category","name":"Equipment"}],"tags":[{"id":"tag","name":"Ready"}],"owners":[{"id":"owner","name":"Alex"}]}""")
+                            PublicationCatalog.read(JSONObject("""{"categories":[{"id":"category","name":"Equipment"}],"tags":[{"id":"tag","name":"Ready"}],"owners":[{"id":"owner","name":"Alex"}]}"""))
                         }
                     }
                 }
@@ -109,7 +109,7 @@ class GalleryFiltersTest {
                     GalleryFilterButton(bar) {
                         attempts++
                         if (attempts == 1) throw java.io.IOException("Offline")
-                        JSONObject("""{"categories":[{"id":"category","name":"Equipment"}],"tags":[],"owners":[]}""")
+                        PublicationCatalog.read(JSONObject("""{"categories":[{"id":"category","name":"Equipment"}],"tags":[],"owners":[]}"""))
                     }
                 }
             }

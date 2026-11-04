@@ -33,28 +33,6 @@ def validate_local_settings(settings):
     provider_routes(settings)
 
 
-def local_route_available(path: str) -> bool:
-    """Exclude external integrations at route registration, before any handler runs."""
-    return not (
-        "/storage-connections" in path
-        or "/connections" in path
-        or "/integrations/" in path
-        or "/facebook" in path
-        or path.endswith("/tts")
-        or path.endswith("/virtual-devices/bootstrap")
-        or path
-        in {
-            "/v1/auth/register",
-            "/v1/auth/resend-confirmation",
-            "/v1/auth/confirm-email",
-            "/v1/auth/forgot-password",
-            "/v1/auth/reset-password",
-            "/v1/auth/change-pending-email",
-            "/v1/auth/guest",
-        }
-    )
-
-
 def create_local_account(db, settings, email, password, display_name):
     if settings.environment != "local" or not settings.local_login_enabled:
         raise ValueError("Account provisioning is restricted to the enabled local installation.")

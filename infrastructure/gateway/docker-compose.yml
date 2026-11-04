@@ -4,6 +4,8 @@ services:
     pull_policy: always
     env_file:
       - ${META_GATEWAY_ENV_FILE:-./runtime.env}
+    environment:
+      META_GATEWAY_ENV_FILE: ""
     ports:
       - "127.0.0.1:${META_GATEWAY_PORT:-9088}:8080"
     read_only: true

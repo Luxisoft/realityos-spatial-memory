@@ -4,7 +4,7 @@ import hashlib
 
 from sqlalchemy import select
 
-from app.meta import MetaProviderError
+from app.providers.contracts import MetaProviderError
 from app.social_features.evidence_models import GalleryEvidence, PublicationTranslation
 
 LANGUAGES = ("en", "es")

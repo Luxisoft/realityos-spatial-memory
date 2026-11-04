@@ -14,17 +14,8 @@ from fastapi import (
 from sqlalchemy import desc, func, select
 from sqlalchemy.orm import Session
 
+from app.audit import _audit
 from app.dependencies import get_current_user, get_db, workspace_member
-from app.http.common import (
-    _audit,
-    _fact_response,
-    _fact_rollup,
-    _job_response,
-    _object_response,
-    _observation_response,
-    _track_frame_response,
-    _track_response,
-)
 from app.models import (
     CaptureSession,
     Device,
@@ -40,6 +31,15 @@ from app.models import (
     VerificationStatus,
     Zone,
 )
+from app.processing.presentation import (
+    _fact_response,
+    _job_response,
+    _object_response,
+    _observation_response,
+    _track_frame_response,
+    _track_response,
+)
+from app.processing.queries import _fact_rollup
 from app.schemas import (
     InventoryAnalyticsResponse,
     JobResponse,
@@ -65,7 +65,7 @@ router = APIRouter()
 
 
 @router.get("/objects", response_model=list[ObjectResponse])
-async def list_objects(
+def list_objects(
     workspace_id: uuid.UUID,
     q: str | None = None,
     category: str | None = None,
@@ -93,7 +93,7 @@ async def list_objects(
 
 
 @router.get("/objects/{object_id}", response_model=ObjectResponse)
-async def get_object(
+def get_object(
     object_id: uuid.UUID, user: User = Depends(get_current_user), db: Session = Depends(get_db)
 ):
     tracked = db.get(TrackedObject, object_id)
@@ -108,7 +108,7 @@ async def get_object(
     response_model=ObjectAliasResponse,
     status_code=status.HTTP_201_CREATED,
 )
-async def create_object_alias(
+def create_object_alias(
     object_id: uuid.UUID,
     payload: ObjectAliasCreate,
     user: User = Depends(get_current_user),
@@ -142,7 +142,7 @@ async def create_object_alias(
 
 
 @router.get("/objects/{object_id}/history", response_model=list[ObservationResponse])
-async def object_history(
+def object_history(
     object_id: uuid.UUID, user: User = Depends(get_current_user), db: Session = Depends(get_db)
 ):
     tracked = db.get(TrackedObject, object_id)
@@ -159,7 +159,7 @@ async def object_history(
 
 
 @router.get("/objects/{object_id}/facts", response_model=list[ObjectFactResponse])
-async def object_facts(
+def object_facts(
     object_id: uuid.UUID, user: User = Depends(get_current_user), db: Session = Depends(get_db)
 ) -> list[ObjectFactResponse]:
     tracked = db.get(TrackedObject, object_id)
@@ -177,7 +177,7 @@ async def object_facts(
 
 
 @router.patch("/facts/{fact_id}", response_model=ObjectFactResponse)
-async def verify_fact(
+def verify_fact(
     fact_id: uuid.UUID,
     payload: ObjectFactUpdate,
     user: User = Depends(get_current_user),
@@ -207,7 +207,7 @@ async def verify_fact(
 
 
 @router.get("/objects/{object_id}/tracks", response_model=list[TrackResponse])
-async def object_tracks(
+def object_tracks(
     object_id: uuid.UUID, user: User = Depends(get_current_user), db: Session = Depends(get_db)
 ) -> list[TrackResponse]:
     tracked = db.get(TrackedObject, object_id)
@@ -225,7 +225,7 @@ async def object_tracks(
 
 
 @router.get("/tracks/{track_id}/frames", response_model=list[TrackFrameResponse])
-async def track_frames(
+def track_frames(
     track_id: uuid.UUID,
     offset: int = 0,
     limit: int = 240,
@@ -253,7 +253,7 @@ async def track_frames(
 
 
 @router.get("/admin/analytics/inventory", response_model=InventoryAnalyticsResponse)
-async def inventory_analytics(
+def inventory_analytics(
     workspace_id: uuid.UUID,
     user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
@@ -309,7 +309,7 @@ async def inventory_analytics(
 
 
 @router.patch("/observations/{observation_id}", response_model=ObservationResponse)
-async def verify_observation(
+def verify_observation(
     observation_id: uuid.UUID,
     payload: ObservationUpdate,
     user: User = Depends(get_current_user),
@@ -336,7 +336,7 @@ async def verify_observation(
 
 
 @router.post("/observations/{observation_id}/segment", response_model=JobResponse, status_code=202)
-async def request_observation_segmentation(
+def request_observation_segmentation(
     observation_id: uuid.UUID,
     request: Request,
     user: User = Depends(get_current_user),

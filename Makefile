@@ -1,4 +1,7 @@
 .DEFAULT_GOAL := help
+ENV_FILE ?= .env.local
+GATEWAY_ENV_FILE ?= infrastructure/gateway/runtime.env
+DOCS_PYTHON ?= $(if $(wildcard .venv/bin/python),.venv/bin/python,python3)
 
 help:
 	@printf '%s\n' 'make install | lint | test | docs-check | architecture-check | format-check | android-check | api | migrate | seed | compose-up | gateway-api | runtime-dirs'
@@ -11,23 +14,24 @@ install:
 
 lint:
 	.venv/bin/ruff check backend tests meta-gateway gateway-tests
+	.venv/bin/ruff check scripts/architecture_rules.py scripts/check_structure.py
 
 test:
 	.venv/bin/pytest -q tests gateway-tests
 
 api:
-	.venv/bin/uvicorn app.main:app --app-dir backend --host 0.0.0.0 --port 8000 --reload
+	REALITYOS_ENV_FILE="$(ENV_FILE)" .venv/bin/uvicorn app.main:app --app-dir backend --host 0.0.0.0 --port 8000 --reload
 
 migrate:
-	.venv/bin/alembic -c backend/alembic.ini upgrade head
+	REALITYOS_ENV_FILE="$(ENV_FILE)" .venv/bin/python -m app.runtime.schema
 
 seed:
-	.venv/bin/python scripts/seed_demo.py
+	REALITYOS_ENV_FILE="$(ENV_FILE)" .venv/bin/python scripts/local/bootstrap.py
 
 compose-up: local-start
 
 gateway-api:
-	.venv/bin/uvicorn realityos_meta_gateway.main:app_factory --app-dir meta-gateway --factory --host 127.0.0.1 --port 9088
+	META_GATEWAY_ENV_FILE="$(GATEWAY_ENV_FILE)" .venv/bin/uvicorn realityos_meta_gateway.main:app_factory --app-dir meta-gateway --factory --host 127.0.0.1 --port 9088
 
 runtime-dirs:
 	sh scripts/setup_runtime_dirs.sh
@@ -36,8 +40,8 @@ architecture-check:
 	.venv/bin/python scripts/check_structure.py
 
 docs-check:
-	python3 scripts/check_docs.py
-	python3 scripts/build_api_docs.py --check
+	$(DOCS_PYTHON) scripts/check_docs.py
+	$(DOCS_PYTHON) scripts/build_api_docs.py --check
 	node scripts/check_postman_scripts.cjs
 
 postman-runtime-check:
@@ -45,6 +49,7 @@ postman-runtime-check:
 
 format-check:
 	.venv/bin/ruff format --check backend/app/http backend/app/providers backend/app/processing backend/app/social_features backend/app/routes.py backend/app/meta.py backend/app/services.py backend/app/social.py tests/social tests/test_architecture_contract.py tests/conftest.py scripts/check_structure.py
+	.venv/bin/ruff format --check backend/app/runtime backend/app/local backend/app/config.py backend/app/db.py tests/test_architecture_boundaries.py tests/test_runtime_profiles.py tests/test_schema_bootstrap.py tests/test_local_upgrade_safety.py tests/postgres_support.py scripts/architecture_rules.py
 	cd android && ./gradlew :app:ktlintCheck
 
 android-check:

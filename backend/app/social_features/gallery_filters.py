@@ -8,7 +8,7 @@ from sqlalchemy import or_, select
 
 from app.dependencies import get_current_user, get_db, workspace_member
 from app.models import User, Workspace, WorkspaceMember
-from app.social_features.classification import term_json
+from app.social_features.classification_service import term_json
 from app.social_features.models import Publication, PublicationTag, PublicationTerm
 from app.social_features.publication_visibility import authorized_publications, publication_content
 

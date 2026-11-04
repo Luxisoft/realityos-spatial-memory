@@ -1,45 +1,40 @@
-<p align="center"><a href="../../en/architecture/DATABASE.md"><img src="../../assets/readme/language-en.svg" alt="English" height="32"></a> <a href="DATABASE.md"><img src="../../assets/readme/language-es-active.svg" alt="Español" height="32"></a></p>
-
 # Datos y persistencia
 
-[← Documentación](../INDEX.md) · [API / Postman](../api/API.md)
+[English](../../en/architecture/DATABASE.md) · [Documentación](../INDEX.md) · [API / Postman](../api/API.md)
 
-## Guía de lectura
+PostgreSQL es la fuente de verdad de ambos entornos. Cuentas, grupos, permisos, expedientes, publicaciones y sus textos ES/EN se consultan en la base de datos. El instalador local importa los datos SQL una vez; la API no combina esas consultas con archivos de catálogo.
 
-| Tema | Qué debes saber |
+| Datos | Persistencia |
 | --- | --- |
-| **Originales** | `media_assets.original_bytes`; videos grandes en `media_asset_chunks.content`, ordenados y con hash completo. |
-| **Objetos** | `tracked_objects` representa identidad lógica; `object_observations` conserva evidencia y fecha. La ubicación se deriva de observaciones verificadas. |
-| **Geometría** | Cajas Muse y máscaras SAM enlazan derivados con el original; tracks guardan PTS y máscaras RLE. |
-| **Rostros** | `face_enrollments`, `biometric_consents` y `face_record_enrollments` conservan autorización, versión del modelo y evidencia. |
-| **Publicaciones** | `gallery_evidence` conserva versiones inmutables; runs de indexación activan una generación completada. Traducciones EN/ES quedan persistidas. |
-| **Perfiles** | El CV es privado y reemplazable; reemplazarlo limpia derivados. La proyección pública no expone archivo ni texto extraído. |
-| **Migraciones** | Alembic define el esquema. La revisión desplegada se comprueba en cada release; las fechas del historial no son el estado actual del servidor. |
+| Originales | `media_assets.original_bytes`; videos grandes en `media_asset_chunks.content`, ordenados y con hash completo. |
+| Objetos | `tracked_objects` y `object_observations` conservan identidad lógica, evidencia y fecha de última observación. |
+| Publicaciones | Grupo obligatorio; las copias comparten original y mantienen comentarios/reacciones independientes. `gallery_evidence` conserva evidencia versionada. |
+| Expedientes | Registros, vínculos de medios y traducciones almacenados; acceso sujeto a pertenencia vigente. |
+| Perfiles | Avatar separado de referencias privadas y CV. Las respuestas públicas no exponen originales privados. |
+| Biometría | Consentimientos y enrolamientos protegidos, separados del flujo de objetos/publicaciones. |
+| Acceso local | `local_access_accounts` relaciona exclusivamente las nueve cuentas seleccionables con sus grupos. |
+| Instalación local | Recibos versionados en BD evitan repetir inicializaciones o recuperar datos borrados al reiniciar. |
 
-```mermaid
-flowchart LR
-    N0["Captura"] --> N1["BYTEA"]
-    N1["BYTEA"] --> N2["Evidencia"]
-    N2["Evidencia"] --> N3["Consulta"]
-```
+## Esquema nuevo y actualizaciones
 
-## Comandos
+El punto de entrada compartido es `python -m app.runtime.schema`. Para una base PostgreSQL vacía instala el SQL inmutable de `backend/schema/20261104_0040/`, registra esa revisión y aplica Alembic hasta `head`. El snapshot incluye índices y el diario histórico de cuarentena; no se calcula desde los modelos actuales durante el arranque.
 
-Ejecutar desde la raíz, con dependencias instaladas. Migraciones y procesamiento requieren el entorno elegido y autorización de sus datos.
-```bash
-make migrate
-```
+Una base versionada existente solo recibe las migraciones pendientes. Una base con tablas y sin `alembic_version` se rechaza sin modificar sus datos. El bloqueo transaccional PostgreSQL coordina inicializadores concurrentes. Las migraciones históricas se conservan sin editar; la revisión `20261104_0041` añade la tabla de acceso local. El estado del código no indica qué revisión tiene actualmente el servidor.
 
-[ARCHITECTURE ](ARCHITECTURE.md) · [WORKSPACE DATA ](../guides/WORKSPACE_DATA.md) · [SECURITY ](SECURITY.md)
+Las pruebas usan PostgreSQL efímero, schemas aislados y el mismo instalador: verifican la base vacía, equivalencia con columnas/claves/índices de los modelos después de Alembic, idempotencia, rechazo de bases sin versión y conservación de una fila editada. SQLite se reserva a pruebas donde no hacen falta semánticas PostgreSQL.
 
-La revisión `20261103_0035` añade `storage_connections`, `storage_imports` y `storage_syncs`: conexión privada con claves cifradas, procedencia/estado de importaciones y reglas de sincronización. El bucket no sustituye los originales BYTEA. [Operación y conservación](../guides/STORAGE_CONNECTIONS.md).
+## Datos y recursos de evaluación
 
-## Revisión de privacidad por grupo
+`simulator/database/` contiene el conjunto SQL de instalación; `simulator/media/` contiene únicamente recursos locales organizados por uso, junto a `manifest.csv` de procedencia/licencia/hash. Los módulos de `app.local` validan el entorno antes de instalar. Sus recibos y cambios pertenecen a la misma transacción: un error no debe dejar una instalación marcada como completada.
 
-La revisión `20261103_0036` añade procedencia de copias (`shared_from_id`, único por original/grupo), revisión y grupo de conexión, `storage_objects` inmutables, `seen_keys` del recorrido y `biometric_setups`. La cuarentena de publicaciones biométricas conserva un diario de visibilidad para revertir la migración. Las copias comparten original, con comentarios/reacciones independientes. Los originales de enrolamiento siguen privados; solo se exponen avatares normalizados.
+El conjunto vigente conserva tres grupos y nueve cuentas de acceso. Pacific Ridge Police Department tiene diez retratos y expedientes enlazados a publicaciones; Sonoran conserva sus escenas; Meta Social Media tiene presentaciones de sus tres cuentas y diez perfiles sintéticos adicionales con referencias privadas. Los perfiles adicionales no amplían el selector de nueve cuentas. Los reinicios conservan ediciones, eliminaciones, pertenencia y consentimientos.
 
-## Contrato único de publicaciones
+La carga inicial copia los archivos verificados a BYTEA. Las consultas posteriores utilizan la BD incluso si los recursos de instalación dejan de estar disponibles. Los originales de referencias biométricas nunca se publican; solo el avatar separado se muestra.
 
-La revisión `20261103_0038` hace obligatorio el grupo de cada publicación y elimina `audience` de publicaciones, candidatos, importaciones y sincronización. `GET /v1/gallery/page` es la única lista paginada, con cursor y filtros; `/me/publication-uploads` concentra la subida y revisión. Se retiran la lista por desplazamiento y las rutas de medios/publicación del perfil. Los clientes deben actualizarse. Las conexiones pueden utilizar su grupo previamente configurado, siempre revalidando la pertenencia.
+## Conservación y privacidad
 
-Por decisión del propietario se eliminan los registros de los antiguos destinos personal/público y sin grupo. Las copias válidas en grupos conservan sus IDs, originales e interacciones. Solo se eliminan bytes sin referencias vigentes; avatares, referencias biométricas y medios de expedientes se conservan. Retirar un grupo revoca membresías e invitaciones, cancela sus operaciones pendientes y oculta sus publicaciones; se conserva su identidad histórica para mantener los enlaces de evidencia. La reversión de esquema no recupera datos eliminados: requiere la instantánea técnica temporal de la entrega.
+Las conexiones S3/R2 son fuentes privadas del servidor y no sustituyen BYTEA. Cambiar o desconectar una fuente retira sus copias importadas, sin borrar objetos externos. Los bytes compartidos solo se retiran cuando no quedan referencias válidas de grupos, perfiles, expedientes o biometría.
+
+Los cambios históricos de publicaciones personales/sin grupo no se recuperan con una reversión del esquema. Ningún comando de desarrollo autoriza modificar datos del servidor en uso. `make migrate ENV_FILE=.env.local` y `make seed ENV_FILE=.env.local` deben apuntar al entorno local elegido.
+
+[Arquitectura](ARCHITECTURE.md) · [Expedientes](../guides/WORKSPACE_DATA.md) · [Seguridad](SECURITY.md)

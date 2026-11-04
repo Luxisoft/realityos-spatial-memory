@@ -380,7 +380,6 @@
     <string name="ui_create_group">Create group</string>
     <string name="ui_invitation_code">Invitation code</string>
     <string name="ui_code_or_pin">Code or PIN</string>
-    <string name="ui_the_content_will_be_visible_to_all_users">The content will be visible to all users.</string>
     <string name="ui_choose_the_group_to_share_this_publication_with">Choose the group to share this publication with.</string>
     <string name="ui_connection_error">Connection error</string>
     <string name="ui_work_group">Work group</string>

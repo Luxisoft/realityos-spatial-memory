@@ -20,9 +20,8 @@ from app.storage import models as storage_models  # noqa: F401
 from app.workspaces import models as workspace_models  # noqa: F401
 
 config = context.config
-config.set_main_option(
-    "sqlalchemy.url", os.getenv("DATABASE_URL", config.get_main_option("sqlalchemy.url"))
-)
+if database_url := os.getenv("DATABASE_URL"):
+    config.set_main_option("sqlalchemy.url", database_url.replace("%", "%%"))
 target_metadata = Base.metadata
 
 
@@ -39,6 +38,12 @@ def run_migrations_offline() -> None:
 
 
 def run_migrations_online() -> None:
+    existing = config.attributes.get("connection")
+    if existing is not None:
+        context.configure(connection=existing, target_metadata=target_metadata, compare_type=True)
+        with context.begin_transaction():
+            context.run_migrations()
+        return
     connectable = engine_from_config(
         config.get_section(config.config_ini_section, {}),
         prefix="sqlalchemy.",

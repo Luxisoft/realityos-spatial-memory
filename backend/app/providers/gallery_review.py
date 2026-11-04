@@ -67,7 +67,7 @@ def review_batch(client, image, candidates):
 
 def review_objects(client, image, candidates):
     """Inspect uncertain small objects at original pixel detail, then map back."""
-    from app.social_features.visual import valid_box
+    from app.geometry import valid_box
 
     rows = review_batch(client, image, candidates)
     lookup = {candidate["id"]: candidate for candidate in candidates}

@@ -26,10 +26,10 @@ flowchart LR
 
 Para incorporar fotos, videos o un CV desde R2/S3, utiliza [Mis conexiones](STORAGE_CONNECTIONS.md). Esa conexión de medios pertenece a la cuenta; las integraciones de expedientes descritas arriba importan registros estructurados al espacio. Ambas conservan sus permisos.
 
-Los datos preparados usan títulos y descripciones naturales, sin prefijos «Demo»
-ni etiquetas de prueba en las vistas de registros y publicaciones. Se conserva
-su procedencia interna. `scripts/normalize_scenario_text.py` revisa las correcciones
-pendientes sin escribir; `--apply --journal <ruta-privada.json>` guarda los valores
-anteriores y aplica la corrección. `--rollback --journal <ruta-privada.json>` la
-revierte solo si esos campos no cambiaron después. No crea grupos, modifica
-originales ni cambia versiones de evidencia o autorizaciones biométricas.
+## Datos locales y selección de cuenta
+
+La composición local inicializa tres grupos, nueve cuentas de acceso, 34 expedientes y 41 publicaciones mediante el SQL versionado de `simulator/database/`. La inicialización social separada añade diez perfiles sintéticos buscables mediante el flujo protegido existente. Los gráficos originales se organizan en `simulator/media/` y se importan a PostgreSQL BYTEA.
+
+`GET /v1/auth/local-accounts` y `POST /v1/auth/local-select` consultan las cuentas autorizadas y membresías en la base de datos. La selección está restringida al ámbito local; no se publican contraseñas ni credenciales activas del servidor. El registro del servidor y las integraciones externas de expedientes pertenecen a la composición del servidor.
+
+Todos los grupos utilizan las mismas tablas de expedientes, publicaciones y medios. Los textos preparados son descripciones operativas naturales; los campos bilingües y la procedencia interna se conservan en la base de datos. Los recibos de inicialización preservan ediciones y eliminaciones al reiniciar. No hay bases JSON por funcionalidad, listas de cuentas ni manifiestos de publicaciones atendiendo consultas de la aplicación.

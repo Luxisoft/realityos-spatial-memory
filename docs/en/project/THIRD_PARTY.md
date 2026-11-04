@@ -28,8 +28,8 @@ This inventory is a snapshot of the identified environment, not a version lockfi
 | Assets | Evidence and scope |
 | --- | --- |
 | Headers, thumbnails and Android illustrations | [Graphics and prompts](GRAPHICS.md). Documented synthetic generation; they do not depict real records or patients. |
-| Scenarios and test media | [Fixtures](../guides/WORKSPACE_DATA.md), [social directory](../testing/SOCIAL_DIRECTORY.md), generators under `simulator/` and generation manifests. R2 uploads only the synthetic paths selected by the [preparation tool](../../../scripts/prepare_bucket_demo.py); personal media and Facebook synchronizations are excluded. |
-| R2 evaluation copies | Private `.runtime/bucket-demo-manifest.json` records source path, remote key, size and SHA-256 for each resource, plus remote read-back verification. This establishes integrity, not new usage rights. |
+| Scenarios and test media | [Workspace data](../guides/WORKSPACE_DATA.md), [social directory](../testing/SOCIAL_DIRECTORY.md) and the organized [media manifest](../../../simulator/media/manifest.csv). The manifest preserves source, license, hash and fixture path. Versioned SQL initializes local database rows; preparation does not upload to remote storage. |
+| Historical R2 evaluation copies | Earlier private execution receipts retain source and hash verification. They are historical evidence, not the active local dataset or authorization for new uploads. |
 | Concept videos under `demo-video/` | They remain labeled conceptual. No generation/license manifest was found alongside those four files; their contributor must confirm provenance and track rights if they are included in the submission. The final recording is a separate deliverable. |
 | Final app recordings | Use prepared synthetic data and authorized media. Clinical outputs and visible data are reviewed during acceptance and demo recording. |
 

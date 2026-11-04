@@ -4,8 +4,8 @@ from fastapi.responses import Response, StreamingResponse
 from sqlalchemy import select
 
 from app.models import MediaAssetChunk
+from app.processing.media_ranges import _chunked_slice, _parse_range
 from app.services import media_is_chunked
-from app.social_features.gallery import _chunked_slice, _parse_range
 
 
 def media_response(db, asset, range_header):

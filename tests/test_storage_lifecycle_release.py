@@ -3,7 +3,7 @@
 import uuid
 
 import pytest
-from app.models import MediaAsset, User
+from app.models import MediaAsset
 from app.social_features.evidence_models import PublicationUpload
 from app.social_features.models import Publication
 from app.storage.client import BucketClient
@@ -158,67 +158,3 @@ def test_only_a_complete_scan_retires_missing_remote_keys(
     )
     with client.app.state.database.session_factory() as db:
         assert db.scalar(select(StorageObject)).retired
-
-
-def test_demo_connections_require_accounts_and_are_idempotent(
-    client, source, monkeypatch
-):
-    import importlib.util
-    from pathlib import Path
-
-    from app.accounts.models import PasswordAccount
-
-    spec = importlib.util.spec_from_file_location(
-        "connect_demo",
-        Path(__file__).resolve().parents[1] / "scripts/connect_demo_buckets.py",
-    )
-    module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
-    credentials = {
-        "endpoint": "https://demo.r2.cloudflarestorage.com",
-        "bucket": "private-demo",
-        "access_key": "read-key",
-        "secret_key": "read-secret",
-    }
-    monkeypatch.setattr(
-        BucketClient, "objects", lambda *args: {"items": [{"key": "fixture.png"}]}
-    )
-    with client.app.state.database.session_factory() as db:
-        with pytest.raises(ValueError, match="Prepare the existing demo account"):
-            module.prepare(db, client.app.state.settings, credentials)
-        from app.models import Role, Workspace, WorkspaceMember
-
-        owner = db.scalar(select(User))
-        for group, usernames in module.PRINCIPALS.items():
-            workspace = None
-            if group != "qa":
-                workspace = Workspace(
-                    name=module.WORKSPACES[group], created_by_id=owner.id
-                )
-                db.add(workspace)
-                db.flush()
-            for username in usernames:
-                user = User(
-                    email=username + "@test.example",
-                    display_name=username,
-                    password_hash="unused-test-hash",
-                )
-                db.add(user)
-                db.flush()
-                db.add(PasswordAccount(user_id=user.id, username=username))
-                if workspace:
-                    db.add(
-                        WorkspaceMember(
-                            workspace_id=workspace.id,
-                            user_id=user.id,
-                            role=Role.REGISTER,
-                        )
-                    )
-        db.commit()
-        assert len(module.prepare(db, client.app.state.settings)) == 13
-        before = len(list(db.scalars(select(StorageConnection))))
-        module.prepare(db, client.app.state.settings, credentials)
-        db.commit()
-        module.prepare(db, client.app.state.settings, credentials)
-        db.commit()
-        assert len(list(db.scalars(select(StorageConnection)))) == before + 13

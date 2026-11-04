@@ -17,6 +17,7 @@ from app.models import RefreshToken, User
 from app.security import hash_password, verify_password
 
 router = APIRouter(tags=["accounts"])
+server_router = APIRouter(tags=["accounts"])
 
 
 class Registration(BaseModel):
@@ -70,7 +71,7 @@ def registration_conflicts(db, email, username):
     return fields
 
 
-@router.post("/auth/register", status_code=202)
+@server_router.post("/auth/register", status_code=202)
 async def register(payload: Registration, request: Request, db: Session = Depends(get_db)):
     throttle(db, request, payload.email, "register")
     username = payload.username.casefold()
@@ -104,7 +105,7 @@ async def register(payload: Registration, request: Request, db: Session = Depend
     return {"status": "confirmation_sent"}
 
 
-@router.post("/auth/resend-confirmation", status_code=202)
+@server_router.post("/auth/resend-confirmation", status_code=202)
 async def resend(payload: EmailRequest, request: Request, db: Session = Depends(get_db)):
     throttle(db, request, payload.email, "mail")
     user = db.scalar(
@@ -118,7 +119,7 @@ async def resend(payload: EmailRequest, request: Request, db: Session = Depends(
     return {"status": "If eligible, a confirmation email has been sent."}
 
 
-@router.post("/auth/change-pending-email", status_code=202)
+@server_router.post("/auth/change-pending-email", status_code=202)
 async def change_pending_email(
     payload: PendingEmailChange, request: Request, db: Session = Depends(get_db)
 ):
@@ -151,8 +152,8 @@ async def change_pending_email(
     return {"status": "confirmation_sent"}
 
 
-@router.post("/auth/confirm-email")
-async def confirm(payload: ChallengeRequest, db: Session = Depends(get_db)):
+@server_router.post("/auth/confirm-email")
+def confirm(payload: ChallengeRequest, db: Session = Depends(get_db)):
     user_id = consume(db, payload.token, "verify")
     account = db.get(PasswordAccount, user_id)
     account.verified_at = datetime.now(UTC)
@@ -160,7 +161,7 @@ async def confirm(payload: ChallengeRequest, db: Session = Depends(get_db)):
     return {"status": "confirmed"}
 
 
-@router.post("/auth/forgot-password", status_code=202)
+@server_router.post("/auth/forgot-password", status_code=202)
 async def forgot(payload: EmailRequest, request: Request, db: Session = Depends(get_db)):
     throttle(db, request, payload.email, "mail")
     user = db.scalar(
@@ -174,8 +175,8 @@ async def forgot(payload: EmailRequest, request: Request, db: Session = Depends(
     return {"status": "If eligible, a recovery email has been sent."}
 
 
-@router.post("/auth/reset-password")
-async def reset(payload: ResetRequest, db: Session = Depends(get_db)):
+@server_router.post("/auth/reset-password")
+def reset(payload: ResetRequest, db: Session = Depends(get_db)):
     user_id = consume(db, payload.token, "reset")
     now = datetime.now(UTC)
     db.get(User, user_id).password_hash = hash_password(payload.password)
@@ -188,7 +189,7 @@ async def reset(payload: ResetRequest, db: Session = Depends(get_db)):
 
 
 @router.get("/auth/account-session")
-async def account_session(user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+def account_session(user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     account = db.get(PasswordAccount, user.id)
     return {
         "password_account": bool(account and (account.verified_at or account.provisioned_by)),
@@ -197,7 +198,7 @@ async def account_session(user: User = Depends(get_current_user), db: Session = 
 
 
 @router.post("/auth/account-capture-profile")
-async def capture_profile(
+def capture_profile(
     request: Request, user: User = Depends(get_current_user), db: Session = Depends(get_db)
 ):
     account = db.get(PasswordAccount, user.id)
@@ -207,7 +208,7 @@ async def capture_profile(
 
 
 @router.get("/auth/verify", response_class=HTMLResponse, include_in_schema=False)
-async def verify_page(request: Request):
+def verify_page(request: Request):
     return action_page(
         "verify",
         language(
@@ -217,7 +218,7 @@ async def verify_page(request: Request):
 
 
 @router.get("/auth/reset", response_class=HTMLResponse, include_in_schema=False)
-async def reset_page(request: Request):
+def reset_page(request: Request):
     return action_page(
         "reset",
         language(

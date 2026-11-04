@@ -2,17 +2,10 @@
 
 import argparse
 import json
-import sys
-from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-
-from app.local_seed import enqueue_initial_media, seed_evaluation
+from app.local.bootstrap import enqueue_initial_media, seed_evaluation
+from app.local.social_bootstrap import seed_local_social
 from app.main import app
-from refresh_local_police import refresh_local_police
-from replace_local_hospital import replace_local_hospital
-from seed_local_publications import seed_local_publications
-from seed_local_social import seed_local_social
 
 
 def main():
@@ -25,15 +18,11 @@ def main():
             "This command requires the isolated local evaluation environment."
         )
     with app.state.database.session_factory() as db:
-        if not args.queue:
-            replace_local_hospital(db, settings)
-            refresh_local_police(db, settings)
         result = (
             enqueue_initial_media(db) if args.queue else seed_evaluation(db, settings)
         )
         if not args.queue:
             result["social_directory"] = seed_local_social(db, settings)
-            result["group_publications"] = seed_local_publications(db, settings)
         db.commit()
     print(json.dumps(result))
 

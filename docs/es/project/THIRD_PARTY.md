@@ -28,8 +28,8 @@ El inventario es una fotografía del entorno identificado, no un archivo de bloq
 | Recursos | Evidencia y alcance |
 | --- | --- |
 | Portadas, miniaturas e ilustraciones Android | [Gráficos y prompts](GRAPHICS.md). Generación sintética documentada; no representan expedientes o pacientes reales. |
-| Escenarios y medios de prueba | [Fixtures](../guides/WORKSPACE_DATA.md), [directorio social](../testing/SOCIAL_DIRECTORY.md), generadores de `simulator/` y manifiestos de generación. La carga R2 solo toma las rutas sintéticas del [preparador](../../../scripts/prepare_bucket_demo.py); excluye medios personales y sincronizaciones Facebook. |
-| Copias de evaluación en R2 | El manifiesto privado `.runtime/bucket-demo-manifest.json` conserva ruta fuente, clave remota, tamaño y SHA-256 de cada recurso, además de la comprobación por lectura remota. Esa comprobación acredita integridad, no concede derechos nuevos. |
+| Escenarios y medios de prueba | [Datos de espacios](../guides/WORKSPACE_DATA.md), [directorio social](../testing/SOCIAL_DIRECTORY.md) y [manifiesto organizado de medios](../../../simulator/media/manifest.csv). Conserva fuente, licencia, hash y ruta del recurso. El SQL versionado inicializa las filas locales; la preparación no carga archivos a almacenamiento remoto. |
+| Copias históricas de evaluación en R2 | Los recibos privados anteriores conservan verificaciones de fuentes y hashes. Son evidencia histórica, no el conjunto local activo ni autorización para cargas nuevas. |
 | Videos conceptuales de `demo-video/` | Se mantienen identificados como conceptuales. No se encontró un manifiesto de generación/licencia junto a esos cuatro archivos; su procedencia y los derechos de sus pistas deben quedar confirmados por quien los aportó si se incluyen en el envío. La grabación final es una entrega independiente. |
 | Capturas finales de la app | Usar los datos sintéticos preparados y medios autorizados. La revisión de salidas clínicas y de datos visibles se realiza al ejecutar el checklist y grabar la demo. |
 

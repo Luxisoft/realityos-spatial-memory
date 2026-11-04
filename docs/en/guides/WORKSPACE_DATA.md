@@ -26,10 +26,10 @@ flowchart LR
 
 To bring photos, videos or a CV from R2/S3, use [My connections](STORAGE_CONNECTIONS.md). That media connection belongs to the account; the record integrations described above import structured records into a workspace. Both retain their permission checks.
 
-Prepared data uses natural titles and descriptions, without “Demo” prefixes or
-test labels in record and publication views. Internal provenance is preserved.
-`scripts/normalize_scenario_text.py` previews pending corrections without writing;
-`--apply --journal <private-path.json>` saves previous values and applies the copy
-correction. `--rollback --journal <private-path.json>` restores only fields that
-have not changed since. It does not create groups, modify originals, or change
-evidence versions or biometric authorizations.
+## Local data and account selection
+
+The local composition initializes three groups, nine access accounts, 34 records and 41 publications from the versioned SQL in `simulator/database/`. The separate social initialization adds ten synthetic searchable profiles through the existing protected workflow. Original graphics are organized under `simulator/media/` and imported into PostgreSQL BYTEA.
+
+`GET /v1/auth/local-accounts` and `POST /v1/auth/local-select` read eligible accounts and memberships from the database. Selection is restricted to the local realm; no passwords or active server credentials are published. Server registration and external record integrations remain server capabilities.
+
+All groups use the same record, publication and media tables. Prepared copy uses natural operational descriptions, with bilingual fields and internal provenance retained in the database. Initialization receipts preserve edits and deletions on restart. There are no per-feature JSON databases, account lists or publication manifests serving application queries.

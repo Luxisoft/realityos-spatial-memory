@@ -11,10 +11,16 @@ from app.dependencies import get_current_user, get_db, workspace_member
 from app.models import MediaAsset, MediaKind, User
 from app.social_features.models import Publication
 from app.workspaces.models import Connection, Record, RecordMedia
-from app.workspaces.routes import authorize_connection, integration, router, scoped_record
+from app.workspaces.routes import (
+    authorize_connection,
+    integration,
+    router,
+    scoped_record,
+    server_router,
+)
 
 
-@router.post("/integrations/records/{record_id}/media", status_code=201)
+@server_router.post("/integrations/records/{record_id}/media", status_code=201)
 async def upload(
     record_id: uuid.UUID,
     request: Request,
@@ -103,7 +109,6 @@ async def upload(
         post = Publication(
             owner_id=author.id,
             media_id=asset.id,
-
             workspace_id=source.workspace_id,
             caption=record.title,
             source="workspace-import",
@@ -135,7 +140,7 @@ async def upload(
     }
 
 
-@router.post("/integrations/records/{record_id}/index")
+@server_router.post("/integrations/records/{record_id}/index")
 async def retry_index(
     record_id: uuid.UUID, source: Connection = Depends(integration), db: Session = Depends(get_db)
 ):

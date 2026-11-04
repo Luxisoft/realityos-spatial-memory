@@ -23,7 +23,7 @@ Ejecuta esta guía en **Git Bash**, desde la carpeta del proyecto. Copia los com
 
 ### Preparar una vez
 
-- Instala [Git for Windows](https://gitforwindows.org/) con su componente Git LFS. Git obtiene el proyecto y LFS obtiene el APK incluido.
+- Instala [Git for Windows](https://gitforwindows.org/) con su componente Git LFS. Git obtiene el proyecto y LFS obtiene el APK y los videos locales incluidos.
 - Instala [Docker Desktop](https://docs.docker.com/desktop/setup/install/windows-install/) con WSL2 y completa su primer inicio. Usa contenedores Linux y asigna **4 CPU, 8 GiB de RAM y 25 GiB libres**.
 - Extrae [Platform Tools para Windows](https://dl.google.com/android/repository/platform-tools-latest-windows.zip) en `C:\`, de modo que exista **`C:\platform-tools\adb.exe`**. Si ya tienes esa carpeta, este paso está terminado. Los comandos usan esa ruta directamente.
 - Conecta un celular Android 12+ por USB, activa la depuración USB y acepta la autorización en su pantalla.
@@ -50,7 +50,7 @@ git clone https://github.com/Luxisoft/realityos-spatial-memory.git &&
 cd realityos-spatial-memory
 ```
 
-Si ya lo tienes, abre Git Bash en la raíz del proyecto, donde está `README.md`, y continúa aquí. Actualiza el código y el APK:
+Si ya lo tienes, abre Git Bash en la raíz del proyecto, donde está `README.md`, y continúa aquí. Actualiza el código, el APK y los videos locales:
 
 ```bash
 git lfs install &&
@@ -58,7 +58,7 @@ git pull --ff-only &&
 git lfs pull
 ```
 
-Espera a que termine sin errores. Si Git informa un conflicto con cambios locales, resuélvelo antes de continuar; conserva tus archivos privados.
+Espera a que termine sin errores. `git lfs pull` descarga también los videos de `simulator/media/` necesarios para inicializar los datos locales. Si Git informa un conflicto con cambios locales, resuélvelo antes de continuar; conserva tus archivos privados.
 
 Para iniciar manualmente, ejecuta desde la carpeta del proyecto:
 
@@ -184,6 +184,7 @@ Si modificas Android, sigue la [guía de compilación](integrations/ANDROID.md#b
 | --- | --- |
 | Código o recursos Android | El servidor compila y sube el APK al repositorio. Repite los comandos de actualización e instalación anteriores; para cambios propios, sigue la [guía de compilación](#android-build). |
 | Código del backend o configuración del servidor | Ejecuta `Start-RealityOS.ps1` para reconstruir/iniciar los servicios locales. Se conservan los datos existentes. |
+| Expedientes, publicaciones o medios locales preparados | Ejecuta `git pull`, `git lfs pull` y el inicio local (`Start-RealityOS.ps1` en Windows; `bash scripts/local/start.sh` en Linux). Las adiciones SQL versionadas conservan ediciones, eliminaciones y membresías. |
 | Contrato de la API que utiliza Android | Actualiza tanto el backend como el APK. |
 | Solo documentación | No hace falta reconstruir la app ni los contenedores. |
 
@@ -195,7 +196,7 @@ Si modificas Android, sigue la [guía de compilación](integrations/ANDROID.md#b
 
 [Fotografías para probar búsquedas](testing/QA_VISUAL_FIXTURES.md): cuatro escenas de Policía y diez avatares para consultar el directorio preparado de Meta Social Media. Ábrelas en la computadora como entradas de consulta; no son publicaciones ni registros de los grupos.
 
-Abre la app y elige una de las **9 cuentas de los 3 grupos: policía, Meta Social Media y memoria**. Los grupos aparecen contraídos: toca uno para ver sus cuentas. Meta Social Media conserva Elena Marquez, Mateo Rios y Sarah Chen como sus tres cuentas de acceso y añade diez perfiles sociales sintéticos, cada uno con un avatar separado y tres fotos privadas de referencia. Usa la búsqueda de personas existente después de otorgar consentimiento; la galería contiene tres presentaciones con avatar y texto, una por cuenta de acceso. Policía contiene diez publicaciones vinculadas a diez expedientes con un retrato cada uno: tres órdenes de captura, dos procesos entre esas tres personas y siete fichas sin antecedentes. Explora galería y expedientes; para publicar, selecciona grupo, categoría y etiqueta. Espera a que termine la indexación para buscar.
+Abre la app y elige una de las **9 cuentas de los 3 grupos: policía, Meta Social Media y memoria**. Los grupos aparecen contraídos: toca uno para ver sus cuentas. Meta Social Media conserva Elena Marquez, Mateo Rios y Sarah Chen como sus tres cuentas de acceso y añade diez perfiles sociales sintéticos, cada uno con un avatar separado y tres fotos privadas de referencia. Usa la búsqueda de personas existente después de otorgar consentimiento; la galería contiene tres presentaciones con avatar y texto, una por cuenta de acceso, además de tres videos. Policía contiene 16 expedientes de personas con una publicación de retrato por expediente, además de tres videos. Cinco personas tienen orden de captura vigente; dos de ellas también tienen procesos activos. Cuatro expedientes independientes de personas desaparecidas tienen órdenes de búsqueda vigentes, sin órdenes de captura ni antecedentes. Las otras siete fichas no tienen antecedentes, órdenes ni procesos. Explora galería y expedientes; para publicar, selecciona grupo, categoría y etiqueta. Espera a que termine la indexación para buscar.
 
 | Vista / video | Uso |
 | --- | --- |

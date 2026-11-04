@@ -10,7 +10,15 @@ jobs:
   documentation:
     runs-on: ubuntu-latest
     steps:
+      - name: Limit LFS checkout to local fixture media
+        run: git config --global lfs.fetchinclude 'simulator/media/**'
       - uses: actions/checkout@v4
+        with:
+          lfs: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - run: python -m pip install -e "backend[dev]"
       - run: make docs-check
       - name: Validate local Bash console output
         run: bash tests/local/console.tests.sh
@@ -24,17 +32,26 @@ jobs:
     # Match production media encoding; Ubuntu ships a different FFmpeg major.
     container: python:3.13-slim-trixie
     steps:
-      - uses: actions/checkout@v4
-      - name: Install video test dependencies
+      - name: Install checkout, LFS and integration-test dependencies
         run: |
           apt-get update
-          apt-get install --no-install-recommends -y ffmpeg
+          apt-get install --no-install-recommends -y git git-lfs ffmpeg postgresql
+          git config --global lfs.fetchinclude 'simulator/media/**'
+      - uses: actions/checkout@v4
+        with:
+          lfs: true
       - run: python -m pip install --upgrade pip
       - run: python -m pip install -e "backend[dev]"
       - run: python scripts/check_structure.py
       - run: ruff check backend tests
+      - run: ruff check scripts/architecture_rules.py scripts/check_structure.py
       - run: ruff format --check backend/app/http backend/app/providers backend/app/processing backend/app/social_features backend/app/routes.py backend/app/meta.py backend/app/services.py backend/app/social.py tests/social tests/test_architecture_contract.py tests/conftest.py scripts/check_structure.py
-      - run: pytest -q tests
+      - run: ruff format --check backend/app/runtime backend/app/local backend/app/config.py backend/app/db.py tests/test_architecture_boundaries.py tests/test_runtime_profiles.py tests/test_schema_bootstrap.py tests/test_local_upgrade_safety.py tests/postgres_support.py scripts/architecture_rules.py
+      - name: Test with disposable PostgreSQL as an unprivileged user
+        run: |
+          mkdir -p .runtime
+          chown postgres:postgres .runtime
+          runuser -u postgres -- python -m pytest -q tests --basetemp=.runtime/ci-tests -o cache_dir=.runtime/pytest-cache
       - run: python -m pip check
 
   meta-gateway:

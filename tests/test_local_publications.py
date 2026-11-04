@@ -4,13 +4,13 @@ import uuid
 from pathlib import Path
 
 import pytest
-from app.local_catalog import catalog
 from app.security import create_access_token
 from app.social_features.models import Publication
 from app.workspaces.models import RecordMedia
-from test_local_evaluation import evaluation as evaluation  # noqa: PLC0414
+from local_support import catalog
 
 
+@pytest.mark.parametrize("evaluation", ["baseline"], indirect=True)
 def test_existing_installation_uses_shared_catalog_without_duplicate_media(
     evaluation, monkeypatch
 ):
@@ -19,17 +19,26 @@ def test_existing_installation_uses_shared_catalog_without_duplicate_media(
     from sqlalchemy import delete, select, update
 
     monkeypatch.syspath_prepend(str(Path(__file__).resolve().parents[1] / "scripts"))
-    from seed_local_publications import seed_local_publications
+    from app.local.upgrades import upgrade_local_data
+    from app.local_models import LocalEvaluationState
+
+    def seed_local_publications(db, settings):
+        result = upgrade_local_data(db, settings).get("local-group-publications-v1")
+        return {"initialized": result is not None, **(result or {})}
 
     groups = [
-        g for g in catalog()["groups"] if g["slug"] in {"security", "meta-social"}
+        g
+        for g in catalog(evaluation)["groups"]
+        if g["slug"] in {"security", "meta-social"}
     ]
     ids = [uuid.UUID(value) for g in groups for value in g["publications"].values()]
     with evaluation.app.state.database.session_factory() as db:
+        db.delete(db.get(LocalEvaluationState, "local-group-publications-v1"))
         originals = {
             p.id: p.media_id
             for p in db.scalars(select(Publication).where(Publication.id.in_(ids)))
         }
+        ids = list(originals)
         media_count = db.query(MediaAsset).count()
         db.execute(
             update(RecordMedia)
@@ -57,20 +66,26 @@ def test_existing_installation_uses_shared_catalog_without_duplicate_media(
 
 def test_publication_seed_gallery_scope_and_restart(evaluation, monkeypatch):
     monkeypatch.syspath_prepend(str(Path(__file__).resolve().parents[1] / "scripts"))
-    from seed_local_publications import seed_local_publications
+    from app.local.upgrades import upgrade_local_data
+
+    def seed_local_publications(db, settings):
+        result = upgrade_local_data(db, settings).get("local-group-publications-v1")
+        return {"initialized": result is not None, **(result or {})}
 
     with evaluation.app.state.database.session_factory() as db:
         result = seed_local_publications(db, evaluation.app.state.settings)
         db.commit()
-        assert result == {"initialized": True, "publications": 0}
+        assert result == {"initialized": False}
         assert (
             db.query(RecordMedia)
             .filter(RecordMedia.publication_id.is_not(None))
             .count()
-            == 10
+            == 16
         )
-    social = next(g for g in catalog()["groups"] if g["name"] == "Meta Social Media")
-    police = next(g for g in catalog()["groups"] if "Police" in g["name"])
+    social = next(
+        g for g in catalog(evaluation)["groups"] if g["name"] == "Meta Social Media"
+    )
+    police = next(g for g in catalog(evaluation)["groups"] if "Police" in g["name"])
 
     def auth(group):
         return {
@@ -80,17 +95,20 @@ def test_publication_seed_gallery_scope_and_restart(evaluation, monkeypatch):
             )
         }
 
-    for group, count in ((social, 3), (police, 10)):
+    for group, image_count in ((social, 3), (police, 16)):
         response = evaluation.get(
             "/v1/gallery/page",
-            params={"workspace_id": group["id"]},
+            params={"workspace_id": group["id"], "limit": 30},
             headers=auth(group),
         )
         assert response.status_code == 200, response.text
         posts = response.json()["items"]
-        assert len(posts) == count
+        assert len(posts) == image_count + 3
+        images = [p for p in posts if p["mime_type"].startswith("image/")]
+        videos = [p for p in posts if p["mime_type"].startswith("video/")]
+        assert len(images) == image_count and len(videos) == 3
         assert all(
-            p["note_text"] and p["display_text"]["note_text"]["es"] for p in posts
+            p["note_text"] and p["display_text"]["note_text"]["es"] for p in images
         )
         for post in posts:
             assert (

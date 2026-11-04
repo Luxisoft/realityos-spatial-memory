@@ -1,45 +1,40 @@
-<p align="center"><a href="DATABASE.md"><img src="../../assets/readme/language-en-active.svg" alt="English" height="32"></a> <a href="../../es/architecture/DATABASE.md"><img src="../../assets/readme/language-es.svg" alt="Español" height="32"></a></p>
-
 # Data and persistence
 
-[← Documentation](../INDEX.md) · [API / Postman](../api/API.md)
+[Español](../../es/architecture/DATABASE.md) · [Documentation](../INDEX.md) · [API / Postman](../api/API.md)
 
-## Reading guide
+PostgreSQL is the source of truth in both environments. Accounts, workspaces, permissions, records, publications and their ES/EN text are queried from the database. The local installer imports SQL data once; the API does not combine those queries with catalog files.
 
-| Topic | What to know |
+| Data | Persistence |
 | --- | --- |
-| **Originals** | `media_assets.original_bytes`; large videos in ordered `media_asset_chunks.content` with a full hash. |
-| **Objects** | `tracked_objects` represents logical identity; `object_observations` retains evidence and time. Location derives from verified observations. |
-| **Geometry** | Muse boxes and SAM masks link derivatives to originals; tracks retain PTS and RLE masks. |
-| **Faces** | `face_enrollments`, `biometric_consents` and `face_record_enrollments` preserve authorization, model version and evidence. |
-| **Publications** | `gallery_evidence` retains immutable versions; indexing runs activate a completed generation. EN/ES translations are persisted. |
-| **Profiles** | The CV is private and replaceable; replacement clears derivatives. Public projections never expose its file or extracted text. |
-| **Migrations** | Alembic defines the schema. Check deployed revision per release; historical dates are not current server state. |
+| Originals | `media_assets.original_bytes`; large videos in ordered `media_asset_chunks.content`, with a complete-content hash. |
+| Objects | `tracked_objects` and `object_observations` preserve logical identity, evidence and last-seen time. |
+| Publications | Required workspace; copies share originals while keeping separate comments/reactions. `gallery_evidence` stores versioned evidence. |
+| Records | Stored records, media links and translations; access requires current membership. |
+| Profiles | Avatar separate from private references and CV. Public responses do not expose private originals. |
+| Biometrics | Protected consents and enrollments, separate from object/publication workflows. |
+| Local access | `local_access_accounts` links only the nine selectable accounts to their workspaces. |
+| Local installation | Versioned database receipts prevent initialization from repeating or deleted data from returning on restart. |
 
-```mermaid
-flowchart LR
-    N0["Capture"] --> N1["BYTEA"]
-    N1["BYTEA"] --> N2["Evidence"]
-    N2["Evidence"] --> N3["Query"]
-```
+## Empty schema and upgrades
 
-## Commands
+The shared entry point is `python -m app.runtime.schema`. For an empty PostgreSQL database it installs immutable SQL from `backend/schema/20261104_0040/`, stamps that revision and runs Alembic to `head`. The snapshot includes indexes and the historical quarantine journal; it is not derived from current models at startup.
 
-Run from the root with dependencies installed. Migrations and processing require the chosen environment and authorized data.
-```bash
-make migrate
-```
+An existing versioned database receives only pending migrations. A database containing tables without `alembic_version` is rejected without changing its data. A PostgreSQL transaction advisory lock coordinates concurrent initializers. Historical migrations remain unchanged; revision `20261104_0041` adds the local access table. The code revision does not establish the server's current database revision.
 
-[ARCHITECTURE ](ARCHITECTURE.md) · [WORKSPACE DATA ](../guides/WORKSPACE_DATA.md) · [SECURITY ](SECURITY.md)
+Tests use disposable PostgreSQL, isolated schemas and the same installer: they verify an empty database, model column/key/index equivalence after Alembic, idempotence, rejection of unversioned databases and preservation of an edited row. SQLite is reserved for tests that do not require PostgreSQL semantics.
 
-Revision `20261103_0035` adds `storage_connections`, `storage_imports` and `storage_syncs`: private connections with encrypted keys, import provenance/status and synchronization rules. Buckets do not replace BYTEA originals. [Operations and retention](../guides/STORAGE_CONNECTIONS.md).
+## Evaluation data and assets
 
-## Workspace privacy revision
+`simulator/database/` contains the installation SQL dataset; `simulator/media/` contains local assets organized by purpose, together with provenance/license/hash `manifest.csv`. Modules in `app.local` validate the environment before installation. Receipts and data changes belong to the same transaction: an error must not leave the installation marked complete.
 
-Revision `20261103_0036` adds publication copy provenance (`shared_from_id`, unique per original/group), connection revisions and target group, immutable `storage_objects`, scan `seen_keys`, and `biometric_setups`. Biometric publication quarantine keeps a visibility journal for migration downgrade. Copies share original media while comments/reactions remain independent. Enrollment originals stay private; only normalized avatars are exposed.
+The current dataset preserves three workspaces and nine access accounts. Pacific Ridge Police Department has ten portraits and records linked to publications; Sonoran retains its scenes; Meta Social Media has introductions for its three accounts and ten additional synthetic profiles with private references. Additional profiles do not expand the nine-account selector. Restarts preserve edits, deletions, membership and consent.
 
-## Unified publication contract
+Initial loading copies verified files into BYTEA. Subsequent queries use the database even when installation assets are unavailable. Biometric reference originals are never published; only the separate avatar is displayed.
 
-Revision `20261103_0038` requires a group for every publication and removes `audience` from publications, upload candidates, imports and synchronization. `GET /v1/gallery/page` is the only paginated feed, using cursors and filters; `/me/publication-uploads` handles upload and review. Offset pagination and profile media/publication routes are removed. Clients must update. Storage connections may use their previously configured group, always rechecking membership.
+## Retention and privacy
 
-At the owner’s request, records from former personal/public destinations and publications without a group are deleted. Valid group copies retain their IDs, originals and interactions. Bytes are removed only when no active references remain; avatars, biometric references and record media are preserved. Removing a group revokes memberships and invitations, cancels pending operations and hides its publications; its historical identity remains to preserve evidence links. Schema downgrade does not restore deleted data: recovery requires the release’s temporary technical snapshot.
+S3/R2 connections are private server sources and do not replace BYTEA. Changing or disconnecting a source retires its imported copies without deleting external objects. Shared bytes are removed only when no valid workspace, profile, record or biometric references remain.
+
+Historical deletion of personal/unassigned publications cannot be reversed by a schema downgrade. Development commands do not authorize changing live server data. `make migrate ENV_FILE=.env.local` and `make seed ENV_FILE=.env.local` must target the selected local environment.
+
+[Architecture](ARCHITECTURE.md) · [Records](../guides/WORKSPACE_DATA.md) · [Security](SECURITY.md)

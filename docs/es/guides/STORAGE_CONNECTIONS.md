@@ -28,14 +28,10 @@ JPEG, PNG, WebP y MP4 usan el análisis y revisión de duplicados existentes. Vi
 
 Mantén estable `STORAGE_ENCRYPTION_KEY` en el runtime privado y compartida por API y worker. El scheduler emite trabajos y el worker los procesa. Se vuelve a comprobar pertenencia y revisión de conexión antes de descargar y publicar. Se mantienen validación HTTPS/dirección pública, IP fijada, TLS y rechazo de redirecciones.
 
-## Escenas de evaluación con licencia
+## Recursos de evaluación local
 
-`simulator/real-scenes/catalog.json` y `manifest.json` describen 36 fotos conservadas y 12 videos completos: cuatro por cada grupo existente de seguridad, enfermería y memoria. Las grabaciones mantienen su duración original (7–29 segundos) y al menos 720p nativos. Fuentes, autores, licencias y hashes permiten verificar su procedencia; los archivos descargados están excluidos de Git.
+La evaluación local inicializa las tablas de la aplicación mediante SQL versionado en `simulator/database/` e importa los originales de `simulator/media/` a PostgreSQL BYTEA. Las fuentes, licencias, hashes y rutas de recursos se conservan en `simulator/media/manifest.csv` como procedencia. No constituyen otra base de publicaciones.
 
-La [matriz de videos](../testing/VIDEO_EVALUATION.md) contiene las consultas ES/EN y los intervalos esperados. `scripts/prepare_evaluation_videos.py` prepara únicamente los videos y reutiliza los bytes ya verificados. `scripts/renew_evaluation_videos.py` administra inventario, carga, análisis real, aceptación, activación y reversión con un diario privado. No vuelve a crear cuentas, grupos ni expedientes.
+El runtime local no utiliza buckets ni importaciones remotas. Sus tres grupos contienen 41 publicaciones. Los ejemplos Postman consultan una base desechable inicializada con el mismo SQL; las preguntas de video e intervalos observados están en la [matriz QA](../testing/VIDEO_EVALUATION.md).
 
-La sincronización selecciona `demo/v2/{scenario}/{username}/evaluation-v3/` en las nueve conexiones existentes, cada 15 minutos. Las 36 fotos mantienen sus identificadores. Por petición expresa del propietario se eliminaron los videos sustituidos, el candidato descartado y 96 copias remotas obsoletas, incluida `evaluation-v2-rollback/`. La generación activa conserva sus 48 escenas. QA permanece en `demo/v1/qa/`.
-
-Mantén seleccionada únicamente la carpeta activa; los preparadores anteriores rechazan la renovación versionada. `scripts/prepare_bucket_demo.py` respeta ahora la carpeta y el propietario explícitos del manifiesto. Las claves de escritura/lectura permanecen en archivos privados y no se incluyen en Postman.
-
-Consulta las comprobaciones R2/API ejecutadas en el [estado de implementación](../project/IMPLEMENTATION_STATUS.md). La aceptación en teléfono y gafas requiere evidencia del dispositivo.
+La integración de almacenamiento pertenece al servidor. Su evidencia histórica está fechada en el [estado de implementación](../project/IMPLEMENTATION_STATUS.md); la preparación local no modifica fuentes remotas ni datos del servidor.

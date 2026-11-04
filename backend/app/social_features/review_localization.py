@@ -6,7 +6,7 @@ from dataclasses import replace
 
 from PIL import Image
 
-from app.meta import MetaProviderError
+from app.providers.contracts import MetaProviderError
 from app.social_features.visual import MIN_CONFIDENCE, valid_box
 
 

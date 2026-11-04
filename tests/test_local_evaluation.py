@@ -5,43 +5,50 @@ import uuid
 from pathlib import Path
 
 import pytest
-from app.db import Base
-from app.local_catalog import catalog
-from app.local_seed import seed_evaluation
+from app.local.bootstrap import seed_evaluation
+from app.local_models import LocalEvaluationState
 from app.main import create_app
 from app.models import MediaAsset, User, Workspace, WorkspaceMember
 from app.social_features.models import Publication, UserProfile
 from app.workspaces.models import Record, RecordMedia
 from conftest import APIClient
+from local_support import catalog
 from PIL import Image
 from sqlalchemy import delete, select
 from test_local_access import local_settings
 
 
-def test_meta_social_starts_with_three_publications_and_original_accounts(evaluation):
-    group = catalog()["groups"][1]
+def test_meta_social_starts_with_six_publications_and_original_accounts(evaluation):
+    group = catalog(evaluation)["groups"][1]
     assert group["name"] == "Meta Social Media"
     workspace_id = uuid.UUID(group["id"])
     with evaluation.app.state.database.session_factory() as db:
-        assert db.query(Publication).filter_by(workspace_id=workspace_id).count() == 3
+        assert db.query(Publication).filter_by(workspace_id=workspace_id).count() == 6
         assert db.query(Record).filter_by(workspace_id=workspace_id).count() == 0
-        assert db.query(MediaAsset).filter_by(workspace_id=workspace_id).count() == 3
+        assert db.query(MediaAsset).filter_by(workspace_id=workspace_id).count() == 6
         assert {
             db.get(User, uuid.UUID(u["id"])).display_name for u in group["users"]
         } == {"Elena Marquez", "Mateo Rios", "Sarah Chen"}
 
 
+@pytest.mark.parametrize("evaluation", ["baseline"], indirect=True)
 @pytest.mark.parametrize("cross_workspace", [False, True])
 def test_replacement_preserves_profiles_and_is_one_time(
     evaluation, monkeypatch, cross_workspace
 ):
     monkeypatch.syspath_prepend(str(Path(__file__).resolve().parents[1] / "scripts"))
-    from replace_local_hospital import OLD_ID, replace_local_hospital
+    from app.local.upgrades import OLD_HOSPITAL as OLD_ID
+    from app.local.upgrades import upgrade_local_data
 
-    group = catalog()["groups"][1]
+    def replace_local_hospital(db, settings):
+        result = upgrade_local_data(db, settings).get("replace-hospital-meta-social-v1")
+        return {"rows": result} if result is not None else None
+
+    group = catalog(evaluation)["groups"][1]
     destination = uuid.UUID(group["id"])
     settings = evaluation.app.state.settings
     with evaluation.app.state.database.session_factory() as db:
+        db.delete(db.get(LocalEvaluationState, "replace-hospital-meta-social-v1"))
         new = db.get(Workspace, destination)
         db.add(
             Workspace(
@@ -112,26 +119,6 @@ def test_replacement_preserves_profiles_and_is_one_time(
             )
 
 
-@pytest.fixture
-def evaluation(tmp_path):
-    app = create_app(
-        local_settings(tmp_path, local_evaluation_enabled=True, elevenlabs_api_key=None)
-    )
-    Base.metadata.create_all(app.state.database.engine)
-    with app.state.database.session_factory() as db:
-        result = seed_evaluation(db, app.state.settings)
-        assert result == {
-            "initialized": True,
-            "groups": 3,
-            "users": 9,
-            "records": 28,
-            "attachments": 20,
-            "publications": 29,
-        }
-        db.commit()
-    return APIClient(app)
-
-
 def test_seed_restart_preserves_edits_and_deletions(evaluation):
     with evaluation.app.state.database.session_factory() as db:
         user = db.scalar(select(User))
@@ -149,7 +136,7 @@ def test_seed_restart_preserves_edits_and_deletions(evaluation):
         assert db.get(Publication, post.id).hidden
         assert db.get(Record, record.id).title == "Edited record"
         assert db.query(Workspace).count() == 3
-        assert db.query(RecordMedia).count() == 20
+        assert db.query(RecordMedia).count() == 26
 
 
 def test_selector_issues_session_and_cannot_cross_groups(evaluation):
@@ -224,14 +211,14 @@ def test_selector_disabled_on_production_and_legacy_local(tmp_path):
     ):
         client = APIClient(create_app(settings))
         assert client.get("/v1/auth/local-accounts").status_code == 404
-        user_id = catalog()["groups"][0]["users"][0]["id"]
+        user_id = str(uuid.uuid4())
         assert (
             client.get(f"/v1/auth/local-accounts/{user_id}/avatar").status_code == 404
         )
         assert (
             client.post(
                 "/v1/auth/local-select",
-                json={"user_id": catalog()["groups"][0]["users"][0]["id"]},
+                json={"user_id": str(uuid.uuid4())},
             ).status_code
             == 404
         )
@@ -287,7 +274,7 @@ def test_selector_avatar_rechecks_availability_and_scope(evaluation, unavailable
 def test_queue_dispatch_resumes_without_repeating_successful_jobs(
     evaluation, monkeypatch
 ):
-    from app.local_seed import enqueue_initial_media
+    from app.local.bootstrap import enqueue_initial_media
 
     calls = []
 
@@ -302,7 +289,7 @@ def test_queue_dispatch_resumes_without_repeating_successful_jobs(
             enqueue_initial_media(db)
         assert len(calls) == 3
         monkeypatch.setattr("app.tasks.index_gallery_media.delay", calls.append)
-        assert enqueue_initial_media(db) == {"dispatched": 29}
-        assert len(set(calls)) == len(calls) == 29
-        assert enqueue_initial_media(db) == {"dispatched": 29}
-        assert len(calls) == 29
+        assert enqueue_initial_media(db) == {"dispatched": 41}
+        assert len(set(calls)) == len(calls) == 41
+        assert enqueue_initial_media(db) == {"dispatched": 41}
+        assert len(calls) == 41

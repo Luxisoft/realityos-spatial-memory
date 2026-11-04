@@ -1,4 +1,4 @@
-"""Generate the owner-approved public collection for existing server scenarios."""
+"""Generate local Postman scenarios using the installed SQL dataset."""
 
 import copy
 import json
@@ -22,27 +22,9 @@ REQUESTS = [
 ]
 
 
-def publish(folders, root, write, namespace, describe, check, reference):
-    fixture = json.loads((root / "simulator/postman/jury.json").read_text())
-    evaluation = json.loads(
-        (root / "simulator/real-scenes/video-evaluation.json").read_text()
-    )
-    local_catalog = json.loads((root / "simulator/local/catalog.json").read_text())
-    for video in evaluation["videos"]:
-        group = next(
-            g for g in local_catalog["groups"] if g["media_group"] == video["group"]
-        )
-        video["post_id"] = group["publications"][str(video["id"])]
+def publish(folders, fixture, write, namespace, describe, check, reference):
     templates = {item["name"]: item for items in folders.values() for item in items}
-    collection = {
-        "info": {
-            "name": "RealityOS · Live jury evaluation",
-            "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-            "description": "Import this collection, select No environment, open a scenario and click Send on any request. Existing server accounts, passwords, workspace IDs, record IDs, publication IDs and questions are included. Login and token renewal run automatically. All requests use the live RealityOS server and its existing stored data. The owner authorized public release of these three evaluation accounts on 2026-11-03. Their existing workspace roles are administrator. Session tokens and provider credentials are not published. Full API templates are available separately in RealityOS.reference.postman_collection.json.",
-        },
-        "item": [],
-        "variable": [],
-    }
+    collection = {"item": [], "variable": []}
     for scenario in fixture["scenarios"]:
         values = dict(
             scenario["values"],
@@ -54,20 +36,10 @@ def publish(folders, root, write, namespace, describe, check, reference):
         )
         items = []
         for name in REQUESTS:
-            if scenario.get("records_only") and name in {
-                "POST /v1/queries",
-                "GET /v1/gallery/{post_id}/media",
-            }:
-                continue
-            if scenario.get("empty") and name not in {
-                "GET /v1/auth/me",
-                "POST /v1/auth/local-select",
-                "POST /v1/auth/refresh",
-                "GET /v1/workspaces",
-                "GET /v1/workspaces/{workspace_id}/records",
-                "GET /v1/gallery/page",
-                "GET /v1/me/profile",
-                "GET /v1/profiles/{user_id}",
+            if not scenario["values"]["record_id"] and name in {
+                "GET /v1/workspaces/{workspace_id}/records/{record_id}",
+                "GET /v1/workspaces/{workspace_id}/records/{record_id}/revisions",
+                "POST /v1/workspaces/{workspace_id}/records/search",
             }:
                 continue
             item = copy.deepcopy(templates[name])
@@ -105,28 +77,20 @@ def publish(folders, root, write, namespace, describe, check, reference):
             elif name == "GET /v1/workspaces/{workspace_id}/records":
                 tests += [
                     'pm.test("Empty workspace records", () => pm.expect(pm.response.json()).to.have.length(0));'
-                    if scenario.get("empty")
+                    if not scenario["values"]["record_id"]
                     else 'pm.test("Existing record is listed", () => pm.expect(pm.response.json().some(r => r.id === pm.variables.get("record_id"))).to.eql(true));',
                     'pm.test("Records stay in the selected workspace", () => pm.expect(pm.response.json().every(r => r.workspace_id === pm.variables.get("workspace_id"))).to.eql(true));',
                 ]
             elif name == "GET /v1/gallery/page":
                 tests += [
-                    'pm.test("Empty workspace gallery", () => pm.expect(pm.response.json().items).to.have.length(0));'
-                    if scenario.get("empty") or scenario.get("records_only")
-                    else 'pm.test("Existing publication is listed", () => pm.expect(pm.response.json().items.some(p => p.id === pm.variables.get("post_id"))).to.eql(true));',
+                    'pm.test("Existing publication is listed", () => pm.expect(pm.response.json().items.some(p => p.id === pm.variables.get("post_id"))).to.eql(true));',
                     'pm.test("Gallery stays in the selected workspace", () => pm.expect(pm.response.json().items.every(p => p.workspace_id === pm.variables.get("workspace_id"))).to.eql(true));',
                 ]
             request["description"] += (
                 "\n\nReady to send. All inputs use this scenario's existing account and stored resources. Authentication and renewal are automatic."
             )
             items.append(item)
-        group = "nursing" if scenario["prefix"] == "hospital" else scenario["prefix"]
-        items.extend(
-            video_requests(
-                templates["POST /v1/queries"],
-                [v for v in evaluation["videos"] if v["group"] == group],
-            )
-        )
+        items.extend(video_requests(templates["POST /v1/queries"], scenario["videos"]))
         collection["item"].append(
             {
                 "name": scenario["name"],
@@ -161,7 +125,11 @@ def publish(folders, root, write, namespace, describe, check, reference):
         1,
         {
             "name": "00 Local scenarios",
-            "description": "Police and Memory fixtures, plus Meta Social Media with three accounts and no content. Indexing uses real Meta models.",
+            "description": (
+                f"{len(fixture['scenarios'])} groups, {fixture['account_count']} access accounts "
+                f"and {fixture['publication_count']} publications initialized from the shared SQL seed. "
+                "Indexing uses real Meta models."
+            ),
             "item": scenarios["item"],
         },
     )

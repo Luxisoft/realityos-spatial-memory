@@ -15,9 +15,9 @@ from fastapi import (
 from sqlalchemy import desc, select
 from sqlalchemy.orm import Session
 
+from app.audit import _audit
 from app.config import Settings
 from app.dependencies import get_current_device, get_current_user, get_db, workspace_member
-from app.http.common import _assignment_response, _audit, _device_response
 from app.models import (
     Device,
     DeviceAssignment,
@@ -28,6 +28,7 @@ from app.models import (
     WorkspaceMember,
     Zone,
 )
+from app.processing.presentation import _assignment_response, _device_response
 from app.schemas import (
     DeviceAssignmentCreate,
     DeviceAssignmentResponse,
@@ -57,9 +58,10 @@ from app.stored_display import display_text
 logger = logging.getLogger(__name__)
 
 router = APIRouter()
+server_router = APIRouter()
 
 
-@router.post(
+@server_router.post(
     "/virtual-devices/bootstrap",
     response_model=VirtualDeviceBootstrapResponse,
     status_code=status.HTTP_201_CREATED,

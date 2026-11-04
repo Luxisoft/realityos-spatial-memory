@@ -6,8 +6,8 @@ from datetime import UTC, datetime, timedelta
 
 from sqlalchemy import select
 
-from app.meta import MetaProviderError
 from app.models import MediaAsset
+from app.providers.contracts import MetaProviderError
 from app.social_features.evidence_models import GalleryEvidence, GalleryIndexRun
 from app.social_features.index_reviews import prior_candidates, review_omissions
 from app.social_features.visual import INDEX_VERSION

@@ -13,7 +13,8 @@ def _client(app: object) -> httpx.Response:
             transport=httpx.ASGITransport(app=app), base_url="http://gateway.test"
         ) as client:
             return await client.get(
-                "/v1/models", headers={"X-RealityOS-Gateway-Token": "gateway-secret-for-tests"}
+                "/v1/models",
+                headers={"X-RealityOS-Gateway-Token": "gateway-secret-for-tests"},
             )
 
     return asyncio.run(request())
@@ -26,7 +27,7 @@ def _settings(**overrides: object) -> GatewaySettings:
         "meta_api_base_url": "https://api.meta.ai/v1",
     }
     values.update(overrides)
-    return GatewaySettings(**values)
+    return GatewaySettings(_env_file=None, **values)
 
 
 def test_gateway_injects_meta_key_and_hides_gateway_token() -> None:
@@ -66,7 +67,9 @@ def test_gateway_rejects_invalid_token_before_contacting_meta() -> None:
         async with httpx.AsyncClient(
             transport=httpx.ASGITransport(app=app), base_url="http://gateway.test"
         ) as client:
-            return await client.get("/v1/models", headers={"X-RealityOS-Gateway-Token": "wrong"})
+            return await client.get(
+                "/v1/models", headers={"X-RealityOS-Gateway-Token": "wrong"}
+            )
 
     response = asyncio.run(request())
     assert response.status_code == 401
@@ -107,7 +110,9 @@ def test_gateway_forwards_multipart_without_persisting_media() -> None:
 
 def test_gateway_exposes_only_the_required_file_routes() -> None:
     async def request() -> httpx.Response:
-        app = create_app(_settings(), httpx.MockTransport(lambda _: httpx.Response(200)))
+        app = create_app(
+            _settings(), httpx.MockTransport(lambda _: httpx.Response(200))
+        )
         async with httpx.AsyncClient(
             transport=httpx.ASGITransport(app=app), base_url="http://gateway.test"
         ) as client:

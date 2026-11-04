@@ -1,50 +1,48 @@
-> **Corrección vigente: localhost principal.** Windows/Linux x64 ejecutan PostgreSQL, Redis, API y worker. Meta usa la clave propia del jurado; voz de salida instalada en Android. Gateway, buckets, Facebook, SMTP, scheduler y ElevenLabs están fuera del recorrido local. La configuración remota que aparece en esta guía es histórica. [Instalación vigente](../deployment/DEPLOYMENT_LOCALHOST.md).
-
 [English](../../en/project/PROJECT_CONTEXT.md) · [RealityOS](../README.md) · [Índice](../INDEX.md)
 
 # Contexto del proyecto
 
-Mapa de trabajo vigente. Lee primero las [convenciones](../../../AGENTS.md), consulta el [estado verificado](IMPLEMENTATION_STATUS.md) y abre la guía del área que vas a cambiar. El historial de cambios está en Git.
+RealityOS tiene un monolito modular y dos composiciones: **local** en el PC Windows/Linux del jurado y **server** en el servidor RealityOS. El host de desarrollo actual es el servidor RealityOS; localhost no designa sus servicios productivos. **FRONTEND** es otro servidor, dedicado al gateway Meta restringido. Esta reorganización no autoriza despliegues, reinicios ni cambios en los datos de ninguno de esos servidores.
+
+Lee las [convenciones](../../../AGENTS.md), el [estado verificado](IMPLEMENTATION_STATUS.md) y la guía del área que vas a cambiar. El historial de entregas permanece en Git.
 
 ## Estructura
 
 | Ruta | Responsabilidad |
 | --- | --- |
-| `backend/app/` | API y contratos compartidos con el worker: HTTP, proveedores, procesamiento, cuentas, social, expedientes y almacenamiento. |
-| `backend/app/faces.py` | Biometría aislada y protegida por AGENTS.md. |
-| `backend/alembic/versions/` | Esquema Alembic; revisión local vigente `20261104_0040`. |
-| `android/` | Única app: Kotlin/Compose, CameraX, DAT y Display nativo; Mock Device Kit solo Debug. |
-| `meta-gateway/` | Egreso restringido a rutas Meta permitidas. |
-| `infrastructure/` | Compose para postgres, redis, api, worker, scheduler y proxy; TLS y gateway. |
-| `simulator/` | Escenarios ficticios, recursos sintéticos de identidad y escenas con licencia para QA. |
-| `tests/`, `gateway-tests/` | Regresiones y contrato OpenAPI congelado. |
-| `scripts/` | Preparación de datos, importación, mantenimiento y generadores/verificadores de documentación. |
-| `docs/es/`, `docs/en/` | Guías por idioma y tema, con los mismos nombres de archivo. |
-| `docs/assets/`, `docs/postman/` | Recursos compartidos y colecciones descargables. |
-| `.runtime/` | Archivos privados ignorados: accesos, evidencias, releases y rollback. |
+| `backend/app/runtime/` | Composición explícita de routers y worker local/server; instalador de esquema. |
+| `backend/app/` | HTTP, servicios, proveedores, modelos y persistencia compartidos por API y worker. |
+| `backend/app/local/` | Acceso local desde BD e inicialización SQL separada del runtime operativo. |
+| `backend/app/faces.py`, `face_setup.py` | Brazo biométrico protegido; consentimiento y enrolamiento privado. |
+| `backend/schema/20261104_0040/` | Snapshot DDL inmutable para PostgreSQL vacío. |
+| `backend/alembic/versions/` | Historial preservado; revisión de código `20261104_0041`. |
+| `android/` | Única app: Kotlin/Compose, CameraX, DAT y Display nativo; repositorios y componentes compartidos. |
+| `meta-gateway/` | Egreso remoto restringido a rutas Meta permitidas. |
+| `infrastructure/` | Compose local de cuatro servicios y composición server separada. |
+| `simulator/database/` | SQL único de inicialización de escenarios locales. |
+| `simulator/media/` | Imágenes/videos locales organizados y manifiesto técnico de licencia/hash. |
+| `tests/`, `gateway-tests/` | Regresiones, PostgreSQL efímero y contratos OpenAPI. |
+| `scripts/` | Instalación local, mantenimiento y generadores/verificadores. |
+| `docs/es/`, `docs/en/` | Guías equivalentes por idioma; recursos en `docs/assets/` y `docs/postman/`. |
+| `.runtime/` | Archivos privados, pruebas y builds aislados; ignorados por Git. |
 
-## Flujos e invariantes
+## Invariantes
 
-- Captura/publicación/importación explícita → original BYTEA → procesamiento → evidencia y traducciones persistidas. Consultar no registra nueva evidencia.
-- R2/S3 es una fuente privada por cuenta. Cambiar o desconectar una fuente retira sus copias importadas y compartidas; los objetos externos se conservan.
-- Todo recurso se vuelve a autorizar al consultarlo o descargarlo. Los grupos no reciben las claves del bucket del creador.
-- Biometría mantiene consentimiento y enrolamiento explícitos, separada del flujo de objetos. No modificar sus módulos como efecto secundario.
-- Meta directo con gateway como respaldo configurable; Muse Voice Transcribe para entrada y ElevenLabs para salida. Claves solo en servidor.
-- Windows local usa `.env.local`, el proyecto Docker `realityos-local` y su propio APK Debug. No reutiliza datos ni claves productivas automáticamente.
+- PostgreSQL/BYTEA es la fuente de verdad. Las consultas no leen catálogos JSON ni SQL de instalación.
+- Captura/publicación explícita → original → procesamiento → evidencia persistida. Query no registra evidencia nueva.
+- Las publicaciones requieren grupo. Cada lectura, descarga y modificación revalida permisos y pertenencia.
+- La inicialización local es transaccional y versionada; no repone contenido borrado ni sobrescribe ediciones en reinicios.
+- Biometría mantiene sus permisos, consentimientos y referencias privadas, fuera del procesamiento de objetos.
+- Localhost usa PostgreSQL, Redis, API y worker; Meta directo con clave del jurado y voces instaladas en Android. No incluye gateway, buckets, Facebook, SMTP, scheduler ni ElevenLabs.
+- El servidor conserva sus integraciones privadas y la alternativa de gateway FRONTEND. Las claves permanecen fuera del cliente y de Git.
+- Los archivos de entorno se seleccionan explícitamente con `REALITYOS_ENV_FILE`; Compose inyecta la configuración del entorno elegido.
 
-Las publicaciones requieren un grupo. El primer ingreso de una cuenta por email solicita consentimiento, avatar y 3–25 fotos de referencia privadas. Las referencias de Meta nunca se publican.
+## Guías y validación
 
-## Guías de trabajo
+[Arquitectura](../architecture/ARCHITECTURE.md) · [Datos](../architecture/DATABASE.md) · [Seguridad](../architecture/SECURITY.md) · [Diseño](../architecture/UI_DESIGN.md) · [API y Postman](../api/API.md)
 
-- [API y Postman](../api/API.md), [contrato generado](../api/API_REFERENCE.md) y [datos](../architecture/DATABASE.md).
-- [Arquitectura](../architecture/ARCHITECTURE.md), [seguridad](../architecture/SECURITY.md) y [diseño](../architecture/UI_DESIGN.md).
-- [Android](../integrations/ANDROID.md), [gafas](../integrations/WEARABLES.md), [Meta](../integrations/META_INTEGRATION.md) y [voz](../integrations/TTS.md).
-- [Instalación y operación](../deployment/DEPLOYMENT.md), [gateway](../deployment/DEPLOYMENT_GATEWAY.md) y [Windows](../deployment/DEPLOYMENT_LOCALHOST.md).
-- [Buckets](../guides/STORAGE_CONNECTIONS.md), [expedientes](../guides/WORKSPACE_DATA.md), [demo](../guides/DEMO.md) y [checklist](../testing/IMPLEMENTATION_CHECKLIST.md).
-- [Estado y pendientes](IMPLEMENTATION_STATUS.md) y [entrega hackathon](HACKATHON.md).
+[Android](../integrations/ANDROID.md) · [Gafas](../integrations/WEARABLES.md) · [Meta](../integrations/META_INTEGRATION.md) · [Localhost](../deployment/DEPLOYMENT_LOCALHOST.md) · [Servidor](../deployment/DEPLOYMENT.md) · [Gateway](../deployment/DEPLOYMENT_GATEWAY.md)
 
-## Validación y entrega
+Desde la raíz: `make docs-check`, `make architecture-check`, `make lint`, `make test` y `make android-check`, según el cambio. Las pruebas PostgreSQL crean clusters temporales en `.runtime/`, separados de los servicios existentes. No declarar como realizadas pruebas de dispositivo, proveedores externos, Docker o Windows que no se ejecutaron.
 
-Desde la raíz: `make docs-check`, `make architecture-check`, `make lint`, `make test` y `make android-check`, según el cambio. APK único: `android/app/build/outputs/apk/debug/app-debug.apk`.
-
-Los cambios se publican en `main` siguiendo AGENTS.md. Los cambios de documentación no requieren otro APK. Para servidor, conservar runtime/rollback y comprobar salud, OpenAPI y Alembic; las reglas de autorización Docker están en AGENTS.md. No registrar como aprobadas pruebas de dispositivo, R2, proveedores o Windows que no se hayan ejecutado.
+Los cambios se entregan en `main` según AGENTS.md; el despliegue remoto requiere autorización separada. El APK Debug canónico está en `android/app/build/outputs/apk/debug/app-debug.apk`, bajo Git LFS y con la firma existente. Un cambio Android o de contrato requiere reconstruirlo; el estado de esa validación se registra por entrega.

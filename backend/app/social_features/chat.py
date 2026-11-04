@@ -171,7 +171,7 @@ def chat_audio_download(
 @router.post("/notes/merge")
 def merge_notes(payload: MergeTexts, user: User = Depends(get_current_user)):
     """Join consecutive transcript chunks, dropping boundary repetitions."""
-    from app.social_features.gallery import merge_transcript_chunks
+    from app.social_features.notes import merge_transcript_chunks
 
     cleaned = [text.strip()[:2000] for text in payload.texts if text.strip()]
     return {"text": merge_transcript_chunks(cleaned)}

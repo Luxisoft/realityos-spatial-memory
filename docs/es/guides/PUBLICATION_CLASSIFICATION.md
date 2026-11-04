@@ -8,9 +8,9 @@ El dueño del grupo añade categorías y tags al crearlo, y puede renombrarlos, 
 
 Publicar exige una categoría y entre uno y veinte tags activos del grupo seleccionado. La nota escrita o transcrita sigue siendo opcional. Si cambia el grupo, hay que volver a elegir la clasificación. Un catálogo vacío bloquea la publicación y señala que debe completarlo el dueño.
 
-Los 87 términos existentes de los tres grupos locales tienen nombres redactados y guardados en español e inglés. Categorías, tags, miniaturas, filtros y visor leen la versión del idioma seleccionado sin traducir al abrir la pantalla. Los identificadores y asociaciones permanecen iguales. Las publicaciones, los expedientes y los textos descriptivos de los perfiles preparados también conservan ambas versiones en la base de datos.
+Las categorías y tags de los tres grupos locales tienen nombres redactados y guardados en español e inglés. Categorías, tags, miniaturas, filtros y visor leen la versión del idioma seleccionado sin traducir al abrir la pantalla. Los identificadores y asociaciones permanecen iguales. Las publicaciones, los expedientes y los textos descriptivos de los perfiles preparados también conservan ambas versiones en la base de datos.
 
-La copia revisada está en `simulator/local/display-text.json` y se incorpora una sola vez, sin recrear filas borradas ni sustituir ediciones del propietario. No hay un nuevo servicio, modelo, cola ni traductor automático. Los nombres propios, identificadores y fechas no se traducen. Una edición posterior conserva el texto del dueño y deja de mostrar una versión antigua que ya no corresponde. Archivar conserva las etiquetas de publicaciones anteriores y las opciones históricas del filtro, pero impide nuevas selecciones. La clasificación manual no se convierte en evidencia visual ni sustituye al análisis de objetos.
+La copia revisada y las asociaciones de clasificación están en el SQL versionado de `simulator/database/` y se incorporan una sola vez, sin recrear filas borradas ni sustituir ediciones del propietario. No hay un nuevo servicio, modelo, cola ni traductor automático. Los nombres propios, identificadores y fechas no se traducen. Una edición posterior conserva el texto del dueño y deja de mostrar una versión antigua que ya no corresponde. Archivar conserva las etiquetas de publicaciones anteriores y las opciones históricas del filtro, pero impide nuevas selecciones. La clasificación manual no se convierte en evidencia visual ni sustituye al análisis de objetos.
 
 ## Miniaturas y búsqueda
 
@@ -46,8 +46,8 @@ La sincronización de la carpeta cada 15 minutos utiliza este mismo estado para 
 
 Reintentar o volver a sincronizar no aprueba candidatos pendientes. Se comprueban de nuevo propietario, membresía, catálogo y vigencia de la fuente. Desconectar o cambiar la fuente cancela sus candidatos y conserva las reglas de retiro existentes, sin borrar objetos remotos.
 
-## Clasificación de publicaciones existentes
+## Inicialización local y cambios posteriores
 
-El manifiesto `simulator/real-scenes/publication-classification.json` asigna valores a las 48 publicaciones existentes revisadas, vinculadas a sus hashes originales y grupos actuales. No incluye medios privados ni crea grupos.
+El SQL compartido instala los catálogos de los tres grupos y clasifica las 41 publicaciones preparadas en las mismas tablas que usan las cargas y consultas normales. No existe otro manifiesto de clasificación ni otra base de publicaciones. Los recibos de instalación impiden que un reinicio recree filas eliminadas o reemplace ediciones del dueño.
 
-`scripts/classify_existing_publications.py` verifica el manifiesto sin escribir por defecto. `--apply` aplica la revisión y guarda un diario privado; repetir una asignación idéntica no la duplica. `--rollback --journal RUTA` comprueba una reversión y, con `--apply`, restaura la clasificación anterior, siempre que no haya cambios posteriores. Conserva bytes, fechas, descripciones e interacciones. El estado de despliegue y las pruebas ejecutadas se documentan en [Estado de implementación](../project/IMPLEMENTATION_STATUS.md).
+Las correcciones posteriores usan las APIs autenticadas de catálogo y clasificación descritas arriba. Conservan los medios originales y comprueban propiedad del grupo, membresía y autoría. La importación y sincronización de almacenamiento solo están disponibles en la composición del servidor; la evaluación local importa los bytes organizados directamente a BYTEA.

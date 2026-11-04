@@ -11,7 +11,7 @@ from PIL import Image, ImageFilter, ImageOps
 
 PORTRAIT = (
     Path(__file__).resolve().parents[1]
-    / "simulator/social-directory/source/maya-patel.png"
+    / "simulator/media/regression/portraits/maya-patel.png"
 )
 BOX = {"x": 0.25, "y": 0.15, "width": 0.5, "height": 0.5}
 

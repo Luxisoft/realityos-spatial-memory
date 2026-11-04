@@ -24,16 +24,14 @@ import coil.compose.AsyncImage
 import coil.request.CachePolicy
 import coil.request.ImageRequest
 import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import org.json.JSONObject
 
 /** Present only in Debug; the backend must independently confirm the local realm. */
 @Composable
 internal fun LocalAccountEntry(viewModel: RealityViewModel, onSuccess: () -> Unit): Boolean {
     if (!LocalAccessPolicy.canSkipFaceEntry(BuildConfig.DEBUG, BuildConfig.LOCAL_DEVELOPMENT, BuildConfig.DEFAULT_REALITYOS_API_BASE_URL, true)) return false
-    var accounts by remember { mutableStateOf<List<JSONObject>>(emptyList()) }
+    val repository = remember(SocialSession.identity) { LocalAccountRepository() }
+    var accounts by remember { mutableStateOf<List<LocalAccount>>(emptyList()) }
     var busy by remember { mutableStateOf(true) }
     var failed by remember { mutableStateOf(false) }
     var retry by remember { mutableIntStateOf(0) }
@@ -42,11 +40,7 @@ internal fun LocalAccountEntry(viewModel: RealityViewModel, onSuccess: () -> Uni
         busy = true
         failed = false
         try {
-            val result = withContext(Dispatchers.IO) { JSONObject(SocialSession.request("auth/local-accounts")) }
-            check(result.optBoolean("local_access"))
-            val rows = result.getJSONArray("accounts")
-            accounts = (0 until rows.length()).map(rows::getJSONObject)
-            check(accounts.isNotEmpty())
+            accounts = repository.accounts()
         } catch (cancelled: CancellationException) {
             throw cancelled
         } catch (_: Exception) {
@@ -61,25 +55,13 @@ internal fun LocalAccountEntry(viewModel: RealityViewModel, onSuccess: () -> Uni
         scope.launch {
             var identity = SocialSession.identity
             try {
-                val result = withContext(Dispatchers.IO) {
-                    JSONObject(SocialSession.request("auth/local-select", JSONObject().put("user_id", account.getString("id"))))
-                }
+                val selection = repository.select(account)
                 SocialSession.requireCurrent(identity)
-                check(result.optBoolean("local_access"))
-                val profile = result.getJSONObject("capture_profile")
-                SocialSession.workspaceId = profile.getString("workspace_id")
-                SocialSession.remember(result)
+                SocialSession.workspaceId = selection.captureProfile.workspaceId
+                SocialSession.remember(selection.credentials)
                 identity = SocialSession.identity
                 check(SocialSession.localEntryAllowed)
-                viewModel.useFacebookCaptureProfile(
-                    DeviceProvisioning(
-                        BuildConfig.DEFAULT_REALITYOS_API_BASE_URL,
-                        profile.getString("workspace_id"),
-                        profile.getString("device_id"),
-                        profile.getString("device_key"),
-                        profile.getString("workspace_name")
-                    )
-                )
+                viewModel.useFacebookCaptureProfile(selection.captureProfile)
                 SocialSession.freshLogin = false
                 onSuccess()
                 SocialSession.active = true
@@ -97,7 +79,7 @@ internal fun LocalAccountEntry(viewModel: RealityViewModel, onSuccess: () -> Uni
 }
 
 @Composable
-internal fun LocalAccountChooser(accounts: List<JSONObject>, busy: Boolean, failed: Boolean, onRetry: () -> Unit, onSelect: (JSONObject) -> Unit) {
+internal fun LocalAccountChooser(accounts: List<LocalAccount>, busy: Boolean, failed: Boolean, onRetry: () -> Unit, onSelect: (LocalAccount) -> Unit) {
     Surface(Modifier.fillMaxSize().testTag("local-account-selector"), color = MaterialTheme.colorScheme.background) {
         Column(Modifier.fillMaxSize().safeDrawingPadding(), horizontalAlignment = Alignment.CenterHorizontally) {
             Column(Modifier.widthIn(max = 528.dp).fillMaxSize()) {
@@ -108,13 +90,15 @@ internal fun LocalAccountChooser(accounts: List<JSONObject>, busy: Boolean, fail
                 ) {
                     Text(stringResource(R.string.local_account_title), style = MaterialTheme.typography.headlineMedium)
                     Text(stringResource(R.string.local_account_body), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    if (busy) LinearProgressIndicator(Modifier.fillMaxWidth())
-                    if (failed) {
-                        Text(stringResource(R.string.local_account_failed), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.error)
-                        OutlinedButton(onClick = onRetry, enabled = !busy) { Text(stringResource(R.string.local_account_retry)) }
-                    }
-                    accounts.groupBy { it.getString("workspace_name") }.forEach { (group, members) ->
-                        key(group) {
+                    RequestFeedback(
+                        busy,
+                        if (failed) stringResource(R.string.local_account_failed) else null,
+                        stringResource(R.string.local_account_retry),
+                        onRetry
+                    )
+                    accounts.groupBy { it.workspaceId }.forEach { (workspaceId, members) ->
+                        val group = members.first().workspaceName
+                        key(workspaceId) {
                             var expanded by rememberSaveable { mutableStateOf(false) }
                             OutlinedCard(
                                 onClick = { expanded = !expanded },
@@ -130,13 +114,13 @@ internal fun LocalAccountChooser(accounts: List<JSONObject>, busy: Boolean, fail
                                 members.forEach { account ->
                                     OutlinedCard(
                                         enabled = !busy,
-                                        modifier = Modifier.fillMaxWidth().testTag("local-account-${account.getString("username")}"),
+                                        modifier = Modifier.fillMaxWidth().testTag("local-account-${account.username}"),
                                         shape = MaterialTheme.shapes.medium,
                                         onClick = { onSelect(account) }
                                     ) {
                                         Row(Modifier.fillMaxWidth().padding(16.dp).heightIn(min = 32.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                                             LocalAccountAvatar(account)
-                                            Text(account.getString("display_name"), style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f))
+                                            Text(account.displayName, style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f))
                                             Icon(Icons.AutoMirrored.Outlined.ArrowForward, null, Modifier.size(20.dp))
                                         }
                                     }
@@ -151,9 +135,9 @@ internal fun LocalAccountChooser(accounts: List<JSONObject>, busy: Boolean, fail
 }
 
 @Composable
-internal fun LocalAccountAvatar(account: JSONObject) {
+internal fun LocalAccountAvatar(account: LocalAccount) {
     val context = LocalContext.current
-    val picture = account.optText("picture_url")
+    val picture = account.pictureUrl
     val request = remember(context, picture) {
         picture?.let {
             ImageRequest.Builder(context)
@@ -167,7 +151,7 @@ internal fun LocalAccountAvatar(account: JSONObject) {
     AsyncImage(
         model = request,
         contentDescription = null,
-        modifier = Modifier.size(48.dp).clip(CircleShape).testTag("local-avatar-${account.getString("username")}"),
+        modifier = Modifier.size(48.dp).clip(CircleShape).testTag("local-avatar-${account.username}"),
         placeholder = fallback,
         error = fallback,
         fallback = fallback,

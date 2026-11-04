@@ -4,8 +4,8 @@ from __future__ import annotations
 
 from sqlalchemy import select
 
-from app.meta import MetaProviderError
 from app.models import MediaAsset
+from app.providers.contracts import MetaProviderError
 from app.social_features.evidence_models import PublicationDuplicate, PublicationRevision
 from app.social_features.models import Comment, Publication, Reaction, Report
 from app.social_features.upload_service import duplicate, scope_lock

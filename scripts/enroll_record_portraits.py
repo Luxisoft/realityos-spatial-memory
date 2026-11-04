@@ -2,7 +2,7 @@
 
 No direct SQL. Requires a worker user token with ADMIN/REGISTER in the
 workspace and biometric consent granted. Portraits are the 'portrait'
-attachments from simulator/workspaces manifests.
+attachments returned by the authorized workspace records API.
 """
 
 import argparse

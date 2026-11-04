@@ -32,7 +32,8 @@ def assistant(
     def response(value):
         return {**value, "response_language": language}
 
-    from app.social_features.gallery import _publication_payload, get_post
+    from app.social_features.gallery_queries import publication_payloads
+    from app.social_features.publication_access import get_post
 
     command = "".join(
         c
@@ -86,12 +87,19 @@ def assistant(
         limit=12,
         workspace_id=payload.workspace_id,
     )
+    import uuid
+
+    from sqlalchemy import select
+
     from app.social_features.models import Publication
 
+    keys = [uuid.UUID(str(evidence["post_id"])) for evidence in matches]
+    rows = {
+        post.id: post for post in db.scalars(select(Publication).where(Publication.id.in_(keys)))
+    }
+    summaries = publication_payloads([rows[key] for key in keys], user, db)
     posts = []
-    for evidence in matches:
-        post = db.get(Publication, evidence["post_id"])
-        item = _publication_payload(post, user, db)
+    for evidence, item in zip(matches, summaries):
         item.update(
             {
                 key: evidence[key]

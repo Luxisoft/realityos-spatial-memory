@@ -2,7 +2,7 @@
 
 from dataclasses import dataclass, field
 
-from app.meta import MetaProviderError
+from app.providers.contracts import MetaProviderError
 from app.services import search_phrase
 
 KINDS = ("exact", "family", "similar")

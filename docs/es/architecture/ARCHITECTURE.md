@@ -1,43 +1,49 @@
-<p align="center"><a href="../../en/architecture/ARCHITECTURE.md"><img src="../../assets/readme/language-en.svg" alt="English" height="32"></a> <a href="ARCHITECTURE.md"><img src="../../assets/readme/language-es-active.svg" alt="Español" height="32"></a></p>
-
 # Arquitectura
 
-[← Documentación](../INDEX.md) · [API / Postman](../api/API.md)
+[English](../../en/architecture/ARCHITECTURE.md) · [Documentación](../INDEX.md) · [API / Postman](../api/API.md)
 
-## Guía de lectura
+RealityOS mantiene un monolito modular con dos composiciones explícitas: **local**, instalada en el PC Windows/Linux del jurado, y **server**, para el servidor RealityOS. API y worker ejecutan el mismo código, contratos, servicios y modelos; separarlos en procesos no crea otras fuentes de datos. FRONTEND es el gateway remoto independiente y restringido de Meta.
 
-| Tema | Qué debes saber |
+## Composición y dependencias
+
+| Capa | Responsabilidad |
 | --- | --- |
-| **Cliente** | Android Kotlin/Compose y Display nativo DAT; panel web y Display web retirados. |
-| **API** | FastAPI aplica autenticación, roles y pertenencia. API y worker comparten contratos y modelos SQLAlchemy. |
-| **Memoria visual** | Captura explícita → original BYTEA → Celery/Redis → hechos y evidencia. Muse Spark también interpreta consultas desde la API, sin iniciar captura ni indexación de evidencia. |
-| **Biometría** | Brazo aislado InsightFace: consentimiento, enrolamientos, candidatos y contexto autorizado. No se mezcla con procesamiento de objetos. |
-| **Expedientes y perfiles** | Muse Spark responde preguntas sobre contexto previamente autorizado desde la API. La lectura/importación de registros sigue su contrato propio y no requiere siempre IA. |
-| **Módulos** | `app.http`, `app.providers`, `app.processing`, `app.social_features`, `app.accounts`, `app.workspaces` y `app.storage`; las fachadas conservan compatibilidad. |
-| **Escala** | SQLAlchemy síncrono en handlers async; evaluar réplicas o controlador async para concurrencia alta. |
+| `app.runtime` | Selecciona routers y tareas por entorno; inicializa el esquema PostgreSQL. |
+| `app.http`, routers de cuentas/social/expedientes | Autenticación, validación HTTP y adaptación de respuestas. |
+| `app.processing`, servicios de `app.social_features`, `app.workspaces` | Operaciones, consultas y autorización por grupo. No dependen de handlers HTTP. |
+| `app.providers` | Contratos y clientes de modelos; no importan la fachada `app.meta`. |
+| Modelos SQLAlchemy y `app.db` | Persistencia compartida por API y worker. |
+| `app.local` | Acceso local respaldado por BD y módulos de instalación separados del recorrido operativo. |
+| `android/` | Única app, Kotlin/Compose y Display nativo DAT; repositorios de acceso a datos y componentes compartidos. |
+
+`app.runtime.routers` compone las rutas sin filtrar nombres ni fragmentos de URL. El worker local no registra importadores Facebook, sincronización de buckets ni planificación remota. El servidor incorpora sus routers y tareas mediante composición explícita. Los contratos OpenAPI se verifican por entorno.
 
 ```mermaid
 flowchart TB
-    A["Android + DAT"] --> B["API · permisos por espacio"]
-    B --> C["Biometría<br/>InsightFace"]
-    B --> D["Expedientes y perfiles<br/>Muse Spark · consultas"]
-    B --> E["Memoria visual<br/>Muse Spark · consultas"]
-    C --> F[(PostgreSQL BYTEA)]
-    D --> F
-    E --> F
-    E -->|Captura o publicación explícita| G["Worker<br/>Muse Spark + SAM"]
-    G --> F
+    Android[Android y DAT] --> API[API: composición local o server]
+    API --> Services[Servicios y consultas autorizadas]
+    Services --> DB[(PostgreSQL: datos y BYTEA)]
+    Services --> Queue[Redis]
+    Queue --> Worker[Worker del mismo monolito]
+    Worker --> DB
+    Worker --> Models[Proveedores Meta]
+    Install[Instalador local: SQL y medios] --> DB
 ```
 
-## Comandos
+## Fuente única de datos
 
-Ejecutar desde la raíz, con dependencias instaladas. Migraciones y procesamiento requieren el entorno elegido y autorización de sus datos.
-```bash
-make architecture-check
-make lint
-make test
-```
+Las consultas de cuentas, grupos, expedientes, publicaciones y clasificación leen PostgreSQL. `simulator/database/*.sql` se consume durante la inicialización local; `simulator/media/` guarda imágenes, videos y procedencia para esa instalación. El runtime no consulta catálogos JSON paralelos. El manifiesto CSV describe archivos, licencias y hashes, no sustituye registros operativos. Los originales importados permanecen en BYTEA.
 
-[DATABASE ](DATABASE.md) · [META INTEGRATION ](../integrations/META_INTEGRATION.md) · [WEARABLES ](../integrations/WEARABLES.md)
+Capturar o publicar es explícito; Query no registra evidencia. La pertenencia al grupo se comprueba al leer, modificar o descargar recursos. Los servicios comparten las consultas de galería, clasificación, permisos y respuestas de medios. Las fachadas existentes conservan importaciones compatibles donde son necesarias.
 
-Los buckets conectados son fuentes privadas por cuenta. El módulo `app.storage` autoriza descargas/importaciones; los originales importados siguen en BYTEA. Celery Beat (`scheduler`) programa sincronizaciones y el worker reutiliza el análisis de publicaciones. [Flujo de conexión](../guides/STORAGE_CONNECTIONS.md).
+El brazo biométrico `faces.py` / `face_setup.py` permanece aislado y protegido, con sus consentimientos y referencias privadas. No se integra en el procesamiento de objetos.
+
+## Configuración y distribución
+
+No se lee `.env` implícitamente. Los comandos seleccionan un archivo privado con `REALITYOS_ENV_FILE`; Compose inyecta variables al contenedor. `make api`, `make migrate` y `make seed` usan `ENV_FILE`, cuyo valor predeterminado es `.env.local`. Un archivo seleccionado inexistente produce un error. FRONTEND sigue la misma regla con `META_GATEWAY_ENV_FILE`; `make gateway-api` selecciona explícitamente el `runtime.env` privado del gateway.
+
+La imagen Docker `local` incluye SQL y medios de instalación; la imagen `server` no incluye `simulator/`. Localhost tiene cuatro servicios: PostgreSQL, Redis, API y worker. Usa Meta directo con la clave privada del jurado y voces instaladas en Android. El servidor puede habilitar Facebook, buckets, correo, scheduler y ElevenLabs según su configuración privada; FRONTEND continúa como gateway permitido de respaldo.
+
+`make architecture-check` comprueba dependencias mediante AST, prohíbe catálogos operativos JSON y limita el tamaño de los módulos. Las excepciones del código biométrico protegido y las migraciones históricas son explícitas. Las pruebas verifican los límites y la composición de cada entorno. Los handlers de consultas síncronas seleccionados usan el thread pool de FastAPI; esto no constituye una prueba de carga.
+
+[Datos](DATABASE.md) · [Instalación local](../deployment/DEPLOYMENT_LOCALHOST.md) · [Estado verificado](../project/IMPLEMENTATION_STATUS.md)

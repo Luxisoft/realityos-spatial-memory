@@ -1,7 +1,7 @@
 """Generate public API reference and Postman examples from the checked-in contract.
 
-Uses owner-approved public evaluation fixtures without network requests,
-database connections or private runtime configuration.
+Uses the canonical local SQL seed in an isolated in-memory database, without
+network requests, runtime database access or private configuration files.
 """
 
 import argparse
@@ -11,6 +11,7 @@ import re
 from pathlib import Path
 
 from build_jury_postman import publish
+from postman_dataset import evaluation_dataset
 from postman_examples import JSON_EXAMPLES, REQUEST_NOTES, customize_form
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -26,7 +27,12 @@ READ_POSTS = {
     "/v1/profiles/search",
     "/v1/gallery/evidence/information",
 }
-AUTH_POSTS = {"/v1/auth/login", "/v1/auth/refresh", "/v1/auth/local-login", "/v1/auth/local-select"}
+AUTH_POSTS = {
+    "/v1/auth/login",
+    "/v1/auth/refresh",
+    "/v1/auth/local-login",
+    "/v1/auth/local-select",
+}
 TARGETS = [
     ("public", "server", "Server requests", ""),
     ("local", "localhost", "Localhost requests", "http://localhost:8080"),
@@ -248,11 +254,14 @@ def variable_description(key):
 
 def generate(spec, check=False):
     spanish = json.loads((ROOT / "docs/postman/operation-labels.es.json").read_text())
-    demo = json.loads((ROOT / "simulator/postman/demo.json").read_text())
+    dataset = evaluation_dataset()
+    demo = dataset["defaults"]
     auto_auth = (ROOT / "scripts/postman/auto_auth.js").read_text().splitlines()
     # Local routes are intentionally absent from the production contract.
     local = copy.deepcopy(spec)
-    local_contract = json.loads((ROOT / "tests/contracts/openapi.local.json").read_text())
+    local_contract = json.loads(
+        (ROOT / "tests/contracts/openapi.local.json").read_text()
+    )
     local["paths"].update(local_contract["paths"])
     local["components"]["schemas"].update(local_contract["components"]["schemas"])
     folders = {key: [] for key, _ in GROUPS}
@@ -577,7 +586,15 @@ def generate(spec, check=False):
             }
         ]
         target_folders += [
-            {"name": f"{n:02} {label.split(' / ')[0]}", "item": [item for item in folders[key] if item["name"].split(" ", 1)[1] in (local_contract if realm == "local" else spec)["paths"]]}
+            {
+                "name": f"{n:02} {label.split(' / ')[0]}",
+                "item": [
+                    item
+                    for item in folders[key]
+                    if item["name"].split(" ", 1)[1]
+                    in (local_contract if realm == "local" else spec)["paths"]
+                ],
+            }
             for n, (key, label) in enumerate(GROUPS, 1)
             if folders[key] and (realm == "local" or key != "local")
         ]
@@ -590,8 +607,22 @@ def generate(spec, check=False):
             }
         )
         if realm == "public":
-            collection["item"][-1]["event"] = [{"listen": "prerequest", "script": {"type": "text/javascript", "exec": ['console.warn("Historical server destination is disabled."); pm.execution.skipRequest();']}}]
-        variables = dict(all_vars, base_url=url, auth_mode="local-select" if realm == "local" else "disabled")
+            collection["item"][-1]["event"] = [
+                {
+                    "listen": "prerequest",
+                    "script": {
+                        "type": "text/javascript",
+                        "exec": [
+                            'console.warn("Historical server destination is disabled."); pm.execution.skipRequest();'
+                        ],
+                    },
+                }
+            ]
+        variables = dict(
+            all_vars,
+            base_url=url,
+            auth_mode="local-select" if realm == "local" else "disabled",
+        )
         for key in (
             "email",
             "username",
@@ -718,7 +749,7 @@ def generate(spec, check=False):
             check,
         )
     return publish(
-        folders, ROOT, write, target_item, variable_description, check, collection
+        folders, dataset, write, target_item, variable_description, check, collection
     )
 
 

@@ -33,34 +33,25 @@ def substitute(raw):
 
 @pytest.fixture(params=["server", "localhost"])
 def catalog(client, request):
-    from app.http.local_access import router
+    from app.main import create_app
+    from test_local_access import local_settings
 
+    application = client.app
+    if request.param == "localhost":
+        application = create_app(
+            local_settings(Path("."), local_evaluation_enabled=True)
+        )
     routes = {
         f"{method} {route.path}": route
-        for route in client.app.routes
+        for route in application.routes
         if isinstance(route, APIRoute) and route.include_in_schema
         for method in route.methods
     }
-    if request.param == "localhost":
-        routes.update(
-            {
-                f"{method} /v1{route.path}": route
-                for route in router.routes
-                if isinstance(route, APIRoute)
-                for method in route.methods
-            }
-        )
+    if application is not client.app:
+        application.state.database.engine.dispose()
     collection = json.loads(
         (ROOT / "docs/postman/RealityOS.postman_collection.json").read_text()
     )
-    if request.param == "localhost":
-        from app.local_runtime import local_route_available
-
-        routes = {
-            key: route
-            for key, route in routes.items()
-            if local_route_available(route.path)
-        }
     target = next(
         item
         for item in collection["item"]

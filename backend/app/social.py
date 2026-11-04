@@ -20,6 +20,7 @@ from app.social_features.facebook import guest_login as guest_login
 from app.social_features.facebook import logout as logout
 from app.social_features.facebook import own_facebook_profile as own_facebook_profile
 from app.social_features.facebook import router as facebook_router
+from app.social_features.facebook import session_router
 from app.social_features.facebook_import import _create_import_asset as _create_import_asset
 from app.social_features.facebook_import import (
     _ensure_import_publication as _ensure_import_publication,
@@ -119,22 +120,6 @@ from app.social_features.schemas import Publish as Publish
 from app.social_features.schemas import Share as Share
 from app.social_features.uploads import router as uploads_router
 
-router = APIRouter()
-router.include_router(preferences_router)
-router.include_router(chat_languages_router)
-router.include_router(information_router)
-router.include_router(evidence_router)
-router.include_router(uploads_router)
-router.include_router(display_media_router)
-router.include_router(assistant_router)
-router.include_router(chat_router)
-router.include_router(facebook_router)
-router.include_router(gallery_router)
-router.include_router(groups_router)
-router.include_router(classification_router)
-router.include_router(gallery_filters_router)
-router.include_router(profiles_router)
-
 _ROUTE_ORDER = {
     "members": 2,
     "set_invite_permission": 4,
@@ -178,4 +163,30 @@ _ROUTE_ORDER = {
     "interact": 106,
     "comments": 107,
 }
-router.routes.sort(key=lambda route: _ROUTE_ORDER.get(route.endpoint.__name__, 1000))
+
+
+def build_router(*, local: bool = False) -> APIRouter:
+    """Register shared social features and server-only identity integrations."""
+    result = APIRouter()
+    result.include_router(preferences_router)
+    result.include_router(chat_languages_router)
+    result.include_router(information_router)
+    result.include_router(evidence_router)
+    result.include_router(uploads_router)
+    result.include_router(display_media_router)
+    result.include_router(assistant_router)
+    result.include_router(chat_router)
+    result.include_router(session_router)
+    if not local:
+        result.include_router(facebook_router)
+    result.include_router(gallery_router)
+    result.include_router(groups_router)
+    result.include_router(classification_router)
+    result.include_router(gallery_filters_router)
+    result.include_router(profiles_router)
+
+    result.routes.sort(key=lambda route: _ROUTE_ORDER.get(route.endpoint.__name__, 1000))
+    return result
+
+
+router = build_router()

@@ -7,8 +7,8 @@ These fixtures support [the manual acceptance checklist](IMPLEMENTATION_CHECKLIS
 - `cv-v1.pdf`: one-page synthetic CV, role **Inventory assistant**.
 - `cv-v2.pdf`: replacement CV, role **Equipment coordinator**.
 - Both PDFs contain only fictional QA text, use the standard Helvetica PDF font, and were generated locally without external personal data.
-- Camera cards reuse existing synthetic images in `../workspaces/assets/`; no new portraits or customer media are introduced.
+- Camera cards reuse existing synthetic images in `simulator/media/regression/`; no new portraits or customer media are introduced.
 - The isolated runtime QA accounts use those images with explicit consent/enrollment for the admin and member only. Reader retains no biometric consent; outsider starts outside the QA group.
-- Runtime account credentials, IDs and execution evidence remain under ignored `.runtime/`. The three separately authorized public jury accounts are described in `../postman/jury.json`.
+- Runtime account credentials, IDs and execution evidence remain under ignored `.runtime/`. Local Postman examples derive their account and resource IDs from an isolated SQL-initialized database; no credentials are published.
 
 Do not overwrite existing execution results when starting another run. Archive the private run log and record the new APK hash, server release and date.

@@ -9,10 +9,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
+import com.luxisoft.realityos.data.JsonApi
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import org.json.JSONObject
 
 /** A connection failure cannot turn a saved session into a logout or an admitted account. */
 @Composable
@@ -22,14 +22,14 @@ internal fun RestoredAccountSession(
     request: suspend (String) -> String = { path -> withContext(Dispatchers.IO) { SocialSession.request(path) } }
 ) {
     val identity = SocialSession.identity
+    val repository = remember(identity, request) { AccountRepository(identity, JsonApi { path, _, _ -> request(path) }) }
     var retry by remember(identity) { mutableIntStateOf(0) }
     var failed by remember(identity) { mutableStateOf(false) }
     LaunchedEffect(identity, retry, local) {
         failed = false
         try {
-            val response = JSONObject(request(if (local) "auth/local-session" else "auth/account-session"))
+            check(repository.confirm(local))
             SocialSession.requireCurrent(identity)
-            check(response.optBoolean(if (local) "local_access" else "password_account"))
             onConfirmed()
         } catch (cancelled: CancellationException) {
             throw cancelled

@@ -1,18 +1,12 @@
 from __future__ import annotations
 
-import base64
 import io
-import json
 import uuid
-from datetime import UTC, datetime
 
 from fastapi import APIRouter, Depends, HTTPException, Request
 from PIL import Image, ImageOps
 from pydantic import BaseModel, Field
 from sqlalchemy import (
-    and_,
-    func,
-    or_,
     select,
 )
 from sqlalchemy.orm import Session
@@ -22,53 +16,29 @@ from app.faces import delete_selfie_enrollments
 from app.models import (
     CaptureSession,
     MediaAsset,
-    MediaKind,
     User,
 )
-from app.social_features.classification import (
-    ClassificationInput,
-    classification_json,
+from app.processing.media_ranges import _chunked_slice as _chunked_slice
+from app.processing.media_ranges import _parse_range as _parse_range
+from app.social_features.classification_schemas import ClassificationInput
+from app.social_features.classification_service import (
     set_classification,
 )
 from app.social_features.gallery_filters import GalleryFilters, gallery_scope
+from app.social_features.gallery_queries import _decode_gallery_cursor as _decode_gallery_cursor
+from app.social_features.gallery_queries import _encode_gallery_cursor as _encode_gallery_cursor
+from app.social_features.gallery_queries import _gallery_page as _gallery_page
+from app.social_features.gallery_queries import _publication_payload as _publication_payload
 from app.social_features.models import Comment, Publication, Reaction, Report
+from app.social_features.notes import merge_transcript_chunks as merge_transcript_chunks
+from app.social_features.publication_access import get_post as get_post
+from app.social_features.publication_access import visible as visible
 from app.social_features.publication_visibility import (
     require_ordinary_media,
-    require_publication_content,
 )
 from app.social_features.schemas import Interaction, Publish, Share
-from app.stored_display import display_text
-
-"""Facebook identities and explicitly shared audiovisual publications."""
-
 
 router = APIRouter()
-
-
-def merge_transcript_chunks(chunks: list[str]) -> str:
-    """Join consecutive voice chunks, dropping words repeated at boundaries."""
-
-    def tokens(text: str) -> list[str]:
-        return [word for word in text.split() if word]
-
-    def key(word: str) -> str:
-        return word.casefold().strip(".,:?¿¡!\"'()")
-
-    words: list[str] = []
-    for chunk in chunks:
-        parts = tokens(chunk)
-        if not parts:
-            continue
-        if not words:
-            words = parts
-            continue
-        overlap = 0
-        for size in range(min(6, len(words), len(parts)), 0, -1):
-            if [key(word) for word in words[-size:]] == [key(word) for word in parts[:size]]:
-                overlap = size
-                break
-        words += parts[overlap:]
-    return " ".join(words)
 
 
 @router.post("/gallery/{post_id}/remove")
@@ -97,120 +67,6 @@ def share(
         raise HTTPException(422, "Choose a work group.")
     result = import_publications(db, user, payload.workspace_id, [post_id], {post_id: payload})
     return {"ok": True, **result}
-
-
-def visible(post: Publication, user: User, db: Session) -> Publication:
-
-    require_publication_content(post)
-    asset = db.get(MediaAsset, post.media_id)
-    if asset is None:
-        raise HTTPException(404, "Publication unavailable.")
-    require_ordinary_media(asset, user, db)
-    if post.hidden:
-        raise HTTPException(404, "Publication unavailable.")
-    if user.is_guest and post.owner_id != user.id:
-        owner = db.get(User, post.owner_id)
-        if owner is None or not owner.is_guest:
-            raise HTTPException(404, "Publication unavailable.")
-    workspace_member(post.workspace_id, user, db)
-    return post
-
-
-def get_post(post_id: uuid.UUID, user: User, db: Session):
-
-    from app.social_features.evidence_models import PublicationDuplicate
-
-    original = db.get(Publication, post_id)
-    if original is not None:
-        require_publication_content(original)
-        require_ordinary_media(db.get(MediaAsset, original.media_id), user, db)
-    alias = db.get(PublicationDuplicate, post_id)
-    if alias is not None:
-        post_id = alias.canonical_id
-    post = db.get(Publication, post_id)
-    if post is None:
-        raise HTTPException(404, "Publication unavailable.")
-    return visible(post, user, db)
-
-
-def _encode_gallery_cursor(post: Publication) -> str:
-
-    payload = json.dumps(
-        [post.published_at.isoformat(), str(post.id)], separators=(",", ":")
-    ).encode()
-    return base64.urlsafe_b64encode(payload).decode().rstrip("=")
-
-
-def _decode_gallery_cursor(value: str) -> tuple[datetime, uuid.UUID]:
-    try:
-        padded = value + "=" * (-len(value) % 4)
-        timestamp, post_id = json.loads(base64.urlsafe_b64decode(padded).decode())
-        parsed = datetime.fromisoformat(timestamp)
-        if parsed.tzinfo is None:
-            parsed = parsed.replace(tzinfo=UTC)
-        return parsed, uuid.UUID(post_id)
-    except (ValueError, TypeError, json.JSONDecodeError) as exc:
-        raise HTTPException(422, "Invalid gallery cursor.") from exc
-
-
-def _publication_payload(post: Publication, viewer: User, db: Session) -> dict:
-    from app.social_features.profiles import _public_profile_payload
-
-    asset = db.get(MediaAsset, post.media_id)
-    owner = db.get(User, post.owner_id)
-    owner_profile = _public_profile_payload(owner, db) if owner else {}
-    return {
-        "id": str(post.id),
-        "original_id": str(post.shared_from_id or post.id),
-        "caption": post.caption,
-        "display_text": display_text(post),
-        **classification_json(db, post),
-        "note_text": post.note_text,
-        "note_source": post.note_source,
-        "workspace_id": str(post.workspace_id) if post.workspace_id else None,
-        "mime_type": asset.mime_type if asset else "application/octet-stream",
-        "media_url": f"gallery/{post.id}/media",
-        "thumbnail_url": f"gallery/{post.id}/thumbnail",
-        "owned": post.owner_id == viewer.id,
-        "liked": db.get(Reaction, (post.id, viewer.id)) is not None,
-        "likes": db.scalar(
-            select(func.count()).select_from(Reaction).where(Reaction.post_id == post.id)
-        ),
-        "published_at": post.published_at.isoformat(),
-        "source": post.source,
-        "owner": {
-            "user_id": str(post.owner_id),
-            "display_name": owner.display_name if owner else "",
-            "picture_url": owner_profile.get("picture_url"),
-            "headline": owner_profile.get("headline", ""),
-        },
-    }
-
-
-def _gallery_page(query, limit: int, cursor: str | None, viewer: User, db: Session) -> dict:
-
-    page_size = min(max(limit, 1), 30)
-    if cursor:
-        published_at, post_id = _decode_gallery_cursor(cursor)
-        query = query.where(
-            or_(
-                Publication.published_at < published_at,
-                and_(Publication.published_at == published_at, Publication.id < post_id),
-            )
-        )
-    rows = list(
-        db.scalars(
-            query.order_by(Publication.published_at.desc(), Publication.id.desc()).limit(
-                page_size + 1
-            )
-        )
-    )
-    has_more = len(rows) > page_size
-    rows = rows[:page_size]
-    return {
-        "items": [_publication_payload(post, viewer, db) for post in rows],
-        "next_cursor": _encode_gallery_cursor(rows[-1]) if has_more and rows else None,
-    }
 
 
 @router.get("/gallery/page")
@@ -244,7 +100,7 @@ def publish(
         raise HTTPException(403, "Only the capture owner can publish it.")
     workspace_member(asset.workspace_id, user, db)
     require_ordinary_media(asset, user, db)
-    from app.social_features.uploads import check_destination
+    from app.social_features.publication_access import check_destination
 
     check_destination(db, user, payload.workspace_id)
     from app.meta import build_meta_client
@@ -293,69 +149,6 @@ def capture_profile(
     delete_selfie_enrollments(db, user.id)
     db.flush()
     return profile
-
-
-def _parse_range(value: str, total: int) -> tuple[int, int] | None:
-    """Parse a single ``bytes=`` range into inclusive (start, end) offsets."""
-
-    if total <= 0 or not value.startswith("bytes="):
-        return None
-    spec = value.removeprefix("bytes=").strip()
-    if "," in spec:
-        return None
-    start_text, dash, end_text = spec.partition("-")
-    if not dash:
-        return None
-    try:
-        if not start_text:
-            suffix = int(end_text)
-            if suffix <= 0:
-                return None
-            start = max(0, total - suffix)
-            return (start, total - 1)
-        start = int(start_text)
-        end = int(end_text) if end_text else total - 1
-    except ValueError:
-        return None
-    if start < 0 or end < start or start >= total:
-        return None
-    return (start, min(end, total - 1))
-
-
-def _chunked_slice(db: Session, asset_id: uuid.UUID, start: int, end: int) -> bytes:
-    from app.models import MediaAssetChunk
-
-    sizes = list(
-        db.execute(
-            select(MediaAssetChunk.chunk_index, MediaAssetChunk.byte_size)
-            .where(MediaAssetChunk.asset_id == asset_id)
-            .order_by(MediaAssetChunk.chunk_index)
-        )
-    )
-    first_index = last_index = -1
-    first_start = 0
-    offset = 0
-    for chunk_index, byte_size in sizes:
-        chunk_start, chunk_end = offset, offset + byte_size - 1
-        if chunk_end >= start and chunk_start <= end:
-            if first_index < 0:
-                first_index = chunk_index
-                first_start = chunk_start
-            last_index = chunk_index
-        offset += byte_size
-    if first_index < 0:
-        return b""
-    parts = db.scalars(
-        select(MediaAssetChunk.content)
-        .where(
-            MediaAssetChunk.asset_id == asset_id,
-            MediaAssetChunk.chunk_index >= first_index,
-            MediaAssetChunk.chunk_index <= last_index,
-        )
-        .order_by(MediaAssetChunk.chunk_index)
-    )
-    joined = b"".join(parts)
-    return joined[start - first_start : end - first_start + 1]
 
 
 @router.get("/gallery/{post_id}/media")
@@ -424,75 +217,12 @@ def media(
 def thumbnail(
     post_id: uuid.UUID, user: User = Depends(get_current_user), db: Session = Depends(get_db)
 ):
-    import subprocess
-    import tempfile
-    from pathlib import Path
-
     from fastapi.responses import Response
 
-    from app.models import MediaAssetChunk
-    from app.services import media_is_chunked
+    from app.social_features.publication_media import publication_thumbnail
 
-    post = get_post(post_id, user, db)
-    asset = db.get(MediaAsset, post.media_id)
-    if asset.mime_type.startswith("image/"):
-        raw = asset.original_bytes
-    else:
-        frame = db.scalar(
-            select(MediaAsset).where(
-                MediaAsset.parent_asset_id == asset.id, MediaAsset.kind == MediaKind.FRAME
-            )
-        )
-        if frame is not None:
-            raw = frame.original_bytes
-        else:
-            with tempfile.TemporaryDirectory(prefix="realityos-thumbnail-") as directory:
-                source = Path(directory) / "source.mp4"
-                with source.open("wb") as output:
-                    if media_is_chunked(asset):
-                        for chunk in db.scalars(
-                            select(MediaAssetChunk.content)
-                            .where(MediaAssetChunk.asset_id == asset.id)
-                            .order_by(MediaAssetChunk.chunk_index)
-                        ):
-                            output.write(chunk)
-                    else:
-                        output.write(asset.original_bytes)
-                try:
-                    result = subprocess.run(
-                        [
-                            "ffmpeg",
-                            "-v",
-                            "error",
-                            "-i",
-                            str(source),
-                            "-frames:v",
-                            "1",
-                            "-vf",
-                            "scale=360:480:force_original_aspect_ratio=decrease",
-                            "-f",
-                            "image2pipe",
-                            "-vcodec",
-                            "mjpeg",
-                            "pipe:1",
-                        ],
-                        capture_output=True,
-                        timeout=15,
-                        check=True,
-                    )
-                    raw = result.stdout
-                except (subprocess.SubprocessError, OSError) as error:
-                    raise HTTPException(422, "Video thumbnail unavailable.") from error
-    try:
-        with Image.open(io.BytesIO(raw)) as source:
-            image = ImageOps.exif_transpose(source)
-            image.thumbnail((360, 480))
-            output = io.BytesIO()
-            image.convert("RGB").save(output, format="JPEG", quality=85)
-    except (ValueError, OSError) as error:
-        raise HTTPException(422, "Thumbnail unavailable.") from error
     return Response(
-        output.getvalue(),
+        publication_thumbnail(post_id, user, db),
         media_type="image/jpeg",
         headers={"Cache-Control": "private, max-age=300"},
     )
