@@ -45,10 +45,10 @@ class PublicationClassificationTest {
 
     private fun post(video: Boolean): JSONObject = JSONObject()
         .put("thumbnail_url", "").put("source", "simulator-work")
-        .put("caption", "Medical instruments")
+        .put("caption", "Field equipment")
         .put("mime_type", if (video) "video/mp4" else "image/jpeg")
-        .put("category", JSONObject().put("name", "Instrumental clínico"))
-        .put("tags", JSONArray().put(JSONObject().put("name", "Pinzas")).put(JSONObject().put("name", "Tijeras")).put(JSONObject().put("name", "Bandejas")))
+        .put("category", JSONObject().put("name", "Equipo de campo"))
+        .put("tags", JSONArray().put(JSONObject().put("name", "Radios")).put(JSONObject().put("name", "Cámaras")).put(JSONObject().put("name", "Chalecos")))
 
     private fun capture(name: String) {
         compose.waitForIdle()

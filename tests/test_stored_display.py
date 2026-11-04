@@ -16,10 +16,10 @@ def test_all_prepared_display_fields_have_both_languages(evaluation):
     with evaluation.app.state.database.session_factory() as db:
         assert db.get(LocalEvaluationState, RECEIPT)
         for model, expected in (
-            (Record, 34),
-            (Publication, 41),
-            (UserProfile, 9),
-            (PublicationTerm, 35),
+            (Record, 16),
+            (Publication, 25),
+            (UserProfile, 6),
+            (PublicationTerm, 10),
         ):
             rows = list(db.scalars(select(model)))
             assert len(rows) == expected
@@ -33,7 +33,20 @@ def test_all_prepared_display_fields_have_both_languages(evaluation):
 
 
 def test_authored_copy_is_membership_scoped_and_does_not_rewrite_history(evaluation):
-    group, other = catalog(evaluation)["groups"][2], catalog(evaluation)["groups"][1]
+    group, other = catalog(evaluation)["groups"]
+    with evaluation.app.state.database.session_factory() as db:
+        record = db.scalar(
+            select(Record).where(Record.external_id == "security-person-01")
+        )
+        record.display_text = {
+            **record.display_text,
+            "title": {
+                "source": record.title,
+                "en": f"Record for {record.title}",
+                "es": f"Expediente de {record.title}",
+            },
+        }
+        db.commit()
     response = evaluation.post(
         "/v1/auth/local-select", json={"user_id": group["users"][0]["id"]}
     )
@@ -50,10 +63,10 @@ def test_authored_copy_is_membership_scoped_and_does_not_rewrite_history(evaluat
     ).json()
     assert all(r["display_text"]["title"]["en"] for r in records)
     english = evaluation.get(
-        f"/v1/workspaces/{group['id']}/records?q=folder", headers=headers
+        f"/v1/workspaces/{group['id']}/records?q=Record%20for", headers=headers
     ).json()
     spanish = evaluation.get(
-        f"/v1/workspaces/{group['id']}/records?q=carpeta", headers=headers
+        f"/v1/workspaces/{group['id']}/records?q=Expediente%20de", headers=headers
     ).json()
     assert english and {r["id"] for r in english} == {r["id"] for r in spanish}
     with evaluation.app.state.database.session_factory() as db:

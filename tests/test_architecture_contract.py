@@ -1,4 +1,4 @@
-"""Prevent a structural refactor from changing the external API contract."""
+"""Keep the public API aligned with its explicitly reviewed contract."""
 
 import json
 from pathlib import Path
@@ -7,7 +7,7 @@ from app.config import Settings
 from app.main import create_app
 
 
-def test_openapi_matches_pre_refactor_contract():
+def test_openapi_matches_reviewed_contract():
     expected = json.loads(
         (Path(__file__).parent / "contracts" / "openapi.json").read_text()
     )

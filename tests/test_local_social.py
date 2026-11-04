@@ -41,17 +41,14 @@ class FixtureEngine:
                 asset = session.scalar(
                     select(MediaAsset).where(MediaAsset.sha256 == digest)
                 )
-                owners = list(
-                    session.scalars(
-                        select(FacebookProfile.user_id).order_by(
-                            FacebookProfile.user_id
-                        )
-                    )
-                )
-                index = owners.index(uuid.UUID(asset.extra_metadata["owner_id"]))
-                self.embeddings[digest] = struct.pack(
-                    "<10f", *[float(i == index) for i in range(10)]
-                )
+                owner = uuid.UUID(asset.extra_metadata["owner_id"])
+                # Stable unit vectors survive additive profile revisions without
+                # changing the embeddings of previously enrolled identities.
+                values = [
+                    (1.0 if owner.int & (1 << bit) else -1.0) / (128**0.5)
+                    for bit in range(128)
+                ]
+                self.embeddings[digest] = struct.pack("<128f", *values)
             finally:
                 if self.transaction is None:
                     session.close()
@@ -77,10 +74,10 @@ def seed(client):
         engine.transaction = None
     assert result == {
         "initialized": True,
-        "profiles": 10,
-        "avatars": 10,
-        "references": 30,
-        "enrollments": 30,
+        "profiles": 13,
+        "avatars": 13,
+        "references": 39,
+        "enrollments": 39,
     }
     return target_id, engine
 
@@ -94,15 +91,15 @@ def headers(client, user_id):
 
 def test_directory_counts_and_restart_preserve_changes(evaluation):
     user_id, engine = seed(evaluation)
-    assert len(evaluation.get("/v1/auth/local-accounts").json()["accounts"]) == 9
+    assert len(evaluation.get("/v1/auth/local-accounts").json()["accounts"]) == 6
     with evaluation.app.state.database.session_factory() as db:
-        assert db.query(Workspace).count() == 3
+        assert db.query(Workspace).count() == 2
         assert db.query(User).count() == 19
-        assert db.query(WorkspaceMember).filter_by(workspace_id=WORKSPACE).count() == 13
-        assert db.query(FacebookIdentity).count() == 10
-        assert db.query(FacebookMedia).count() == 30
-        assert db.query(FaceEnrollment).count() == 30
-        assert db.query(MediaAsset).filter_by(workspace_id=WORKSPACE).count() == 46
+        assert db.query(WorkspaceMember).filter_by(workspace_id=WORKSPACE).count() == 16
+        assert db.query(FacebookIdentity).count() == 13
+        assert db.query(FacebookMedia).count() == 39
+        assert db.query(FaceEnrollment).count() == 39
+        assert db.query(MediaAsset).filter_by(workspace_id=WORKSPACE).count() == 58
         assert db.query(Publication).filter_by(workspace_id=WORKSPACE).count() == 6
         assert all(p.imported_photos == 3 for p in db.scalars(select(FacebookProfile)))
         db.get(User, user_id).display_name = "Edited"
@@ -195,6 +192,6 @@ def test_local_guard_and_bad_faces_roll_back(evaluation):
         with pytest.raises(ValueError, match="Three usable"):
             seed_local_social(db, settings, engine=engine)
         db.rollback()
-        assert db.query(User).count() == 9
+        assert db.query(User).count() == 6
         assert db.query(FaceEnrollment).count() == 0
         assert db.get(LocalEvaluationState, RECEIPT) is None

@@ -167,7 +167,7 @@ for (const [index, target] of c.item.entries()) {
 const scenarios = jury.item[0].item.find(folder => folder.name === '00 Local scenarios').item;
 assert.deepEqual(jury.item.map(folder => folder.name), ['Localhost requests', 'Server requests']);
 for (const [index, target] of scenarios.entries()) {
-  const prefix = ['security_', 'meta_social_', 'memory_'][index];
+  const prefix = ['security_', 'meta_social_'][index];
   for (const item of target.item) {
     const result = execute(item, 'prerequest');
     assert(!result.skipped);

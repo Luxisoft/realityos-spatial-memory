@@ -310,7 +310,6 @@ Respuestas declaradas: `200`, `422`.
 | `POST /v1/workspaces/{workspace_id}/records/{record_id}/notes` | Añadir nota | bearer | `workspace_id`, `record_id`, `text`, `occurred_at` | ✓ |
 | `GET /v1/workspaces/{workspace_id}/records/{record_id}/revisions` | Consultar revisiones | bearer | `workspace_id`, `record_id` | — |
 | `POST /v1/workspaces/{workspace_id}/records/{record_id}/publications` | Vincular publicación | bearer | `workspace_id`, `record_id`, `publication_id` | ✓ |
-| `POST /v1/workspaces/{workspace_id}/records/{person_id}/medication-check` | Comparar campos de medicación | bearer | `workspace_id`, `person_id`, `prescription_id`, `observed_ingredient`, `observed_concentration`, `checked_at` | ✓ |
 | `POST /v1/integrations/records/{record_id}/media` | Subir adjunto | integration | `record_id`, `external_id`, `file` | ✓ |
 | `POST /v1/integrations/records/{record_id}/index` | Reintentar indexación | integration | `record_id` | ✓ |
 | `GET /v1/workspaces/{workspace_id}/record-media/{link_id}` | Obtener medio autorizado | bearer | `workspace_id`, `link_id` | — |
@@ -561,35 +560,6 @@ Respuestas declaradas: `200`, `422`.
 ```
 
 Respuestas declaradas: `201`, `422`.
-
-</details>
-
-<details>
-
-<summary>POST /v1/workspaces/{workspace_id}/records/{person_id}/medication-check</summary>
-
-| Campo | Ubicación | Obligatorio | Tipo | Restricciones |
-| --- | --- | --- | --- | --- |
-| `workspace_id` | path | ✓ | `string` | `{}` |
-| `person_id` | path | ✓ | `string` | `{}` |
-| `prescription_id` | body | ✓ | `string` | `{}` |
-| `observed_ingredient` | body | ✓ | `string` | `{"maxLength": 160, "minLength": 1}` |
-| `observed_concentration` | body | ✓ | `string` | `{"maxLength": 80, "minLength": 1}` |
-| `patient_confirmed` | body | — | `boolean` | `{"default": false}` |
-| `checked_at` | body | ✓ | `string` | `{}` |
-
-```json
-
-{
-  "prescription_id": "{{prescription_id}}",
-  "observed_ingredient": "example-observed_ingredient",
-  "observed_concentration": "example-observed_concentration",
-  "checked_at": "2026-11-03T12:00:00Z"
-}
-
-```
-
-Respuestas declaradas: `200`, `422`.
 
 </details>
 

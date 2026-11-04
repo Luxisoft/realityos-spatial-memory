@@ -12,7 +12,7 @@ PostgreSQL is the source of truth in both environments. Accounts, workspaces, pe
 | Records | Stored records, media links and translations; access requires current membership. |
 | Profiles | Avatar separate from private references and CV. Public responses do not expose private originals. |
 | Biometrics | Protected consents and enrollments, separate from object/publication workflows. |
-| Local access | `local_access_accounts` links only the nine selectable accounts to their workspaces. |
+| Local access | `local_access_accounts` links only the six selectable accounts to their workspaces. |
 | Local installation | Versioned database receipts prevent initialization from repeating or deleted data from returning on restart. |
 
 ## Empty schema and upgrades
@@ -27,7 +27,7 @@ Tests use disposable PostgreSQL, isolated schemas and the same installer: they v
 
 `simulator/database/` contains the installation SQL dataset; `simulator/media/` contains local assets organized by purpose, together with provenance/license/hash `manifest.csv`. Modules in `app.local` validate the environment before installation. Receipts and data changes belong to the same transaction: an error must not leave the installation marked complete.
 
-The current dataset preserves three workspaces and nine access accounts. Pacific Ridge Police Department has ten portraits and records linked to publications; Sonoran retains its scenes; Meta Social Media has introductions for its three accounts and ten additional synthetic profiles with private references. Additional profiles do not expand the nine-account selector. Restarts preserve edits, deletions, membership and consent.
+The current dataset has two workspaces and six access accounts. Pacific Ridge Police Department has sixteen portraits and records linked to publications, plus three videos. Meta Social Media has introductions for its three accounts, three videos and thirteen additional synthetic profiles with private references. Additional profiles do not expand the six-account selector. The local versioned retirement removes Sonoran/Memory and its exclusive resources. Restarts preserve edits, deletions, membership and consent in the retained groups.
 
 Initial loading copies verified files into BYTEA. Subsequent queries use the database even when installation assets are unavailable. Biometric reference originals are never published; only the separate avatar is displayed.
 

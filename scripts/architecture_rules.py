@@ -10,6 +10,7 @@ PROTECTED_MODULES = {"app.faces", "app.face_setup"}
 HTTP_COMPOSITION = {"app.routes", "app.runtime.routers"}
 INSTALLATION_MODULES = {
     "app.local.bootstrap",
+    "app.local.retirement",
     "app.local.sql_data",
     "app.local.social_bootstrap",
     "app.local.state",

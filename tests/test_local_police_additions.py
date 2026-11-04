@@ -66,7 +66,7 @@ def earlier_installation(request, tmp_path, monkeypatch):
 def test_six_portraits_create_correct_scoped_records_and_publications(evaluation):
     settings = evaluation.app.state.settings
     accounts = evaluation.get("/v1/auth/local-accounts").json()["accounts"]
-    assert len(accounts) == 9
+    assert len(accounts) == 6
     member = next(row for row in accounts if row["workspace_id"] == str(POLICE))
     outsider = next(row for row in accounts if row["workspace_id"] != str(POLICE))
 
@@ -77,13 +77,13 @@ def test_six_portraits_create_correct_scoped_records_and_publications(evaluation
         }
 
     with evaluation.app.state.database.session_factory() as db:
-        assert db.query(Publication).count() == 41
-        assert db.query(MediaAsset).count() == 57
-        assert db.query(Record).count() == 34
-        assert db.query(RecordMedia).count() == 26
-        assert db.query(PublicationTerm).count() == 35
-        assert db.query(User).count() == 9
-        assert db.query(WorkspaceMember).count() == 9
+        assert db.query(Publication).count() == 25
+        assert db.query(MediaAsset).count() == 28
+        assert db.query(Record).count() == 16
+        assert db.query(RecordMedia).count() == 16
+        assert db.query(PublicationTerm).count() == 10
+        assert db.query(User).count() == 6
+        assert db.query(WorkspaceMember).count() == 6
         assert db.query(Publication).filter_by(workspace_id=POLICE).count() == 19
         police = list(db.scalars(select(Record).where(Record.workspace_id == POLICE)))
         assert len(police) == 16
@@ -208,8 +208,8 @@ def test_additions_rollback_and_never_restore_edits_or_deletions(
             with pytest.raises(ValueError, match="integrity"):
                 install_data_updates(db, settings)
         assert new_records(db) == []
-        assert db.query(Publication).count() == 35
-        assert db.query(MediaAsset).count() == 51
+        assert db.query(Publication).count() == 19
+        assert db.query(MediaAsset).count() == 22
         assert db.get(LocalEvaluationState, RECEIPT) is None
         assert install_data_updates(db, settings) == {RECEIPT: {"publications": 6}}
         assert db.query(PublicationTerm).count() == before_terms

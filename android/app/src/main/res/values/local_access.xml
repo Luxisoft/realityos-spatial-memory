@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="local_account_title">Choose an account</string>
-    <string name="local_account_body">Explore the three scenarios with the accounts on your computer. Changes are saved locally.</string>
+    <string name="local_account_body">Explore the two scenarios with the accounts on your computer. Changes are saved locally.</string>
     <string name="local_account_failed">Could not connect to the local installation. Check that it is running and the phone is connected.</string>
     <string name="local_account_retry">Retry</string>
     <string name="local_account_email">Email</string>

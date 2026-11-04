@@ -42,7 +42,7 @@ class StorageConnectionsNavigationTest {
         SocialSession.clear()
         SocialSession.remember(JSONObject().put("access_token", "expired").put("refresh_token", "refresh-first").put("password_account", true))
         SocialSession.active = true
-        SocialSession.workWorkspaceId = "california"
+        SocialSession.workWorkspaceId = "police"
         SocialSession.openJsonConnection = { path -> server.url("/$path").toUrl().openConnection() as HttpURLConnection }
     }
 
@@ -63,8 +63,8 @@ class StorageConnectionsNavigationTest {
                     MockResponse().setBody("""{"access_token":"renewed","refresh_token":"refresh-next"}""")
                 }
                 request.getHeader("Authorization") == "Bearer expired" -> MockResponse().setResponseCode(401)
-                request.path == "/$STORAGE_BASE" -> if (unavailable) MockResponse().setResponseCode(503) else MockResponse().setBody("""[{"id":"source","name":"Clinical resources","bucket":"california","workspace_id":"california"}]""")
-                request.path == "/workspaces" -> MockResponse().setBody("""[{"id":"california","name":"California Valley Medical Center"}]""")
+                request.path == "/$STORAGE_BASE" -> if (unavailable) MockResponse().setResponseCode(503) else MockResponse().setBody("""[{"id":"source","name":"Group resources","bucket":"police","workspace_id":"police"}]""")
+                request.path == "/workspaces" -> MockResponse().setBody("""[{"id":"police","name":"Pacific Ridge Police Department"}]""")
                 else -> MockResponse().setResponseCode(404)
             }
         }
@@ -86,7 +86,7 @@ class StorageConnectionsNavigationTest {
             }
         }
         compose.onNodeWithTag("drawer-connections").performClick()
-        val expected = if (unavailable) localizedText(R.string.storage_error) else "Clinical resources · california"
+        val expected = if (unavailable) localizedText(R.string.storage_error) else "Group resources · police"
         compose.waitUntil(15000) { compose.onAllNodesWithText(expected, substring = unavailable).fetchSemanticsNodes().isNotEmpty() }
         compose.waitUntil(15000) { compose.onAllNodes(hasText(localizedText(R.string.storage_back)) and isEnabled()).fetchSemanticsNodes().isNotEmpty() }
         compose.onNodeWithText(localizedText(R.string.storage_title)).assertIsDisplayed()

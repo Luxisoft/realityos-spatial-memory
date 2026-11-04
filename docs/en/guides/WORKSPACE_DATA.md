@@ -13,9 +13,8 @@
 | **Personal details** | Email accounts edit their name, current location, hometown, birthday and gender in `PATCH /v1/me/profile`. Facebook identities keep these fields read-only and refresh them at each Facebook login. Birthday uses `YYYY-MM-DD`; age is derived. Omitted PATCH fields are preserved. |
 | **Connection** | An admin creates a connection; the integration key is shown once and sent in `X-RealityOS-Integration-Key`. |
 | **Batch** | Up to 100 records and 2 MiB; increasing versions, external-ID relations and atomic transaction. Same key/content returns the original result; different content returns 409. |
-| **Kinds** | `person`, `case`, `encounter`, `event`, `object`, `prescription`, `allergy`, `administration`. Draft/deleted records are excluded from queries. |
+| **Kinds** | `person`, `case`, `event`, `object`. Draft/deleted records are excluded from queries. |
 | **Biometrics** | Importing a person creates neither a user nor an enrollment. Traceable authorization and explicit portrait enrollment are required. |
-| **Clinical comparison** | Compares explicit fields, validity, allergies and related history. Does not calculate doses, convert units, prescribe or record administration. |
 
 ```mermaid
 flowchart LR
@@ -28,7 +27,7 @@ To bring photos, videos or a CV from R2/S3, use [My connections](STORAGE_CONNECT
 
 ## Local data and account selection
 
-The local composition initializes three groups, nine access accounts, 34 records and 41 publications from the versioned SQL in `simulator/database/`. The separate social initialization adds ten synthetic searchable profiles through the existing protected workflow. Original graphics are organized under `simulator/media/` and imported into PostgreSQL BYTEA.
+The local composition initializes two groups, six access accounts, 16 records and 25 publications from the versioned SQL in `simulator/database/`. The separate social initialization adds thirteen synthetic searchable profiles through the existing protected workflow. Original graphics are organized under `simulator/media/` and imported into PostgreSQL BYTEA.
 
 `GET /v1/auth/local-accounts` and `POST /v1/auth/local-select` read eligible accounts and memberships from the database. Selection is restricted to the local realm; no passwords or active server credentials are published. Server registration and external record integrations remain server capabilities.
 

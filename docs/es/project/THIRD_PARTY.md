@@ -31,7 +31,7 @@ El inventario es una fotografía del entorno identificado, no un archivo de bloq
 | Escenarios y medios de prueba | [Datos de espacios](../guides/WORKSPACE_DATA.md), [directorio social](../testing/SOCIAL_DIRECTORY.md) y [manifiesto organizado de medios](../../../simulator/media/manifest.csv). Conserva fuente, licencia, hash y ruta del recurso. El SQL versionado inicializa las filas locales; la preparación no carga archivos a almacenamiento remoto. |
 | Copias históricas de evaluación en R2 | Los recibos privados anteriores conservan verificaciones de fuentes y hashes. Son evidencia histórica, no el conjunto local activo ni autorización para cargas nuevas. |
 | Videos conceptuales de `demo-video/` | Se mantienen identificados como conceptuales. No se encontró un manifiesto de generación/licencia junto a esos cuatro archivos; su procedencia y los derechos de sus pistas deben quedar confirmados por quien los aportó si se incluyen en el envío. La grabación final es una entrega independiente. |
-| Capturas finales de la app | Usar los datos sintéticos preparados y medios autorizados. La revisión de salidas clínicas y de datos visibles se realiza al ejecutar el checklist y grabar la demo. |
+| Capturas finales de la app | Usar los datos sintéticos preparados y medios autorizados. La revisión de resultados y datos visibles se realiza al ejecutar el checklist y grabar la demo. |
 
 ## Evidencia que falta para cerrar derechos
 

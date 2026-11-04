@@ -8,7 +8,7 @@
 2. Deja **No environment** y abre **Server requests** o **Localhost requests**.
 3. En **00 Quick start**, abre una petición y pulsa **Send**. URL, cuenta, contraseña, workspace y pregunta ya están configurados; login y renovación son automáticos.
 
-**Server requests → 00 Live scenarios** conserva Police, Nursing y Memory con consultas sobre datos existentes. Cada destino contiene las 176 operaciones del servidor; localhost añade sus dos operaciones exclusivas. Los inicios rápidos y escenarios reutilizan esas operaciones.
+**Localhost requests → 00 Local scenarios** contiene Police y Meta Social Media, generados desde los datos SQL instalados. El catálogo Server requests está desactivado y no tiene URL ni credenciales activas. Las operaciones de referencia coinciden con el contrato OpenAPI vigente; los inicios rápidos y escenarios locales reutilizan esas operaciones.
 
 Los escenarios incluyen **48 consultas de video en español e inglés** con comprobaciones de publicación, instante y evidencia real. Consulta la [matriz de videos y resultados](../testing/VIDEO_EVALUATION.md) para ver qué objeto buscar en cada grabación.
 

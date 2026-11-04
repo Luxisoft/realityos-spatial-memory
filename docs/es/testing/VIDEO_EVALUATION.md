@@ -2,44 +2,14 @@
 
 # Evaluación local de videos
 
-El grupo Memory contiene cuatro grabaciones con licencia y dos objetos revisados por video. El SQL local instala sus bytes originales en la base de datos de la aplicación. Police contiene dieciséis publicaciones con retratos vinculadas a sus expedientes y tres videos; Meta Social Media contiene tres presentaciones de cuentas y tres videos. Las seis grabaciones añadidas están disponibles en las galerías de sus grupos. Los intervalos de objetos revisados que aparecen abajo corresponden a los cuatro videos de Memory.
+Policía y Meta Social Media contienen tres publicaciones ordinarias de video cada uno. Sus seis originales MP4 se instalan mediante el cargador SQL compartido y se guardan en PostgreSQL BYTEA. Fuentes, licencias y hashes SHA-256 figuran en el [manifiesto de medios](../../../simulator/media/manifest.csv); la [guía local](../guides/DEMO.md#video) enumera las grabaciones.
 
-En Postman abre **Localhost requests → 00 Local scenarios → Sonoran Neurological Institute → Video …**. Inicia los cuatro servicios locales y espera a que termine la indexación con tu clave privada de Meta. La selección de cuenta es automática y no requiere contraseñas publicadas. Server requests permanece desactivado.
+Usa una cuenta autorizada del grupo seleccionado. Abre su galería, reproduce cada video, desplázate dentro del original y descarga sus bytes. Repite la descarga con una petición de rango de bytes y confirma intervalo y longitud recibidos. Una cuenta ajena al grupo no debe obtener el medio. La cobertura automática está en [las pruebas de video](../../../tests/test_local_videos.py).
 
-Cada consulta debe recuperar la publicación esperada, un fotograma dentro del intervalo observado, localización SAM y la descarga original. `gallery_matches` contiene evidencia aunque `found`, propio de Register, sea `false`. «Última vez visto» describe evidencia grabada, no la ubicación actual del objeto. El idioma guardado en la cuenta prevalece sobre el solicitado.
+Postman ofrece peticiones de galería, medios y consultas derivadas de la BD en **Localhost requests → 00 Local scenarios → Police / Meta Social Media**. Inicia primero los cuatro servicios locales. La selección usa cuentas locales sin contraseñas publicadas; Server requests permanece desactivado.
 
-## Matriz de pruebas
+Las seis grabaciones no tienen una matriz revisada de objetos e intervalos. Se retiraron los videos de Memory y sus peticiones QA específicas. No declares detecciones, calidad de localización ni intervalos esperados sin revisar la fuente y la evidencia devuelta. Las consultas reales a Meta requieren la clave local privada y la indexación terminada; sus resultados necesitan una validación registrada aparte.
 
-### Memoria
+Las consultas no crean capturas de Register. «Última vez visto» describe evidencia registrada, no ubicación actual. Cada coincidencia de galería debe respetar el grupo seleccionado; las referencias sociales privadas nunca deben convertirse en evidencia de galería.
 
-| Video y autor | Cuenta propietaria | Pregunta | Intervalo visible |
-| --- | --- | --- | --- |
-| [7986194](https://www.pexels.com/video/a-person-getting-keys-on-the-table-7986194/) · SHVETS production | `noah-brooks` | Busca las llaves sobre la mesa de madera. | 0–4.5 s |
-| [7986194](https://www.pexels.com/video/a-person-getting-keys-on-the-table-7986194/) · SHVETS production | `noah-brooks` | Busca las gafas de sol oscuras. | 0–7.04 s |
-| [5828599](https://www.pexels.com/video/a-person-putting-things-on-it-s-bag-5828599/) · Polina | `noah-brooks` | Busca el portátil junto a la mochila. | 0–19 s |
-| [5828599](https://www.pexels.com/video/a-person-putting-things-on-it-s-bag-5828599/) · Polina | `noah-brooks` | Busca la billetera marrón. | 0–27 s |
-| [5615158](https://www.pexels.com/video/top-view-of-cooking-vegetables-5615158/) · KATRIN BOLOVTSOVA | `lucia-vega` | Busca el rallador de cocina. | 0–26.1 s |
-| [5615158](https://www.pexels.com/video/top-view-of-cooking-vegetables-5615158/) · KATRIN BOLOVTSOVA | `lucia-vega` | Busca la cuchara de madera. | 0–26.1 s |
-| [8034068](https://www.pexels.com/video/man-looking-a-documents-8034068/) · Edmond Dantès | `owen-patel` | Busca los documentos con secciones amarillas. | 0–13.64 s |
-| [8034068](https://www.pexels.com/video/man-looking-a-documents-8034068/) · Edmond Dantès | `owen-patel` | Busca las gafas redondas de montura metálica. | 0–13.64 s |
-
-
-## Ausencias y permisos
-
-Busca un violín en ES y EN: no debe aparecer evidencia coincidente. Una cuenta ajena al grupo debe recibir 403 al consultar su espacio y 403/404 al descargar su publicación.
-
-## Procedencia y reproducción
-
-Las fuentes, licencias y hashes SHA-256 se conservan en el [manifiesto de recursos](../../../simulator/media/manifest.csv). La [matriz QA](../../../tests/fixtures/video-evaluation.json) contiene preguntas, intervalos observados e historial de anotaciones. No almacena IDs operativos de publicaciones ni se carga como detecciones del modelo. Al generar Postman se resuelve el hash de cada grabación contra la publicación instalada por el mismo SQL de la aplicación local.
-
-```bash
-make install
-.venv/bin/python scripts/build_api_docs.py
-make docs-check
-```
-
-La documentación se genera en una base SQLite aislada en memoria. No conecta a un runtime instalado, inicia sesiones ni llama a proveedores. PostgreSQL local sigue siendo la fuente de verdad del runtime.
-
-## Evidencia de ejecución
-
-El [recibo histórico del servidor](../../assets/storage/video-evaluation-verification.json) documenta la evaluación anterior y sus grupos retirados. No es un resultado del conjunto local actual. La validación nueva con modelos reales y dispositivos Android/gafas requiere otra ejecución sobre la instalación local inicializada.
+Regenera las peticiones públicas desde la base canónica con `.venv/bin/python scripts/build_api_docs.py` y ejecuta `make docs-check`. La generación utiliza SQLite aislado en memoria; no lee una instalación activa ni llama proveedores. Las pruebas de reproducción y documentación no sustituyen la aceptación en Android/gafas reales o con modelos reales.

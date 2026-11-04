@@ -8,7 +8,7 @@ The group owner adds categories and tags during group creation and can rename, a
 
 Publishing requires one category and between one and twenty active tags from the selected group. Written or transcribed notes remain optional. Changing groups clears the selection. An empty catalog blocks publication and explains that the group owner must complete it.
 
-The categories and tags in the three local groups have authored Spanish and English names saved in the database. Categories, tags, thumbnails, filters and the viewer select the saved language without translating when a screen opens. Identifiers and associations stay unchanged. Prepared publications, records and descriptive profile fields also retain both versions in the database.
+The categories and tags in the two local groups have authored Spanish and English names saved in the database. Categories, tags, thumbnails, filters and the viewer select the saved language without translating when a screen opens. Identifiers and associations stay unchanged. Prepared publications, records and descriptive profile fields also retain both versions in the database.
 
 The reviewed copy and classification associations live in the versioned SQL seed under `simulator/database/` and are installed once, without recreating deleted rows or replacing owner edits. No new service, model, queue or automatic translator is involved. Proper names, identifiers and dates are unchanged. Later edits keep the owner's wording and stop showing outdated copy that no longer matches. Archiving preserves existing publication labels and historical filter options while preventing new selections. Manual classification does not become visual evidence or replace object analysis.
 
@@ -27,7 +27,7 @@ All routes require authentication and enforce the relevant group scope.
 | Operation | Contract |
 | --- | --- |
 | Read catalog | `GET /v1/groups/{workspace_id}/publication-catalog` returns `categories`, `tags` and `can_manage`. |
-| Create value | `POST /v1/groups/{workspace_id}/publication-catalog/{kind}`, with `kind=category` or `tag` and `{"name":"Clinical instruments"}`. Owner only. |
+| Create value | `POST /v1/groups/{workspace_id}/publication-catalog/{kind}`, with `kind=category` or `tag` and `{"name":"Public spaces"}`. Owner only. |
 | Rename/archive/restore | `PATCH /v1/groups/{workspace_id}/publication-catalog/{term_id}`, with `name` and `active`. Owner only. |
 | Publish or upload | Supply `category_id` and `tag_ids`. In JSON, `tag_ids` is a UUID array; in multipart, it is a text field containing that JSON array. |
 | Correct classification | `PATCH /v1/gallery/{post_id}/classification`, with `category_id` and `tag_ids`. Author only. |
@@ -48,6 +48,6 @@ Retries and subsequent synchronization do not approve pending candidates. Owners
 
 ## Local initialization and subsequent changes
 
-The shared SQL seed installs the three group catalogs and classifies all 41 prepared publications in the same application tables used by normal uploads and queries. There is no separate classification manifest or publication database. Installation receipts prevent restart from recreating deleted rows or replacing owner edits.
+The shared SQL seed installs the two group catalogs and classifies all 25 prepared publications in the same application tables used by normal uploads and queries. There is no separate classification manifest or publication database. Installation receipts prevent restart from recreating deleted rows or replacing owner edits.
 
 Subsequent corrections use the authenticated catalog and classification APIs above. They preserve original media and enforce group ownership, membership and author permissions. Server storage import and synchronization are available only in the server composition; local evaluation imports its organized fixture bytes directly into BYTEA.

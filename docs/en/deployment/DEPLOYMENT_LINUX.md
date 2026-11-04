@@ -26,7 +26,7 @@ cd realityos-spatial-memory &&
 bash scripts/local/start.sh
 ```
 
-Enter your own Meta key when prompted. The launcher creates a private `.env.local` on the server, generates internal secrets and prepares the three groups and nine accounts once. Existing local configuration and data are preserved on restart. PostgreSQL and Redis stay internal; Android uses its installed offline voices.
+Enter your own Meta key when prompted. The launcher creates a private `.env.local` on the server, generates internal secrets and prepares the two groups and six accounts once. Existing local configuration and data are preserved on restart. PostgreSQL and Redis stay internal; Android uses its installed offline voices.
 
 **3. Verify on the server.** Wait for setup to finish, then run:
 
@@ -52,7 +52,7 @@ Open [http://localhost:8080/docs](http://localhost:8080/docs) on your computer. 
 /c/platform-tools/adb.exe reverse tcp:8080 tcp:8080
 ```
 
-The app keeps `http://localhost:8080/v1` and reaches the server through your computer. Select one of the nine accounts. Repeat `adb reverse` after reconnecting the phone. Closing the tunnel disconnects clients but leaves the server running.
+The app keeps `http://localhost:8080/v1` and reaches the server through your computer. Select one of the six accounts. Repeat `adb reverse` after reconnecting the phone. Closing the tunnel disconnects clients but leaves the server running.
 
 **6. Stop or resume.** Inside the server's checkout, use `bash scripts/local/stop.sh` to stop and `bash scripts/local/start.sh` to resume. Stopping preserves data. Do not remove volumes or use `down -v` unless you intend to delete the evaluation data.
 

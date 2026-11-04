@@ -60,7 +60,7 @@ def test_selector_eligibility_is_not_inferred_from_account_names(evaluation):
         access.enabled = False
         user_id = str(access.user_id)
         db.commit()
-    assert len(evaluation.get("/v1/auth/local-accounts").json()["accounts"]) == 8
+    assert len(evaluation.get("/v1/auth/local-accounts").json()["accounts"]) == 5
     assert (
         evaluation.post("/v1/auth/local-select", json={"user_id": user_id}).status_code
         == 404
@@ -115,9 +115,9 @@ def test_postgres_initialization_and_concurrent_restart(postgres_url, tmp_path):
         results = list(pool.map(lambda _: initialize(), range(2)))
     assert sorted(result["initialized"] for result in results) == [False, True]
     client = APIClient(app)
-    assert len(client.get("/v1/auth/local-accounts").json()["accounts"]) == 9
+    assert len(client.get("/v1/auth/local-accounts").json()["accounts"]) == 6
     with app.state.database.session_factory() as db:
-        assert db.query(Publication).count() == 41
-        assert db.query(MediaAsset).count() == 57
-        assert db.query(Workspace).count() == 3
+        assert db.query(Publication).count() == 25
+        assert db.query(MediaAsset).count() == 28
+        assert db.query(Workspace).count() == 2
     app.state.database.engine.dispose()

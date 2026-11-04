@@ -14,16 +14,15 @@ Record the tester, date, app version/hash, operating systems, selected account/g
 | --- | --- | --- | --- |
 | Pacific Ridge Police Department | Alex Rivera, Maya Johnson, Daniel Kim | 16 fictional person records | 16 portraits + 3 videos |
 | Meta Social Media | Elena Marquez, Mateo Rios, Sarah Chen | No ordinary workspace records | 3 avatar introductions + 3 videos |
-| Sonoran Neurological Institute | Noah Brooks, Lucia Vega, Owen Patel | 18 records | 16 publications, including 4 videos |
 
-The total is 34 records and 41 publications. The ten additional synthetic Meta Social Media profiles are not selector accounts; their three private references per profile remain outside the gallery. Sources and original hashes are in the [media manifest](../../../simulator/media/manifest.csv).
+The total is 16 records and 25 publications. The thirteen additional synthetic Meta Social Media profiles are not selector accounts; their three private references per profile remain outside the gallery. Sources and original hashes are in the [media manifest](../../../simulator/media/manifest.csv).
 
 ## Installation and local access
 
 - [ ] **P01** — Retrieve code and Git LFS resources, start the local stack and install the canonical Debug APK through the README instructions. Record the exact APK hash and confirm `/health/ready` responds on the local PC.
 - [ ] **P02** — Complete first startup on the intended Windows/Linux host, including image/model downloads. Confirm the four services and successful database initialization before evaluating queries.
-- [ ] **A01** — Open the local selector: all three groups start collapsed. Check all nine accounts, their names and avatars. Switching accounts must not reuse another account's group or session.
-- [ ] **A02** — Confirm an account sees only authorized groups and resources. A Police account must not read Meta Social Media or Memory records, original media or private references.
+- [ ] **A01** — Open the local selector: both groups start collapsed. Check all six accounts, their names and avatars. Switching accounts must not reuse another account's group or session.
+- [ ] **A02** — Confirm an account sees only authorized groups and resources. A Police account must not read Meta Social Media records, original media or private references.
 - [ ] **A03** — Restart local services. Existing edits, hidden/deleted publications and removed memberships must remain unchanged; initialization must not restore them.
 
 ## Records and publication data
@@ -31,14 +30,14 @@ The total is 34 records and 41 publications. The ten additional synthetic Meta S
 - [ ] **R01** — Open all 16 Police records and their linked portrait publications. Confirm five active arrest warrants and two active proceedings among those five. Bruno Escobar and Daniel Serrano have arrest warrants without active proceedings or convictions.
 - [ ] **R02** — Open Samuel Ortega, Elena Duarte, Isabel Mora and Natalia Campos (PRP-0013–0016): missing-person status and each active search order must be visible separately from arrest fields. Confirm no arrest warrant, criminal history or active proceedings. The other seven clear records retain no history, warrants or proceedings.
 - [ ] **R03** — Verify each portrait opens its original media only for an authorized member. Record lookup and sharing must not grant biometric authorization or create enrollments.
-- [ ] **G01** — Check all 41 publications across the three groups, including pagination. Verify authors, categories, tags, captions, notes and ES/EN stored display text. Profiles and gallery lists must stay consistent after edits.
+- [ ] **G01** — Check all 25 publications across the two groups, including pagination. Verify authors, categories, tags, captions, notes and ES/EN stored display text. Profiles and gallery lists must stay consistent after edits.
 - [ ] **G02** — Apply category, tag, author, date and text filters; clear them and switch groups. Open a publication and return. Verify scope, result ordering and retained filter state.
 - [ ] **G03** — On a disposable installation, publish explicitly into an existing group with valid classification. Check duplicate handling, ownership restrictions and independent comments/reactions on authorized group copies.
 
 ## Videos and object evidence
 
-- [ ] **V01** — Play all six added Police/Meta videos and the four Memory recordings. Verify full originals, playback/seek behavior and access rejection from another group.
-- [ ] **V02** — Run the reviewed Memory questions in [Video evaluation](VIDEO_EVALUATION.md) after indexing finishes. Inspect the actual returned frame, object localization, original download and “last seen” wording in ES/EN.
+- [ ] **V01** — Play all six added Police/Meta videos. Verify full originals, playback/seek behavior and access rejection from another group.
+- [ ] **V02** — Follow [Video evaluation](VIDEO_EVALUATION.md) to verify scoped playback and downloads. Record any live query result separately; there are no reviewed object/time expectations for these six videos.
 - [ ] **V03** — Query for an absent object and query outside the account's groups. Expect no invented evidence and no unauthorized results. A query must not initiate a new Register capture.
 - [ ] **V04** — Exercise explicit camera/image input using the [visual cards](QA_VISUAL_FIXTURES.md). Record provider failures and latency separately from visual correctness; do not count a loading state as a pass.
 

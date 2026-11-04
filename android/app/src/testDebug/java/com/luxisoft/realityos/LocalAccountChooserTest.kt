@@ -27,8 +27,8 @@ class LocalAccountChooserTest {
     @get:Rule val compose = createAndroidComposeRule<androidx.activity.ComponentActivity>()
 
     private fun chooser(scale: Float) {
-        val groups = listOf("Pacific Ridge Police Department", "Meta Social Media", "Sonoran Neurological Institute")
-        val names = listOf("Alex Rivera", "Maya Johnson", "Daniel Kim", "Elena Marquez", "Mateo Rios", "Sarah Chen", "Noah Brooks", "Lucia Vega", "Owen Patel")
+        val groups = listOf("Pacific Ridge Police Department", "Meta Social Media")
+        val names = listOf("Alex Rivera", "Maya Johnson", "Daniel Kim", "Elena Marquez", "Mateo Rios", "Sarah Chen")
         val accounts = names.mapIndexed { index, name -> LocalAccount(index.toString(), "person-$index", name, "group-${index / 3}", groups[index / 3]) }
         var selected = ""
         compose.setContent {
@@ -48,7 +48,7 @@ class LocalAccountChooserTest {
             compose.onNodeWithTag("local-group-$group").performScrollTo().performClick()
             names.slice(index * 3 until index * 3 + 3).forEach { compose.onNodeWithText(it).assertDoesNotExist() }
         }
-        assertEquals("8", selected)
+        assertEquals("5", selected)
     }
 
     private fun capture(name: String) {
@@ -64,7 +64,7 @@ class LocalAccountChooserTest {
         }
     }
 
-    @Test fun allNineAccountsCanBeReachedAndSelected() = chooser(1f)
+    @Test fun allSixAccountsCanBeReachedAndSelected() = chooser(1f)
 
     @Test
     @Config(qualifiers = "es-w320dp-h640dp-mdpi")

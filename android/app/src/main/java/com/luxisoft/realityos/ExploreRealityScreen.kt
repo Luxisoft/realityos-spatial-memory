@@ -39,9 +39,7 @@ private data class ExplorePage(
 private val explorePages = listOf(
     ExplorePage(R.drawable.intro_overview, R.string.explore_overview_label, R.string.explore_overview_title, R.string.explore_overview_body, R.string.explore_overview_example, Icons.Outlined.Hub),
     ExplorePage(R.drawable.intro_case, R.string.explore_case_label, R.string.explore_case_title, R.string.explore_case_body, R.string.explore_case_example, Icons.Outlined.FolderOpen),
-    ExplorePage(R.drawable.intro_care, R.string.explore_care_label, R.string.explore_care_title, R.string.explore_care_body, R.string.explore_care_example, Icons.Outlined.Assignment),
     ExplorePage(R.drawable.intro_social, R.string.explore_social_label, R.string.explore_social_title, R.string.explore_social_body, R.string.explore_social_example, Icons.Outlined.PeopleOutline),
-    ExplorePage(R.drawable.intro_memory, R.string.explore_memory_label, R.string.explore_memory_title, R.string.explore_memory_body, R.string.explore_memory_example, Icons.Outlined.History),
     ExplorePage(R.drawable.intro_devices, R.string.explore_devices_label, R.string.explore_devices_title, R.string.explore_devices_body, R.string.explore_devices_example, Icons.Outlined.PhonelinkRing)
 )
 

@@ -10,10 +10,10 @@ The existing API runs inside local Docker. The collection reflects enabled local
 
 1. Start the [local installation](../deployment/DEPLOYMENT_LOCALHOST.md).
 2. Import the [collection](../../postman/RealityOS.postman_collection.json) and select **No environment**.
-3. Open **Localhost requests → 00 Quick start** or **00 Local scenarios → Police / Nursing / Memory**.
+3. Open **Localhost requests → 00 Quick start** or **00 Local scenarios → Police / Meta Social Media**.
 4. Click **Send**. The account selector obtains real tokens; renewal is automatic. No passwords are needed.
 
-`localhost_user_id` selects the quick-start account. Scenarios retain independent `security_`, `hospital_` and `memory_` prefixes, IDs and sessions. List the nine available users with `GET /v1/auth/local-accounts`; `POST /v1/auth/local-select` accepts `{"user_id":"..."}`. These routes do not exist in production. They do not grant cross-workspace access or biometric consent.
+`localhost_user_id` selects the quick-start account. Scenarios retain independent `security_` and `meta_social_` prefixes, IDs and sessions. List the six available users with `GET /v1/auth/local-accounts`; `POST /v1/auth/local-select` accepts `{"user_id":"..."}`. These routes do not exist in production. They do not grant cross-workspace access or biometric consent.
 
 Initial preparation loads local files and the worker indexes them using your Meta key. The 48 bilingual video checks require completed indexing; no AI results are precomputed.
 

@@ -1,26 +1,22 @@
 """Build public examples from the local SQL seed in an isolated in-memory database.
 
 No runtime database, provider, private configuration file or account credential is
-used. The only JSON input contains independent video QA questions and intervals.
+used. All operational identifiers come from the initialized database.
 """
 
-import json
 import uuid
 from contextlib import contextmanager
 from functools import lru_cache
-from pathlib import Path
 
 from app.config import Settings
 from app.db import Base, Database
 from app.local.access import list_accounts
 from app.local.bootstrap import seed_evaluation
-from app.models import MediaAsset
 from app.social_features import evidence_models  # noqa: F401
 from app.social_features.models import Publication
 from app.workspaces.models import Record
 from sqlalchemy import func, select
 
-ROOT = Path(__file__).resolve().parents[1]
 ACCOUNT_FIELDS = (
     "email",
     "username",
@@ -31,7 +27,7 @@ ACCOUNT_FIELDS = (
 )
 
 
-def scenarios_from_database(db, annotations):
+def scenarios_from_database(db):
     """Resolve all account/resource identifiers from the installed application tables."""
     representatives = {}
     for account in list_accounts(db):
@@ -55,29 +51,13 @@ def scenarios_from_database(db, annotations):
             .order_by(Record.external_id, Record.id)
             .limit(1)
         )
-        videos = []
-        for annotation in annotations["videos"]:
-            post = db.scalar(
-                select(Publication)
-                .join(MediaAsset, MediaAsset.id == Publication.media_id)
-                .where(
-                    Publication.workspace_id == workspace_id,
-                    Publication.hidden.is_(False),
-                    MediaAsset.sha256 == annotation["sha256"],
-                )
-            )
-            if post:
-                videos.append({**annotation, "post_id": str(post.id)})
-        post = next(
-            (p for p in posts if videos and str(p.id) == videos[0]["post_id"]), posts[0]
-        )
+        post = posts[0]
         caption = post.display_text.get("caption", {}).get("en") or post.caption
         scenarios.append(
             {
                 "prefix": prefix,
                 "name": f"{len(scenarios) + 1:02} {account['workspace_name']}",
                 "workspace_name": account["workspace_name"],
-                "videos": videos,
                 "values": {
                     "email": "",
                     "password": "",
@@ -87,22 +67,13 @@ def scenarios_from_database(db, annotations):
                     "workspace_id": account["workspace_id"],
                     "record_id": str(record.id) if record else "",
                     "post_id": str(post.id),
-                    "query": videos[0]["queries"][0]["en"]
-                    if videos
-                    else f"Find {caption}",
+                    "query": f"Find {caption}",
                     "record_question": f"Summarize the record for {record.title}."
                     if record
                     else "",
                     "auth_mode": "local-select",
                 },
             }
-        )
-    resolved = {
-        video["sha256"] for scenario in scenarios for video in scenario["videos"]
-    }
-    if resolved != {video["sha256"] for video in annotations["videos"]}:
-        raise ValueError(
-            "Every active video QA case must resolve to an installed publication."
         )
     return scenarios
 
@@ -133,16 +104,11 @@ def local_evaluation_database():
 
 @lru_cache(maxsize=1)
 def evaluation_dataset():
-    annotations = json.loads(
-        (ROOT / "tests/fixtures/video-evaluation.json").read_text()
-    )
     with local_evaluation_database() as db:
-        scenarios = scenarios_from_database(db, annotations)
+        scenarios = scenarios_from_database(db)
         publication_count = db.scalar(select(func.count(Publication.id)))
         account_count = len(list_accounts(db))
-    default = next(
-        (scenario for scenario in scenarios if scenario["videos"]), scenarios[0]
-    )
+    default = scenarios[0]
     return {
         "base_url": "http://localhost:8080",
         "publication_count": publication_count,

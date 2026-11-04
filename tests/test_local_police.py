@@ -12,7 +12,7 @@ from sqlalchemy import select
 
 
 def test_police_people_portraits_and_access(evaluation):
-    group, _, other = catalog(evaluation)["groups"]
+    group, other = catalog(evaluation)["groups"]
 
     def login(user):
         token = evaluation.post(

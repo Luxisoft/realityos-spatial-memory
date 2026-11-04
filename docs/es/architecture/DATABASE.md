@@ -12,7 +12,7 @@ PostgreSQL es la fuente de verdad de ambos entornos. Cuentas, grupos, permisos, 
 | Expedientes | Registros, vínculos de medios y traducciones almacenados; acceso sujeto a pertenencia vigente. |
 | Perfiles | Avatar separado de referencias privadas y CV. Las respuestas públicas no exponen originales privados. |
 | Biometría | Consentimientos y enrolamientos protegidos, separados del flujo de objetos/publicaciones. |
-| Acceso local | `local_access_accounts` relaciona exclusivamente las nueve cuentas seleccionables con sus grupos. |
+| Acceso local | `local_access_accounts` relaciona exclusivamente las seis cuentas seleccionables con sus grupos. |
 | Instalación local | Recibos versionados en BD evitan repetir inicializaciones o recuperar datos borrados al reiniciar. |
 
 ## Esquema nuevo y actualizaciones
@@ -27,7 +27,7 @@ Las pruebas usan PostgreSQL efímero, schemas aislados y el mismo instalador: ve
 
 `simulator/database/` contiene el conjunto SQL de instalación; `simulator/media/` contiene únicamente recursos locales organizados por uso, junto a `manifest.csv` de procedencia/licencia/hash. Los módulos de `app.local` validan el entorno antes de instalar. Sus recibos y cambios pertenecen a la misma transacción: un error no debe dejar una instalación marcada como completada.
 
-El conjunto vigente conserva tres grupos y nueve cuentas de acceso. Pacific Ridge Police Department tiene diez retratos y expedientes enlazados a publicaciones; Sonoran conserva sus escenas; Meta Social Media tiene presentaciones de sus tres cuentas y diez perfiles sintéticos adicionales con referencias privadas. Los perfiles adicionales no amplían el selector de nueve cuentas. Los reinicios conservan ediciones, eliminaciones, pertenencia y consentimientos.
+El conjunto vigente tiene dos grupos y seis cuentas de acceso. Pacific Ridge Police Department tiene dieciséis retratos y expedientes enlazados a publicaciones, además de tres videos. Meta Social Media tiene presentaciones de sus tres cuentas, tres videos y trece perfiles sintéticos adicionales con referencias privadas. Los perfiles adicionales no amplían el selector de seis cuentas. El retiro local versionado elimina Sonoran/Memory y sus recursos exclusivos. Los reinicios conservan ediciones, eliminaciones, pertenencia y consentimientos de los grupos vigentes.
 
 La carga inicial copia los archivos verificados a BYTEA. Las consultas posteriores utilizan la BD incluso si los recursos de instalación dejan de estar disponibles. Los originales de referencias biométricas nunca se publican; solo el avatar separado se muestra.
 

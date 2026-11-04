@@ -90,7 +90,7 @@ class EntryExperienceTest {
         compose.onNodeWithTag("explore-title-0").assertIsDisplayed()
         tap("explore-exit")
         compose.runOnIdle { assertEquals(1, finished) }
-        repeat(5) { tap("explore-next") }
+        repeat(3) { tap("explore-next") }
         compose.onNodeWithTag("explore-next").assertTextEquals("Get started")
         tap("explore-next")
         compose.runOnIdle { assertEquals(2, finished) }
@@ -107,10 +107,10 @@ class EntryExperienceTest {
         restoration.emulateSavedInstanceStateRestore()
         compose.onNodeWithTag("explore-title-2").assertIsDisplayed()
         tap("explore-previous")
-        compose.onNodeWithContentDescription("Page 2 of 6").assertExists()
+        compose.onNodeWithContentDescription("Page 2 of 4").assertExists()
         tap("explore-exit")
         compose.runOnIdle { assertEquals(1, finished) }
-        repeat(4) { tap("explore-next") }
+        repeat(2) { tap("explore-next") }
         compose.onNodeWithTag("explore-next").assertTextEquals("Back to the app")
         tap("explore-next")
         compose.runOnIdle { assertEquals(2, finished) }
@@ -133,12 +133,12 @@ class EntryExperienceTest {
         compose.onNodeWithTag("access-email").performScrollTo().assertIsDisplayed()
         capture("access-actions-$prefix")
         scrollTap("access-explore")
-        repeat(6) { page ->
+        repeat(4) { page ->
             compose.onNodeWithTag("explore-title-$page").performScrollTo().assertIsDisplayed()
             // Return to the illustration for consistent visual review, including large text.
             compose.onNodeWithTag("explore-page-$page").performTouchInput { swipeDown() }
             capture("explore-$page-$prefix")
-            if (page == 5) {
+            if (page == 3) {
                 compose.onNodeWithTag("explore-credits").performScrollTo().assertExists()
                 capture("credits-$prefix")
             }

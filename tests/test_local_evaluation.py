@@ -98,7 +98,7 @@ def test_replacement_preserves_profiles_and_is_one_time(
         assert db.get(Publication, removed_post) is None
         assert db.get(MediaAsset, removed_media) is None
         assert db.get(Record, removed_record) is None
-        assert db.query(Publication).count() == 28
+        assert db.query(Publication).count() == 12
         for user_id, snapshot in profiles.items():
             profile = db.get(UserProfile, user_id)
             assert (
@@ -135,15 +135,15 @@ def test_seed_restart_preserves_edits_and_deletions(evaluation):
         assert db.get(UserProfile, user.id) is None
         assert db.get(Publication, post.id).hidden
         assert db.get(Record, record.id).title == "Edited record"
-        assert db.query(Workspace).count() == 3
-        assert db.query(RecordMedia).count() == 26
+        assert db.query(Workspace).count() == 2
+        assert db.query(RecordMedia).count() == 16
 
 
 def test_selector_issues_session_and_cannot_cross_groups(evaluation):
     listing = evaluation.get("/v1/auth/local-accounts")
     assert listing.status_code == 200 and listing.headers["cache-control"] == "no-store"
     accounts = listing.json()["accounts"]
-    assert len(accounts) == 9
+    assert len(accounts) == 6
     response = evaluation.post(
         "/v1/auth/local-select", json={"user_id": accounts[0]["id"]}
     )
@@ -169,7 +169,7 @@ def test_selector_issues_session_and_cannot_cross_groups(evaluation):
         == 404
     )
     with evaluation.app.state.database.session_factory() as db:
-        assert db.query(Workspace).count() == 3
+        assert db.query(Workspace).count() == 2
         db.execute(
             delete(WorkspaceMember).where(
                 WorkspaceMember.user_id == uuid.UUID(accounts[0]["id"])
@@ -289,7 +289,7 @@ def test_queue_dispatch_resumes_without_repeating_successful_jobs(
             enqueue_initial_media(db)
         assert len(calls) == 3
         monkeypatch.setattr("app.tasks.index_gallery_media.delay", calls.append)
-        assert enqueue_initial_media(db) == {"dispatched": 41}
-        assert len(set(calls)) == len(calls) == 41
-        assert enqueue_initial_media(db) == {"dispatched": 41}
-        assert len(calls) == 41
+        assert enqueue_initial_media(db) == {"dispatched": 25}
+        assert len(set(calls)) == len(calls) == 25
+        assert enqueue_initial_media(db) == {"dispatched": 25}
+        assert len(calls) == 25

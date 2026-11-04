@@ -40,11 +40,11 @@ class UnifiedChromeTest {
         LocalizedText.initialize(context)
         RealityExperienceStore(context).setLanguage(if (context.resources.configuration.locales[0].language == "es") RealityLanguage.SPANISH else RealityLanguage.ENGLISH)
         RuntimeEnvironment.setFontScale(scale)
-        val profile = ProfileState().apply { apply(JSONObject().put("display_name", "Elena Marquez").put("email", "elena@example.test").put("headline", "Care coordinator").put("profile_source", "email")) }
+        val profile = ProfileState().apply { apply(JSONObject().put("display_name", "Elena Marquez").put("email", "elena@example.test").put("headline", "Community coordinator").put("profile_source", "email")) }
         val actions = mutableListOf<String>()
         val groups = GalleryTopBarState().apply {
             loading = false
-            options = listOf(WorkspaceOption("group", "California Valley Medical Center", "admin"))
+            options = listOf(WorkspaceOption("group", "Meta Social Media", "admin"))
             selectedId = "group"
         }
         compose.setContent {
@@ -56,7 +56,7 @@ class UnifiedChromeTest {
                         Column(Modifier.fillMaxSize().padding(padding)) {
                             GalleryActions(groups)
                             MetaViewHeader(localizedText(R.string.preview_simulator_title), MetaSection.PREVIEW, { actions += "meta-${it.name}" }, { actions += "controls" })
-                            Text("California Valley Medical Center", Modifier.padding(16.dp))
+                            Text("Meta Social Media", Modifier.padding(16.dp))
                         }
                     }
                 }

@@ -33,6 +33,10 @@ def test_local_contract_and_composition_do_not_change_server_routes():
         assert "/v1/auth/facebook" in server.openapi()["paths"]
         assert "/v1/auth/facebook" not in local.openapi()["paths"]
         assert "/v1/auth/logout" in local.openapi()["paths"]
+        retired = "/v1/workspaces/{workspace_id}/records/{person_id}/medication-check"
+        for app in (local, server):
+            assert retired not in app.openapi()["paths"]
+            assert "MedicationCheck" not in app.openapi()["components"]["schemas"]
     finally:
         local.state.database.engine.dispose()
         server.state.database.engine.dispose()

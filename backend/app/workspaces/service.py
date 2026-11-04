@@ -53,7 +53,6 @@ def import_batch(db, connection, payload):
         for r in db.scalars(select(Record).where(Record.connection_id == connection.id))
     }
     available = set(existing) | set(external_ids)
-    targets = {**existing, **{r.external_id: r for r in payload.records}}
     # Atomic validation: incomplete graphs do not become searchable.
     for entry in payload.records:
         if set(entry.related_ids) - available:
@@ -65,15 +64,6 @@ def import_batch(db, connection, payload):
             raise HTTPException(
                 409, f"Version must increase and kind must stay unchanged: {entry.external_id}."
             )
-    # Validate the resulting graph, including unchanged clinical history. A
-    # person withdrawal must not leave active prescriptions or allergies orphaned.
-    for entry in targets.values():
-        if entry.status == "active" and entry.kind in {"prescription", "allergy", "administration"}:
-            patients = [targets[key] for key in entry.related_ids if targets[key].kind == "person"]
-            if len(patients) != 1 or patients[0].status != "active":
-                raise HTTPException(
-                    422, f"Clinical record requires one active person: {entry.external_id}."
-                )
     rows = []
     now = datetime.now(UTC)
     for entry in payload.records:
@@ -101,9 +91,15 @@ def import_batch(db, connection, payload):
         # may set it on person records, but never enroll faces by themselves.
         # Absent fields preserve the stored decision (notes-like behavior).
         if entry.biometric_authorized is not None or is_new:
-            authorized = bool(entry.biometric_authorized) if entry.biometric_authorized is not None else False
+            authorized = (
+                bool(entry.biometric_authorized)
+                if entry.biometric_authorized is not None
+                else False
+            )
             if authorized and row.kind != "person":
-                raise HTTPException(422, f"Only persons may be biometric-authorized: {entry.external_id}.")
+                raise HTTPException(
+                    422, f"Only persons may be biometric-authorized: {entry.external_id}."
+                )
             row.biometric_authorized = authorized
             if authorized:
                 row.biometric_basis = (entry.biometric_basis or "").strip()

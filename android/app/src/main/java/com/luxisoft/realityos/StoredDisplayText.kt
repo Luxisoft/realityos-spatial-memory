@@ -20,7 +20,6 @@ internal fun recordFieldLabel(key: String): String = when (key) {
     "last_seen_location" -> localizedText(R.string.record_label_last_seen_location)
     "identifier" -> localizedText(R.string.record_label_identifier)
     "birth_date" -> localizedText(R.string.record_label_birth_date)
-    "allergies_reviewed_at" -> localizedText(R.string.record_label_allergies_reviewed_at)
     "ingredient" -> localizedText(R.string.record_label_ingredient)
     "concentration" -> localizedText(R.string.record_label_concentration)
     "state" -> localizedText(R.string.record_label_state)
@@ -29,11 +28,7 @@ internal fun recordFieldLabel(key: String): String = when (key) {
     "substance" -> localizedText(R.string.record_label_substance)
     "person" -> localizedText(R.string.record_label_person)
     "case" -> localizedText(R.string.record_label_case)
-    "encounter" -> localizedText(R.string.record_label_encounter)
     "event" -> localizedText(R.string.record_label_event)
     "object" -> localizedText(R.string.record_label_object)
-    "prescription" -> localizedText(R.string.record_label_prescription)
-    "allergy" -> localizedText(R.string.record_label_allergy)
-    "administration" -> localizedText(R.string.record_label_administration)
     else -> key
 }

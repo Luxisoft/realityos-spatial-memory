@@ -3,8 +3,6 @@
 import copy
 import json
 
-from build_video_postman import video_requests
-
 REQUESTS = [
     "GET /v1/auth/me",
     "POST /v1/auth/local-select",
@@ -90,7 +88,6 @@ def publish(folders, fixture, write, namespace, describe, check, reference):
                 "\n\nReady to send. All inputs use this scenario's existing account and stored resources. Authentication and renewal are automatic."
             )
             items.append(item)
-        items.extend(video_requests(templates["POST /v1/queries"], scenario["videos"]))
         collection["item"].append(
             {
                 "name": scenario["name"],
@@ -112,7 +109,7 @@ def publish(folders, fixture, write, namespace, describe, check, reference):
     collection = copy.deepcopy(reference)
     collection["info"].update(
         name="RealityOS API · Local evaluation",
-        description="Start the four local Docker services, select No environment and open Localhost requests. Nine accounts and three scenarios are prepared locally. Authentication uses the local selector; no passwords or provider keys are published. Historical Server requests is disabled. AI requests use your Meta key from the private .env.local file; allow indexing to finish before running video checks.",
+        description="Start the four local Docker services, select No environment and open Localhost requests. Six accounts and two scenarios are prepared locally. Authentication uses the local selector; no passwords or provider keys are published. Historical Server requests is disabled. AI requests use your Meta key from the private .env.local file; allow indexing to finish before querying stored media.",
     )
     server, localhost = collection["item"]
     server["description"] = (

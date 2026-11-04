@@ -8,7 +8,7 @@
 2. Leave **No environment** selected and open **Server requests** or **Localhost requests**.
 3. Under **00 Quick start**, open a request and click **Send**. URL, account, password, workspace and question are prefilled; login and renewal are automatic.
 
-**Server requests → 00 Live scenarios** retains Police, Nursing and Memory with queries against existing data. Each destination contains the 176 server operations; localhost adds its two exclusive operations. Quick starts and scenarios reuse those operations.
+**Localhost requests → 00 Local scenarios** contains Police and Meta Social Media, generated from the installed SQL data. The disabled Server requests catalog has no active URL or credentials. Reference operations match the current OpenAPI contract; quick starts and local scenarios reuse those operations.
 
 The live scenarios include **48 video queries in Spanish and English** with checks for the expected publication, timestamp and real evidence. See the [video matrix and results](../testing/VIDEO_EVALUATION.md) for the objects to find in each recording.
 

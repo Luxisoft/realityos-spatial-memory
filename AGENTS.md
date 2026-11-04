@@ -206,7 +206,7 @@ All application records, including the local account selector, come from Postgre
 Do not add business-record JSON catalogs or replace them with embedded Python/Kotlin
 lists or YAML/CSV catalogs. SQL in `simulator/database/` is installation-only; use
 one transactional initializer and durable receipts. Existing edits, deletions,
-memberships and consent revocations must survive restarts. All three groups use
+memberships and consent revocations must survive restarts. All current groups use
 one shared publication schema and loader; private social references remain isolated.
 
 Keep original local test images/videos organized under `simulator/media/`, with
@@ -252,3 +252,32 @@ The original ten cases remain intact: Police now has sixteen person records,
 five arrest warrants, two active proceedings, four missing-person search orders,
 and nineteen publications including the three park videos. No automatic biometric
 enrollment or authorization is implied. Preserve existing edits and deletions.
+
+## Owner correction: retire Memory and extend Meta profiles (2026-11-04)
+
+Only Police and Meta Social Media remain in local evaluation: two groups and six
+access accounts. Retire Sonoran Neurological Institute/Memory, its local users,
+records, publications, exclusive media and obsolete clinical UI/API. Do not recreate
+them from initial SQL or historical resources. Preserve shared record CRUD,
+relationships, search, media, permissions and protected biometric code. Keep
+historical Alembic migrations. The retirement is local and versioned; it does not
+authorize production data changes or deployment.
+
+Meta Social Media now has thirteen additional synthetic profiles, including
+Gabriel Herrera, Adrián Navarro and Paula Méndez. Each uses one separate avatar
+and three private reference photos; they are not selector accounts or group
+publications. Existing profiles, edits, deletions and consent gates remain intact.
+
+Keep the README presentation of Nursing and Memory as conceptual examples at the
+end, stating that the platform can also serve those two cases and many more.
+Preserve their conceptual `demo-video/nurse_case.mp4`, `demo-video/memory.mp4`
+and README thumbnails. This correction supersedes earlier instructions to retain
+the installed Memory scenario and the previous nine-account/three-group scope.
+
+## Owner correction: launcher icon (2026-11-04)
+
+Use the owner's `icon_150` image as the app icon, moved into
+`android/app/src/main/res/drawable-nodpi/icon_app.png`; remove the loose root copy.
+Apply `#017df7` only to `launcher_background`. Keep the existing colors and theme
+tokens inside app screens, components and buttons. Rebuild and deliver the
+canonical signed APK.

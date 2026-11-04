@@ -8,7 +8,7 @@ from sqlalchemy import select
 def test_every_prepared_publication_has_scoped_classification(evaluation):
     with evaluation.app.state.database.session_factory() as db:
         publications = list(db.scalars(select(Publication)))
-        assert len(publications) == 41
+        assert len(publications) == 25
         assert {p.workspace_id for p in publications} == set(
             db.scalars(select(Workspace.id))
         )

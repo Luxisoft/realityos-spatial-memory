@@ -155,7 +155,6 @@ private fun WorkspaceRecordsContent(workspaceId: String, canWrite: Boolean, onBa
             details.related.forEach { row ->
                 TextButton(onClick = { open(row.id) }, enabled = !busy) { Text(row.title.display()) }
             }
-            if (item.optString("kind") == "person") key(item.getString("id")) { MedicationCheckForm(workspaceId, item) }
             Text(stringResource(R.string.records_timeline), style = MaterialTheme.typography.titleMedium)
             details.notes.forEach { entry ->
                 Text(entry.occurredAt, style = MaterialTheme.typography.labelSmall)

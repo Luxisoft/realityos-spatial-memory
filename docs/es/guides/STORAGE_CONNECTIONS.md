@@ -32,6 +32,6 @@ Mantén estable `STORAGE_ENCRYPTION_KEY` en el runtime privado y compartida por 
 
 La evaluación local inicializa las tablas de la aplicación mediante SQL versionado en `simulator/database/` e importa los originales de `simulator/media/` a PostgreSQL BYTEA. Las fuentes, licencias, hashes y rutas de recursos se conservan en `simulator/media/manifest.csv` como procedencia. No constituyen otra base de publicaciones.
 
-El runtime local no utiliza buckets ni importaciones remotas. Sus tres grupos contienen 41 publicaciones. Los ejemplos Postman consultan una base desechable inicializada con el mismo SQL; las preguntas de video e intervalos observados están en la [matriz QA](../testing/VIDEO_EVALUATION.md).
+El runtime local no utiliza buckets ni importaciones remotas. Sus dos grupos contienen 25 publicaciones. Los ejemplos Postman consultan una base desechable inicializada con el mismo SQL; las comprobaciones de reproducción, rangos y permisos se describen en [evaluación de videos](../testing/VIDEO_EVALUATION.md).
 
 La integración de almacenamiento pertenece al servidor. Su evidencia histórica está fechada en el [estado de implementación](../project/IMPLEMENTATION_STATUS.md); la preparación local no modifica fuentes remotas ni datos del servidor.

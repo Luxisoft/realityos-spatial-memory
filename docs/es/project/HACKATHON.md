@@ -48,7 +48,6 @@ La guía sitúa el kickoff el **26 de octubre** y la construcción del **27 de o
 
 | Exclusión | Resultado de la revisión |
 | --- | --- |
-| IA que genere consejo médico | El [comparador](../../../backend/app/workspaces/clinical.py) coteja campos y no llama a un modelo; exige revisión profesional y no registra administraciones. La [consulta contextual](../../../backend/app/workspaces/search.py) prohíbe prescribir o autorizar medicación en su instrucción. Esto no demuestra que toda respuesta generada sea segura: falta revisar las salidas reales de la demo clínica. Mantener el caso como consulta de registros y discrepancias, sin consejo terapéutico. |
 | RAG básico o analizador simple de imágenes | El proyecto incluye enrolamiento facial, evidencia visual persistida, segmentación, captura DAT e integración versionada. La demo debe demostrar estas implementaciones; una explicación o un chat aislado no sustituye la evidencia técnica. La decisión de admisión es del jurado. |
 | Chatbot educativo simple; selección laboral; nutrición; personalidad; deporte | No son las funciones presentadas. Un perfil o CV autorizado no se describe como evaluación de personalidad ni selección de candidatos laborales. |
 | Política o guerra | Los ejemplos documentados no son políticos ni militares. El escenario policial describe expedientes y evidencia autorizados, no predicción criminal ni decisiones automáticas. |

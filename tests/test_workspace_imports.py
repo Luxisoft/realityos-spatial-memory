@@ -1,18 +1,34 @@
 import io
 
+import pytest
 from app.models import Role, User, WorkspaceMember
 from app.security import hash_password
 from PIL import Image
 
 
-def setup_source(client, auth_headers, name="Hospital"):
+@pytest.mark.parametrize(
+    "kind", ["encounter", "prescription", "allergy", "administration"]
+)
+def test_retired_clinical_record_types_are_rejected(client, auth_headers, kind):
+    workspace, _, headers = setup_source(client, auth_headers)
+    payload = batch()
+    payload["records"][0]["kind"] = kind
+    response = client.post("/v1/integrations/imports", headers=headers, json=payload)
+    assert response.status_code == 422
+    assert (
+        client.get(f"/v1/workspaces/{workspace}/records", headers=auth_headers).json()
+        == []
+    )
+
+
+def setup_source(client, auth_headers, name="Records workspace"):
     workspace = client.post(
         "/v1/workspaces", headers=auth_headers, json={"name": name}
     ).json()["id"]
     result = client.post(
         f"/v1/workspaces/{workspace}/connections",
         headers=auth_headers,
-        json={"name": "Clinical source"},
+        json={"name": "Records source"},
     )
     assert result.status_code == 201, result.text
     return (
@@ -27,9 +43,9 @@ def batch(version=1, key="batch1", status="active"):
         "request_key": key,
         "records": [
             {
-                "external_id": "patient1",
+                "external_id": "person1",
                 "kind": "person",
-                "title": "Patient One",
+                "title": "Person One",
                 "version": version,
                 "status": status,
                 "authorized": True,
@@ -212,7 +228,7 @@ def test_record_search_never_uses_another_workspace_or_facebook(
         == 200
     )
     private = batch()
-    private["records"][0]["title"] = "Private Patient One"
+    private["records"][0]["title"] = "Private Person One"
     assert (
         client.post(
             "/v1/integrations/imports", headers=other_headers, json=private
@@ -223,10 +239,10 @@ def test_record_search_never_uses_another_workspace_or_facebook(
 
     def answer(self, question, candidates, language=None):
         assert len(candidates) == 1
-        assert candidates[0]["name"] == "Patient One"
+        assert candidates[0]["name"] == "Person One"
         assert "Private" not in str(candidates)
         return ProfileAnswer(
-            text="Patient One, patient1", matched_user_ids=[], simulated=True
+            text="Person One, person1", matched_user_ids=[], simulated=True
         )
 
     monkeypatch.setattr(
@@ -235,56 +251,10 @@ def test_record_search_never_uses_another_workspace_or_facebook(
     response = client.post(
         f"/v1/workspaces/{ws}/records/search",
         headers=auth_headers,
-        json={"question": "Patient One", "language": "es"},
+        json={"question": "Person One", "language": "es"},
     )
     assert response.status_code == 200, response.text
     assert len(response.json()["records"]) == 1
-
-
-def test_medication_check_reports_discrepancy_and_missing_data_without_writing(
-    client, auth_headers
-):
-    ws, _, headers = setup_source(client, auth_headers)
-    payload = batch()
-    rx = {
-        **payload["records"][0],
-        "external_id": "rx1",
-        "kind": "prescription",
-        "title": "Test prescription",
-        "related_ids": ["patient1"],
-        "data": {
-            "ingredient": "DEMO",
-            "concentration": "10 mg",
-            "state": "active",
-            "valid_from": "2026-11-01T00:00:00Z",
-            "valid_until": "2026-12-01T00:00:00Z",
-        },
-    }
-    payload["records"].append(rx)
-    result = client.post(
-        "/v1/integrations/imports", headers=headers, json=payload
-    ).json()
-    person, prescription = [r["id"] for r in result["records"]]
-    response = client.post(
-        f"/v1/workspaces/{ws}/records/{person}/medication-check",
-        headers=auth_headers,
-        json={
-            "prescription_id": prescription,
-            "observed_ingredient": "DEMO",
-            "observed_concentration": "20 mg",
-            "checked_at": "2026-11-02T12:00:00Z",
-            "patient_confirmed": False,
-        },
-    )
-    assert response.status_code == 200, response.text
-    body = response.json()
-    assert "concentration_mismatch" in body["issues"]
-    assert "patient_confirmation" in body["missing"]
-    assert not body["administration_recorded"]
-    assert (
-        len(client.get(f"/v1/workspaces/{ws}/records", headers=auth_headers).json())
-        == 2
-    )
 
 
 def test_query_role_cannot_add_notes_or_manage_sources(client, auth_headers):

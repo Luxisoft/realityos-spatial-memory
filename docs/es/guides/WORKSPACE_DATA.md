@@ -13,9 +13,8 @@
 | **Información personal** | Las cuentas por correo editan nombre, ubicación actual, localidad de origen, fecha de nacimiento y género en `PATCH /v1/me/profile`. Facebook mantiene estos campos de solo lectura y los actualiza en cada ingreso. Fecha en `AAAA-MM-DD`; edad calculada. Los campos omitidos del PATCH se conservan. |
 | **Conexión** | Un admin crea una conexión; la clave de integración se muestra una vez y se envía por `X-RealityOS-Integration-Key`. |
 | **Lote** | Hasta 100 registros y 2 MiB; versiones crecientes, relaciones por IDs externos y transacción atómica. Misma clave/contenido devuelve el resultado original; contenido distinto da 409. |
-| **Tipos** | `person`, `case`, `encounter`, `event`, `object`, `prescription`, `allergy`, `administration`. Registros draft/deleted no aparecen en consultas. |
+| **Tipos** | `person`, `case`, `event`, `object`. Registros draft/deleted no aparecen en consultas. |
 | **Biometría** | Importar una persona no crea usuario ni enrolamiento. Requiere autorización trazable y enrolamiento explícito del retrato. |
-| **Comparación clínica** | Compara campos explícitos, vigencia, alergias y antecedentes relacionados. No calcula dosis, convierte unidades, prescribe ni registra administración. |
 
 ```mermaid
 flowchart LR
@@ -28,7 +27,7 @@ Para incorporar fotos, videos o un CV desde R2/S3, utiliza [Mis conexiones](STOR
 
 ## Datos locales y selección de cuenta
 
-La composición local inicializa tres grupos, nueve cuentas de acceso, 34 expedientes y 41 publicaciones mediante el SQL versionado de `simulator/database/`. La inicialización social separada añade diez perfiles sintéticos buscables mediante el flujo protegido existente. Los gráficos originales se organizan en `simulator/media/` y se importan a PostgreSQL BYTEA.
+La composición local inicializa dos grupos, seis cuentas de acceso, 16 expedientes y 25 publicaciones mediante el SQL versionado de `simulator/database/`. La inicialización social separada añade trece perfiles sintéticos buscables mediante el flujo protegido existente. Los gráficos originales se organizan en `simulator/media/` y se importan a PostgreSQL BYTEA.
 
 `GET /v1/auth/local-accounts` y `POST /v1/auth/local-select` consultan las cuentas autorizadas y membresías en la base de datos. La selección está restringida al ámbito local; no se publican contraseñas ni credenciales activas del servidor. El registro del servidor y las integraciones externas de expedientes pertenecen a la composición del servidor.
 

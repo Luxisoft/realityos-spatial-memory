@@ -106,11 +106,11 @@ def evaluation(tmp_path, request, monkeypatch):
                 result = bootstrap.seed_evaluation(db, app.state.settings)
                 assert result == {
                     "initialized": True,
-                    "groups": 3,
-                    "users": 9,
-                    "records": 28 if baseline else 34,
-                    "attachments": 20 if baseline else 26,
-                    "publications": 29 if baseline else 41,
+                    "groups": 2,
+                    "users": 6,
+                    "records": 10 if baseline else 16,
+                    "attachments": 10 if baseline else 16,
+                    "publications": 13 if baseline else 25,
                     "updates": {}
                     if baseline
                     else {

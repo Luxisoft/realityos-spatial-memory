@@ -16,18 +16,8 @@
       "reference": "intro_overview.webp"
     },
     {
-      "file": "android/app/src/main/res/drawable-nodpi/intro_care.webp",
-      "prompt": "Create ONE NEW landscape 3:2 editorial 3D illustration, using the attached image ONLY as the visual style reference. Match its graphite #262729 background, matte clay materials, restrained slate and off-white palette, sky-blue #62A9F8 accents, soft studio illumination and front three-quarter isometric view. Keep a similar large central composition with generous breathing room and all subjects inside frame. No borders, typography, watermarks or readable UI. Scene: A fictional adult nurse in muted blue scrubs reviewing a blank patient record on a tablet while an adult patient sits calmly nearby. Include a simple closed medical folder. No pills, doses, diagnostic imagery, readable text, crosses or medical recommendations. Emphasize attentive human care and authorized context. This is an illustrative onboarding scene for RealityOS; polished and adult, not a toy-like cartoon. Text will be rendered separately by the app.",
-      "reference": "intro_overview.webp"
-    },
-    {
       "file": "android/app/src/main/res/drawable-nodpi/intro_social.webp",
       "prompt": "Create ONE NEW landscape 3:2 editorial 3D illustration, using the attached image ONLY as the visual style reference. Match its graphite #262729 background, matte clay materials, restrained slate and off-white palette, sky-blue #62A9F8 accents, soft studio illumination and front three-quarter isometric view. Keep a similar large central composition with generous breathing room and all subjects inside frame. No borders, typography, watermarks or readable UI. Scene: Two friendly fictional adults conversing, connected by a delicate blue curved trail to two floating profile cards with abstract avatar shapes and tiny image tiles. Include a small subtle lock symbol on a card to signify shared information with permissions. No readable text or real social logos. This is an illustrative onboarding scene for RealityOS; polished and adult, not a toy-like cartoon. Text will be rendered separately by the app.",
-      "reference": "intro_overview.webp"
-    },
-    {
-      "file": "android/app/src/main/res/drawable-nodpi/intro_memory.webp",
-      "prompt": "Create ONE NEW landscape 3:2 editorial 3D illustration, using the attached image ONLY as the visual style reference. Match its graphite #262729 background, matte clay materials, restrained slate and off-white palette, sky-blue #62A9F8 accents, soft studio illumination and front three-quarter isometric view. Keep a similar large central composition with generous breathing room and all subjects inside frame. No borders, typography, watermarks or readable UI. Scene: A carefully arranged home desk with a document folder, a passport-like unmarked booklet, and keys, connected to a floating photo frame showing the same folder and a simple small clock symbol. Depict remembered visual evidence and a previous observation, not GPS live tracking. No readable text, flags, seals or personal information. This is an illustrative onboarding scene for RealityOS; polished and adult, not a toy-like cartoon. Text will be rendered separately by the app.",
       "reference": "intro_overview.webp"
     },
     {

@@ -32,6 +32,6 @@ Keep `STORAGE_ENCRYPTION_KEY` stable in private runtime configuration, shared by
 
 Local evaluation initializes application tables from versioned SQL in `simulator/database/` and imports the originals from the organized `simulator/media/` tree into PostgreSQL BYTEA. Source URLs, licenses, hashes and fixture paths are recorded in `simulator/media/manifest.csv` for provenance. They are not an alternative publication database.
 
-The local runtime does not use buckets or remote imports. Its three groups contain 41 publications. Postman examples query a disposable database initialized with the same SQL; video questions and observed intervals live in the [QA matrix](../testing/VIDEO_EVALUATION.md).
+The local runtime does not use buckets or remote imports. Its two groups contain 25 publications. Postman examples query a disposable database initialized with the same SQL; playback, byte ranges and permission checks are described in [video evaluation](../testing/VIDEO_EVALUATION.md).
 
 Server storage integration remains a separate server capability. Its historical execution evidence is dated in [implementation status](../project/IMPLEMENTATION_STATUS.md); local preparation does not change remote sources or server data.

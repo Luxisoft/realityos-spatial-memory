@@ -28,11 +28,11 @@ flowchart LR
 | Capability | Where it leads |
 | --- | --- |
 | **Biometric face search** | Choose a workspace and photo/video; inspect candidate evidence and open a profile or authorized person record. |
-| **Work records** | Cases, people, encounters, notes and attachments; explicit comparison of medication fields. |
+| **Work records** | Cases, people, events, notes and attachments scoped to the selected group. |
 | **Social profiles** | Authorized profile information, posts and group context; the CV has separate privacy rules. |
 | **Visual memory** | Ask by text or voice and inspect a stored photo/frame with its source and last-seen date. |
 
-[Police, nursing, social and memory walkthroughs →](../guides/DEMO.md). Face search uses the isolated InsightFace service; user matches and person-record matches remain distinct, and both require human confirmation.
+[Police and Meta Social Media walkthroughs →](../guides/DEMO.md). Face search uses the isolated InsightFace service; user matches and person-record matches remain distinct, and both require human confirmation.
 
 ## Choose an experience
 
@@ -45,7 +45,7 @@ flowchart LR
 
 ## Sign in with a test account
 
-Receive the APK, username, password and group in one [access card](../guides/DEMO.md#handoff). Use **Continue with email → Sign in**. All nine scenario accounts already have avatars, posts and assigned groups; person portraits are in their records. [Installation and sign-in steps →](../README.md#evaluate)
+Install the canonical Debug APK and open the local selector. Its six accounts belong to Police or Meta Social Media; their avatars and group publications are prepared in the local database. Person portraits remain linked to Police records. No password is published. [Installation and sign-in steps →](../README.md#evaluate)
 
 When opening **My connections**, profile requests, resources and uploads share a single session refresh. Temporary errors and permission failures preserve sign-in; a refresh rejected because credentials expired or were revoked requires signing in again. Pending responses from a previous account are discarded when switching accounts or signing out.
 

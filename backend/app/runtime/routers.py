@@ -12,7 +12,7 @@ def register_routes(application: FastAPI, settings: Settings) -> None:
     from app.faces import router as faces_router
     from app.routes import build_router as core_router
     from app.social import build_router as social_router
-    from app.workspaces import clinical, media, provisioning, search  # noqa: F401
+    from app.workspaces import media, provisioning, search  # noqa: F401
     from app.workspaces import routes as records
 
     local = settings.environment == "local"

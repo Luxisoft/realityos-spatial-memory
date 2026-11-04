@@ -101,7 +101,7 @@ def test_duplicate_references_in_one_profile_rollback_without_caller_rollback(
         with pytest.raises(ValueError, match="distinct private references"):
             seed_local_social(db, settings, engine=engine)
         # The caller can keep using its transaction: the failed addition rolls back.
-        assert db.query(User).count() == 9
+        assert db.query(User).count() == 6
         assert db.query(MediaAsset).count() == media_count
         assert db.query(FacebookMedia).count() == 0
         assert db.get(LocalEvaluationState, RECEIPT) is None

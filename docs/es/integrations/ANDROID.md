@@ -28,11 +28,11 @@ flowchart LR
 | Capacidad | Qué permite abrir |
 | --- | --- |
 | **Búsqueda facial biométrica** | Elegir espacio y foto/video; revisar la evidencia del candidato y abrir su perfil o expediente autorizado. |
-| **Expedientes de Trabajo** | Casos, personas, atenciones, notas y adjuntos; comparación explícita de campos de medicación. |
+| **Expedientes de Trabajo** | Casos, personas, eventos, notas y adjuntos del grupo seleccionado. |
 | **Perfiles sociales** | Información autorizada del perfil, publicaciones y contexto del grupo; el CV tiene privacidad independiente. |
 | **Memoria visual** | Preguntar por texto o voz y revisar una foto/fotograma guardado con su fuente y fecha de última observación. |
 
-[Recorridos policial, enfermería, social y memoria →](../guides/DEMO.md). La búsqueda facial usa el servicio aislado InsightFace; separa las coincidencias de usuarios y expedientes, ambas sujetas a confirmación humana.
+[Recorridos de Policía y Meta Social Media →](../guides/DEMO.md). La búsqueda facial usa el servicio aislado InsightFace; separa las coincidencias de usuarios y expedientes, ambas sujetas a confirmación humana.
 
 ## Elige una experiencia
 
@@ -45,7 +45,7 @@ flowchart LR
 
 ## Entrar con una cuenta de prueba
 
-Recibe el APK, usuario, contraseña y grupo en una sola [ficha de acceso](../guides/DEMO.md#handoff). Entra por **Continuar con correo → Iniciar sesión**. Las nueve cuentas de escenario ya tienen avatar, publicaciones y grupo asignado; los retratos de personas están en sus expedientes. [Pasos para instalar y entrar →](../README.md#evaluate)
+Instala el APK Debug canónico y abre el selector local. Sus seis cuentas pertenecen a Policía o Meta Social Media; los avatares y publicaciones de grupo están preparados en la base local. Los retratos siguen enlazados a expedientes policiales. No se publica ninguna contraseña. [Pasos para instalar y entrar →](../README.md#evaluate)
 
 Al abrir **Mis conexiones**, las consultas del perfil, los recursos y las subidas comparten una sola renovación de sesión. Un error temporal o de permisos conserva el acceso; una renovación rechazada por credenciales vencidas o revocadas exige iniciar sesión de nuevo. Las respuestas pendientes de una cuenta anterior se descartan al cambiar de cuenta o cerrar sesión.
 

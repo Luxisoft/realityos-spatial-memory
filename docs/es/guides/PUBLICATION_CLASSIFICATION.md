@@ -8,7 +8,7 @@ El dueño del grupo añade categorías y tags al crearlo, y puede renombrarlos, 
 
 Publicar exige una categoría y entre uno y veinte tags activos del grupo seleccionado. La nota escrita o transcrita sigue siendo opcional. Si cambia el grupo, hay que volver a elegir la clasificación. Un catálogo vacío bloquea la publicación y señala que debe completarlo el dueño.
 
-Las categorías y tags de los tres grupos locales tienen nombres redactados y guardados en español e inglés. Categorías, tags, miniaturas, filtros y visor leen la versión del idioma seleccionado sin traducir al abrir la pantalla. Los identificadores y asociaciones permanecen iguales. Las publicaciones, los expedientes y los textos descriptivos de los perfiles preparados también conservan ambas versiones en la base de datos.
+Las categorías y tags de los dos grupos locales tienen nombres redactados y guardados en español e inglés. Categorías, tags, miniaturas, filtros y visor leen la versión del idioma seleccionado sin traducir al abrir la pantalla. Los identificadores y asociaciones permanecen iguales. Las publicaciones, los expedientes y los textos descriptivos de los perfiles preparados también conservan ambas versiones en la base de datos.
 
 La copia revisada y las asociaciones de clasificación están en el SQL versionado de `simulator/database/` y se incorporan una sola vez, sin recrear filas borradas ni sustituir ediciones del propietario. No hay un nuevo servicio, modelo, cola ni traductor automático. Los nombres propios, identificadores y fechas no se traducen. Una edición posterior conserva el texto del dueño y deja de mostrar una versión antigua que ya no corresponde. Archivar conserva las etiquetas de publicaciones anteriores y las opciones históricas del filtro, pero impide nuevas selecciones. La clasificación manual no se convierte en evidencia visual ni sustituye al análisis de objetos.
 
@@ -27,7 +27,7 @@ Todas las rutas requieren autenticación y comprueban el grupo correspondiente.
 | Operación | Contrato |
 | --- | --- |
 | Consultar catálogo | `GET /v1/groups/{workspace_id}/publication-catalog` devuelve `categories`, `tags` y `can_manage`. |
-| Crear valor | `POST /v1/groups/{workspace_id}/publication-catalog/{kind}`, con `kind=category` o `tag` y `{"name":"Instrumental clínico"}`. Solo el dueño. |
+| Crear valor | `POST /v1/groups/{workspace_id}/publication-catalog/{kind}`, con `kind=category` o `tag` y `{"name":"Espacios públicos"}`. Solo el dueño. |
 | Renombrar/archivar/restaurar | `PATCH /v1/groups/{workspace_id}/publication-catalog/{term_id}`, con `name` y `active`. Solo el dueño. |
 | Publicar o subir | Añadir `category_id` y `tag_ids`. En JSON, `tag_ids` es un array de UUID; en multipart, es un campo de texto que contiene ese array JSON. |
 | Corregir publicación | `PATCH /v1/gallery/{post_id}/classification`, con `category_id` y `tag_ids`. Solo el autor. |
@@ -48,6 +48,6 @@ Reintentar o volver a sincronizar no aprueba candidatos pendientes. Se comprueba
 
 ## Inicialización local y cambios posteriores
 
-El SQL compartido instala los catálogos de los tres grupos y clasifica las 41 publicaciones preparadas en las mismas tablas que usan las cargas y consultas normales. No existe otro manifiesto de clasificación ni otra base de publicaciones. Los recibos de instalación impiden que un reinicio recree filas eliminadas o reemplace ediciones del dueño.
+El SQL compartido instala los catálogos de los dos grupos y clasifica las 25 publicaciones preparadas en las mismas tablas que usan las cargas y consultas normales. No existe otro manifiesto de clasificación ni otra base de publicaciones. Los recibos de instalación impiden que un reinicio recree filas eliminadas o reemplace ediciones del dueño.
 
 Las correcciones posteriores usan las APIs autenticadas de catálogo y clasificación descritas arriba. Conservan los medios originales y comprueban propiedad del grupo, membresía y autoría. La importación y sincronización de almacenamiento solo están disponibles en la composición del servidor; la evaluación local importa los bytes organizados directamente a BYTEA.

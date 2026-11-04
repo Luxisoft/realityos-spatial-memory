@@ -3632,72 +3632,6 @@
         }
       }
     },
-    "/v1/workspaces/{workspace_id}/records/{person_id}/medication-check": {
-      "post": {
-        "tags": [
-          "workspace-data"
-        ],
-        "summary": "Medication Check",
-        "operationId": "medication_check_v1_workspaces__workspace_id__records__person_id__medication_check_post",
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
-        "parameters": [
-          {
-            "name": "workspace_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid",
-              "title": "Workspace Id"
-            }
-          },
-          {
-            "name": "person_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid",
-              "title": "Person Id"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/MedicationCheck"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {}
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/v1/integrations/records/{record_id}/media": {
       "post": {
         "tags": [
@@ -10052,12 +9986,8 @@
             "enum": [
               "person",
               "case",
-              "encounter",
               "event",
-              "object",
-              "prescription",
-              "allergy",
-              "administration"
+              "object"
             ],
             "title": "Kind"
           },
@@ -10525,44 +10455,6 @@
           "password"
         ],
         "title": "LoginRequest"
-      },
-      "MedicationCheck": {
-        "properties": {
-          "prescription_id": {
-            "type": "string",
-            "title": "Prescription Id"
-          },
-          "observed_ingredient": {
-            "type": "string",
-            "maxLength": 160,
-            "minLength": 1,
-            "title": "Observed Ingredient"
-          },
-          "observed_concentration": {
-            "type": "string",
-            "maxLength": 80,
-            "minLength": 1,
-            "title": "Observed Concentration"
-          },
-          "patient_confirmed": {
-            "type": "boolean",
-            "title": "Patient Confirmed",
-            "default": false
-          },
-          "checked_at": {
-            "type": "string",
-            "format": "date-time",
-            "title": "Checked At"
-          }
-        },
-        "type": "object",
-        "required": [
-          "prescription_id",
-          "observed_ingredient",
-          "observed_concentration",
-          "checked_at"
-        ],
-        "title": "MedicationCheck"
       },
       "MergeTexts": {
         "properties": {

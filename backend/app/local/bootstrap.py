@@ -2,6 +2,7 @@
 
 from sqlalchemy import func, select, text
 
+from app.local.retirement import retire_memory
 from app.local.sql_data import FIXTURES, apply_seed, seed_digest, statements
 from app.local.state import receipt, require_local
 from app.local_models import LocalEvaluationState
@@ -51,9 +52,12 @@ def seed_evaluation(db, settings, root=FIXTURES):
     if previous:
         from app.local.upgrades import upgrade_local_data
 
+        retired = retire_memory(db, settings, root)
         upgrade_local_data(db, settings, root)
         install_local_access(db, settings, root)
         updates = install_data_updates(db, settings, root)
+        if retired is not None:
+            previous.counts = {**previous.counts, **evaluation_counts(db)}
         return {"initialized": False, **previous.counts, "updates": updates}
     if db.scalar(select(User.id).limit(1)) is not None:
         raise ValueError(
@@ -62,7 +66,20 @@ def seed_evaluation(db, settings, root=FIXTURES):
     filename = "001-scenarios.sql"
     apply_seed(db, settings, filename, root)
     updates = install_data_updates(db, settings, root)
-    counts = {
+    counts = evaluation_counts(db)
+    digest = seed_digest(root, filename)
+    receipt(db, RECEIPT, digest, counts)
+    receipt(db, "bilingual-copy-v1", digest, {})
+    receipt(db, "police-people-v1", digest, {"records": 10, "attachments": 10})
+    receipt(db, "local-group-publications-v1", digest, {"publications": 13})
+    receipt(db, "replace-hospital-meta-social-v1", digest, {})
+    retire_memory(db, settings, root)
+    install_local_access(db, settings, root)
+    return {"initialized": True, **counts, "updates": updates}
+
+
+def evaluation_counts(db):
+    return {
         name: db.scalar(select(func.count()).select_from(model))
         for name, model in (
             ("groups", Workspace),
@@ -72,14 +89,6 @@ def seed_evaluation(db, settings, root=FIXTURES):
             ("publications", Publication),
         )
     }
-    digest = seed_digest(root, filename)
-    receipt(db, RECEIPT, digest, counts)
-    receipt(db, "bilingual-copy-v1", digest, {})
-    receipt(db, "police-people-v1", digest, {"records": 10, "attachments": 10})
-    receipt(db, "local-group-publications-v1", digest, {"publications": 13})
-    receipt(db, "replace-hospital-meta-social-v1", digest, {})
-    install_local_access(db, settings, root)
-    return {"initialized": True, **counts, "updates": updates}
 
 
 def enqueue_initial_media(db):

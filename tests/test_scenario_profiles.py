@@ -17,7 +17,7 @@ def test_prepared_profiles_are_complete_and_restart_preserves_private_data(evalu
                 )
             )
         )
-        assert len(profiles) == 9
+        assert len(profiles) == 6
         for profile in profiles:
             assert profile.headline and profile.biography and profile.birthday
             assert db.get(MediaAsset, profile.avatar_media_id).original_bytes

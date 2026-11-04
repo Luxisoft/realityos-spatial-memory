@@ -31,7 +31,7 @@ This inventory is a snapshot of the identified environment, not a version lockfi
 | Scenarios and test media | [Workspace data](../guides/WORKSPACE_DATA.md), [social directory](../testing/SOCIAL_DIRECTORY.md) and the organized [media manifest](../../../simulator/media/manifest.csv). The manifest preserves source, license, hash and fixture path. Versioned SQL initializes local database rows; preparation does not upload to remote storage. |
 | Historical R2 evaluation copies | Earlier private execution receipts retain source and hash verification. They are historical evidence, not the active local dataset or authorization for new uploads. |
 | Concept videos under `demo-video/` | They remain labeled conceptual. No generation/license manifest was found alongside those four files; their contributor must confirm provenance and track rights if they are included in the submission. The final recording is a separate deliverable. |
-| Final app recordings | Use prepared synthetic data and authorized media. Clinical outputs and visible data are reviewed during acceptance and demo recording. |
+| Final app recordings | Use prepared synthetic data and authorized media. Returned results and visible data are reviewed during acceptance and demo recording. |
 
 ## Evidence needed to close usage rights
 

@@ -37,8 +37,10 @@ def postgres_cluster():
     runtime = ROOT / ".runtime"
     runtime.mkdir(exist_ok=True)
     directory = Path(tempfile.mkdtemp(prefix="postgres-tests-", dir=runtime))
-    data, sockets = directory / "data", directory / "socket"
-    sockets.mkdir()
+    data = directory / "data"
+    # Unix socket addresses are limited to 107 bytes on Linux. GitHub's long
+    # checkout path cannot contain the socket; only the bulky data stays there.
+    sockets = Path(tempfile.mkdtemp(prefix="ros-pg-", dir="/tmp"))
     user = getpass.getuser()
     started = False
     try:
@@ -81,13 +83,16 @@ def postgres_cluster():
             db.execute("CREATE EXTENSION pg_trgm")
         yield url, connection
     finally:
-        if started:
-            subprocess.run(
-                [pg_ctl, "-D", str(data), "-m", "immediate", "-w", "stop"],
-                check=True,
-                stdout=subprocess.DEVNULL,
-            )
-        shutil.rmtree(directory)
+        try:
+            if started:
+                subprocess.run(
+                    [pg_ctl, "-D", str(data), "-m", "immediate", "-w", "stop"],
+                    check=True,
+                    stdout=subprocess.DEVNULL,
+                )
+        finally:
+            shutil.rmtree(directory)
+            shutil.rmtree(sockets)
 
 
 @pytest.fixture

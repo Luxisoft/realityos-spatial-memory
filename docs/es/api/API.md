@@ -10,10 +10,10 @@ La API existente se ejecuta dentro de Docker local. La colección refleja las ru
 
 1. Inicia la [instalación local](../deployment/DEPLOYMENT_LOCALHOST.md).
 2. Importa la [colección](../../postman/RealityOS.postman_collection.json) y selecciona **No environment**.
-3. Abre **Localhost requests → 00 Quick start** o **00 Local scenarios → Police / Nursing / Memory**.
+3. Abre **Localhost requests → 00 Quick start** o **00 Local scenarios → Police / Meta Social Media**.
 4. Pulsa **Send**. El selector de cuenta obtiene tokens reales; la renovación es automática. No necesitas contraseñas.
 
-`localhost_user_id` elige la cuenta del inicio rápido. Los escenarios tienen sus propios prefijos `security_`, `hospital_` y `memory_`, IDs y sesiones. Los nueve usuarios disponibles se consultan en `GET /v1/auth/local-accounts`; `POST /v1/auth/local-select` recibe `{"user_id":"..."}`. Estas rutas no existen en producción. No conceden permisos entre grupos ni consentimiento biométrico.
+`localhost_user_id` elige la cuenta del inicio rápido. Los escenarios tienen sus propios prefijos `security_` y `meta_social_`, IDs y sesiones. Los seis usuarios disponibles se consultan en `GET /v1/auth/local-accounts`; `POST /v1/auth/local-select` recibe `{"user_id":"..."}`. Estas rutas no existen en producción. No conceden permisos entre grupos ni consentimiento biométrico.
 
 La primera preparación carga recursos locales y el worker los indexa con tu clave Meta. Los 48 controles bilingües de video requieren que la indexación termine. No contienen resultados IA precalculados.
 

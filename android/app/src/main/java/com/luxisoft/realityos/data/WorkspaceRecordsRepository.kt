@@ -43,7 +43,7 @@ internal data class RecordDetails(
         return values.keys().asSequence().map { it to values.opt(it)?.toString().orEmpty() }.toList()
     }
 
-    /** Compatibility input for the isolated enrollment and clinical widgets. */
+    /** Compatibility input for the isolated enrollment widget. */
     fun legacyDocument(): JSONObject = document
 
     companion object {

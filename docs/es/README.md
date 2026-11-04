@@ -194,15 +194,13 @@ Si modificas Android, sigue la [guía de compilación](integrations/ANDROID.md#b
 
 <a id="cases"></a>
 
-[Fotografías para probar búsquedas](testing/QA_VISUAL_FIXTURES.md): cuatro escenas de Policía y diez avatares para consultar el directorio preparado de Meta Social Media. Ábrelas en la computadora como entradas de consulta; no son publicaciones ni registros de los grupos.
+[Fotografías para probar búsquedas](testing/QA_VISUAL_FIXTURES.md): cuatro escenas de Policía y trece avatares para consultar el directorio preparado de Meta Social Media. Ábrelas en la computadora para una captura de consulta explícita. Las cuatro escenas quedan fuera de publicaciones y expedientes; los avatares sociales están separados de las referencias privadas.
 
-Abre la app y elige una de las **9 cuentas de los 3 grupos: policía, Meta Social Media y memoria**. Los grupos aparecen contraídos: toca uno para ver sus cuentas. Meta Social Media conserva Elena Marquez, Mateo Rios y Sarah Chen como sus tres cuentas de acceso y añade diez perfiles sociales sintéticos, cada uno con un avatar separado y tres fotos privadas de referencia. Usa la búsqueda de personas existente después de otorgar consentimiento; la galería contiene tres presentaciones con avatar y texto, una por cuenta de acceso, además de tres videos. Policía contiene 16 expedientes de personas con una publicación de retrato por expediente, además de tres videos. Cinco personas tienen orden de captura vigente; dos de ellas también tienen procesos activos. Cuatro expedientes independientes de personas desaparecidas tienen órdenes de búsqueda vigentes, sin órdenes de captura ni antecedentes. Las otras siete fichas no tienen antecedentes, órdenes ni procesos. Explora galería y expedientes; para publicar, selecciona grupo, categoría y etiqueta. Espera a que termine la indexación para buscar.
+Abre la app y elige una de las **6 cuentas de los 2 grupos: Policía y Meta Social Media**. Los grupos aparecen contraídos: toca uno para ver sus cuentas. Meta Social Media conserva Elena Marquez, Mateo Rios y Sarah Chen como sus tres cuentas de acceso y añade trece perfiles sociales sintéticos, cada uno con un avatar separado y tres fotos privadas de referencia. Usa la búsqueda de personas existente después de otorgar consentimiento; la galería contiene tres presentaciones con avatar y texto, una por cuenta de acceso, además de tres videos. Policía contiene 16 expedientes de personas con una publicación de retrato por expediente, además de tres videos. Cinco personas tienen orden de captura vigente; dos de ellas también tienen procesos activos. Cuatro expedientes independientes de personas desaparecidas tienen órdenes de búsqueda vigentes, sin órdenes de captura ni antecedentes. Las otras siete fichas no tienen antecedentes, órdenes ni procesos. Explora galería y expedientes; para publicar, selecciona grupo, categoría y etiqueta. Espera a que termine la indexación para buscar.
 
 | Vista / video | Uso |
 | --- | --- |
 | <a href="../../demo-video/policial_case.mp4"><img src="../assets/readme/example-police.png" width="160" height="90" alt="Profesional revisando un expediente policial"></a> | **Policía:** consultar expedientes y evidencia del grupo. |
-| <a href="../../demo-video/nurse_case.mp4"><img src="../assets/readme/example-nursing.png" width="160" height="90" alt="Enfermera y paciente consultando un expediente"></a> | **Enfermería:** revisar registros, notas y adjuntos autorizados. |
-| <a href="../../demo-video/memory.mp4"><img src="../assets/readme/example-memory.png" width="160" height="90" alt="Persona recuperando una fotografía de un objeto guardado"></a> | **Memoria:** encontrar dónde y cuándo se vio un objeto por última vez. |
 | <a href="../../demo-video/profile_found.mp4"><img src="../assets/readme/example-social.png" width="160" height="90" alt="Dos personas consultando un perfil compartido"></a> | **Perfiles:** abrir la información autorizada de un candidato facial. |
 
 Las imágenes y los videos son [ilustraciones conceptuales](project/GRAPHICS.md). Pulsa una miniatura para abrir su video.
@@ -253,3 +251,12 @@ API: [documentación](http://localhost:8080/docs) · [salud](http://localhost:80
 [![Estado de CI](https://github.com/Luxisoft/realityos-spatial-memory/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/Luxisoft/realityos-spatial-memory/actions/workflows/ci.yml)
 
 [Referencia técnica](INDEX.md) · [Estado verificado](project/IMPLEMENTATION_STATUS.md) · [Licencias de terceros](project/THIRD_PARTY.md) · [Apache 2.0](../../LICENSE)
+
+## Otros usos posibles
+
+La plataforma también puede atender estos otros dos casos y muchos más. Son ilustraciones conceptuales; no son grupos ni datos instalados en la evaluación local.
+
+| Vista previa / video | Uso |
+| --- | --- |
+| <a href="../../demo-video/nurse_case.mp4"><img src="../assets/readme/example-nursing.png" width="160" height="90" alt="Enfermera y paciente consultando un expediente"></a> | **Enfermería:** revisar registros, notas y adjuntos autorizados. |
+| <a href="../../demo-video/memory.mp4"><img src="../assets/readme/example-memory.png" width="160" height="90" alt="Persona recuperando una fotografía de un objeto guardado"></a> | **Memoria:** encontrar dónde y cuándo se vio un objeto por última vez. |

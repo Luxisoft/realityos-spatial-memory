@@ -48,7 +48,6 @@ The guide places kickoff on **October 26** and building on **October 27–Novemb
 
 | Exclusion | Review finding |
 | --- | --- |
-| AI-generated medical advice | The [comparator](../../../backend/app/workspaces/clinical.py) checks fields without a model call, requires professional review and records no administration. [Contextual search](../../../backend/app/workspaces/search.py) instructs the model not to prescribe or authorize medication. This does not establish that every generated answer is safe: the actual clinical demo outputs still need review. Present record retrieval and discrepancies without therapeutic advice. |
 | Basic RAG or simple image analysis | Implementations include face enrollment, persisted visual evidence, segmentation, DAT capture and versioned integrations. Demonstrate those implementations; prose or an isolated chat does not replace technical evidence. Admission remains the judges' decision. |
 | Simple education chatbot; job screening; nutrition; personality; sports | These are not the presented capabilities. An authorized profile or CV is not described as personality evaluation or employment screening. |
 | Politics or war | The documented examples are not political or military. Police casework describes authorized records and evidence, not criminal prediction or automated decisions. |

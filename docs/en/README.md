@@ -194,15 +194,13 @@ If you change Android, follow the [build guide](integrations/ANDROID.md#build). 
 
 <a id="cases"></a>
 
-[Search photographs](testing/QA_VISUAL_FIXTURES.md): four Police scenes and ten social profile avatars for testing the prepared Meta Social Media directory. Open them on the computer as query inputs; they are not group publications or seeded records.
+[Search photographs](testing/QA_VISUAL_FIXTURES.md): four Police scenes and thirteen social profile avatars for testing the prepared Meta Social Media directory. Open them on the computer for an explicit query capture. The four scenes remain outside group publications and records; social avatars are separate from private references.
 
-Open the app and choose one of the **9 accounts across 3 groups: police, Meta Social Media and memory**. Groups start collapsed: tap one to see its accounts. Meta Social Media keeps Elena Marquez, Mateo Rios and Sarah Chen as its three access accounts and adds ten synthetic social profiles, each with a separate avatar and three private reference photos. Use the existing person search after granting search consent; the group gallery contains one introduction with an avatar and text from each of the three access accounts, plus three videos. Police contains 16 person records with one portrait publication each, plus three videos. Five people have active arrest warrants; two of those also have active proceedings. Four separate missing-person records have active search orders, with no arrest warrants or criminal history. The other seven records have no criminal history, warrants or proceedings. Explore the gallery and records; to publish, select a group, category and tag. Wait for indexing to finish before searching.
+Open the app and choose one of the **6 accounts across 2 groups: Police and Meta Social Media**. Groups start collapsed: tap one to see its accounts. Meta Social Media keeps Elena Marquez, Mateo Rios and Sarah Chen as its three access accounts and adds thirteen synthetic social profiles, each with a separate avatar and three private reference photos. Use the existing person search after granting search consent; the group gallery contains one introduction with an avatar and text from each of the three access accounts, plus three videos. Police contains 16 person records with one portrait publication each, plus three videos. Five people have active arrest warrants; two of those also have active proceedings. Four separate missing-person records have active search orders, with no arrest warrants or criminal history. The other seven records have no criminal history, warrants or proceedings. Explore the gallery and records; to publish, select a group, category and tag. Wait for indexing to finish before searching.
 
 | Preview / video | Use |
 | --- | --- |
 | <a href="../../demo-video/policial_case.mp4"><img src="../assets/readme/example-police.png" width="160" height="90" alt="Professional reviewing a police record"></a> | **Police:** consult group records and evidence. |
-| <a href="../../demo-video/nurse_case.mp4"><img src="../assets/readme/example-nursing.png" width="160" height="90" alt="Nurse and patient consulting a record"></a> | **Nursing:** review authorized records, notes and attachments. |
-| <a href="../../demo-video/memory.mp4"><img src="../assets/readme/example-memory.png" width="160" height="90" alt="Person retrieving a photograph of a stored object"></a> | **Memory:** find where and when an object was last seen. |
 | <a href="../../demo-video/profile_found.mp4"><img src="../assets/readme/example-social.png" width="160" height="90" alt="Two people consulting a shared profile"></a> | **Profiles:** open a face candidate's authorized information. |
 
 Images and videos are [conceptual illustrations](project/GRAPHICS.md). Click a thumbnail to open its video.
@@ -253,3 +251,12 @@ API: [documentation](http://localhost:8080/docs) · [health](http://localhost:80
 [![CI status](https://github.com/Luxisoft/realityos-spatial-memory/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/Luxisoft/realityos-spatial-memory/actions/workflows/ci.yml)
 
 [Technical reference](INDEX.md) · [Verified status](project/IMPLEMENTATION_STATUS.md) · [Third-party licenses](project/THIRD_PARTY.md) · [Apache 2.0](../../LICENSE)
+
+## Other possible uses
+
+The platform can also serve these two other use cases and many more. These are conceptual illustrations, not groups or data installed in local evaluation.
+
+| Preview / video | Use |
+| --- | --- |
+| <a href="../../demo-video/nurse_case.mp4"><img src="../assets/readme/example-nursing.png" width="160" height="90" alt="Nurse and patient consulting a record"></a> | **Nursing:** review authorized records, notes and attachments. |
+| <a href="../../demo-video/memory.mp4"><img src="../assets/readme/example-memory.png" width="160" height="90" alt="Person retrieving a photograph of a stored object"></a> | **Memory:** find where and when an object was last seen. |

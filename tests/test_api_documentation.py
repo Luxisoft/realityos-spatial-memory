@@ -308,7 +308,7 @@ def test_download_has_all_inputs_for_installed_local_scenarios():
         for folder in public["item"][0]["item"]
         if folder["name"] == "00 Local scenarios"
     )
-    assert len(scenarios) == 3
+    assert len(scenarios) == 2
     for target, scenario in zip(scenarios, fixture["scenarios"], strict=True):
         prefix = scenario["prefix"] + "_"
         assert set(scenario["values"]) == {
@@ -325,9 +325,7 @@ def test_download_has_all_inputs_for_installed_local_scenarios():
             "auth_mode",
         }
         assert target["name"] == scenario["name"]
-        core = [
-            item for item in target["item"] if not item["name"].startswith("Video ")
-        ]
+        core = target["item"]
         expected_count = 13 if scenario["values"]["record_id"] else 10
         assert len(core) == expected_count
         assert len({item["name"] for item in core}) == expected_count
@@ -339,20 +337,12 @@ def test_download_has_all_inputs_for_installed_local_scenarios():
             assert variables[prefix + key] == ""
         for item in target["item"]:
             request = item["request"]
-            if item["name"].startswith("Video "):
-                assert request["method"] == "POST"
-                assert request["url"]["path"] == ["v1", "queries"]
-            assert (
-                request["method"] == "GET"
-                or item["name"]
-                in {
-                    "POST /v1/auth/local-select",
-                    "POST /v1/auth/refresh",
-                    "POST /v1/workspaces/{workspace_id}/records/search",
-                    "POST /v1/queries",
-                }
-                or item["name"].startswith("Video ")
-            )
+            assert request["method"] == "GET" or item["name"] in {
+                "POST /v1/auth/local-select",
+                "POST /v1/auth/refresh",
+                "POST /v1/workspaces/{workspace_id}/records/search",
+                "POST /v1/queries",
+            }
             assert request.get("body", {}).get("mode") != "formdata"
             for ref in re.findall(r"{{([^}]+)}}", json.dumps(request)):
                 assert ref.startswith(prefix)
@@ -383,7 +373,7 @@ def test_primary_collection_preserves_both_catalogs_and_local_defaults():
         assert refs <= values.keys()
         if target["name"] == "Localhost requests":
             assert all(
-                key.startswith(("localhost_", "security_", "meta_social_", "memory_"))
+                key.startswith(("localhost_", "security_", "meta_social_"))
                 for key in refs
             )
         else:
@@ -395,9 +385,9 @@ def test_primary_collection_preserves_both_catalogs_and_local_defaults():
         key: value for key, value in values.items() if key.startswith("localhost_")
     }
     fixture = evaluation_dataset()
-    memory = next(s["values"] for s in fixture["scenarios"] if s["prefix"] == "memory")
+    default = fixture["defaults"]["localhost"]
     for key in ("email", "password", "workspace_id", "user_id"):
-        assert values["localhost_" + key] == memory[key]
+        assert values["localhost_" + key] == default[key]
     assert values["server_base_url"] == ""
     assert values["localhost_base_url"] == "http://localhost:8080"
     assert values["localhost_password"] == values["server_password"] == ""

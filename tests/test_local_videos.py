@@ -122,7 +122,7 @@ def test_video_update_is_atomic_and_preserves_membership_edits_and_deletions(
             original_count = db.query(Publication).count()
             media_count = db.query(MediaAsset).count()
             first = db.scalar(
-                select(Publication).where(Publication.source_ref.like("memory:%"))
+                select(Publication).where(Publication.source_ref.like("meta-social:%"))
             )
             first.caption = "Edited before the new video revision"
             identifier = first.id

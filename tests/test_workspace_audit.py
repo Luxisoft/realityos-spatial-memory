@@ -28,16 +28,16 @@ def test_person_search_includes_related_history_and_notes_only_in_its_source(
     client, auth_headers, monkeypatch
 ):
     ws, _, headers = setup_source(client, auth_headers)
-    _, _, other_headers = setup_source(client, auth_headers, "Other clinic")
+    _, _, other_headers = setup_source(client, auth_headers, "Other workspace")
     payload = batch()
     payload["records"].append(
         {
             **payload["records"][0],
             "external_id": "visit1",
-            "kind": "encounter",
+            "kind": "event",
             "title": "Follow-up",
-            "related_ids": ["patient1"],
-            "data": {"note": "Review of prescribed plan"},
+            "related_ids": ["person1"],
+            "data": {"note": "Recorded follow-up observation"},
         }
     )
     rows = client.post(
@@ -68,10 +68,10 @@ def test_person_search_includes_related_history_and_notes_only_in_its_source(
     response = client.post(
         f"/v1/workspaces/{ws}/records/search",
         headers=auth_headers,
-        json={"question": "Patient One"},
+        json={"question": "Person One"},
     )
     assert response.status_code == 200
-    assert {c["name"] for c in calls[-1]} == {"Patient One", "Follow-up"}
+    assert {c["name"] for c in calls[-1]} == {"Person One", "Follow-up"}
     assert "cabinet Delta" in str(calls[-1])
     response = client.post(
         f"/v1/workspaces/{ws}/records/search",
@@ -123,26 +123,6 @@ def test_search_can_find_a_matching_record_older_than_500_newer_records(
     )
     assert response.status_code == 200
     assert len(response.json()["records"]) == 1
-
-
-def test_clinical_relationship_must_reference_a_person(client, auth_headers):
-    _, _, headers = setup_source(client, auth_headers)
-    payload = batch()
-    payload["records"][0]["kind"] = "case"
-    payload["records"].append(
-        {
-            **payload["records"][0],
-            "external_id": "rx",
-            "kind": "prescription",
-            "related_ids": ["patient1"],
-        }
-    )
-    assert (
-        client.post(
-            "/v1/integrations/imports", headers=headers, json=payload
-        ).status_code
-        == 422
-    )
 
 
 def test_attachment_detects_actual_format_and_preserves_retry_author(
@@ -290,47 +270,6 @@ def test_invalid_source_port_is_validation_error(client, auth_headers):
     )
 
 
-def test_malformed_clinical_dates_do_not_produce_match_or_server_error(
-    client, auth_headers
-):
-    ws, _, headers = setup_source(client, auth_headers)
-    payload = batch()
-    payload["records"][0]["data"] = {"allergies_reviewed_at": "not-a-date"}
-    payload["records"].append(
-        {
-            **payload["records"][0],
-            "external_id": "rx1",
-            "title": "Prescription",
-            "kind": "prescription",
-            "related_ids": ["patient1"],
-            "data": {
-                "ingredient": "DEMO",
-                "concentration": "10 mg",
-                "state": "active",
-                "valid_from": 42,
-                "valid_until": "2027-01-01T00:00:00Z",
-            },
-        }
-    )
-    rows = client.post(
-        "/v1/integrations/imports", headers=headers, json=payload
-    ).json()["records"]
-    r = client.post(
-        f"/v1/workspaces/{ws}/records/{rows[0]['id']}/medication-check",
-        headers=auth_headers,
-        json={
-            "prescription_id": rows[1]["id"],
-            "observed_ingredient": "DEMO",
-            "observed_concentration": "10 mg",
-            "checked_at": "2026-11-02T12:00:00Z",
-            "patient_confirmed": True,
-        },
-    )
-    assert r.status_code == 200
-    assert r.json()["status"] == "insufficient_data"
-    assert set(r.json()["missing"]) == {"valid_from", "allergy_review"}
-
-
 def test_related_context_respects_provider_budget_and_reports_partial(
     client, auth_headers, monkeypatch
 ):
@@ -341,8 +280,8 @@ def test_related_context_respects_provider_budget_and_reports_partial(
             **payload["records"][0],
             "external_id": f"visit{i}",
             "title": f"Follow-up {i}",
-            "kind": "encounter",
-            "related_ids": ["patient1"],
+            "kind": "event",
+            "related_ids": ["person1"],
         }
         for i in range(10)
     ]
@@ -352,7 +291,7 @@ def test_related_context_respects_provider_budget_and_reports_partial(
     def answer(self, question, candidates, language=None):
         assert len(candidates) == 8
         assert "partial" in question
-        assert candidates[0]["name"] == "Patient One"
+        assert candidates[0]["name"] == "Person One"
         assert any(c["name"].startswith("Follow-up") for c in candidates)
         return ProfileAnswer(
             text="Partial recorded context", matched_user_ids=[], simulated=True
@@ -364,7 +303,7 @@ def test_related_context_respects_provider_budget_and_reports_partial(
     r = client.post(
         f"/v1/workspaces/{ws}/records/search",
         headers=auth_headers,
-        json={"question": "Patient One"},
+        json={"question": "Person One"},
     )
     assert r.status_code == 200
     assert r.json()["context_truncated"]

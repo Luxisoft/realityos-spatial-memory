@@ -55,7 +55,7 @@ try {
     Write-LocalProgress $activity 9 10 'Queueing pending indexing'
     Invoke-LocalCompose $root @('exec', '-T', 'api', 'python', '/scripts/local/bootstrap.py', '--queue')
     Write-LocalProgress $activity 10 10 'Local setup completed'
-    Write-Host "[SUCCESS] Ready: http://localhost:$($values.LOCAL_HTTP_PORT)/docs | Android: select one of the nine local accounts."
+    Write-Host "[SUCCESS] Ready: http://localhost:$($values.LOCAL_HTTP_PORT)/docs | Android: select one of the six local accounts."
     Write-Host '[INFO] Scenarios are initialized once. Restarting preserves edits and deletions. Indexing continues in the worker.'
 } catch {
     Write-Host ('[ERROR] ' + $_.Exception.Message)
