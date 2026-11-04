@@ -10,6 +10,32 @@ Open this rendered GitHub page on the computer. Click an image to enlarge it; po
 
 Meta Social Media starts empty. Elena Marquez, Mateo Rios and Sarah Chen retain their account profiles; the former hospital records and media were removed.
 
+### Profile query photographs
+
+These three photos were generated from the existing avatars. Each shows exactly one person, framed closely with a clear face. Open a photo on the computer and use it as an explicit search input. **These are query files: they are never published, attached to records or imported during local startup.**
+
+| Reference account | Query photo | Original avatar |
+| --- | --- | --- |
+| Elena Marquez | [Cafe exterior](../../../simulator/search-cases/meta-social/elena-marquez.png) | [Avatar](../../../simulator/workspaces/assets/elena-marquez.png) |
+| Mateo Rios | [Riverside walk](../../../simulator/search-cases/meta-social/mateo-rios.png) | [Avatar](../../../simulator/workspaces/assets/mateo-rios.png) |
+| Sarah Chen | [Bookshop entrance](../../../simulator/search-cases/meta-social/sarah-chen.png) | [Avatar](../../../simulator/workspaces/assets/sarah-chen.png) |
+
+The listed account is the generation reference, not a verified match. An avatar does not create an enrollment: facial testing requires its existing permissions, consent and explicit preparation. These files do not enable global Facebook search. No device search or recognition validation has been performed with these images.
+
+<a id="search-cases"></a>
+## Police: search query scenes
+
+The four scenes from `Personas/cases` are preserved in full, unchanged. According to the owner, each includes three characters from `Personas/profile`, alongside other background people. The ten reference portraits already belong to Police records; the new scenes are **query inputs only**, outside every group's publications and records.
+
+| Scene | Open image |
+| --- | --- |
+| Coastal park through a single lens | [Case 01](../../../simulator/search-cases/police/case-01.png) |
+| Urban park through the right lens | [Case 02](../../../simulator/search-cases/police/case-02.png) |
+| Urban park through a right lens | [Case 03](../../../simulator/search-cases/police/case-03.png) |
+| Urban life by the river | [Case 04](../../../simulator/search-cases/police/case-04.png) |
+
+Select Police with an authorized account and open a scene on the computer for an explicit query capture. Do not use Publish or Register. No per-scene identities were assigned: that mapping was not supplied with the files. The [manifest](../../../simulator/search-cases/manifest.json) records provenance, hashes and separation from seed content; it grants no permissions or consent and creates no enrollments.
+
 <a id="memory"></a>
 ## Memoria / Memory
 **noah-brooks → Sonoran Neurological Institute**

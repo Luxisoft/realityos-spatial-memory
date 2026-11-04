@@ -193,6 +193,8 @@ If you change Android, follow the [build guide](integrations/ANDROID.md#build). 
 
 <a id="cases"></a>
 
+[Search photographs](testing/QA_VISUAL_FIXTURES.md): four Police scenes and three individual photos based on the Meta Social Media account avatars. Open them on the computer as query inputs; they are not group publications or seeded records.
+
 Open the app and choose one of the **9 accounts across 3 groups: police, Meta Social Media and memory**. Groups start collapsed: tap one to see its accounts. Meta Social Media starts empty with Elena Marquez, Mateo Rios and Sarah Chen. Police contains ten person records with one portrait each: three active warrants, two active proceedings among those three, and seven clear records. Explore the gallery and records; to publish, select a group, category and tag. Wait for indexing to finish before searching.
 
 | Preview / video | Use |

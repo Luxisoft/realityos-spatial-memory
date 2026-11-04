@@ -10,6 +10,32 @@ Abre esta página renderizada en GitHub en la computadora. Haz clic en una image
 
 Meta Social Media empieza vacío. Elena Marquez, Mateo Rios y Sarah Chen conservan sus perfiles; los expedientes y medios del antiguo hospital se eliminaron.
 
+### Fotografías para consultar perfiles
+
+Estas tres fotos se generaron a partir de los avatares existentes. Cada una muestra una sola persona, con el rostro visible en un encuadre cercano. Abre una foto en la computadora y úsala como entrada de una búsqueda explícita. **Son archivos de consulta: no se publican, no se adjuntan a registros y no se cargan al iniciar el entorno local.**
+
+| Cuenta de referencia | Foto para buscar | Avatar original |
+| --- | --- | --- |
+| Elena Marquez | [Exterior de cafetería](../../../simulator/search-cases/meta-social/elena-marquez.png) | [Avatar](../../../simulator/workspaces/assets/elena-marquez.png) |
+| Mateo Rios | [Paseo junto al río](../../../simulator/search-cases/meta-social/mateo-rios.png) | [Avatar](../../../simulator/workspaces/assets/mateo-rios.png) |
+| Sarah Chen | [Entrada de librería](../../../simulator/search-cases/meta-social/sarah-chen.png) | [Avatar](../../../simulator/workspaces/assets/sarah-chen.png) |
+
+La cuenta indicada es la referencia de generación, no una coincidencia verificada. Tener un avatar no crea un enrolamiento: la prueba facial requiere sus permisos, consentimiento y preparación explícita. Este material no habilita una búsqueda global de Facebook. No se ha ejecutado una búsqueda en dispositivo ni una validación de reconocimiento con estas imágenes.
+
+<a id="search-cases"></a>
+## Policía: escenas para probar búsquedas
+
+Las cuatro escenas de `Personas/cases` se conservan completas y sin cambios. Según el propietario, cada una incluye tres personajes de `Personas/profile`, además de otras personas del entorno. Los diez retratos de referencia ya pertenecen a los expedientes policiales; las escenas nuevas son **solo entradas de consulta**, fuera de publicaciones y registros de cualquier grupo.
+
+| Escena | Abrir imagen |
+| --- | --- |
+| Parque costero visto por una sola lente | [Caso 01](../../../simulator/search-cases/police/case-01.png) |
+| Parque urbano tras la lente derecha | [Caso 02](../../../simulator/search-cases/police/case-02.png) |
+| Parque urbano tras una lente derecha | [Caso 03](../../../simulator/search-cases/police/case-03.png) |
+| Vida urbana junto al río | [Caso 04](../../../simulator/search-cases/police/case-04.png) |
+
+Selecciona el grupo Policía con una cuenta autorizada y abre una escena en la computadora para la captura de consulta. No uses Publicar ni Registrar. No se asignaron identidades a las personas de cada escena: esa correspondencia no venía con los archivos. El [manifiesto](../../../simulator/search-cases/manifest.json) conserva procedencia, hashes y separación del contenido inicial; no otorga permisos ni consentimiento ni crea enrolamientos.
+
 <a id="memory"></a>
 ## Memoria / Memory
 **noah-brooks → Sonoran Neurological Institute**
