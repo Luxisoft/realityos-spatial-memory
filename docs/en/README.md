@@ -135,15 +135,29 @@ read -r -p 'Pairing IP:port from phone: ' pairing_address
 /c/platform-tools/adb.exe pair "$pairing_address"
 ```
 
-3. After `Successfully paired`, return to the main **Wireless debugging** screen. Use its **IP address & port** to connect: the connection port differs from the pairing port.
+3. After `Successfully paired`, check whether ADB connected automatically:
 
 ```bash
-read -r -p 'Connection IP:port from phone: ' phone_address
-/c/platform-tools/adb.exe connect "$phone_address" &&
 /c/platform-tools/adb.exe devices
 ```
 
-4. Once it appears with status `device`, install and open the app:
+If the phone appears with status `device`, **continue to step 4**. Its identifier may end in `._adb-tls-connect._tcp`; this is valid.
+
+**Only if it is missing**, return to the main **Wireless debugging** screen and use its **IP address & port**. This is the connection port, different from the port in the pairing-code dialog:
+
+```bash
+read -r -p 'Connection IP:port from phone: ' connection_address
+/c/platform-tools/adb.exe connect "$connection_address" &&
+/c/platform-tools/adb.exe devices
+```
+
+4. Copy the full identifier from the first column of `adb devices`, without the word `device`. Run this line and enter it when prompted:
+
+```bash
+read -r -p 'Connected device identifier: ' phone_address
+```
+
+In the same terminal, install and open the app:
 
 ```bash
 /c/platform-tools/adb.exe -s "$phone_address" reverse tcp:8080 tcp:8080 &&

@@ -135,15 +135,29 @@ read -r -p 'Pairing IP:port from phone: ' pairing_address
 /c/platform-tools/adb.exe pair "$pairing_address"
 ```
 
-3. Tras `Successfully paired`, vuelve a la pantalla principal de **Depuración inalámbrica**. Usa su **Dirección IP y puerto** para conectar: el puerto de conexión es distinto del de vinculación.
+3. Tras `Successfully paired`, comprueba si ADB ya conectó automáticamente:
 
 ```bash
-read -r -p 'Connection IP:port from phone: ' phone_address
-/c/platform-tools/adb.exe connect "$phone_address" &&
 /c/platform-tools/adb.exe devices
 ```
 
-4. Cuando aparezca con estado `device`, instala y abre la app:
+Si el teléfono aparece con estado `device`, **pasa al paso 4**. El identificador puede terminar en `._adb-tls-connect._tcp`; es válido.
+
+**Solo si no aparece**, vuelve a la pantalla principal de **Depuración inalámbrica** y usa su **Dirección IP y puerto**. Es el puerto de conexión, distinto del que mostraba la ventana del código de vinculación:
+
+```bash
+read -r -p 'Connection IP:port from phone: ' connection_address
+/c/platform-tools/adb.exe connect "$connection_address" &&
+/c/platform-tools/adb.exe devices
+```
+
+4. Copia el identificador completo de la primera columna de `adb devices`, sin la palabra `device`. Ejecuta esta línea e introdúcelo cuando lo pida:
+
+```bash
+read -r -p 'Connected device identifier: ' phone_address
+```
+
+En la misma terminal, instala y abre la app:
 
 ```bash
 /c/platform-tools/adb.exe -s "$phone_address" reverse tcp:8080 tcp:8080 &&
