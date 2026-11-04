@@ -51,6 +51,8 @@ Las [tres cuentas y contraseñas](../api/API.md#quick-start) están incluidas en
 
 Para Postman, importa la colección y pulsa Send. Para Android, instala el APK y usa una de esas cuentas. Las otras seis cuentas de trabajadores y las claves de proveedores, integraciones e infraestructura no se publican con esta entrega.
 
+Los nueve perfiles incluyen biografías y cargos acordes a su trabajo, fechas de nacimiento, ubicaciones, teléfonos y enlaces del [manifiesto de perfiles](../../../simulator/profiles/accounts.json). Son identidades ficticias; los teléfonos y dominios son ejemplos reservados. El mantenimiento usa `scripts/complete_scenario_profiles.py`: vista previa por defecto, `--apply --journal <ruta-privada>` para actualizar cuentas existentes o `--rollback <ruta-privada>` para restaurar campos sin cambios posteriores. Conserva credenciales, avatares, CV privados, referencias faciales y pertenencia a los grupos.
+
 Los manifiestos [policial](../../../simulator/workspaces/security.json), [enfermería](../../../simulator/workspaces/hospital.json) y [memoria](../../../simulator/workspaces/memory.json) son material de mantenimiento. Los escenarios del servidor ya están importados. Para preparar otra instalación, el responsable sigue [datos e importaciones](WORKSPACE_DATA.md).
 
 ## 1. Policial: caso, persona y evidencia
