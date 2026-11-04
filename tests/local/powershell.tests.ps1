@@ -1,5 +1,6 @@
 $ErrorActionPreference = 'Stop'
 & (Join-Path $PSScriptRoot 'docker-startup.tests.ps1')
+& (Join-Path $PSScriptRoot 'console.tests.ps1')
 . (Join-Path $PSScriptRoot '../../scripts/local/Common.ps1')
 function Assert-Condition($Condition, [string]$Message) { if (!$Condition) { throw $Message } }
 $root = Join-Path ([IO.Path]::GetTempPath()) ('RealityOS local tests ' + [Guid]::NewGuid().ToString('N'))
@@ -70,4 +71,9 @@ try {
         }
     }
     Write-Host 'PowerShell isolation, credentials, escaping, restart and remote-context tests passed.'
-} finally { Remove-Item -LiteralPath $root -Recurse -Force }
+} finally {
+    $resolved = [IO.Path]::GetFullPath($root)
+    $testPrefix = Join-Path ([IO.Path]::GetTempPath()) 'RealityOS local tests '
+    if (!$resolved.StartsWith($testPrefix, [StringComparison]::OrdinalIgnoreCase)) { throw 'Refusing to remove a directory outside the temporary test area.' }
+    Remove-Item -LiteralPath $resolved -Recurse -Force
+}

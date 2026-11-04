@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
 source "$(dirname -- "$0")/common.sh"
+local_progress 0 7 'Checking Docker'
 assert_local_docker
+local_progress 1 7 'Preparing private local configuration'
 umask 077
 [[ -f "$local_env" ]] || cp "$local_root/.env.local.example" "$local_env"
 chmod 600 "$local_env"
@@ -21,11 +23,16 @@ if grep -qx 'MODEL_API_KEY=' "$local_env"; then
   printf "MODEL_API_KEY='%s'\n" "$local_meta_key" >> "$local_env"
   unset local_meta_key
 fi
-[[ "$(local_docker info --format '{{.NCPU}}')" -ge 4 && "$(local_docker info --format '{{.MemTotal}}')" -ge 7900000000 ]] || { echo 'Allocate at least 4 CPUs and 8 GiB RAM to Docker.' >&2; exit 1; }
-echo 'Building the local runtime. The first build downloads dependencies and InsightFace weights.'
-local_compose build api
+local_progress 2 7 'Checking CPU and memory'
+[[ "$(local_docker info --format '{{.NCPU}}')" -ge 4 && "$(local_docker info --format '{{.MemTotal}}')" -ge 7900000000 ]] || { echo '[ERROR] Allocate at least 4 CPUs and 8 GiB RAM to Docker.' >&2; exit 1; }
+local_progress 3 7 'Building the backend image; first-time downloads can take several minutes'
+local_compose --progress plain build api
+local_progress 4 7 'Checking model availability'
 local_compose run --rm --no-deps api python /scripts/local/check_runtime.py --providers
+local_progress 5 7 'Preparing the database and starting local services'
 local_compose up -d --wait --wait-timeout 3600
+local_progress 6 7 'Queueing pending indexing'
 local_compose exec -T api python /scripts/local/bootstrap.py --queue
-echo 'Ready: http://localhost:8080/docs. Install the local Android APK and select an account.'
-echo 'Restarting preserves all edits and deletions. Meta indexing continues in the worker.'
+local_progress 7 7 'Local setup completed'
+echo '[SUCCESS] Ready: http://localhost:8080/docs. Install the local Android APK and select an account.'
+echo '[INFO] Restarting preserves all edits and deletions. Meta indexing continues in the worker.'

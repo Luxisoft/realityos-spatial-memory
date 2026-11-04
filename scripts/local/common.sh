@@ -1,8 +1,10 @@
 #!/usr/bin/env bash
 # Shell helpers deliberately never source an environment file as executable code.
 set -euo pipefail
+export LC_ALL=C
 local_root="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/../.." && pwd)"
 local_env="$local_root/.env.local"
+source "$local_root/scripts/local/console.sh"
 local_docker() (
   if [[ -f "$local_env" ]]; then
     while IFS= read -r line; do
@@ -16,7 +18,14 @@ local_docker() (
   docker "$@"
 )
 local_compose() {
-  local_docker compose --project-name realityos-local --env-file "$local_env" --file "$local_root/infrastructure/docker-compose.local.yml" "$@"
+  local result
+  if local_docker compose --project-name realityos-local --env-file "$local_env" --file "$local_root/infrastructure/docker-compose.local.yml" "$@" 2>&1 | local_console_summary; then
+    return 0
+  else
+    result=$?
+    printf '[ERROR] Docker could not complete the local operation (exit code %d).\n' "$result" >&2
+    return "$result"
+  fi
 }
 assert_local_docker() {
   [[ "$(uname -s)" == Linux && "$(uname -m)" == x86_64 ]] || { echo 'Linux x64 required; Windows uses Start-RealityOS.ps1.' >&2; exit 1; }

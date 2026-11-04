@@ -1,5 +1,6 @@
 # Shared PowerShell 5.1+/7 helpers. Every Compose call is scoped to realityos-local.
 Set-StrictMode -Version Latest
+[Threading.Thread]::CurrentThread.CurrentUICulture = [Globalization.CultureInfo]::GetCultureInfo('en-US')
 
 function Get-LocalRoot { return (Resolve-Path (Join-Path $PSScriptRoot '../..')).Path }
 
@@ -25,7 +26,7 @@ function Protect-LocalFile([string]$Path) {
     if ($env:OS -eq 'Windows_NT') {
         $identity = [Security.Principal.WindowsIdentity]::GetCurrent().Name
         & icacls.exe $Path /inheritance:r /grant:r "${identity}:(F)" /grant:r '*S-1-5-18:(F)' | Out-Null
-        if ($LASTEXITCODE -ne 0) { throw 'No se pudo proteger el archivo local de credenciales.' }
+        if ($LASTEXITCODE -ne 0) { throw 'Could not protect the local credentials file.' }
     } else { & chmod 600 $Path }
 }
 
@@ -38,7 +39,7 @@ function Set-LocalEnvironment([string]$Root, [hashtable]$Updates) {
     }
     foreach ($key in ($Updates.Keys | Sort-Object)) {
         $value = [string]$Updates[$key]
-        if ($value.Contains("`n") -or $value.Contains("`r")) { throw 'Los valores locales deben ocupar una sola linea.' }
+        if ($value.Contains("`n") -or $value.Contains("`r")) { throw 'Local environment values must fit on a single line.' }
         $escaped = $value.Replace('\', '\\').Replace('"', '\"').Replace('$', '$$')
         $rows.Add($key + '="' + $escaped + '"')
     }
@@ -67,6 +68,55 @@ function Read-LocalSecret([string]$Prompt) {
     finally { [Runtime.InteropServices.Marshal]::ZeroFreeBSTR($pointer) }
 }
 
+function Write-LocalProgress([string]$Activity, [int]$Completed, [int]$Total, [string]$Status) {
+    if ($Total -lt 1 -or $Completed -lt 0 -or $Completed -gt $Total) { throw 'Invalid progress step count.' }
+    $percent = [int][Math]::Floor(100 * $Completed / $Total)
+    $filled = [int][Math]::Floor(20 * $Completed / $Total)
+    $bar = ('#' * $filled) + ('-' * (20 - $filled))
+    $level = if ($Completed -eq $Total) { 'SUCCESS' } else { 'INFO' }
+    Write-Host "[$level] [$bar] $percent% | $Status ($Completed/$Total steps complete)"
+    Write-Progress -Id 0 -Activity $Activity -Status $Status -PercentComplete $percent
+}
+
+function Protect-LocalConsoleText([string]$Text, [hashtable]$Values) {
+    foreach ($key in ($Values.Keys | Sort-Object { ([string]$Values[$_]).Length } -Descending)) {
+        if ($key -match '(PASSWORD|TOKEN|SECRET|KEY|PEPPER)' -and $Values[$key].Length -gt 0) {
+            $Text = $Text.Replace($Values[$key], '[redacted]')
+        }
+    }
+    $Text = $Text -replace '\x1b\[[0-9;]*[A-Za-z]', ''
+    if ($Text.Length -gt 300) { $Text = $Text.Substring(0, 297) + '...' }
+    return $Text
+}
+
+function Write-LocalDockerSummary([string]$Line, [hashtable]$Values, [hashtable]$State) {
+    $State.LastLine = $Line
+    $message = ''
+    $level = 'INFO'
+    if ($Line -match '(?i)(\bwarning\b|\bwarn:|\berror\b|\bfailed\b|^denied:|^unauthorized:)') {
+        $level = if ($Line -match '(?i)\bwarning\b|\bwarn:') { 'WARNING' } else { 'ERROR' }
+        $message = Protect-LocalConsoleText $Line $Values
+        if ($level -eq 'ERROR') { $State.ErrorShown = $true }
+    } elseif ($Line -match '^#\d+ .*load (build definition|metadata|build context)') {
+        $message = 'Preparing the backend build context and base image.'
+    } elseif ($Line -match '^#\d+ .*RUN apt-get') {
+        $message = 'Installing system and Python dependencies.'
+    } elseif ($Line -match '^#\d+ .*RUN python .*FaceAnalysis') {
+        $message = 'Preparing computer vision models.'
+    } elseif ($Line -match '^#\d+ .*COPY simulator/') {
+        $message = 'Copying the existing local scenarios.'
+    } elseif ($Line -match '^#\d+ exporting') {
+        $message = 'Exporting the backend image. This can take several minutes.'
+    } elseif ($Line -match '^(api|worker|postgres|redis): ') {
+        $message = Protect-LocalConsoleText $Line $Values
+    } elseif ($Line -match '^Available local accounts: \d+$') {
+        $message = $Line
+    } elseif ($Line.StartsWith('{') -and $Line.Contains('models_available')) {
+        $message = 'Meta API: the required models are available.'
+    }
+    if ($message -and $State.Seen.Add("$level $message")) { Write-Host "[$level] $message" }
+}
+
 function Invoke-LocalDocker([string]$Root, [string[]]$DockerArguments, [switch]$Quiet, [switch]$AllowFailure) {
     $values = Get-LocalEnvironment $Root
     $saved = @{}
@@ -77,9 +127,14 @@ function Invoke-LocalDocker([string]$Root, [string[]]$DockerArguments, [switch]$
         Remove-Item -LiteralPath ('Env:' + $key) -ErrorAction SilentlyContinue
     }
     $previous = $ErrorActionPreference
+    $lines = New-Object 'System.Collections.Generic.List[string]'
+    $summary = @{ Seen = New-Object 'System.Collections.Generic.HashSet[string]'; LastLine = ''; ErrorShown = $false }
     try {
         $ErrorActionPreference = 'Continue'
-        $lines = @(& docker @DockerArguments 2>&1)
+        & docker @DockerArguments 2>&1 | ForEach-Object {
+            if ($Quiet) { $lines.Add([string]$_) }
+            else { Write-LocalDockerSummary ([string]$_) $values $summary }
+        }
         $code = $LASTEXITCODE
     } finally {
         $ErrorActionPreference = $previous
@@ -91,18 +146,17 @@ function Invoke-LocalDocker([string]$Root, [string[]]$DockerArguments, [switch]$
     # Readiness probes can fail while Desktop starts. Do not print Docker's
     # empty server JSON or parse it as a running engine.
     if ($code -ne 0 -and $AllowFailure) { return }
-    if (!$Quiet -or $code -ne 0) {
+    if ($Quiet -and $code -ne 0) {
         foreach ($line in $lines) {
-            $text = [string]$line
-            foreach ($key in $values.Keys) {
-                if ($key -match '(PASSWORD|TOKEN|SECRET|KEY)' -and $values[$key].Length -gt 0) {
-                    $text = $text.Replace($values[$key], '[redacted]')
-                }
-            }
-            Write-Host $text
+            Write-LocalDockerSummary $line $values $summary
         }
     }
-    if ($code -ne 0) { throw 'Docker no pudo completar la operacion local. Revisa el mensaje anterior.' }
+    if ($code -ne 0) {
+        if (!$summary.ErrorShown -and $summary.LastLine) {
+            Write-Host ('[ERROR] ' + (Protect-LocalConsoleText $summary.LastLine $values))
+        }
+        throw "Docker could not complete the local operation (exit code $code). Check the error above."
+    }
     if ($Quiet) { return ($lines -join "`n") }
 }
 
@@ -123,13 +177,13 @@ function Test-LocalDockerEndpoint([string]$Endpoint) {
 
 function Get-LocalDockerInfo([string]$Root) {
     if (!(Get-Command docker -ErrorAction SilentlyContinue)) {
-        throw 'No se encontro Docker. Instala Docker Desktop y abre una nueva terminal.'
+        throw 'Docker was not found. Install Docker Desktop and open a new terminal.'
     }
     if ($env:DOCKER_HOST -and !(Test-LocalDockerEndpoint $env:DOCKER_HOST)) {
-        throw 'El contexto Docker remoto esta rechazado. Selecciona Docker Desktop local.'
+        throw 'Remote Docker endpoints are refused. Select your local Docker Desktop context.'
     }
     $context = Invoke-LocalDocker $Root @('context', 'inspect', '--format', '{{json .Endpoints.docker.Host}}') -Quiet
-    if (!(Test-LocalDockerEndpoint ($context | ConvertFrom-Json))) { throw 'Se requiere un contexto Docker local.' }
+    if (!(Test-LocalDockerEndpoint ($context | ConvertFrom-Json))) { throw 'A local Docker context is required.' }
     $output = Invoke-LocalDocker $Root @('info', '--format', '{{json .}}') -Quiet -AllowFailure
     if ($output) { return ($output | ConvertFrom-Json) }
 }
@@ -141,9 +195,9 @@ function Start-LocalDockerDesktop {
     )
     $desktop = $candidates | Where-Object { Test-Path -LiteralPath $_ -PathType Leaf } | Select-Object -First 1
     if (!$desktop) {
-        throw 'No se encontro Docker Desktop. Instalalo o abre tu instalacion personalizada y vuelve a ejecutar el comando.'
+        throw 'Docker Desktop was not found. Install it or open your custom installation, then run this command again.'
     }
-    Write-Host 'Iniciando Docker Desktop. Si es el primer inicio, completa su configuracion en la aplicacion.'
+    Write-Host '[INFO] Starting Docker Desktop. On first launch, complete its setup in the application.'
     Start-Process -FilePath $desktop -WindowStyle Hidden -ErrorAction Stop | Out-Null
 }
 
@@ -157,29 +211,29 @@ function Assert-LocalDocker([string]$Root, [switch]$StartDesktop, [int]$StartupT
             # locality before every probe instead of trusting the first context.
             $info = Get-LocalDockerInfo $Root
             if ($info -or (Get-Date) -ge $deadline) { break }
-            Write-Host 'Esperando al motor Linux de Docker Desktop...'
+            Write-Host '[INFO] Waiting for the Docker Desktop Linux engine...'
             Start-Sleep -Seconds 5
         }
     }
     if (!$info) {
-        throw 'El motor Docker local no responde. Abre Docker Desktop, completa su configuracion inicial y espera a que el motor este en ejecucion. Revisa WSL2 y el contexto con docker context ls; docker info debe mostrar Server sin errores. Despues vuelve a ejecutar el comando.'
+        throw 'The local Docker engine is not responding. Open Docker Desktop, complete its first-run setup and wait for the engine. Check WSL2 and docker context ls; docker info must show Server without errors. Then run this command again.'
     }
-    if ($info.OSType -ne 'linux') { throw 'Activa Linux containers / WSL2 en Docker Desktop.' }
+    if ($info.OSType -ne 'linux') { throw 'Enable Linux containers / WSL2 in Docker Desktop.' }
     return $info
 }
 
 function Assert-LocalConfiguration([hashtable]$Values) {
     foreach ($key in $Values.Keys) {
-        if ($key -match '^(DOCKER|COMPOSE)_') { throw 'No definas DOCKER_* ni COMPOSE_* en .env.local.' }
+        if ($key -match '^(DOCKER|COMPOSE)_') { throw 'Do not set DOCKER_* or COMPOSE_* in .env.local.' }
     }
     if ($Values.ENVIRONMENT -ne 'local' -or $Values.LOCAL_LOGIN_ENABLED -ne 'true' -or
         $Values.LOCAL_EVALUATION_ENABLED -ne 'true' -or $Values.META_MODE -ne 'live' -or $Values.FACE_ENGINE -ne 'insightface') {
-        throw 'Este arranque exige entorno local, cuenta local e IA real (live / insightface).'
+        throw 'Startup requires the local environment, local account selection and real AI (live / insightface).'
     }
     foreach ($key in @('META_API_BASE_URL', 'META_GATEWAY_BASE_URL')) {
-        if ($Values[$key] -match '(realityos|meta)\.luxisoft\.com') { throw 'El perfil local no debe depender del servidor de produccion.' }
+        if ($Values[$key] -match '(realityos|meta)\.luxisoft\.com') { throw 'Local configuration must not depend on the production server.' }
     }
     if ($Values.LOCAL_HTTP_PORT -notmatch '^\d+$' -or [int]$Values.LOCAL_HTTP_PORT -lt 1024 -or [int]$Values.LOCAL_HTTP_PORT -gt 65535) {
-        throw 'LOCAL_HTTP_PORT debe ser un puerto entre 1024 y 65535.'
+        throw 'LOCAL_HTTP_PORT must be a port between 1024 and 65535.'
     }
 }

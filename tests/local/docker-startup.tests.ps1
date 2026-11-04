@@ -81,32 +81,32 @@ try {
     Assert-Condition (($script:messages -join ' ') -notmatch 'RAW_SERVER_JSON|simulated missing pipe') 'Failed probes leaked raw output.'
 
     Reset-FakeDocker
-    Assert-Failure { Assert-LocalDocker 'unused-test-root' -StartDesktop -StartupTimeoutSeconds 0 } 'El motor Docker local no responde'
+    Assert-Failure { Assert-LocalDocker 'unused-test-root' -StartDesktop -StartupTimeoutSeconds 0 } 'The local Docker engine is not responding'
     Assert-Condition ($script:desktopStarts -eq 1 -and $script:sleeps -eq 0) 'Startup wait is not bounded.'
     Assert-Condition ($env:MODEL_API_KEY -eq 'test-exported-key') 'Failed probe did not restore the caller environment.'
 
     Reset-FakeDocker
-    Assert-Failure { Assert-LocalDocker 'unused-test-root' } 'docker info debe mostrar Server'
+    Assert-Failure { Assert-LocalDocker 'unused-test-root' } 'docker info must show Server'
     Assert-Condition ($script:desktopStarts -eq 0) 'Diagnostics or shutdown started Desktop.'
 
     Reset-FakeDocker
     $script:desktopInstalled = $false
-    Assert-Failure { Assert-LocalDocker 'unused-test-root' -StartDesktop } 'No se encontro Docker Desktop'
+    Assert-Failure { Assert-LocalDocker 'unused-test-root' -StartDesktop } 'Docker Desktop was not found'
     Assert-Condition ($script:desktopStarts -eq 0) 'Missing Desktop was launched.'
 
     Reset-FakeDocker
     $env:DOCKER_HOST = 'ssh://remote-server'
-    Assert-Failure { Assert-LocalDocker 'unused-test-root' -StartDesktop } 'remoto esta rechazado'
+    Assert-Failure { Assert-LocalDocker 'unused-test-root' -StartDesktop } 'Remote Docker endpoints are refused'
     Assert-Condition ($script:infoCalls -eq 0 -and $script:desktopStarts -eq 0) 'Remote host reached startup.'
 
     Reset-FakeDocker
     $script:endpoint = 'tcp://198.51.100.10:2375'
-    Assert-Failure { Assert-LocalDocker 'unused-test-root' -StartDesktop } 'contexto Docker local'
+    Assert-Failure { Assert-LocalDocker 'unused-test-root' -StartDesktop } 'A local Docker context is required'
     Assert-Condition ($script:infoCalls -eq 0 -and $script:desktopStarts -eq 0) 'Remote context reached startup.'
 
     Reset-FakeDocker
     $script:remoteAfterSleep = $true
-    Assert-Failure { Assert-LocalDocker 'unused-test-root' -StartDesktop } 'contexto Docker local'
+    Assert-Failure { Assert-LocalDocker 'unused-test-root' -StartDesktop } 'A local Docker context is required'
     Assert-Condition ($script:infoCalls -eq 2) 'Readiness retry contacted a remote engine.'
 
     Reset-FakeDocker

@@ -12,6 +12,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - run: make docs-check
+      - name: Validate local Bash console output
+        run: bash tests/local/console.tests.sh
       - name: Verify generated scripts in the Postman runtime
         run: |
           npm install --prefix /tmp/postman-runtime --ignore-scripts --no-audit --no-fund newman@6.2.3

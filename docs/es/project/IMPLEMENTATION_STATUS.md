@@ -14,6 +14,8 @@ Backend/gateway: **591 pruebas aprobadas**, más la regresión adicional de rean
 
 El inicio de Windows ahora abre Docker Desktop instalado si el motor local no está disponible y espera hasta dos minutos. Pasaron nueve casos de regresión en PowerShell 5.1 con comandos Docker/procesos simulados, cubriendo arranque, tiempo agotado y rechazo de contextos remotos; esto no verifica un inicio real de Desktop.
 
+Los comandos locales de inicio, diagnóstico y parada ahora muestran progreso en inglés por etapas completadas y resúmenes, advertencias, errores y éxitos en tiempo real. Se ocultan los logs de descarga de paquetes y los valores privados. Pasaron seis casos de consola en PowerShell 5.1, seis en Bash y la suite de aislamiento de Windows. Una consulta de estado confirmó la API, PostgreSQL y Redis locales saludables y el worker en ejecución; no se reiniciaron servicios para probar este cambio de consola.
+
 Pendiente de validación externa: instalación Windows completa, teléfono físico/USB/voces, gafas y llamadas reales con la clave Meta del jurado. Las pruebas Linux/Docker no certifican estos recorridos. Los resultados históricos del servidor que siguen se conservan como referencia y no son requisitos de localhost. El despliegue remoto automático está desactivado; el instalador local no detiene ni modifica servidores históricos.
 
 ## Clasificación de publicaciones
