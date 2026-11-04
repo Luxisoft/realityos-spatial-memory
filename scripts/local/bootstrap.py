@@ -4,6 +4,7 @@ import argparse
 import json
 
 from app.local.bootstrap import enqueue_initial_media, seed_evaluation
+from app.local.police_biometrics import seed_police_biometrics
 from app.local.social_bootstrap import seed_local_social
 from app.main import app
 
@@ -23,6 +24,7 @@ def main():
         )
         if not args.queue:
             result["social_directory"] = seed_local_social(db, settings)
+            result["police_biometrics"] = seed_police_biometrics(db, settings)
         db.commit()
     print(json.dumps(result))
 

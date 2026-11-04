@@ -188,8 +188,8 @@ proceedings. The owner confirmed the portraits depict fictional characters.
 Preserve Police's three access accounts and their avatars. Source portraits are in
 `simulator/media/police/portraits/`; provenance and hashes are in
 `simulator/media/manifest.csv`.
-Keep this as record data, with internal simulation metadata and no automatic
-biometric authorization/enrollment. Do not restore the former Police scenes.
+Keep this as record data, with internal simulation metadata. Do not restore
+the former Police scenes.
 
 Latest owner correction (2026-11-04): the ten Police case portraits and their
 case information must also be group publications, linked to the existing records.
@@ -250,8 +250,8 @@ from arrest warrants in structured data and ES/EN presentation.
 
 The original ten cases remain intact: Police now has sixteen person records,
 five arrest warrants, two active proceedings, four missing-person search orders,
-and nineteen publications including the three park videos. No automatic biometric
-enrollment or authorization is implied. Preserve existing edits and deletions.
+and nineteen publications including the three park videos. Preserve existing edits
+and deletions.
 
 ## Owner correction: retire Memory and extend Meta profiles (2026-11-04)
 
@@ -324,3 +324,16 @@ Apply this through the shared versioned SQL initializer, replacing obsolete
 prepared associations while preserving manual classifications, deletions,
 memberships and private references. This does not authorize changes to production
 data or biometric code.
+
+## Owner correction: Police biometric enrollment (2026-11-04)
+
+The owner removed the no-automatic-biometric-enrollment restriction for Police
+cases: biometric search must identify the sixteen fictional case portraits, so
+each linked portrait is enrolled as a record biometric reference through the
+versioned local initializer with a traceable owner-ordered basis. The owner
+confirmed the portraits depict fictional characters. Search-time consent gates,
+the consent exception rules and the isolated biometric arm stay unchanged, and
+Meta private references remain outside publications. The 1:N match threshold is
+0.6, validated by measured same-user (min 0.751) vs cross-user (max 0.564)
+separation on the installed gallery. This supersedes the earlier
+no-automatic-enrollment clauses for Police records.

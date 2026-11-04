@@ -91,7 +91,7 @@ class Settings(BaseSettings):
     # Isolated biometric face-search arm. "mock" is deterministic and makes no
     # external call; "insightface" needs the backend faces extra (unverified live).
     face_engine: str = "mock"
-    face_match_threshold: float = Field(default=0.5, ge=-1.0, le=1.0)
+    face_match_threshold: float = Field(default=0.6, ge=-1.0, le=1.0)
     face_search_limit: int = Field(default=20, ge=1, le=100)
     biometric_notice_version: str = "2026-10-28.1"
     facebook_photo_sync_limit: int = Field(default=25, ge=1, le=25)
