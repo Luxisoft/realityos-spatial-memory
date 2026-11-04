@@ -212,6 +212,7 @@ val refactoredKotlin = files(
     "src/test/java/com/luxisoft/realityos/InputRoutePolicyTest.kt",
     "src/test/java/com/luxisoft/realityos/PhonePreviewStateTest.kt",
     "src/debug/java/com/luxisoft/realityos/DeveloperPreviewPanel.kt",
+    "src/testDebug/java/com/luxisoft/realityos/DeveloperPreviewStartupTest.kt",
     "src/debug/java/com/luxisoft/realityos/PhoneCaptureViewfinder.kt",
     "src/testDebug/java/com/luxisoft/realityos/PhoneCaptureTouchTest.kt",
     "src/debug/java/com/luxisoft/realityos/MockDeveloperPreviewController.kt",

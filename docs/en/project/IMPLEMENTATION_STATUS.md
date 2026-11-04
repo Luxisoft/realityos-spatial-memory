@@ -118,6 +118,23 @@ headers. Formatting, lint, architecture and documentation checks passed.
 
 ## Android validation
 
+The localhost Display preview now starts automatically after Bluetooth/DAT
+initialization, using the existing local account profile. The former
+`LOCAL_DEVELOPMENT` guard skipped simulator startup and left the stage at
+“Waiting for Meta Display…”. The correction preserves the physical-device
+selection and camera/microphone gates. On the connected Android phone, the old
+APK reproduced the waiting screen; after installing the signed replacement,
+the preview rendered the RealityOS Search/Capture menu inside the lens.
+This device check covered English at the normal display size. Complete ES/EN
+visual acceptance at narrow widths and 200% text remains pending, as does
+physical-glasses validation.
+
+The preview fix passed 15 focused local Android tests: four startup regressions,
+five input-route tests and six phone-capture touch tests. Debug and Release APK
+builds passed in an isolated signing directory; the canonical Debug APK retains
+the existing certificate and was installed successfully on the connected phone.
+`ktlintCheck`, `lintDebug`, architecture and documentation checks also passed.
+
 The text review passed **57 focused project tests**, plus **6 temporary rendered
 state checks**. Repeated checks after final date/plural fixes are not counted
 again. Reviewed ES/EN states cover profiles, storage, gallery filters and audio
@@ -149,7 +166,7 @@ The preceding branding revision passed **31 existing focused tests** for entry, 
 
 Reviewed native splash renders covered ES at 320 dp/200% text, EN at 390 dp and EN at 480 dp/200%. The supplied `splash_logo.png` remains unchanged and appears on the existing dark background, with `REALITYOS` and `BY JOSE MARIN` below it. Entry/account headers and the drawer share `AppBrandIcon`, which displays the existing `icon_app.png` with a fully circular crop. Reviewed Compose renders covered entry in EN at 390 dp, account login in ES at 320 dp/200%, and the drawer in ES at 320 dp/200%. Superseded logo resources and their obsolete checks were removed. Launcher artwork, internal screen/button colors and biometric code were preserved. No physical-device or real-emulator validation was performed for this revision.
 
-The canonical [Debug APK](../../../android/app/build/outputs/apk/debug/app-debug.apk), version `0.1.6-debug-20261104-1251`, has SHA-256 `522d04b1c96dc3aeb5153b657a8463ec74d6eb0ad1c5a5c1ec5621b2adad3035` and retains the existing signing certificate. Splash, icon and theme resources are unchanged from the branding revision. The APK remains the repository delivery artifact.
+The canonical [Debug APK](../../../android/app/build/outputs/apk/debug/app-debug.apk), version `0.1.6-debug-20261104-1316`, has SHA-256 `bab5148b6d3e6f861078c2b85f3706d9c0776f33a1cb344f2e292a83863eb575` and retains the existing signing certificate. Splash, icon and theme resources are unchanged from the branding revision. The APK remains the repository delivery artifact.
 
 <a id="next-steps"></a>
 

@@ -116,7 +116,8 @@ fun DeveloperPreviewStage(
         preview.active,
         hostState.wearable.transportReady
     ) {
-        if (!BuildConfig.LOCAL_DEVELOPMENT && enabled && !preview.active && !autoStartAttempted) {
+        // Localhost changes the API/account realm, not the Debug Display hardware.
+        if (enabled && !preview.active && !autoStartAttempted) {
             // DAT cannot create either a real or mock session until the host
             // has completed Bluetooth-gated initialization in MainActivity.
             if (!hostState.wearable.transportReady) {

@@ -120,12 +120,12 @@ For a Meta release channel, use the Wearables Developer Center values in that pr
 
 | Step | Action |
 | --- | --- |
-| **1 · Enter** | Install the regular Debug APK, sign in and open Meta Ray-Ban Display. |
-| **2 · Preview** | Choose the in-app Display preview and start virtual glasses. The server must use `META_MODE=live` for virtual-device provisioning. |
+| **1 · Enter** | Install the Debug APK, select a local account or sign in for your environment, and open Meta Ray-Ban Display. |
+| **2 · Preview** | After Bluetooth permission is granted, the preview starts virtual glasses automatically when no physical Display is available. The Controls menu allows retrying or changing modes. Localhost uses the profile issued during account selection; the server environment requires `META_MODE=live` for virtual-device provisioning. |
 | **3 · Capture** | Grant camera/audio permission when requested. Phone preview uses real CameraX photos/video and phone speech services. |
 | **4 · Query** | Search existing evidence by photo or voice. The result keeps its source and last-seen date. |
 
-The virtual transport simulates glasses; its sensor inputs and authorized server processing are real. Captures are uploaded only after an explicit action. The isolated local Debug variant does not enable automatic virtual-device bootstrap/preview.
+The virtual transport simulates glasses; its sensor inputs and authorized server processing are real. Captures are uploaded only after an explicit action. Local Debug starts the same Display simulator while retaining its local accounts and API. Opening the preview does not start the camera, microphone or capture.
 
 <details>
 <summary><strong>Chrome SDK preview and camera lifecycle</strong></summary>

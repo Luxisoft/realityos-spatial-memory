@@ -120,12 +120,12 @@ Para un canal de publicación Meta, utiliza los valores del Wearables Developer 
 
 | Paso | Acción |
 | --- | --- |
-| **1 · Entra** | Instala el APK Debug habitual, inicia sesión y abre Meta Ray-Ban Display. |
-| **2 · Vista previa** | Elige la vista previa dentro de la app e inicia las gafas virtuales. El servidor debe usar `META_MODE=live` para aprovisionar el dispositivo virtual. |
+| **1 · Entra** | Instala el APK Debug, selecciona una cuenta local o inicia sesión según el entorno y abre Meta Ray-Ban Display. |
+| **2 · Vista previa** | Tras conceder Bluetooth, la vista previa inicia las gafas virtuales automáticamente si no hay un Display físico disponible. El menú Controles permite reintentar o cambiar el modo. Localhost usa el perfil emitido al seleccionar la cuenta; el entorno servidor requiere `META_MODE=live` para aprovisionar el dispositivo virtual. |
 | **3 · Captura** | Concede permisos de cámara y audio cuando se soliciten. La vista previa usa fotos/video reales de CameraX y servicios de voz del teléfono. |
 | **4 · Consulta** | Busca evidencia existente mediante foto o voz. El resultado conserva su fuente y la fecha en que se vio por última vez. |
 
-El transporte virtual simula las gafas; las entradas de sensores y el procesamiento autorizado del servidor son reales. Solo se suben capturas tras una acción explícita. La variante Debug local aislada no habilita el arranque automático del dispositivo virtual ni su vista previa.
+El transporte virtual simula las gafas; las entradas de sensores y el procesamiento autorizado del servidor son reales. Solo se suben capturas tras una acción explícita. La variante Debug local inicia el mismo simulador del Display, conservando sus cuentas y API locales. Abrir la vista previa no inicia la cámara, el micrófono ni una captura.
 
 <details>
 <summary><strong>Vista previa del SDK en Chrome y ciclo de la cámara</strong></summary>

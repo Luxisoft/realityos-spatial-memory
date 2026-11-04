@@ -124,6 +124,24 @@ idioma. Pasaron formato, lint, arquitectura y documentación.
 
 ## Validación Android
 
+La vista previa del Display en localhost ahora inicia automáticamente tras
+inicializar Bluetooth/DAT, usando el perfil de la cuenta local existente. La
+condición anterior de `LOCAL_DEVELOPMENT` omitía el arranque del simulador y
+dejaba la pantalla en “Waiting for Meta Display…”. La corrección conserva la
+selección de gafas físicas y los permisos de cámara/micrófono. En el teléfono
+Android conectado se reprodujo la espera con el APK anterior; tras instalar
+el reemplazo firmado, el preview mostró el menú Buscar/Capturar de RealityOS
+dentro de la lente. Esta comprobación del dispositivo cubrió inglés al tamaño
+normal. Sigue pendiente la aceptación visual completa ES/EN a anchos estrechos
+y texto al 200 %, además de la validación con gafas físicas.
+
+La corrección pasó 15 pruebas Android locales: cuatro regresiones de arranque,
+cinco de selección de entrada y seis de interacción táctil de captura. Las
+compilaciones Debug y Release pasaron en un directorio aislado de firma; el APK
+Debug canónico conserva el certificado existente y se instaló correctamente
+en el teléfono conectado.
+También pasaron `ktlintCheck`, `lintDebug` y las revisiones de arquitectura y documentación.
+
 La revisión de textos aprobó **57 pruebas focalizadas del proyecto**, más
 **6 comprobaciones temporales de estados renderizados**. Las repeticiones tras
 los últimos ajustes de fechas y plurales no se suman de nuevo. Se revisaron
@@ -157,7 +175,7 @@ La revisión anterior de logos aprobó **31 pruebas existentes focalizadas** de 
 
 Se revisaron renderizados nativos del splash en ES a 320 dp/texto 200%, EN a 390 dp y EN a 480 dp/200%. El archivo proporcionado `splash_logo.png` permanece intacto sobre el fondo oscuro existente, con `REALITYOS` y `BY JOSE MARIN` debajo. Las cabeceras de acceso/cuenta y el menú lateral comparten `AppBrandIcon`, que muestra el archivo existente `icon_app.png` con recorte completamente circular. Los renderizados Compose revisados cubrieron acceso EN a 390 dp, inicio de sesión ES a 320 dp/200% y menú lateral ES a 320 dp/200%. Se retiraron los logos sustituidos y sus comprobaciones obsoletas. Se conservaron el icono del lanzador, los colores internos de vistas/botones y el código biométrico. No se realizó validación con teléfono físico ni emulador real para esta revisión.
 
-El [APK Debug canónico](../../../android/app/build/outputs/apk/debug/app-debug.apk), versión `0.1.6-debug-20261104-1251`, tiene SHA-256 `522d04b1c96dc3aeb5153b657a8463ec74d6eb0ad1c5a5c1ec5621b2adad3035` y conserva el certificado de firma existente. Los recursos de splash, icono y tema permanecen iguales a la revisión de logos. El APK se mantiene como artefacto de entrega del repositorio.
+El [APK Debug canónico](../../../android/app/build/outputs/apk/debug/app-debug.apk), versión `0.1.6-debug-20261104-1316`, tiene SHA-256 `bab5148b6d3e6f861078c2b85f3706d9c0776f33a1cb344f2e292a83863eb575` y conserva el certificado de firma existente. Los recursos de splash, icono y tema permanecen iguales a la revisión de logos. El APK se mantiene como artefacto de entrega del repositorio.
 
 <a id="next-steps"></a>
 
