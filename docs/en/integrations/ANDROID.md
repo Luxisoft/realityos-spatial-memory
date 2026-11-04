@@ -57,13 +57,7 @@ Android regression coverage includes simultaneous requests, expired and revoked 
 
 ## Build and install
 
-Requirements: **Java 21**, **Android SDK 36**, an Android 12+ phone or emulator, and ADB for installation. From the repository root:
-
-```bash
-cd android
-ANDROID_HOME=/opt/android-sdk ANDROID_SDK_ROOT=/opt/android-sdk ./gradlew :app:assembleDebug
-adb install -r app/build/outputs/apk/debug/app-debug.apk
-```
+Requirements: **Java 21**, **Android SDK 36**, an Android 12+ phone or emulator, and ADB for installation. To generate the local Debug variant from the current code, follow the [Windows and Linux build/install commands](../README.md#android). The Docker launcher does not compile Android. Repeat the build and installation when the app changes; update the backend too if the API contract changes.
 
 The single installable Debug artifact is `android/app/build/outputs/apk/debug/app-debug.apk`. Its build timestamp appears in the version name, not in additional APK filenames.
 
@@ -72,7 +66,7 @@ Alternatively, download `realityos-android-debug-apk` from a successful [CI run]
 <details>
 <summary><strong>Server URL and private developer configuration</strong></summary>
 
-The API URL is selected at build time: `REALITYOS_API_BASE_URL`, then the `realityosApiBaseUrl` Gradle property, then `https://realityos.luxisoft.com/v1`. It is not an editable account setting.
+The API URL is selected at build time: `REALITYOS_API_BASE_URL`, then the `realityosApiBaseUrl` Gradle property. Debug defaults to `localDevelopment=true` and, without an explicit URL, `http://localhost:8080/v1`. With `localDevelopment=false`, the default is `https://realityos.luxisoft.com/v1` and HTTPS is required. It is not an editable account setting.
 
 For local DAT Developer Mode, the ignored `android/local.properties` can contain:
 

@@ -120,14 +120,50 @@ En Windows, añade `-NoCache` al comando de inicio para reconstruir las dependen
 
 <a id="android"></a>
 
-## 2. Instalar y usar Android
+## 2. Compilar, instalar y actualizar Android
 
-Descarga [app-debug.apk](https://github.com/Luxisoft/realityos-spatial-memory/releases/download/local-evaluation/app-debug.apk) en la carpeta del proyecto. Conecta el teléfono por USB, acepta la depuración y ejecuta:
+Durante el desarrollo, **genera el APK desde el código actual de tu checkout**. Un APK publicado anteriormente solo contiene el código de aquella compilación. El instalador Docker inicia el backend; no compila Android. Puedes generar un APK Debug mientras el desarrollo continúa.
+
+Prepara [JDK 21, Android SDK 36 y Platform Tools](#java-windows) y ejecuta desde la raíz del repositorio:
+
+**Windows — PowerShell**
+
+```powershell
+$env:REALITYOS_API_BASE_URL = "http://localhost:8080/v1"
+.\android\gradlew.bat -p android -PlocalDevelopment=true :app:assembleDebug
+if ($LASTEXITCODE -ne 0) { throw "Android build failed. Do not install an older APK." }
+```
+
+**Linux**
 
 ```bash
-adb reverse tcp:8080 tcp:8080
-adb install -r app-debug.apk
+REALITYOS_API_BASE_URL=http://localhost:8080/v1 ./android/gradlew -p android -PlocalDevelopment=true :app:assembleDebug
 ```
+
+Espera a **BUILD SUCCESSFUL**. Cada compilación correcta reemplaza `android/app/build/outputs/apk/debug/app-debug.apk`; usa ese archivo para instalar y compartir. Conecta el teléfono por USB, acepta la depuración y ejecuta desde la raíz del repositorio:
+
+```bash
+adb devices
+adb reverse tcp:8080 tcp:8080
+adb install -r android/app/build/outputs/apk/debug/app-debug.apk
+```
+
+Si hay varios dispositivos conectados, usa `adb -s SERIAL` con el elegido. Se genera la app local `com.luxisoft.realityos.local`, que también sirve para el [túnel privado al servidor Linux](#linux-server).
+
+<a id="android-updates"></a>
+
+**Para cada actualización:**
+
+| Qué cambió | Qué ejecutar |
+| --- | --- |
+| Código o recursos Android | Repite la compilación y `adb install -r` anteriores. |
+| Código del backend o configuración del servidor | Ejecuta `Start-RealityOS.ps1` en Windows o `bash scripts/local/start.sh` en Linux para reconstruir/iniciar los servicios locales. Se conservan los datos existentes. |
+| Contrato de la API que utiliza Android | Actualiza tanto el backend como el APK. |
+| Solo documentación | No hace falta reconstruir la app ni los contenedores. |
+
+`adb install -r` reemplaza la app instalada conservando sus datos. Mantén el mismo identificador de aplicación y clave de firma; un APK firmado desde otra computadora o CI puede requerir una instalación diferente. No desinstales automáticamente ante un conflicto de firma. Consulta [instalación con ADB](https://developer.android.com/tools/adb#move) y [firma Android](https://developer.android.com/studio/publish/app-signing).
+
+Para compartir una compilación probada sin compilar en la computadora del destinatario, usa ese APK o el artefacto `realityos-android-debug-apk` de una [ejecución de CI aprobada](https://github.com/Luxisoft/realityos-spatial-memory/actions/workflows/ci.yml) del commit elegido. CI conserva ese artefacto durante 14 días; no reemplaza automáticamente un archivo de GitHub Releases ni actualiza la app instalada en el teléfono. La versión Debug incluye la fecha de compilación para identificar cuál está instalada.
 
 <a id="cases"></a>
 
@@ -185,7 +221,7 @@ API: [documentación](http://localhost:8080/docs) · [salud](http://localhost:80
 
 <a id="java-windows"></a>
 
-## 4. Compilar Android (opcional)
+## 4. Preparar Java y Android SDK
 
 Usa **JDK 21 LTS** y **Android SDK 36**. En Windows:
 
@@ -203,13 +239,9 @@ javac -version
 
 Debe aparecer `True` y versión **21**. Si el editor conserva una ruta vieja, elimínala de `java.home` o `java.jdt.ls.java.home`. En Android Studio, selecciona JDK 21 en **Settings → Build, Execution, Deployment → Build Tools → Gradle → Gradle JDK**.
 
-Compila desde la carpeta del proyecto:
+Instala Android SDK Platform 36, Build-Tools 36.0.0 y Platform Tools desde SDK Manager de Android Studio. Configura `ANDROID_HOME` con la carpeta del SDK, o `sdk.dir` en el archivo ignorado `android/local.properties`. Añade `platform-tools` del SDK al `Path` para que funcione `adb devices`.
 
-| Windows — PowerShell | Linux |
-| --- | --- |
-| `.\android\gradlew.bat -p android :app:assembleDebug` | `./android/gradlew -p android :app:assembleDebug` |
-
-Resultado: `android/app/build/outputs/apk/debug/app-debug.apk`. Instálalo con `adb install -r android/app/build/outputs/apk/debug/app-debug.apk`.
+Con esas herramientas listas, sigue [Compilar, instalar y actualizar Android](#android). Gradle utiliza el Wrapper del repositorio; no necesitas instalar Gradle por separado.
 
 <a id="linux-server"></a>
 
