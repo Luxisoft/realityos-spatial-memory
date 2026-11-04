@@ -13,6 +13,10 @@
 
 App Android para guardar fotos, videos y expedientes en grupos y consultar evidencia con IA. El servidor local ejecuta PostgreSQL, Redis, API y worker en Docker.
 
+<p align="center">
+  <a href="#linux-server"><img src="../assets/readme/linux-server-es.svg" alt="Desplegar en servidor Linux — pasos de evaluación privada" height="40"></a>
+</p>
+
 ## Requisitos
 
 - Windows x64 con [Docker Desktop](https://docs.docker.com/desktop/setup/install/windows-install/) y WSL2, o Linux x64 con [Docker Engine y Compose](https://docs.docker.com/engine/install/). Asigna a Docker **4 CPU, 8 GiB de RAM y 25 GiB libres**.
@@ -206,6 +210,63 @@ Compila desde la carpeta del proyecto:
 | `.\android\gradlew.bat -p android :app:assembleDebug` | `./android/gradlew -p android :app:assembleDebug` |
 
 Resultado: `android/app/build/outputs/apk/debug/app-debug.apk`. Instálalo con `adb install -r android/app/build/outputs/apk/debug/app-debug.apk`.
+
+<a id="linux-server"></a>
+
+## 5. Evaluación privada en un servidor Linux
+
+Ejecuta los mismos **cuatro servicios y escenarios preparados** en un servidor Linux x64. La API permanece en `127.0.0.1:8080` del servidor; tu computadora se conecta mediante SSH. No necesitas dominio ni un endpoint HTTPS público. Mantén privado el puerto 8080: el selector de cuentas de evaluación no utiliza contraseñas.
+
+**1. Prepara el servidor.** Usa al menos 4 CPU, 8 GiB de RAM y 25 GiB libres para Docker. Instala Git, curl, [Docker Engine y el plugin de Compose](https://docs.docker.com/engine/install/ubuntu/), e inicia Docker. Conéctate con tu propia cuenta SSH; sustituye `deploy@YOUR_SERVER` en toda esta sección:
+
+```bash
+ssh deploy@YOUR_SERVER
+uname -m
+docker info
+docker compose version
+```
+
+Debes obtener `x86_64`, un motor Linux que responda y Compose. Los comandos Docker deben funcionar desde esa cuenta. Ejecuta los siguientes comandos del servidor **dentro de esa sesión SSH**.
+
+**2. Descarga e inicia RealityOS.** Usa un checkout separado para esta evaluación:
+
+```bash
+git clone https://github.com/Luxisoft/realityos-spatial-memory.git
+cd realityos-spatial-memory
+bash scripts/local/start.sh
+```
+
+Introduce tu clave Meta cuando se solicite. El instalador crea un `.env.local` privado en el servidor, genera los secretos internos y prepara una sola vez los tres grupos y nueve cuentas. Reiniciar conserva la configuración local existente y los datos. PostgreSQL y Redis permanecen internos; Android usa sus voces instaladas sin conexión.
+
+**3. Verifica en el servidor.** Espera a que termine la instalación y ejecuta:
+
+```bash
+curl --fail --silent --show-error http://127.0.0.1:8080/health/ready
+curl --fail --silent --show-error http://127.0.0.1:8080/v1/openapi.json -o /dev/null
+bash scripts/local/test.sh
+```
+
+El diagnóstico comprueba servicios, disponibilidad de modelos y cuentas locales. La indexación puede continuar después del arranque; espera a que termine antes de buscar la evidencia preparada.
+
+**4. Conecta desde tu computadora.** Abre otra terminal **en tu computadora**, asegúrate de que su puerto 8080 esté libre y mantén activo este [túnel SSH](https://man.openbsd.org/ssh#L):
+
+```bash
+ssh -N -o ExitOnForwardFailure=yes -L 127.0.0.1:8080:127.0.0.1:8080 deploy@YOUR_SERVER
+```
+
+Abre [http://localhost:8080/docs](http://localhost:8080/docs) en tu computadora. Postman usa **Localhost requests** a través del túnel; deja **Server requests** desactivado. Si tu computadora ya ejecuta RealityOS localmente, detén primero esa instancia para liberar su puerto 8080.
+
+**5. Conecta Android.** Con el túnel abierto y el teléfono conectado por USB a tu computadora, instala el [APK Debug local](#android) y ejecuta en tu computadora:
+
+```bash
+adb reverse tcp:8080 tcp:8080
+```
+
+La app conserva `http://localhost:8080/v1` y llega al servidor a través de tu computadora. Elige una de las nueve cuentas. Repite `adb reverse` después de reconectar el teléfono. Cerrar el túnel desconecta los clientes, pero deja el servidor funcionando.
+
+**6. Detén o reanuda.** Dentro del checkout del servidor, usa `bash scripts/local/stop.sh` para detener y `bash scripts/local/start.sh` para reanudar. Detener conserva los datos. No elimines volúmenes ni uses `down -v` salvo que quieras borrar los datos de evaluación.
+
+Estos pasos reutilizan el instalador Linux existente. El recorrido SSH/USB debe comprobarse en tu servidor y teléfono; este cambio de documentación no despliega un servidor.
 
 <a id="hackathon"></a>
 
