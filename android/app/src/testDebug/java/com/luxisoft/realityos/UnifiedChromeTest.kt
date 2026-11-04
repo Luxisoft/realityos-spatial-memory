@@ -62,11 +62,17 @@ class UnifiedChromeTest {
                 }
             }
         }
-        val keys = listOf("host-menu-button", "profile-avatar", "profile-edit", "profile-expand", "profile-glasses", "host-search-button")
+        val keys = listOf("host-menu-button", "profile-avatar", "profile-expand", "profile-glasses", "host-search-button")
         val bounds = keys.map { compose.onNodeWithTag(it).assertIsDisplayed().assertHeightIsAtLeast(48.dp).fetchSemanticsNode().boundsInRoot }
         assertTrue(bounds.zipWithNext().all { (left, right) -> left.right <= right.left })
         assertTrue(bounds.last().right <= compose.activity.resources.configuration.screenWidthDp)
-        compose.onNodeWithTag("profile-avatar").performClick()
+        val edit = compose.onNodeWithTag("profile-edit").assertIsDisplayed().fetchSemanticsNode().boundsInRoot
+        val portrait = bounds[1]
+        assertEquals(portrait.right, edit.right, 0.5f)
+        assertEquals(portrait.bottom, edit.bottom, 0.5f)
+        assertTrue(edit.left > portrait.left && edit.top > portrait.top)
+        // Tap the portrait away from its separately clickable edit badge.
+        compose.onNodeWithTag("profile-avatar").performTouchInput { click(androidx.compose.ui.geometry.Offset(8f, 8f)) }
         compose.runOnIdle { assertEquals(listOf("gallery"), actions) }
         compose.onNodeWithTag("profile-glasses").performClick()
         compose.onNodeWithTag("host-search-button").performClick()
@@ -82,7 +88,7 @@ class UnifiedChromeTest {
         assertTrue(details.bottom <= avatar.top)
         capture("expanded-$name")
         compose.onNodeWithTag("profile-edit").performClick()
-        compose.runOnIdle { assertEquals("edit", actions.last()) }
+        compose.runOnIdle { assertEquals(listOf("gallery", "glasses", "search", "controls", "edit"), actions) }
     }
 
     private fun capture(name: String) {
@@ -97,7 +103,16 @@ class UnifiedChromeTest {
     }
 
     @Test fun spanishChrome() = checkChrome("es-390", 1f)
-    @Test @Config(qualifiers = "en-w480dp-h844dp-mdpi") fun englishChrome() = checkChrome("en-480", 1f)
-    @Test @Config(qualifiers = "es-w320dp-h640dp-mdpi") fun largeSpanishChrome() = checkChrome("es-320-large", 2f)
-    @Test @Config(qualifiers = "en-w320dp-h640dp-mdpi") fun largeEnglishChrome() = checkChrome("en-320-large", 2f)
+
+    @Test
+    @Config(qualifiers = "en-w480dp-h844dp-mdpi")
+    fun englishChrome() = checkChrome("en-480", 1f)
+
+    @Test
+    @Config(qualifiers = "es-w320dp-h640dp-mdpi")
+    fun largeSpanishChrome() = checkChrome("es-320-large", 2f)
+
+    @Test
+    @Config(qualifiers = "en-w320dp-h640dp-mdpi")
+    fun largeEnglishChrome() = checkChrome("en-320-large", 2f)
 }

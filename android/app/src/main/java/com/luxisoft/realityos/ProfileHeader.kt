@@ -173,7 +173,7 @@ internal fun ProfileHeader(
                     }
                 }
                 Box(
-                    Modifier.size(if (bottom) 48.dp else 52.dp)
+                    Modifier.size(52.dp)
                         .then(
                             if (onAvatar != null) {
                                 Modifier.clickable(role = Role.Button, onClickLabel = localizedText(R.string.ui_publications), onClick = {
@@ -197,17 +197,12 @@ internal fun ProfileHeader(
                     } else {
                         Icon(Icons.Default.AccountCircle, null, Modifier.size(48.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
-                    if (!bottom && state.userId == null && current != null) {
+                    if (state.userId == null && current != null) {
                         IconButton(onClick = { editing = true }, modifier = Modifier.align(Alignment.BottomEnd).size(32.dp).testTag("profile-edit")) {
                             Surface(shape = CircleShape, color = MaterialTheme.colorScheme.primary) {
                                 Icon(Icons.Default.Edit, localizedText(R.string.ui_edit_profile), Modifier.padding(3.dp).size(16.dp))
                             }
                         }
-                    }
-                }
-                if (bottom && state.userId == null) {
-                    IconButton(onClick = { editing = true }, enabled = current != null, modifier = Modifier.size(48.dp).testTag("profile-edit")) {
-                        Icon(Icons.Default.Edit, localizedText(R.string.ui_edit_profile))
                     }
                 }
                 Column(
