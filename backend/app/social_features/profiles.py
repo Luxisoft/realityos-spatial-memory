@@ -76,7 +76,7 @@ def _public_profile_payload(target: User, db: Session) -> dict:
         if birthday
         else None
     )
-    return {
+    payload = {
         "user_id": str(target.id),
         "profile_source": (
             "facebook"
@@ -124,6 +124,14 @@ def _public_profile_payload(target: User, db: Session) -> dict:
             for item in friends
         ],
     }
+    # Synced fields can override the custom profile. Authored translations must
+    # match what this response actually sends, not an older custom value.
+    payload["display_text"] = {
+        field: values
+        for field, values in payload["display_text"].items()
+        if values.get("source") == payload.get(field)
+    }
+    return payload
 
 
 def _own_profile_payload(user: User, db: Session) -> dict:

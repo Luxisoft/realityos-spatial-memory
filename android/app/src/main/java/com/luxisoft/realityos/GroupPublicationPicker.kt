@@ -48,7 +48,7 @@ internal fun GroupPublicationPicker(workspaceId: String, onClose: () -> Unit, on
                 throw cancelled
             } catch (error: Exception) {
                 failed = true
-                AppNotices.show(error.message.orEmpty(), NoticeKind.ERROR)
+                AppNotices.show(localizedFailure(error), NoticeKind.ERROR)
             } finally {
                 loading = false
             }
@@ -95,7 +95,7 @@ internal fun GroupPublicationPicker(workspaceId: String, onClose: () -> Unit, on
                             } catch (cancelled: CancellationException) {
                                 throw cancelled
                             } catch (error: Exception) {
-                                AppNotices.show(error.message.orEmpty(), NoticeKind.ERROR)
+                                AppNotices.show(localizedFailure(error), NoticeKind.ERROR)
                             } finally {
                                 busy = false
                             }

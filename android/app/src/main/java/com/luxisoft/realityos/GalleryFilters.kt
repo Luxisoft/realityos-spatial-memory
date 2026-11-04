@@ -48,7 +48,7 @@ internal fun GalleryFilterButton(
             throw cancelled
         } catch (failure: Exception) {
             coroutineContext.ensureActive()
-            error = failure.message.orEmpty()
+            error = localizedFailure(failure)
         } finally {
             if (coroutineContext.isActive) loading = false
         }
@@ -92,7 +92,7 @@ internal fun GalleryFilterButton(
 @Composable
 private fun GalleryDateField(label: String, value: LocalDate?, onChange: (LocalDate?) -> Unit) {
     var open by remember { mutableStateOf(false) }
-    OutlinedButton(onClick = { open = true }, modifier = Modifier.fillMaxWidth()) { Text(label + ": " + (value?.toString() ?: localizedText(R.string.gallery_any_date))) }
+    OutlinedButton(onClick = { open = true }, modifier = Modifier.fillMaxWidth()) { Text(label + ": " + (value?.let { evidenceDate(it.toString(), LocalizedText.languageTag) } ?: localizedText(R.string.gallery_any_date))) }
     if (open) {
         val picker = rememberDatePickerState(initialSelectedDateMillis = value?.atStartOfDay(ZoneOffset.UTC)?.toInstant()?.toEpochMilli())
         DatePickerDialog(onDismissRequest = { open = false }, confirmButton = {

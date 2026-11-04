@@ -27,7 +27,7 @@ make runtime-dirs
 .venv/bin/python scripts/import_manual_photos.py --help
 ```
 
-[API ](../api/API.md) · [DEMO ](../guides/DEMO.md) · [SECURITY ](../architecture/SECURITY.md)
+[API](../api/API.md) · [Evaluación local](../guides/DEMO.md) · [Seguridad](../architecture/SECURITY.md)
 
 ## Ejemplo de importación explícita
 

@@ -76,3 +76,16 @@ interval shows an inline error and preserves the last valid query until it is
 corrected. Filter changes reset pagination and discard outdated responses;
 selecting another group resets the filters. Selecting the current group again
 preserves its results.
+
+## Language and copy
+
+The app's ES/EN selection controls labels, accessibility, authored messages,
+plurals and date presentation. API interchange formats and editable field values
+stay intact; the system language must not override the app selection. Requests
+include `Accept-Language`, including session refresh and file transfers.
+
+Prepared profiles and publications read reviewed translations from the database.
+A stored translation is used only when it matches the current original value;
+editing preserves the user's text. Model responses, external diagnostics and
+user-authored text are not translated through word substitution. Network failures
+use a localized explanation through the shared error-presentation component.

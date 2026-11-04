@@ -28,8 +28,8 @@ _TEMPLATES: dict[str, dict[str, str]] = {
         "es": "Confirma la acción sobre la publicación seleccionada.",
     },
     "register_home": {
-        "en": "Register evidence in Home first.",
-        "es": "Registra primero evidencia en Casa.",
+        "en": "Register evidence first.",
+        "es": "Registra evidencia primero.",
     },
     "accessible_matches": {
         "en": "{count} matches in accessible publications.",
@@ -80,8 +80,8 @@ _TEMPLATES: dict[str, dict[str, str]] = {
         "it": "{name} è stato visto l'ultima volta in {location}, {detail}. Osservato il {date}.",
     },
     "unknown_location": {
-        "en": "location has no detail",
-        "es": "el lugar no tiene detalle",
+        "en": "an unspecified location",
+        "es": "un lugar sin especificar",
         "pt": "o local não tem detalhes",
         "fr": "le lieu n'a pas de détail",
         "de": "der Ort hat keine Details",

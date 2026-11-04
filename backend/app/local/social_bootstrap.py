@@ -17,6 +17,8 @@ SOCIAL_REVISIONS = (
     ("meta-social-profiles-v2", "006-social-profiles.sql", 3),
 )
 COUNT_FIELDS = ("profiles", "avatars", "references", "enrollments")
+PUBLIC_DISPLAY_REVISION = ("meta-social-profile-display-v1", "009-profile-display.sql")
+PUBLIC_DISPLAY_REQUIRES = ("meta-social-profiles-v1", "meta-social-profiles-v2")
 
 
 def _totals(states):
@@ -24,6 +26,20 @@ def _totals(states):
         field: sum(state.counts.get(field, 0) for state in states.values() if state)
         for field in COUNT_FIELDS
     }
+
+
+def _install_public_display(db, settings, root):
+    """Public authored copy follows profile creation, with its own durable receipt."""
+    name, filename = PUBLIC_DISPLAY_REVISION
+    if db.get(LocalEvaluationState, name):
+        return
+    if any(db.get(LocalEvaluationState, required) is None for required in PUBLIC_DISPLAY_REQUIRES):
+        return
+    if db.get(LocalEvaluationState, "evaluation-v1") is None:
+        raise ValueError("Initialize the local scenarios first.")
+    with db.begin_nested():
+        apply_seed(db, settings, filename, root)
+        receipt(db, name, seed_digest(root, filename), {})
 
 
 def _install_revision(db, settings, root, name, filename, expected, engine, hashes):
@@ -81,6 +97,7 @@ def seed_local_social(db, settings, root=FIXTURES, *, engine=None):
     states = {name: db.get(LocalEvaluationState, name) for name, _, _ in SOCIAL_REVISIONS}
     pending = [revision for revision in SOCIAL_REVISIONS if not states[revision[0]]]
     if not pending:
+        _install_public_display(db, settings, root)
         return {"initialized": False, **_totals(states)}
     if db.get(LocalEvaluationState, "evaluation-v1") is None:
         raise ValueError("Initialize the local scenarios first.")
@@ -107,4 +124,5 @@ def seed_local_social(db, settings, root=FIXTURES, *, engine=None):
             states[name] = _install_revision(
                 db, settings, root, name, filename, expected, engine, hashes
             )
+        _install_public_display(db, settings, root)
     return {"initialized": True, **_totals(states)}

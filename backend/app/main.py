@@ -7,6 +7,7 @@ from sqlalchemy import text
 from app import local_models  # noqa: F401
 from app.config import Settings, get_settings
 from app.db import Database
+from app.error_handlers import register_error_handlers
 from app.runtime.routers import register_routes
 
 
@@ -29,8 +30,9 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         allow_origins=runtime_settings.cors_origin_list,
         allow_credentials=True,
         allow_methods=["GET", "POST", "PATCH", "DELETE"],
-        allow_headers=["Authorization", "Content-Type"],
+        allow_headers=["Authorization", "Content-Type", "Accept-Language"],
     )
+    register_error_handlers(app)
     register_routes(app, runtime_settings)
 
     @app.get("/health/live", tags=["system"])

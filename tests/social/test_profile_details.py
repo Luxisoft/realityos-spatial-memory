@@ -181,6 +181,50 @@ def test_profile_edit_cannot_target_another_account(client, email_owner):
     assert patch(client, {}, location="Forged").status_code == 401
 
 
+def test_synced_profile_does_not_show_translations_of_replaced_values(
+    client, email_owner
+):
+    from app.social_features.models import FacebookProfile
+
+    user_id, headers = email_owner
+    with client.app.state.database.session_factory() as db:
+        db.add(
+            UserProfile(
+                user_id=user_id,
+                gender="male",
+                location="Old City",
+                hometown="Old Town",
+                headline="Invalid image.",
+                biography="My own words",
+                display_text={
+                    field: {"source": value, "en": value, "es": translated}
+                    for field, value, translated in (
+                        ("gender", "male", "Hombre"),
+                        ("location", "Old City", "Ciudad anterior"),
+                        ("hometown", "Old Town", "Pueblo anterior"),
+                        ("biography", "My own words", "Mis propias palabras"),
+                    )
+                },
+            )
+        )
+        db.add(
+            FacebookProfile(
+                user_id=user_id, gender="female", location="New City", hometown=None
+            )
+        )
+        db.commit()
+    response = client.get("/v1/me/profile", headers=headers | {"Accept-Language": "es"})
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["gender"] == "female" and payload["location"] == "New City"
+    assert payload["hometown"] is None
+    assert set(payload["display_text"]) == {"biography"}
+    assert (
+        payload["headline"] == "Invalid image."
+    )  # Never translate owner text by matching copy.
+    assert payload["biography"] == "My own words"
+
+
 def test_viewed_profile_source_is_independent_from_the_viewer(client, email_owner):
     user_id, headers = email_owner
     with client.app.state.database.session_factory() as db:

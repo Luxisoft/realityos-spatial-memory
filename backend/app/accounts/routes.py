@@ -13,6 +13,8 @@ from app.accounts.presentation import action_page, language
 from app.accounts.service import challenge, consume, throttle
 from app.dependencies import get_current_user, get_db
 from app.device_profiles import issue_capture_profile
+from app.error_text import error_text
+from app.languages import request_language
 from app.models import RefreshToken, User
 from app.security import hash_password, verify_password
 
@@ -116,7 +118,12 @@ async def resend(payload: EmailRequest, request: Request, db: Session = Depends(
         await challenge(
             db, request.app.state.settings, user, "verify", request.headers.get("accept-language")
         )
-    return {"status": "If eligible, a confirmation email has been sent."}
+    return {
+        "status": error_text(
+            "If eligible, a confirmation email has been sent.",
+            request_language(request.headers.get("accept-language")),
+        )
+    }
 
 
 @server_router.post("/auth/change-pending-email", status_code=202)
@@ -172,7 +179,12 @@ async def forgot(payload: EmailRequest, request: Request, db: Session = Depends(
         await challenge(
             db, request.app.state.settings, user, "reset", request.headers.get("accept-language")
         )
-    return {"status": "If eligible, a recovery email has been sent."}
+    return {
+        "status": error_text(
+            "If eligible, a recovery email has been sent.",
+            request_language(request.headers.get("accept-language")),
+        )
+    }
 
 
 @server_router.post("/auth/reset-password")

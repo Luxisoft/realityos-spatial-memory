@@ -95,7 +95,7 @@ internal fun SocialAdministration(
             pinAvailable = loaded.second != null
             reports = loaded.third
         } catch (e: Exception) {
-            error = e.message.orEmpty()
+            error = localizedFailure(e)
         } finally {
             loading = false
         }
@@ -118,7 +118,7 @@ internal fun SocialAdministration(
                     onChanged()
                 }
             } catch (e: Exception) {
-                error = e.message.orEmpty()
+                error = localizedFailure(e)
                 pending = null
             }
         }
@@ -186,7 +186,7 @@ internal fun SocialAdministration(
                                                         }
                                                         pin = rotated
                                                     } catch (e: Exception) {
-                                                        error = e.message.orEmpty()
+                                                        error = localizedFailure(e)
                                                     }
                                                 }
                                             }) {
@@ -206,7 +206,7 @@ internal fun SocialAdministration(
                                         val targetSelf = member.optBoolean("self")
                                         val badges = buildList {
                                             if (member.optBoolean("creator")) add(localizedText(R.string.ui_creator))
-                                            if (targetRole == "admin") add("Admin")
+                                            if (targetRole == "admin") add(localizedText(R.string.ui_admin))
                                             if (member.optBoolean("can_invite")) add(localizedText(R.string.ui_can_invite))
                                             if (targetSelf) add(localizedText(R.string.ui_you))
                                         }
@@ -245,7 +245,7 @@ internal fun SocialAdministration(
                                                                 revision++
                                                                 onChanged()
                                                             } catch (e: Exception) {
-                                                                error = e.message.orEmpty()
+                                                                error = localizedFailure(e)
                                                             }
                                                         }
                                                     }

@@ -13,7 +13,7 @@ import org.json.JSONObject
 
 class RealityApiException(
     message: String,
-    val statusCode: Int? = null,
+    val statusCode: Int? = null
 ) : IOException(message)
 
 data class RemoteSession(val id: String, val status: String)
@@ -21,7 +21,7 @@ data class RemoteCapture(val id: String, val mimeType: String)
 data class RemoteJob(
     val id: String,
     val status: String,
-    val errorMessage: String?,
+    val errorMessage: String?
 )
 data class RemoteZone(val id: String, val name: String, val kind: String, val parentId: String?)
 data class QueryEvidence(
@@ -33,7 +33,7 @@ data class QueryEvidence(
     val displayMediaPath: String?,
     val seenAt: String? = null,
     val visualConfidence: Double? = null,
-    val simulated: Boolean = false,
+    val simulated: Boolean = false
 )
 
 data class VirtualDeviceProfile(
@@ -43,7 +43,7 @@ data class VirtualDeviceProfile(
     val deviceId: String,
     val deviceKey: String,
     val expiresAt: Instant,
-    val processingMode: String,
+    val processingMode: String
 ) {
     fun toProvisioning() = DeviceProvisioning(
         apiBaseUrl = apiBaseUrl,
@@ -53,7 +53,7 @@ data class VirtualDeviceProfile(
         workspaceName = workspaceName,
         expiresAt = expiresAt,
         processingMode = processingMode,
-        source = ProvisioningSource.VIRTUAL_LIVE,
+        source = ProvisioningSource.VIRTUAL_LIVE
     )
 }
 
@@ -65,13 +65,14 @@ object VirtualDeviceBootstrapApi {
     fun fetch(apiBaseUrl: String, installationId: String): VirtualDeviceProfile {
         val normalizedBaseUrl = apiBaseUrl.trim().trimEnd('/')
         val url = URL("$normalizedBaseUrl/virtual-devices/bootstrap")
-        require(url.protocol == "https") { "Virtual glasses require an HTTPS RealityOS URL." }
+        require(url.protocol == "https") { localizedText(R.string.virtual_device_https_required) }
         val connection = (url.openConnection() as HttpURLConnection).apply {
             requestMethod = "POST"
             connectTimeout = 20_000
             readTimeout = 30_000
             doInput = true
             setRequestProperty("Accept", "application/json")
+            setRequestProperty("Accept-Language", LocalizedText.languageTag)
             setRequestProperty("X-RealityOS-Installation-ID", installationId)
         }
         return try {
@@ -84,7 +85,7 @@ object VirtualDeviceBootstrapApi {
                 deviceId = result.getString("device_id"),
                 deviceKey = result.getString("device_key"),
                 expiresAt = Instant.parse(result.getString("expires_at")),
-                processingMode = result.getString("processing_mode"),
+                processingMode = result.getString("processing_mode")
             )
         } finally {
             connection.disconnect()
@@ -109,20 +110,18 @@ class RealityApi(private val provisioning: DeviceProvisioning) {
 
     fun absoluteUrl(path: String): String = endpoint(path).toExternalForm()
 
-    private fun connection(path: String, method: String): HttpURLConnection =
-        (endpoint(path).openConnection() as HttpURLConnection).apply {
-            requestMethod = method
-            connectTimeout = 20_000
-            readTimeout = 120_000
-            doInput = true
-            setRequestProperty("X-RealityOS-Device-ID", provisioning.deviceId)
-            setRequestProperty("X-RealityOS-Device-Key", provisioning.deviceKey)
-            setRequestProperty("Accept", "application/json")
-        }
-
-    private fun body(connection: HttpURLConnection): String {
-        return responseBody(connection)
+    private fun connection(path: String, method: String): HttpURLConnection = (endpoint(path).openConnection() as HttpURLConnection).apply {
+        requestMethod = method
+        connectTimeout = 20_000
+        readTimeout = 120_000
+        doInput = true
+        setRequestProperty("X-RealityOS-Device-ID", provisioning.deviceId)
+        setRequestProperty("X-RealityOS-Device-Key", provisioning.deviceKey)
+        setRequestProperty("Accept", "application/json")
+        setRequestProperty("Accept-Language", LocalizedText.languageTag)
     }
+
+    private fun body(connection: HttpURLConnection): String = responseBody(connection)
 
     private fun postJson(path: String, json: JSONObject): JSONObject {
         val connection = connection(path, "POST")
@@ -148,8 +147,8 @@ class RealityApi(private val provisioning: DeviceProvisioning) {
                             id = zone.getString("id"),
                             name = zone.getString("name"),
                             kind = zone.optString("kind", "zone"),
-                            parentId = zone.optString("parent_id").takeIf { it.isNotBlank() },
-                        ),
+                            parentId = zone.optString("parent_id").takeIf { it.isNotBlank() }
+                        )
                     )
                 }
             }
@@ -174,14 +173,14 @@ class RealityApi(private val provisioning: DeviceProvisioning) {
         bytes: ByteArray,
         filename: String,
         mimeType: String,
-        capturedAt: Instant = Instant.now(),
+        capturedAt: Instant = Instant.now()
     ): RemoteCapture = uploadCapture(sessionId, filename, mimeType, capturedAt) { output -> output.write(bytes) }
 
     fun uploadCaptureFile(
         sessionId: String,
         file: File,
         mimeType: String,
-        capturedAt: Instant = Instant.now(),
+        capturedAt: Instant = Instant.now()
     ): RemoteCapture = uploadCapture(sessionId, file.name, mimeType, capturedAt) { output ->
         file.inputStream().buffered().use { input -> input.copyTo(output, 64 * 1024) }
     }
@@ -191,7 +190,7 @@ class RealityApi(private val provisioning: DeviceProvisioning) {
         filename: String,
         mimeType: String,
         capturedAt: Instant,
-        writeContent: (BufferedOutputStream) -> Unit,
+        writeContent: (BufferedOutputStream) -> Unit
     ): RemoteCapture {
         val boundary = "RealityOS-${UUID.randomUUID()}"
         val connection = connection("device/captures", "POST")
@@ -216,16 +215,18 @@ class RealityApi(private val provisioning: DeviceProvisioning) {
     fun requestProcessing(
         captureId: String,
         detailed: Boolean,
-        priorityTerms: List<String> = emptyList(),
+        priorityTerms: List<String> = emptyList()
     ): RemoteJob {
         val terms = JSONArray()
         priorityTerms.filter { it.isNotBlank() }.take(16).forEach { terms.put(it.trim()) }
-        return parseJob(postJson(
-            "device/captures/$captureId/process",
-            JSONObject()
-                .put("profile", if (detailed) "detailed" else "basic")
-                .put("priority_terms", terms),
-        ))
+        return parseJob(
+            postJson(
+                "device/captures/$captureId/process",
+                JSONObject()
+                    .put("profile", if (detailed) "detailed" else "basic")
+                    .put("priority_terms", terms)
+            )
+        )
     }
 
     fun getProcessingJob(jobId: String): RemoteJob {
@@ -240,7 +241,7 @@ class RealityApi(private val provisioning: DeviceProvisioning) {
     fun query(question: String, language: String = "en"): QueryEvidence {
         val result = postJson(
             "device/queries",
-            JSONObject().put("workspace_id", provisioning.workspaceId).put("question", question.trim()).put("language", language).put("search_scope", "registry"),
+            JSONObject().put("workspace_id", provisioning.workspaceId).put("question", question.trim()).put("language", language).put("search_scope", "registry")
         )
         return QueryEvidence(
             found = result.optBoolean("found"),
@@ -251,7 +252,7 @@ class RealityApi(private val provisioning: DeviceProvisioning) {
             displayMediaPath = result.optString("display_media_url").takeIf { it.isNotBlank() },
             seenAt = result.optJSONObject("observation")?.optText("seen_at"),
             visualConfidence = result.optJSONObject("observation")?.let { if (it.isNull("visual_confidence")) null else it.optDouble("visual_confidence") },
-            simulated = result.optBoolean("simulated"),
+            simulated = result.optBoolean("simulated")
         )
     }
 
@@ -268,7 +269,7 @@ class RealityApi(private val provisioning: DeviceProvisioning) {
     private fun parseJob(result: JSONObject): RemoteJob = RemoteJob(
         id = result.getString("id"),
         status = result.getString("status"),
-        errorMessage = result.optString("error_message").takeIf { it.isNotBlank() },
+        errorMessage = result.optString("error_message").takeIf { it.isNotBlank() }
     )
 }
 
@@ -278,7 +279,7 @@ private fun responseBody(connection: HttpURLConnection): String {
     if (connection.responseCode !in 200..299) {
         throw RealityApiException(
             localizedHttpError(connection.responseCode),
-            statusCode = connection.responseCode,
+            statusCode = connection.responseCode
         )
     }
     return payload
@@ -295,7 +296,7 @@ private fun BufferedOutputStream.writeFileHeader(
     boundary: String,
     field: String,
     filename: String,
-    mimeType: String,
+    mimeType: String
 ) {
     write("--$boundary\r\n".toByteArray())
     write("Content-Disposition: form-data; name=\"$field\"; filename=\"${filename.replace("\"", "_")}\"\r\n".toByteArray())

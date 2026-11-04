@@ -306,11 +306,21 @@ button in the title row. Clear resets the filters immediately. Invalid date
 intervals keep the last valid result and show an inline error. Discard obsolete
 responses and pagination when filters or the selected group change.
 
-Classify existing local Police publications by active arrest warrants, missing
-persons, records without orders or criminal history and public-space videos. Use tags for
-active proceedings, search orders and the relevant recorded details. Classify
-Meta introductions and videos separately, with tags reflecting their actual
-captions. Do not label every case with the same generic category/tag. Apply this
-through the shared versioned SQL initializer, preserving manual classifications,
-deletions, memberships and private references. This does not authorize changes
-to production data or biometric code.
+Latest owner approval: classification follows the use case, not scene topics
+such as spring, winter, weather, parks, walking or cycling. The exact bilingual
+catalog is documented in `docs/es/guides/PUBLICATION_CLASSIFICATION.md`.
+
+Police has four categories: active arrest warrants, missing persons, no warrants
+or criminal history, and audiovisual material. Its seven tags are active arrest
+warrant, no recorded criminal history, active judicial proceedings, no active
+proceedings, active search order, no active arrest warrants, and observation video.
+Apply judicial tags only from the person record; videos receive no judicial status.
+
+Meta has two categories: introductions and social content. Its four tags are
+personal introduction, community, video and everyday life. Private profiles and
+references remain outside publications. Do not add unrelated descriptive tags.
+
+Apply this through the shared versioned SQL initializer, replacing obsolete
+prepared associations while preserving manual classifications, deletions,
+memberships and private references. This does not authorize changes to production
+data or biometric code.

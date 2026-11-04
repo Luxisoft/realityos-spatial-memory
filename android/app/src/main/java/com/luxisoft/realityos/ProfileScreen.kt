@@ -55,7 +55,7 @@ internal fun ProfileScreen(userId: String, onBack: () -> Unit) {
                         } catch (cancelled: CancellationException) {
                             throw cancelled
                         } catch (failure: Exception) {
-                            error = failure.message.orEmpty()
+                            error = localizedFailure(failure)
                         } finally {
                             loading = false
                         }

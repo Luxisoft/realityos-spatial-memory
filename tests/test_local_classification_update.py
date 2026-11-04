@@ -8,6 +8,7 @@ from app.db import Base, Database
 from app.local import bootstrap, sql_data
 from app.local.upgrades import POLICE, SOCIAL
 from app.local_models import LocalEvaluationState
+from app.main import create_app
 from app.models import MediaAsset, User, Workspace, WorkspaceMember
 from app.security import create_access_token
 from app.social_features.evidence_models import PublicationUpload
@@ -19,6 +20,7 @@ from app.social_features.models import (
 )
 from app.workspaces.models import Record, RecordMedia
 from app.workspaces.purge import purge
+from conftest import APIClient
 from sqlalchemy import delete, select, update
 from sqlalchemy.exc import DBAPIError
 from test_local_access import local_settings
@@ -28,6 +30,12 @@ RECEIPT = "shared-publication-classification-v1"
 
 @pytest.fixture(params=["sqlite", "postgresql"])
 def earlier_classification(request, tmp_path, monkeypatch):
+    revisions = {"group-videos-v1", "police-records-v2", RECEIPT}
+    monkeypatch.setattr(
+        bootstrap,
+        "DATA_UPDATES",
+        tuple(item for item in bootstrap.DATA_UPDATES if item[0] in revisions),
+    )
     path = tmp_path / "classification.sqlite"
     url = (
         request.getfixturevalue("postgres_url")
@@ -86,6 +94,18 @@ def install(db, settings):
         RECEIPT: {"publications": 0}
     }
     db.expire_all()
+
+
+@pytest.fixture
+def classified_api(earlier_classification):
+    database, settings = earlier_classification
+    with database.session() as db:
+        install(db, settings)
+    app = create_app(settings)
+    try:
+        yield APIClient(app)
+    finally:
+        app.state.database.engine.dispose()
 
 
 def test_existing_installation_is_classified_without_creating_content(
@@ -376,7 +396,8 @@ def test_sql_failure_rolls_back_classification_without_caller_rollback(
         install(db, settings)
 
 
-def test_status_and_content_filters_are_scoped_to_the_group(evaluation):
+def test_status_and_content_filters_are_scoped_to_the_group(classified_api):
+    evaluation = classified_api
     accounts = evaluation.get("/v1/auth/local-accounts").json()["accounts"]
     expected = {
         POLICE: {

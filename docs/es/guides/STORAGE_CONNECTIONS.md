@@ -8,7 +8,7 @@ El bucket es una fuente privada de la cuenta. Importar copia el recurso a Postgr
 
 ## Android
 
-Abre el menú derecho → **Conexiones**, encima de About. Añade R2 o S3, endpoint HTTPS, bucket, región, carpeta y credenciales; selecciona un grupo autorizado. R2 usa región `auto`. Se recomiendan credenciales de lectura/listado; los secretos cifrados nunca se devuelven a la app.
+Abre el menú derecho → **Conexiones**, encima de **Acerca de**. Añade R2 o S3, endpoint HTTPS, bucket, región, carpeta y credenciales; selecciona un grupo autorizado. R2 usa región `auto`. Se recomiendan credenciales de lectura/listado; los secretos cifrados nunca se devuelven a la app.
 
 El panel de conexiones sigue el diseño del buscador-chat. Cada fila tiene una miniatura a la derecha; tócala para abrir el visor de imagen/video. Selecciona recursos e impórtalos al grupo. Las importaciones recientes muestran progreso, revisión de duplicados y reintentos.
 

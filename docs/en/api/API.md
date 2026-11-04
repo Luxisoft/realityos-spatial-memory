@@ -4,6 +4,13 @@
 
 The existing API runs inside local Docker. The collection reflects enabled localhost routes and retains a disabled historical server catalog.
 
+Each request sends `Accept-Language` from its destination or scenario variable:
+`localhost_language`, `server_language`, `security_language` or
+`meta_social_language`. Use `es` or `en` for translatable API messages; automatic
+session validation and renewal use the same language. Contract identifiers and
+user-authored text retain their values. The Spanish reference requires a
+translated description for every operation.
+
 <a id="quick-start"></a>
 
 ## Import → Send

@@ -4,9 +4,16 @@
 
 La API existente se ejecuta dentro de Docker local. La colección refleja las rutas habilitadas de localhost y conserva el catálogo histórico de servidor desactivado.
 
+Cada petición envía `Accept-Language` según la variable de su destino o escenario:
+`localhost_language`, `server_language`, `security_language` o
+`meta_social_language`. Usa `es` o `en` para los mensajes traducibles de la API;
+la validación y renovación automáticas de sesión usan el mismo idioma. Los
+identificadores del contrato y los textos escritos por usuarios conservan sus
+valores. La referencia española exige una descripción traducida de cada operación.
+
 <a id="quick-start"></a>
 
-## Import → Send
+## Importar y enviar una petición
 
 1. Inicia la [instalación local](../deployment/DEPLOYMENT_LOCALHOST.md).
 2. Importa la [colección](../../postman/RealityOS.postman_collection.json) y selecciona **No environment**.

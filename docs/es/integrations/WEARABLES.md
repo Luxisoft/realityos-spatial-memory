@@ -28,4 +28,4 @@ Ejecutar desde la raíz, con dependencias instaladas. Migraciones y procesamient
 make android-check
 ```
 
-[API ](../api/API.md) · [UI DESIGN ](../architecture/UI_DESIGN.md) · [IMPLEMENTATION STATUS ](../project/IMPLEMENTATION_STATUS.md)
+[API](../api/API.md) · [Diseño e interacción](../architecture/UI_DESIGN.md) · [Estado de implementación](../project/IMPLEMENTATION_STATUS.md)

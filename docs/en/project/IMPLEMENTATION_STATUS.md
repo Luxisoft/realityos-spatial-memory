@@ -32,22 +32,64 @@ intervals preserve the last valid query; changing filters or groups discards
 outdated responses and cursors. Selecting the current group again preserves its
 results, and filtering does not reload the group list.
 
-The `shared-publication-classification-v1` SQL revision classifies the existing
+The `use-case-publication-classification-v1` SQL revision classifies the existing
 25 publications: Police has five active arrest warrants, four missing persons,
 seven cases without warrants or criminal history, and three videos; Meta has
 three introductions and three videos. Tags distinguish active proceedings,
-search orders, absence of arrest warrants and content topics. A fresh installation
-has 26 active terms and 10 archived legacy terms. The update preserves edits,
+search orders, absence of arrest warrants and recorded criminal history. Videos
+have no judicial status tags. Meta uses personal introduction/community or
+video/everyday life tags. A fresh installation has 17 active terms, without the
+former scene-topic tags. The update preserves edits,
 deletions, permissions, unknown states and pending uploads; it does not change
 media or private references. Localhost applies it through the regular startup
 after updating the repository.
 
-**101 distinct tests passed**: 21 new classification regressions on isolated
+The approved taxonomy update passed **54 distinct tests**: 18 new migration
+cases on SQLite and isolated PostgreSQL, two new API tests for exact ES/EN terms,
+filter counts and membership isolation, and 34 existing consumer and historical
+migration checks. Fresh and upgraded databases retain
+25 publications, 28 base media assets and 16 records. Migration removes obsolete
+associations, preserves manual changes and pending uploads, rolls back completely
+on failure and does not require fixture files on later restarts.
+
+The preceding classification revision passed **101 distinct tests**: 21 new regressions on isolated
 SQLite and PostgreSQL (119.33 seconds) and 80 existing local-data/API checks
 (226.88 seconds), with no failures or skips. They cover API filter queries,
 preservation of changes, permissions and rollback. `make lint`,
 `make architecture-check`, `make docs-check` and formatting of the modified
 Python files also passed. No production data or services were changed.
+
+## Spanish and English text review
+
+Android now uses the selected app language for ordinary network errors, media
+controls, accessibility labels, dates, profile display fields and local preview
+statuses. Editable profile fields keep their original values. Copy about
+publications and storage connections matches the current group-only gallery and
+source retirement rules. Singular ages use the correct plural resource.
+
+Android and Postman send `Accept-Language` consistently, including automatic
+authentication refresh. API errors and email action pages localize messages
+owned by RealityOS while preserving status codes, response structure, security
+headers and external provider diagnostics. The restricted gateway translates
+only its own errors. Protected biometric handlers and their specific UI copy
+were excluded from this general review.
+
+Pending protected copy needs a separate owner request naming the biometric
+module: the Spanish consent/probe copy omits video or workspace membership,
+one action retains “match”, and import/frame/enrollment quantities need singular
+forms. This delivery preserves those strings and the module's behavior.
+
+The one-time `meta-social-profile-display-v1` revision adds missing public
+gender and location display translations after social profiles are initialized.
+It preserves original fields, manual edits, deletions, memberships, private
+references and consent. Documentation now has reviewed Spanish descriptions for
+every API operation; its generator rejects missing Spanish labels.
+
+Focused checks passed: **133 distinct backend/gateway tests**, **18 local-data
+and stored-display tests**, and **7 documentation/contract tests**. These are
+targeted checks, not a repeat of the complete suite. Newman also passed the
+local HTTP mock checks for disabled writes, authentication refresh and language
+headers. Formatting, lint, architecture and documentation checks passed.
 
 ## Verification baseline and earlier checks
 
@@ -58,6 +100,22 @@ Python files also passed. No production data or services were changed.
 - The previous CI failure came from PostgreSQL Unix-socket paths exceeding Linux's limit in GitHub's longer checkout path. The test helper now creates short socket paths while keeping database files under `.runtime`; four PostgreSQL integration cases passed with that helper. No production database or service was used.
 
 ## Android validation
+
+The text review passed **57 focused project tests**, plus **6 temporary rendered
+state checks**. Repeated checks after final date/plural fixes are not counted
+again. Reviewed ES/EN states cover profiles, storage, gallery filters and audio
+controls at 320–480 dp, including 200% text. The profile action row now wraps so
+Save stays reachable with enlarged text. These are Robolectric checks, without
+a physical phone, glasses or real emulator run.
+
+The text-review lint run reports zero errors, 101 warnings and 10 hints. The one
+additional warning is a string used only by the Release preview controller;
+the new age plural includes the Spanish CLDR `many` form. Existing protected
+biometric plural warnings remain unchanged.
+
+The final text-review build passed `ktlintCheck`, `lintDebug`, `assembleDebug`,
+`assembleRelease` and `compileDebugAndroidTestKotlin`. The canonical Debug APK
+contains the final date/plural corrections and retains the existing signing key.
 
 The filter revision passed **26 focused tests**: nine control/date tests, two
 gallery integration tests with delayed HTTP responses, seven paging tests and
@@ -74,7 +132,7 @@ The preceding branding revision passed **31 existing focused tests** for entry, 
 
 Reviewed native splash renders covered ES at 320 dp/200% text, EN at 390 dp and EN at 480 dp/200%. The supplied `splash_logo.png` remains unchanged and appears on the existing dark background, with `REALITYOS` and `BY JOSE MARIN` below it. Entry/account headers and the drawer share `AppBrandIcon`, which displays the existing `icon_app.png` with a fully circular crop. Reviewed Compose renders covered entry in EN at 390 dp, account login in ES at 320 dp/200%, and the drawer in ES at 320 dp/200%. Superseded logo resources and their obsolete checks were removed. Launcher artwork, internal screen/button colors and biometric code were preserved. No physical-device or real-emulator validation was performed for this revision.
 
-The canonical [Debug APK](../../../android/app/build/outputs/apk/debug/app-debug.apk), version `0.1.6-debug-20261104-1212`, has SHA-256 `94592ebc27bcbb354a38b917862048c789cee1621c5b9de9541050f32c348e73` and retains the existing signing certificate. Splash, icon and theme resources are unchanged from the branding revision. The APK remains the repository delivery artifact.
+The canonical [Debug APK](../../../android/app/build/outputs/apk/debug/app-debug.apk), version `0.1.6-debug-20261104-1251`, has SHA-256 `522d04b1c96dc3aeb5153b657a8463ec74d6eb0ad1c5a5c1ec5621b2adad3035` and retains the existing signing certificate. Splash, icon and theme resources are unchanged from the branding revision. The APK remains the repository delivery artifact.
 
 <a id="next-steps"></a>
 

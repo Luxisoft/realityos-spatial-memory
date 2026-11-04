@@ -11,8 +11,8 @@
 | Topic | What to know |
 | --- | --- |
 | **Input** | Muse Voice Transcribe turns audio into text; Muse Spark interprets context. |
-| **Output** | `POST /v1/tts`, `{text, language}` with `en`/`es`, returns 24 kHz mono PCM WAV. Authenticated user or device. |
-| **Provider** | ElevenLabs exclusively for synthesis on server and Windows. No local speech model or weights. |
+| **Server output** | `POST /v1/tts`, `{text, language}` with `en`/`es`, returns 24 kHz mono PCM WAV. Authenticated user or device. |
+| **Provider** | The server uses ElevenLabs for synthesis. With the local Windows/Linux installation, Android uses its installed voices. No speech model or weights run in the local backend. |
 | **Configuration** | Private `ELEVENLABS_API_KEY`; selection through `ELEVENLABS_VOICE_ID`, `ELEVENLABS_MODEL_ID`, `TTS_TIMEOUT_SECONDS`. |
 | **Limits** | Two concurrent generations per process; 30 s HTTP budget, up to 300 s audio and 16 MiB WAV. |
 | **Persistence** | Synthesis stores no captures, messages or caches. No automatic ambiguous retries; distinct from routes that store chat audio. |

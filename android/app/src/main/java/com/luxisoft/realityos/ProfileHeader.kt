@@ -65,7 +65,7 @@ internal class ProfileState(val userId: String? = null) {
         } catch (failure: CancellationException) {
             throw failure
         } catch (failure: Exception) {
-            error = failure.message.orEmpty()
+            error = localizedFailure(failure)
         } finally {
             loading = false
         }
@@ -288,7 +288,7 @@ private fun ProfileEditor(state: ProfileState, onClose: () -> Unit) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val current = state.profile ?: return
-    var headline by rememberSaveable { mutableStateOf(current.storedText("headline")) }
+    var headline by rememberSaveable { mutableStateOf(current.optString("headline")) }
     var biography by rememberSaveable { mutableStateOf(current.optString("biography")) }
     var phone by rememberSaveable { mutableStateOf(current.optString("phone")) }
     var website by rememberSaveable { mutableStateOf(current.optString("website")) }
@@ -314,7 +314,7 @@ private fun ProfileEditor(state: ProfileState, onClose: () -> Unit) {
                 } catch (failure: CancellationException) {
                     throw failure
                 } catch (failure: Exception) {
-                    error = failure.message.orEmpty()
+                    error = localizedFailure(failure)
                 } finally {
                     busy = false
                 }
@@ -349,14 +349,14 @@ private fun ProfileEditor(state: ProfileState, onClose: () -> Unit) {
                             } catch (failure: CancellationException) {
                                 throw failure
                             } catch (failure: Exception) {
-                                error = failure.message.orEmpty()
+                                error = localizedFailure(failure)
                             } finally {
                                 busy = false
                             }
                         }
                     },
                     onUploadCv = { pickCv.launch(arrayOf("application/pdf", "application/vnd.openxmlformats-officedocument.wordprocessingml.document")) },
-                    personal = personal,
+                    personal = if (personalEditable) personal else PersonalProfileDraft.from(current, LocalizedText.languageTag),
                     onPersonalChange = {
                         personal = it
                         personalErrors = emptyMap()

@@ -36,3 +36,9 @@ internal fun evidenceDate(raw: String, language: String, zone: ZoneId = ZoneId.s
     } ?: return null
     return date.format(DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM).withLocale(Locale.forLanguageTag(language)))
 }
+
+/** Event times retain their clock time while using the app language and viewer time zone. */
+internal fun presentationDateTime(raw: String, language: String = LocalizedText.languageTag, zone: ZoneId = ZoneId.systemDefault()): String = runCatching {
+    OffsetDateTime.parse(raw).atZoneSameInstant(zone)
+        .format(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.MEDIUM, FormatStyle.SHORT).withLocale(Locale.forLanguageTag(language)))
+}.getOrElse { evidenceDate(raw, language, zone) ?: raw }

@@ -11,8 +11,8 @@
 | Tema | Qué debes saber |
 | --- | --- |
 | **Entrada** | Muse Voice Transcribe convierte audio a texto; Muse Spark interpreta contexto. |
-| **Salida** | `POST /v1/tts`, `{text, language}` con `en`/`es`, devuelve WAV PCM mono de 24 kHz. Usuario o dispositivo autenticado. |
-| **Proveedor** | ElevenLabs exclusivamente para síntesis, en servidor y Windows. No hay pesos ni modelo de voz local. |
+| **Salida del servidor** | `POST /v1/tts`, `{text, language}` con `en`/`es`, devuelve WAV PCM mono de 24 kHz. Usuario o dispositivo autenticado. |
+| **Proveedor** | El servidor usa ElevenLabs para síntesis. En la instalación local de Windows/Linux, Android usa sus voces instaladas. No hay pesos ni modelo de voz en el backend local. |
 | **Configuración** | `ELEVENLABS_API_KEY` privada; selección por `ELEVENLABS_VOICE_ID`, `ELEVENLABS_MODEL_ID`, `TTS_TIMEOUT_SECONDS`. |
 | **Límites** | Dos generaciones simultáneas por proceso; presupuesto HTTP de 30 s, hasta 300 s de audio y 16 MiB WAV. |
 | **Persistencia** | La síntesis no guarda capturas, mensajes ni cachés. Sin reintento automático ambiguo; no confundir con rutas que guardan audio de chat. |
@@ -23,4 +23,4 @@ flowchart LR
     N2["Texto"] --> N3["ElevenLabs"] --> N4["WAV"]
 ```
 
-[API ](../api/API.md) · [META INTEGRATION ](META_INTEGRATION.md) · [DEPLOYMENT LOCALHOST ](../deployment/DEPLOYMENT_LOCALHOST.md)
+[API](../api/API.md) · [Integración Meta](META_INTEGRATION.md) · [Instalación local](../deployment/DEPLOYMENT_LOCALHOST.md)

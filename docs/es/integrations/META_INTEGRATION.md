@@ -23,4 +23,4 @@ flowchart LR
     N4["Audio"] --> N5["Transcribe"]
 ```
 
-[GATEWAY ](GATEWAY.md) · [TTS ](TTS.md) · [IMPLEMENTATION STATUS ](../project/IMPLEMENTATION_STATUS.md)
+[Gateway Meta](GATEWAY.md) · [Voz y transcripción](TTS.md) · [Estado de implementación](../project/IMPLEMENTATION_STATUS.md)

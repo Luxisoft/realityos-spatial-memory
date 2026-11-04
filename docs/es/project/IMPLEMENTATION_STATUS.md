@@ -32,22 +32,70 @@ el menú. Los intervalos inválidos conservan la última consulta válida; cambi
 filtros o grupo descarta respuestas y cursores anteriores. Seleccionar otra vez
 el grupo actual conserva sus resultados y filtrar no recarga la lista de grupos.
 
-La revisión SQL `shared-publication-classification-v1` clasifica las 25
+La revisión SQL `use-case-publication-classification-v1` clasifica las 25
 publicaciones existentes: Police tiene cinco órdenes de captura, cuatro personas
 desaparecidas, siete casos sin órdenes ni antecedentes y tres videos; Meta tiene
 tres presentaciones y tres videos. Las etiquetas distinguen procesos activos,
-búsqueda, ausencia de captura y temas del contenido. Son 26 términos activos y
-10 anteriores archivados en una instalación nueva. La actualización respeta
+búsqueda, ausencia de captura y antecedentes registrados. Los videos no tienen
+etiquetas de estado judicial. Meta utiliza presentación personal/comunidad o
+video/vida cotidiana. Una instalación nueva tiene 17 términos activos, sin las
+anteriores etiquetas sobre temas de la escena. La actualización respeta
 ediciones, eliminaciones, permisos, estados desconocidos y cargas pendientes;
 no cambia medios ni referencias privadas. Se aplica en localhost mediante el
 inicio habitual después de actualizar el repositorio.
 
-Pasaron **101 pruebas distintas**: 21 regresiones nuevas de clasificación en
+La taxonomía aprobada pasó **54 pruebas distintas**: 18 casos nuevos de migración
+en SQLite y PostgreSQL aislado, dos pruebas nuevas de API para los términos ES/EN
+exactos, conteos de filtros y aislamiento por membresía, y 34 comprobaciones
+existentes de consumidores y migraciones anteriores. Las bases nuevas y
+actualizadas conservan 25 publicaciones, 28 medios base y 16 expedientes.
+La migración retira asociaciones obsoletas, conserva cambios manuales y cargas
+pendientes, revierte completamente ante fallos y no requiere los archivos de
+instalación en reinicios posteriores.
+
+La revisión anterior de clasificación aprobó **101 pruebas distintas**: 21 regresiones nuevas en
 SQLite y PostgreSQL aislado (119,33 segundos) y 80 comprobaciones anteriores de
 datos locales y API (226,88 segundos), sin fallos ni omisiones. Cubren los filtros
 por API, conservación de cambios, permisos y rollback. También pasaron
 `make lint`, `make architecture-check`, `make docs-check` y el formato de los
 archivos Python modificados. No se modificaron datos ni servicios productivos.
+
+## Revisión de textos en español e inglés
+
+Android utiliza el idioma seleccionado en la app para los errores habituales de
+red, controles de medios, etiquetas de accesibilidad, fechas, campos de perfil
+de solo lectura y estados de la vista previa local. Los campos editables del
+perfil conservan sus valores originales. Los textos de publicaciones y conexiones
+reflejan la galería por grupos y las reglas actuales de retiro de fuentes. La
+edad de un año utiliza el recurso singular correspondiente.
+
+Android y Postman envían `Accept-Language` de forma uniforme, incluida la
+renovación automática de autenticación. Los errores de API y las páginas de
+acciones por correo traducen los mensajes propios de RealityOS, conservando los
+códigos de estado, estructura de respuesta, cabeceras de seguridad y diagnósticos
+de proveedores externos. El gateway restringido traduce únicamente sus propios
+errores. Los manejadores biométricos protegidos y sus textos específicos de
+interfaz quedaron fuera de esta revisión general.
+
+Quedan textos protegidos pendientes de una petición específica que nombre el
+módulo biométrico: el consentimiento y la instrucción inicial en español omiten
+video o pertenencia al grupo, una acción conserva «match» y las cantidades de
+importación, fotogramas y enrolamientos necesitan formas singulares. Esta entrega
+conserva esos textos y el comportamiento del módulo.
+
+La revisión única `meta-social-profile-display-v1` añade traducciones faltantes
+de género y ubicación de los perfiles públicos, después de inicializarlos.
+Conserva campos originales, ediciones manuales, eliminaciones, membresías,
+referencias privadas y consentimiento. La documentación tiene descripciones
+revisadas en español para todas las operaciones de API; el generador rechaza
+las etiquetas en español que falten.
+
+Pasaron las comprobaciones focalizadas: **133 pruebas distintas de
+backend/gateway**, **18 de datos locales y textos guardados** y **7 de
+documentación y contratos**. Son comprobaciones específicas, no una repetición
+de la suite completa. Newman también aprobó las pruebas con simulaciones HTTP
+locales de escrituras deshabilitadas, renovación de autenticación y cabeceras de
+idioma. Pasaron formato, lint, arquitectura y documentación.
 
 ## Base de validación y comprobaciones anteriores
 
@@ -58,6 +106,24 @@ archivos Python modificados. No se modificaron datos ni servicios productivos.
 - El fallo del CI anterior se debía a rutas de sockets Unix de PostgreSQL que excedían el límite de Linux en el checkout largo de GitHub. El helper de pruebas ahora crea rutas cortas de sockets y mantiene los archivos de la base en `.runtime`; cuatro casos PostgreSQL pasaron con ese helper. No se utilizó ninguna base ni servicio productivo.
 
 ## Validación Android
+
+La revisión de textos aprobó **57 pruebas focalizadas del proyecto**, más
+**6 comprobaciones temporales de estados renderizados**. Las repeticiones tras
+los últimos ajustes de fechas y plurales no se suman de nuevo. Se revisaron
+perfiles, almacenamiento, filtros de galería y controles de audio en ES/EN a
+320–480 dp, incluido texto al 200 %. La fila de acciones del perfil se adapta
+para mantener Guardar accesible con texto ampliado. Son comprobaciones
+Robolectric, sin teléfono físico, gafas ni emulador real.
+
+El lint de la revisión de textos informa cero errores, 101 advertencias y
+10 sugerencias. La advertencia adicional corresponde a un texto usado únicamente
+por el controlador de vista previa Release; el nuevo plural de edad incluye la
+forma CLDR `many` del español. Las advertencias previas de plurales biométricos
+protegidos permanecen sin cambios.
+
+La compilación final de esta revisión aprobó `ktlintCheck`, `lintDebug`,
+`assembleDebug`, `assembleRelease` y `compileDebugAndroidTestKotlin`. El APK Debug
+canónico incluye los últimos ajustes de fechas y plurales y mantiene la firma existente.
 
 La revisión de filtros aprobó **26 pruebas focalizadas**: nueve de controles y
 fechas, dos de integración de galería con respuestas HTTP retenidas, siete de
@@ -74,7 +140,7 @@ La revisión anterior de logos aprobó **31 pruebas existentes focalizadas** de 
 
 Se revisaron renderizados nativos del splash en ES a 320 dp/texto 200%, EN a 390 dp y EN a 480 dp/200%. El archivo proporcionado `splash_logo.png` permanece intacto sobre el fondo oscuro existente, con `REALITYOS` y `BY JOSE MARIN` debajo. Las cabeceras de acceso/cuenta y el menú lateral comparten `AppBrandIcon`, que muestra el archivo existente `icon_app.png` con recorte completamente circular. Los renderizados Compose revisados cubrieron acceso EN a 390 dp, inicio de sesión ES a 320 dp/200% y menú lateral ES a 320 dp/200%. Se retiraron los logos sustituidos y sus comprobaciones obsoletas. Se conservaron el icono del lanzador, los colores internos de vistas/botones y el código biométrico. No se realizó validación con teléfono físico ni emulador real para esta revisión.
 
-El [APK Debug canónico](../../../android/app/build/outputs/apk/debug/app-debug.apk), versión `0.1.6-debug-20261104-1212`, tiene SHA-256 `94592ebc27bcbb354a38b917862048c789cee1621c5b9de9541050f32c348e73` y conserva el certificado de firma existente. Los recursos de splash, icono y tema permanecen iguales a la revisión de logos. El APK se mantiene como artefacto de entrega del repositorio.
+El [APK Debug canónico](../../../android/app/build/outputs/apk/debug/app-debug.apk), versión `0.1.6-debug-20261104-1251`, tiene SHA-256 `522d04b1c96dc3aeb5153b657a8463ec74d6eb0ad1c5a5c1ec5621b2adad3035` y conserva el certificado de firma existente. Los recursos de splash, icono y tema permanecen iguales a la revisión de logos. El APK se mantiene como artefacto de entrega del repositorio.
 
 <a id="next-steps"></a>
 

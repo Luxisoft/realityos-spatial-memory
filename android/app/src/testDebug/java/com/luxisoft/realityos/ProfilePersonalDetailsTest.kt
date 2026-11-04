@@ -85,6 +85,7 @@ class ProfilePersonalDetailsTest {
         .put("profile_source", if (facebook) "facebook" else "email").put("personal_details_editable", !facebook)
         .put("headline", "Architect").put("biography", "Original biography").put("phone", "").put("website", "")
         .put("cv", JSONObject().put("present", false))
+        .put("display_text", JSONObject().put("headline", JSONObject().put("en", "Translated headline")).put("location", JSONObject().put("en", "Madrid, Spain")))
 
     private fun field(tag: String): SemanticsNodeInteraction {
         compose.onNodeWithTag("profile-edit-fields").performScrollToNode(hasTestTag(tag))
@@ -136,6 +137,7 @@ class ProfilePersonalDetailsTest {
             assertEquals("Bogotá", payload.getString("location"))
             assertEquals("Lima", payload.getString("hometown"))
             assertEquals("female", payload.getString("gender"))
+            assertEquals("Architect", payload.getString("headline"))
             assertTrue(payload.isNull("birthday"))
             assertFalse(payload.has("email"))
         } finally {
@@ -153,6 +155,7 @@ class ProfilePersonalDetailsTest {
             show(data(true))
             capture("facebook-en-390")
             field("profile-readonly-location").assertExists()
+            compose.onNodeWithText("Madrid, Spain").assertIsDisplayed()
             compose.onNodeWithTag("profile-location").assertDoesNotExist()
             compose.onNodeWithTag("profile-birthday-calendar").assertDoesNotExist()
             field("profile-save").performClick()
@@ -182,5 +185,6 @@ class ProfilePersonalDetailsTest {
         show(data(), 2f)
         capture("email-es-320-text200")
         listOf("profile-location", "profile-hometown", "profile-birthday", "profile-gender", "profile-save").forEach { field(it).assertIsDisplayed() }
+        capture("email-es-320-text200-actions")
     }
 }

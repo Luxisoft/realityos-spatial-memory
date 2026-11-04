@@ -26,7 +26,7 @@
     <string name="storage_search_person">Use to find a person</string>
     <string name="storage_cv">Use as CV</string>
     <string name="storage_face_settings">Face search and consent</string>
-    <string name="storage_sync_help">Sync this folder and subfolders to the selected destination. Remote deletions do not remove imported copies.</string>
+    <string name="storage_sync_help">Sync this folder and its subfolders to the selected work group. Copies of deleted source files are retired only after a complete successful scan.</string>
     <string name="storage_sync_every">Enable every %1$d minutes</string>
     <string name="storage_search_results">Search results</string>
     <string name="storage_no_results">No authorized matches</string>
@@ -36,7 +36,7 @@
     <string name="storage_review">Review result</string>
     <string name="storage_retry">Retry failed files</string>
     <string name="storage_confirm">Confirm</string>
-    <string name="storage_disconnect_help">Synchronization will stop. Already imported copies will remain.</string>
+    <string name="storage_disconnect_help">Synchronization will stop and copies imported from this source will be retired. Files in your bucket will not be deleted.</string>
     <string name="storage_cv_help">This document will replace your current private CV.</string>
     <string name="storage_import_help">RealityOS will keep a copy and analyze the selected resources. Faces are not automatically enrolled. Synchronization includes new files in the folder.</string>
     <string name="storage_done">Completed</string>
@@ -50,4 +50,9 @@
     <string name="storage_duplicate">Needs duplicate review</string>
     <string name="storage_failed">Failed — retry available</string>
     <string name="storage_cancelled">Cancelled</string>
+    <string name="storage_endpoint">HTTPS endpoint</string>
+    <string name="storage_bucket">Bucket</string>
+    <string name="storage_access_key">Access key ID</string>
+    <string name="storage_secret_key">Secret access key</string>
+    <string name="storage_file_details">%1$s B · %2$s</string>
 </resources>

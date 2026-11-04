@@ -16,7 +16,7 @@
 - [Evaluación con videos reales](testing/VIDEO_EVALUATION.md)
 
 - [Recursos sintéticos de aceptación](testing/ACCEPTANCE_FIXTURES.md)
-- [Checklist manual RealityOS — aceptación y hackathon 2026](testing/IMPLEMENTATION_CHECKLIST.md)
+- [Lista manual de aceptación de RealityOS — hackathon 2026](testing/IMPLEMENTATION_CHECKLIST.md)
 - [Prueba con fotos propias](testing/MANUAL_PHOTO_TEST.md)
 - [Láminas de prueba — abrir en la computadora](testing/QA_VISUAL_FIXTURES.md)
 - [Directorio social sintético](testing/SOCIAL_DIRECTORY.md)

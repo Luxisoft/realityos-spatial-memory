@@ -37,6 +37,12 @@ def source_hash(message):
 
 def recognize_template(text):
     """Only exact known templates qualify; free text always uses translation."""
+    legacy_registration = {
+        "Register evidence in Home first.": "en",
+        "Registra primero evidencia en Casa.": "es",
+    }
+    if text in legacy_registration:
+        return {"key": "register_home", "values": {}, "source_language": legacy_registration[text]}
     for key, variants in {**_TEMPLATES, **LOCAL_REPLY_TEMPLATES}.items():
         if key == "last_seen":  # Spatial prose embedded in the template also needs translation.
             continue

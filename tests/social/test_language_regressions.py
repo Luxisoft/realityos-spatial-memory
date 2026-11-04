@@ -12,6 +12,46 @@ from app.social_features.reply_templates import LOCAL_REPLY_TEMPLATES
 from .test_chat_languages import old_message, preference, workspace
 
 
+@pytest.mark.parametrize(
+    "legacy",
+    ["Register evidence in Home first.", "Registra primero evidencia en Casa."],
+)
+@pytest.mark.parametrize(
+    "language,expected",
+    [("en", "Register evidence first."), ("es", "Registra evidencia primero.")],
+)
+def test_historical_registration_reply_does_not_link_to_retired_navigation(
+    client, auth_headers, legacy, language, expected
+):
+    identifier = old_message(client, legacy, response_language="en")
+    preference(client, auth_headers, language)
+    response = client.get("/v1/chat/history", headers=auth_headers)
+    row = next(row for row in response.json()["messages"] if row["id"] == identifier)
+    assert row["localized_text"] == expected
+    with client.app.state.database.session_factory() as db:
+        assert db.get(ChatMessage, identifier).text == legacy
+
+
+@pytest.mark.parametrize(
+    "language,location",
+    [("en", "an unspecified location"), ("es", "un lugar sin especificar")],
+)
+def test_unknown_location_forms_a_natural_last_seen_sentence(language, location):
+    from app.query_lang import qtext
+
+    assert qtext(language, "unknown_location") == location
+    result = qtext(
+        language,
+        "last_seen",
+        name="Llave azul",
+        location=location,
+        detail=qtext(language, "unknown_detail"),
+        date="2026-11-04",
+    )
+    assert "Llave azul" in result and "2026-11-04" in result
+    assert ("in " if language == "en" else "en ") + location in result
+
+
 @pytest.mark.parametrize("language", ["en", "es"])
 @pytest.mark.parametrize(
     "key",

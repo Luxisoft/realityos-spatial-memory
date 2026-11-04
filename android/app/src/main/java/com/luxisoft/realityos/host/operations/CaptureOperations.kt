@@ -37,7 +37,7 @@ internal fun RealityViewModel.beginRegisterOperation() {
             val zones = withContext(Dispatchers.IO) { withRealityApi { it.listZones() } }
             if (zones.isEmpty()) showError(copy(R.string.status_no_locations)) else renderZonePicker(zones)
         } catch (error: Exception) {
-            showError(error.message ?: copy(R.string.status_locations_failed), retry = ::beginRegister)
+            showError(localizedFailure(error, R.string.status_locations_failed), retry = ::beginRegister)
         } finally {
             setBusy(false)
         }
@@ -94,11 +94,11 @@ internal fun RealityViewModel.openCaptureSessionAndCameraOperation() {
             mutableUiState.update { it.copy(captureSessionId = null) }
             if (inputRoute == InputRoute.PHONE) {
                 runCatching { phoneCapture?.stopPreview() }
-                onPhonePreviewFailure(state.value.phonePreview.generation, error.message ?: copy(R.string.status_camera_not_ready))
+                onPhonePreviewFailure(state.value.phonePreview.generation, localizedFailure(error, R.string.status_camera_not_ready))
                 return@launch
             }
             showError(
-                error.message ?: copy(R.string.status_capture_session_failed),
+                localizedFailure(error, R.string.status_capture_session_failed),
                 retry = ::openCaptureSessionAndCamera
             )
         } finally {
@@ -126,7 +126,7 @@ internal suspend fun RealityViewModel.attachWearableCameraOperation() {
         )
     ).fold(
         onSuccess = { attached = it },
-        onFailure = { error, _ -> failure = error.description }
+        onFailure = { error, _ -> failure = copy(R.string.status_camera_not_ready) }
     )
     val activeCamera = attached ?: throw IllegalStateException(failure ?: copy(R.string.status_camera_not_ready))
     // DAT's camera streams are non-replaying. Subscribe before starting
@@ -147,7 +147,7 @@ internal suspend fun RealityViewModel.attachWearableCameraOperation() {
         var startFailure: String? = null
         activeCamera.stream.start().fold(
             onSuccess = {},
-            onFailure = { error, _ -> startFailure = error.description }
+            onFailure = { error, _ -> startFailure = copy(R.string.status_camera_not_ready) }
         )
         if (startFailure != null) throw IllegalStateException(startFailure)
         val started = withTimeoutOrNull(CAMERA_START_TIMEOUT_MS) {
@@ -187,7 +187,7 @@ internal suspend fun RealityViewModel.attachWearableCameraOperation() {
                 // pause). Stream state decides whether the capability is
                 // terminal; keep this message visible without tearing
                 // down a healthy stream.
-                showStatus(error.description)
+                showStatus(copy(R.string.status_camera_stream_notice))
             }
         }
     }
@@ -209,7 +209,7 @@ internal fun RealityViewModel.retryCurrentWearableCameraOperation() {
             attachWearableCamera()
         } catch (error: Exception) {
             showError(
-                error.message ?: copy(R.string.status_camera_not_ready),
+                localizedFailure(error, R.string.status_camera_not_ready),
                 retry = ::retryCurrentWearableCamera
             )
         } finally {
@@ -241,7 +241,7 @@ internal fun RealityViewModel.takePhotoOperation() {
                     var failure: String? = null
                     activeCamera.stream.capturePhoto().fold(
                         onSuccess = { photo = it },
-                        onFailure = { error, _ -> failure = error.description }
+                        onFailure = { error, _ -> failure = copy(R.string.status_camera_not_ready) }
                     )
                     val jpeg = photo?.asJpegBytes()
                         ?: throw IllegalStateException(failure ?: copy(R.string.status_unreadable_photo))
@@ -279,7 +279,7 @@ internal fun RealityViewModel.takePhotoOperation() {
         } catch (error: Exception) {
             if (error is CancellationException) throw error
             showError(
-                error.message ?: copy(R.string.status_photo_capture_failed),
+                localizedFailure(error, R.string.status_photo_capture_failed),
                 retry = if (pendingUpload != null) ::retryPendingUpload else ::takePhoto
             )
         } finally {
@@ -324,7 +324,7 @@ internal fun RealityViewModel.startVideoOperation() {
         } catch (error: Exception) {
             if (error is CancellationException) throw error
             recorder.close(deleteIncomplete = true)
-            showError(error.message ?: copy(R.string.status_video_start_failed), retry = ::startVideo)
+            showError(localizedFailure(error, R.string.status_video_start_failed), retry = ::startVideo)
         } finally {
             if (metaController.generation.accepts(captureRevision)) setBusy(false)
         }
@@ -341,7 +341,7 @@ internal fun RealityViewModel.beginPhoneVideoOperation() {
             beginRecordingUi()
         } catch (error: Exception) {
             if (error is CancellationException) throw error
-            showError(error.message ?: copy(R.string.status_video_start_failed), retry = ::startVideo)
+            showError(localizedFailure(error, R.string.status_video_start_failed), retry = ::startVideo)
         } finally {
             if (metaController.generation.accepts(captureRevision)) setBusy(false)
         }
@@ -403,7 +403,7 @@ internal fun RealityViewModel.stopVideoOperation() {
         } catch (error: Exception) {
             if (error is CancellationException) throw error
             showError(
-                error.message ?: copy(R.string.status_video_upload_failed),
+                localizedFailure(error, R.string.status_video_upload_failed),
                 retry = if (pendingUpload != null) ::retryPendingUpload else ::startVideo
             )
         } finally {
@@ -468,7 +468,7 @@ internal fun RealityViewModel.finishRegisterOperation() {
             selectedZone = null
             closed = true
         } catch (error: Exception) {
-            showError(error.message ?: copy(R.string.status_close_capture_failed), retry = ::finishRegister)
+            showError(localizedFailure(error, R.string.status_close_capture_failed), retry = ::finishRegister)
         } finally {
             setBusy(false)
         }
@@ -497,7 +497,7 @@ internal fun RealityViewModel.finishPhoneCaptureAfterStoredOperation() {
             // An error is the exception to the clean capture shell: keep
             // the existing explicit retry so the server session is never
             // silently abandoned after evidence was stored.
-            showError(error.message ?: copy(R.string.status_close_capture_failed), retry = ::finishPhoneCaptureAfterStored)
+            showError(localizedFailure(error, R.string.status_close_capture_failed), retry = ::finishPhoneCaptureAfterStored)
         } finally {
             setBusy(false)
         }

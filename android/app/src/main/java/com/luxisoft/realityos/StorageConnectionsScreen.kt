@@ -62,7 +62,7 @@ internal fun StorageConnectionsScreen(onClose: () -> Unit) {
             } catch (cancelled: CancellationException) {
                 throw cancelled
             } catch (error: Exception) {
-                message = localizedText(R.string.storage_error) + " " + error.message.orEmpty()
+                message = localizedText(R.string.storage_error)
             } finally {
                 busy = false
             }
@@ -237,7 +237,7 @@ internal fun StorageConnectionsScreen(onClose: () -> Unit) {
                     Checkbox(checked = key in picked, enabled = !busy && (storageSupportsMedia(mime) || storageSupportsCv(mime)), onCheckedChange = { checked -> picked = if (checked) picked + key else picked - key })
                     Column(Modifier.weight(1f)) {
                         Text(key.substringAfterLast('/'))
-                        Text("${item.optLong("size")} B · ${item.optString("modified_at")}", style = MaterialTheme.typography.bodySmall)
+                        Text(localizedText(R.string.storage_file_details, java.text.NumberFormat.getIntegerInstance(java.util.Locale.forLanguageTag(LocalizedText.languageTag)).format(item.optLong("size")), presentationDateTime(item.optString("modified_at"))), style = MaterialTheme.typography.bodySmall)
                         if (!storageSupportsMedia(mime) && !storageSupportsCv(mime)) {
                             Text(localizedText(R.string.storage_unsupported))
                         }
@@ -280,7 +280,7 @@ internal fun StorageConnectionsScreen(onClose: () -> Unit) {
             items(rules, key = { it.getString("id") }) { rule ->
                 Column {
                     Text(rule.optString("prefix") + " · " + if (rule.optBoolean("enabled")) localizedText(R.string.storage_sync_every, rule.optInt("interval_minutes")) else localizedText(R.string.storage_sync_paused))
-                    rule.optText("error")?.let { Text(it) }
+                    rule.optText("error")?.let { Text(localizedText(R.string.storage_error)) }
                     Row {
                         TextButton(onClick = {
                             operation {

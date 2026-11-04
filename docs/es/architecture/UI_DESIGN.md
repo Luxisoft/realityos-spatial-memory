@@ -59,13 +59,13 @@ flowchart LR
     N1["Carga"] --> N3["Error"] --> N4["Reintento"]
 ```
 
-[WEARABLES ](../integrations/WEARABLES.md) · [DEMO ](../guides/DEMO.md) · [IMPLEMENTATION STATUS ](../project/IMPLEMENTATION_STATUS.md)
+[Android y gafas](../integrations/WEARABLES.md) · [Evaluación local](../guides/DEMO.md) · [Estado de implementación](../project/IMPLEMENTATION_STATUS.md)
 
 Editar perfil incorpora información personal con iconos nativos, errores junto al campo y calendario de nacimiento para las cuentas por correo. Facebook muestra esos mismos datos de solo lectura con una explicación de sincronización; biografía, contacto, enlaces y CV conservan su edición. Se mantiene el tema, teclado y texto al 200 %, y los campos se bloquean durante el guardado.
 
 ## Corrección de interacción del 3 de noviembre
 
-El visor muestra progreso de carga/buffering e información expandida y desplazable sobre la navegación del sistema. Skeleton representa solo la carga inicial de datos del servidor. Buscador y conexiones administran teclado/insets en el panel raíz. Administrar grupo ocupa la ventana y cerrar sin cambios no recarga la galería. Barra: añadir grupo y selector a la izquierda; publicar con icono de nube y acciones a la derecha; historial dentro del desplegable; invitaciones con compartir de Android. Menú derecho: Conexiones sobre About y ES/EN sobre cerrar sesión. El menú alinea todos los iconos y textos con los mismos márgenes. Nombre y correo quedan juntos en la cabecera compacta. Cada dato de perfil muestra icono y valor (`-` si falta), conservando la etiqueta para accesibilidad. Amigos, Me gusta, fotos, videos y enlaces de Facebook aparecen solo si el perfil consultado pertenece a Facebook, también al visitar otra cuenta. A 320 dp o con texto ampliado, la información usa una columna. Los avisos transitorios usan una alerta inferior con cierre inmediato, 4 segundos para información/éxito u 8 para advertencia/error, ampliados por accesibilidad. La validación de campos y los estados persistentes permanecen junto a sus controles.
+El visor muestra progreso de carga y almacenamiento en búfer e información expandida y desplazable sobre la navegación del sistema. Los marcadores de carga representan solo la carga inicial de datos del servidor. Buscador y conexiones administran el teclado y los márgenes del sistema en el panel raíz. Administrar grupo ocupa la ventana y cerrar sin cambios no recarga la galería. Barra: añadir grupo y selector a la izquierda; publicar con icono de nube y acciones a la derecha; historial dentro del desplegable; invitaciones con compartir de Android. Menú derecho: Conexiones sobre Acerca de y ES/EN sobre cerrar sesión. El menú alinea todos los iconos y textos con los mismos márgenes. Nombre y correo quedan juntos en la cabecera compacta. Cada dato de perfil muestra icono y valor (`-` si falta), conservando la etiqueta para accesibilidad. Amigos, Me gusta, fotos, videos y enlaces de Facebook aparecen solo si el perfil consultado pertenece a Facebook, también al visitar otra cuenta. A 320 dp o con texto ampliado, la información usa una columna. Los avisos transitorios usan una alerta inferior con cierre inmediato, 4 segundos para información/éxito u 8 para advertencia/error, ampliados por accesibilidad. La validación de campos y los estados persistentes permanecen junto a sus controles.
 
 ## Galería única y navegación
 
@@ -78,3 +78,18 @@ consulta sin filtros. Un intervalo de fechas inválido muestra su error junto a
 los controles y conserva la última consulta válida hasta corregirlo. Los filtros
 reinician la paginación, descartan respuestas anteriores y se restablecen al
 cambiar de grupo. Volver a seleccionar el grupo actual conserva los resultados.
+
+## Idioma y textos
+
+La selección ES/EN de la app controla etiquetas, accesibilidad, mensajes propios,
+plurales y presentación de fechas. Los formatos de intercambio de la API y los
+valores editables se conservan; el idioma del sistema no debe sustituir al elegido
+en la app. Las peticiones incluyen `Accept-Language`, también al renovar la sesión
+o transferir archivos.
+
+Los perfiles y publicaciones preparados leen sus traducciones revisadas desde la
+BD. Solo se usa una traducción guardada si corresponde al valor original actual;
+editarlo conserva el texto del usuario. Las respuestas de modelos, diagnósticos
+externos y textos aportados por las personas no se traducen por sustitución de
+palabras. Los errores de red muestran una explicación local mediante el componente
+compartido de presentación de errores.

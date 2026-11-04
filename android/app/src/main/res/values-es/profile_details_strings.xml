@@ -10,4 +10,9 @@
     <string name="profile_place_error">Usa hasta 160 caracteres.</string>
     <string name="profile_choose_birthday">Elegir fecha de nacimiento</string>
     <string name="profile_clear_birthday">Quitar fecha</string>
+    <plurals name="profile_age">
+        <item quantity="one">%d año</item>
+        <item quantity="many">%d años</item>
+        <item quantity="other">%d años</item>
+    </plurals>
 </resources>

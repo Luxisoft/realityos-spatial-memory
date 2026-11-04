@@ -682,10 +682,10 @@ Respuestas declaradas: `200`, `422`.
 | `POST /v1/faces/search` | Buscar candidatos faciales | bearer | `workspace_id` | — |
 | `GET /v1/faces/enrollments/{enrollment_id}/thumbnail` | Ver evidencia del enrolamiento | bearer | `enrollment_id` | — |
 | `GET /v1/faces/record-enrollments/{enrollment_id}/thumbnail` | Ver evidencia del expediente enrolado | bearer | `enrollment_id` | — |
-| `GET /v1/faces/setup` | Status | bearer | — | — |
-| `POST /v1/faces/reference-photos` | Add Reference | bearer | `file` | ✓ |
-| `DELETE /v1/faces/reference-photos/{enrollment_id}` | Remove Reference | bearer | `enrollment_id` | ✓ |
-| `POST /v1/faces/setup/complete` | Complete | bearer | — | ✓ |
+| `GET /v1/faces/setup` | Consultar estado de configuración facial | bearer | — | — |
+| `POST /v1/faces/reference-photos` | Añadir foto de referencia | bearer | `file` | ✓ |
+| `DELETE /v1/faces/reference-photos/{enrollment_id}` | Eliminar foto de referencia | bearer | `enrollment_id` | ✓ |
+| `POST /v1/faces/setup/complete` | Completar configuración facial | bearer | — | ✓ |
 
 <details>
 
@@ -1061,7 +1061,7 @@ Respuestas declaradas: `200`, `422`.
 | `GET /v1/media/{media_id}` | Obtener medio autorizado | bearer | `media_id` | — |
 | `GET /v1/observations/{observation_id}/highlighted` | Ver observación señalada | bearer | `observation_id` | — |
 | `GET /v1/media/{media_id}/highlighted` | Obtener medio señalado | bearer | `media_id` | — |
-| `GET /v1/me/storage-connections/{connection_id}/objects` | Objects | bearer | `connection_id` | — |
+| `GET /v1/me/storage-connections/{connection_id}/objects` | Listar objetos de la conexión | bearer | `connection_id` | — |
 | `GET /v1/gallery/{post_id}/media` | Obtener medio autorizado | bearer | `post_id` | — |
 
 <details>
@@ -1374,19 +1374,19 @@ Respuestas declaradas: `200`, `422`.
 | --- | --- | --- | --- | --- |
 | `POST /v1/tts` | Generar respuesta hablada | bearer | `text`, `language` | ✓ |
 | `GET /v1/me/storage-connections` | Listar conexiones | bearer | — | — |
-| `POST /v1/me/storage-connections` | Create | bearer | `name`, `endpoint`, `bucket` | ✓ |
-| `PUT /v1/me/storage-connections/{connection_id}` | Update | bearer | `connection_id`, `name`, `endpoint`, `bucket` | ✓ |
-| `DELETE /v1/me/storage-connections/{connection_id}` | Disconnect | bearer | `connection_id` | ✓ |
-| `POST /v1/me/storage-connections/{connection_id}/test` | Test | bearer | `connection_id` | ✓ |
-| `GET /v1/me/storage-connections/{connection_id}/content` | Content | bearer | `connection_id`, `key` | — |
-| `POST /v1/me/storage-connections/{connection_id}/cv` | Cv | bearer | `connection_id`, `key` | ✓ |
-| `POST /v1/me/storage-connections/{connection_id}/imports` | Start Import | bearer | `connection_id`, `request_key`, `keys` | ✓ |
-| `GET /v1/me/storage-connections/{connection_id}/imports` | Imports | bearer | `connection_id` | — |
-| `POST /v1/me/storage-connections/{connection_id}/imports/{run_id}/retry` | Retry | bearer | `connection_id`, `run_id` | ✓ |
-| `GET /v1/me/storage-connections/{connection_id}/syncs` | Syncs | bearer | `connection_id` | — |
-| `POST /v1/me/storage-connections/{connection_id}/syncs` | Create Sync | bearer | `connection_id` | ✓ |
-| `POST /v1/me/storage-connections/{connection_id}/syncs/{rule_id}/run` | Run Sync | bearer | `connection_id`, `rule_id` | ✓ |
-| `DELETE /v1/me/storage-connections/{connection_id}/syncs/{rule_id}` | Stop Sync | bearer | `connection_id`, `rule_id` | ✓ |
+| `POST /v1/me/storage-connections` | Crear conexión de almacenamiento | bearer | `name`, `endpoint`, `bucket` | ✓ |
+| `PUT /v1/me/storage-connections/{connection_id}` | Actualizar conexión de almacenamiento | bearer | `connection_id`, `name`, `endpoint`, `bucket` | ✓ |
+| `DELETE /v1/me/storage-connections/{connection_id}` | Desconectar almacenamiento | bearer | `connection_id` | ✓ |
+| `POST /v1/me/storage-connections/{connection_id}/test` | Comprobar conexión de almacenamiento | bearer | `connection_id` | ✓ |
+| `GET /v1/me/storage-connections/{connection_id}/content` | Consultar contenido de la conexión | bearer | `connection_id`, `key` | — |
+| `POST /v1/me/storage-connections/{connection_id}/cv` | Importar CV desde la conexión | bearer | `connection_id`, `key` | ✓ |
+| `POST /v1/me/storage-connections/{connection_id}/imports` | Iniciar importación de medios | bearer | `connection_id`, `request_key`, `keys` | ✓ |
+| `GET /v1/me/storage-connections/{connection_id}/imports` | Consultar importaciones de medios | bearer | `connection_id` | — |
+| `POST /v1/me/storage-connections/{connection_id}/imports/{run_id}/retry` | Reintentar importación de medios | bearer | `connection_id`, `run_id` | ✓ |
+| `GET /v1/me/storage-connections/{connection_id}/syncs` | Consultar sincronizaciones | bearer | `connection_id` | — |
+| `POST /v1/me/storage-connections/{connection_id}/syncs` | Crear sincronización | bearer | `connection_id` | ✓ |
+| `POST /v1/me/storage-connections/{connection_id}/syncs/{rule_id}/run` | Ejecutar sincronización | bearer | `connection_id`, `rule_id` | ✓ |
+| `DELETE /v1/me/storage-connections/{connection_id}/syncs/{rule_id}` | Detener sincronización | bearer | `connection_id`, `rule_id` | ✓ |
 | `POST /v1/me/profile/avatar` | Cambiar avatar | bearer | `file` | ✓ |
 | `GET /v1/groups/{workspace_id}/members` | Listar miembros | bearer | `workspace_id` | — |
 | `POST /v1/groups/{workspace_id}/members/{member_id}/invite-permission` | Cambiar permiso para invitar | bearer | `workspace_id`, `member_id` | ✓ |
@@ -1438,13 +1438,13 @@ Respuestas declaradas: `200`, `422`.
 | `POST /v1/me/publication-uploads/{upload_id}/confirm` | Confirmar publicación | bearer | `upload_id` | ✓ |
 | `POST /v1/me/publication-uploads/{upload_id}/cancel` | Cancelar publicación pendiente | bearer | `upload_id` | ✓ |
 | `POST /v1/me/publication-uploads/{upload_id}/retry` | Reintentar publicación | bearer | `upload_id` | ✓ |
-| `POST /v1/me/publication-uploads/{upload_id}/classify` | Classify Publication Upload | bearer | `upload_id`, `category_id`, `tag_ids` | ✓ |
-| `POST /v1/groups/{workspace_id}/publications/import` | Import Group Publications | bearer | `workspace_id`, `publication_ids` | ✓ |
-| `GET /v1/groups/{workspace_id}/publication-catalog` | Publication Catalog | bearer | `workspace_id` | — |
-| `POST /v1/groups/{workspace_id}/publication-catalog/{kind}` | Create Publication Term | bearer | `workspace_id`, `kind`, `name` | ✓ |
-| `PATCH /v1/groups/{workspace_id}/publication-catalog/{term_id}` | Update Publication Term | bearer | `workspace_id`, `term_id`, `name` | ✓ |
-| `PATCH /v1/gallery/{post_id}/classification` | Update Publication Classification | bearer | `post_id`, `category_id`, `tag_ids` | ✓ |
-| `GET /v1/gallery/filter-options` | Gallery Filter Options | bearer | — | — |
+| `POST /v1/me/publication-uploads/{upload_id}/classify` | Clasificar publicación pendiente | bearer | `upload_id`, `category_id`, `tag_ids` | ✓ |
+| `POST /v1/groups/{workspace_id}/publications/import` | Importar publicaciones al grupo | bearer | `workspace_id`, `publication_ids` | ✓ |
+| `GET /v1/groups/{workspace_id}/publication-catalog` | Consultar catálogo de publicaciones | bearer | `workspace_id` | — |
+| `POST /v1/groups/{workspace_id}/publication-catalog/{kind}` | Crear categoría o etiqueta | bearer | `workspace_id`, `kind`, `name` | ✓ |
+| `PATCH /v1/groups/{workspace_id}/publication-catalog/{term_id}` | Actualizar categoría o etiqueta | bearer | `workspace_id`, `term_id`, `name` | ✓ |
+| `PATCH /v1/gallery/{post_id}/classification` | Actualizar clasificación de publicación | bearer | `post_id`, `category_id`, `tag_ids` | ✓ |
+| `GET /v1/gallery/filter-options` | Consultar opciones del filtro de publicaciones | bearer | — | — |
 
 <details>
 
@@ -3117,11 +3117,11 @@ Respuestas declaradas: `200`.
 
 | Operación | Identificador descriptivo | Acceso | Campos obligatorios | Manual |
 | --- | --- | --- | --- | --- |
-| `GET /v1/auth/local-session` | Local Session | bearer | — | — |
-| `GET /v1/auth/local-accounts` | Local Accounts | none | — | — |
-| `GET /v1/auth/local-accounts/{user_id}/avatar` | Local Account Avatar | none | `user_id` | — |
-| `POST /v1/auth/local-select` | Local Select | none | `user_id` | — |
-| `POST /v1/auth/local-login` | Local Login | none | `email`, `password` | — |
+| `GET /v1/auth/local-session` | Consultar sesión local | bearer | — | — |
+| `GET /v1/auth/local-accounts` | Listar cuentas locales | none | — | — |
+| `GET /v1/auth/local-accounts/{user_id}/avatar` | Obtener avatar de cuenta local | none | `user_id` | — |
+| `POST /v1/auth/local-select` | Seleccionar cuenta local | none | `user_id` | — |
+| `POST /v1/auth/local-login` | Iniciar sesión local | none | `email`, `password` | — |
 
 <details>
 

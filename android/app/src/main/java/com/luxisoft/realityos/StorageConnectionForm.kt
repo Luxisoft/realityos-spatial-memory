@@ -46,12 +46,12 @@ internal fun StorageConnectionForm(existing: JSONObject?, busy: Boolean, workspa
             }
         }
         OutlinedTextField(name, { name = it }, label = { Text(localizedText(R.string.storage_name)) }, modifier = Modifier.fillMaxWidth(), enabled = !busy)
-        OutlinedTextField(endpoint, { endpoint = it.trim() }, label = { Text("Endpoint HTTPS") }, placeholder = { Text(if (provider == "r2") "https://ACCOUNT.r2.cloudflarestorage.com" else "https://s3.us-east-1.amazonaws.com") }, modifier = Modifier.fillMaxWidth(), enabled = !busy)
-        OutlinedTextField(bucket, { bucket = it.trim() }, label = { Text("Bucket") }, modifier = Modifier.fillMaxWidth(), enabled = !busy)
+        OutlinedTextField(endpoint, { endpoint = it.trim() }, label = { Text(localizedText(R.string.storage_endpoint)) }, placeholder = { Text(if (provider == "r2") "https://ACCOUNT.r2.cloudflarestorage.com" else "https://s3.us-east-1.amazonaws.com") }, modifier = Modifier.fillMaxWidth(), enabled = !busy)
+        OutlinedTextField(bucket, { bucket = it.trim() }, label = { Text(localizedText(R.string.storage_bucket)) }, modifier = Modifier.fillMaxWidth(), enabled = !busy)
         OutlinedTextField(region, { region = it.trim() }, label = { Text(localizedText(R.string.storage_region)) }, modifier = Modifier.fillMaxWidth(), enabled = !busy)
         OutlinedTextField(prefix, { prefix = it }, label = { Text(localizedText(R.string.storage_folder)) }, modifier = Modifier.fillMaxWidth(), enabled = !busy)
-        OutlinedTextField(access, { access = it.trim() }, label = { Text("Access Key ID") }, visualTransformation = PasswordVisualTransformation(), modifier = Modifier.fillMaxWidth(), enabled = !busy)
-        OutlinedTextField(secret, { secret = it.trim() }, label = { Text("Secret Access Key") }, visualTransformation = PasswordVisualTransformation(), modifier = Modifier.fillMaxWidth(), enabled = !busy)
+        OutlinedTextField(access, { access = it.trim() }, label = { Text(localizedText(R.string.storage_access_key)) }, visualTransformation = PasswordVisualTransformation(), modifier = Modifier.fillMaxWidth(), enabled = !busy)
+        OutlinedTextField(secret, { secret = it.trim() }, label = { Text(localizedText(R.string.storage_secret_key)) }, visualTransformation = PasswordVisualTransformation(), modifier = Modifier.fillMaxWidth(), enabled = !busy)
         Button(onClick = {
             val body = JSONObject().put("workspace_id", workspace).put("name", name).put("provider", provider).put("endpoint", endpoint).put("bucket", bucket).put("region", region).put("prefix", prefix)
             if (access.isNotBlank() && secret.isNotBlank()) body.put("access_key", access).put("secret_key", secret)

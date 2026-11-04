@@ -6,9 +6,12 @@ from typing import Final
 
 import httpx
 from fastapi import FastAPI, Request
+from fastapi.exception_handlers import http_exception_handler
 from fastapi.responses import JSONResponse, Response
+from starlette.exceptions import HTTPException
 
 from realityos_meta_gateway.config import GatewaySettings, get_settings
+from realityos_meta_gateway.presentation import COPY, message, request_language
 
 logger = logging.getLogger("realityos.meta_gateway")
 
@@ -22,8 +25,12 @@ _REQUEST_HEADERS: Final = ("content-type", "accept")
 _RESPONSE_HEADERS: Final = ("content-type", "x-request-id", "retry-after", "cache-control")
 
 
-def _gateway_error(status_code: int, message: str) -> JSONResponse:
-    return JSONResponse(status_code=status_code, content={"error": {"message": message}})
+def _gateway_error(request: Request, status_code: int, text: str) -> JSONResponse:
+    return JSONResponse(
+        status_code=status_code,
+        content={"error": {"message": message(request, text)}},
+        headers={"Content-Language": request_language(request), "Vary": "Accept-Language"},
+    )
 
 
 def _forward_headers(request: Request, settings: GatewaySettings) -> dict[str, str]:
@@ -52,10 +59,21 @@ def create_app(
     app.state.settings = settings
     app.state.transport = transport
 
+    @app.exception_handler(HTTPException)
+    async def gateway_http_error(request, exc):
+        detail = message(request, exc.detail) if isinstance(exc.detail, str) else exc.detail
+        response = await http_exception_handler(
+            request, HTTPException(exc.status_code, detail, exc.headers)
+        )
+        if isinstance(exc.detail, str) and exc.detail in COPY:
+            response.headers["Content-Language"] = request_language(request)
+            response.headers["Vary"] = "Accept-Language"
+        return response
+
     async def forward(request: Request, path: str) -> Response:
         supplied_token = request.headers.get("X-RealityOS-Gateway-Token", "")
         if not hmac.compare_digest(supplied_token, settings.meta_gateway_token):
-            return _gateway_error(401, "Invalid gateway token.")
+            return _gateway_error(request, 401, "Invalid gateway token.")
 
         content_length = request.headers.get("content-length")
         if (
@@ -63,7 +81,9 @@ def create_app(
             and content_length.isdigit()
             and int(content_length) > settings.gateway_max_request_bytes
         ):
-            return _gateway_error(413, "Gateway request exceeds the configured size limit.")
+            return _gateway_error(
+                request, 413, "Gateway request exceeds the configured size limit."
+            )
 
         forwarded_bytes = 0
 
@@ -91,10 +111,12 @@ def create_app(
                 upstream = await client.send(upstream_request, stream=True)
                 await upstream.aread()
         except ValueError:
-            return _gateway_error(413, "Gateway request exceeds the configured size limit.")
+            return _gateway_error(
+                request, 413, "Gateway request exceeds the configured size limit."
+            )
         except httpx.HTTPError:
             logger.warning("Meta upstream unavailable path=%s method=%s", path, request.method)
-            return _gateway_error(502, "Meta upstream is unavailable.")
+            return _gateway_error(request, 502, "Meta upstream is unavailable.")
 
         logger.info(
             "Meta request complete path=%s method=%s status=%s bytes=%s request_id=%s",

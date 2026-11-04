@@ -39,3 +39,11 @@ internal fun localizedHttpError(status: Int): String = when (status) {
     403 -> localizedText(R.string.ui_you_do_not_have_permission_for_this_action)
     else -> localizedText(R.string.ui_could_not_complete_the_request_1_d, status)
 }
+
+/** Keep app-authored validation copy; present transport diagnostics in the selected language. */
+internal fun localizedFailure(failure: Throwable, @StringRes fallback: Int = R.string.account_service_unavailable): String = when {
+    failure is RealityApiException && failure.statusCode != null -> localizedHttpError(failure.statusCode)
+    failure is java.io.IOException -> localizedText(R.string.account_network_error)
+    failure is org.json.JSONException -> localizedText(fallback)
+    else -> failure.message?.takeIf { it.isNotBlank() } ?: localizedText(fallback)
+}

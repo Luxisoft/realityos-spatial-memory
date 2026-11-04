@@ -94,7 +94,7 @@ class GalleryFiltersTest {
         assertEquals(title.center.y, clear.center.y, 1f)
         capture("$name-top")
         compose.onNodeWithText(localizedText(R.string.gallery_authors) + ": Alex").performScrollTo().assertIsDisplayed()
-        compose.onNodeWithText(localizedText(R.string.gallery_from) + ": 2026-11-01").performScrollTo().assertIsDisplayed()
+        compose.onNodeWithText(localizedText(R.string.gallery_from) + ": " + evidenceDate("2026-11-01", LocalizedText.languageTag)).performScrollTo().assertIsDisplayed()
         compose.onNodeWithText(localizedText(R.string.gallery_description)).performScrollTo().performTextInput("100% ready & tools")
         compose.runOnIdle { assertEquals(selected.copy(text = "100% ready & tools"), bar.filters) }
         compose.onNodeWithText(localizedText(R.string.gallery_description)).performTextReplacement("next")
@@ -135,14 +135,14 @@ class GalleryFiltersTest {
             }
         }
         compose.onNodeWithTag("gallery-filter").performClick()
-        compose.onNodeWithText("Offline").performScrollTo().assertIsDisplayed()
+        compose.onNodeWithText(localizedText(R.string.account_network_error)).performScrollTo().assertIsDisplayed()
         compose.onNodeWithText(localizedText(R.string.catalog_categories) + ": " + localizedText(R.string.catalog_select)).performScrollTo().assertIsNotEnabled()
         compose.runOnIdle { assertEquals(selected, bar.filters) }
         compose.onNodeWithText(localizedText(R.string.gallery_description)).performScrollTo().performTextInput("works offline")
         compose.runOnIdle { assertEquals(selected.copy(text = "works offline"), bar.filters) }
         compose.onNodeWithText(localizedText(R.string.ui_retry)).performScrollTo().performClick()
         compose.onNodeWithText(localizedText(R.string.catalog_categories) + ": Equipment").performScrollTo().assertIsDisplayed()
-        compose.onNodeWithText("Offline").assertDoesNotExist()
+        compose.onNodeWithText(localizedText(R.string.account_network_error)).assertDoesNotExist()
         compose.runOnIdle { assertEquals(2, attempts) }
     }
 
@@ -197,7 +197,7 @@ class GalleryFiltersTest {
 
     @Test fun invalidDatesKeepLastValidQueryUntilCorrectedAndDismissDoesNotApply() {
         showFilters()
-        compose.onNodeWithText(localizedText(R.string.gallery_from) + ": 2026-11-01").performScrollTo().performClick()
+        compose.onNodeWithText(localizedText(R.string.gallery_from) + ": " + evidenceDate("2026-11-01", LocalizedText.languageTag)).performScrollTo().performClick()
         selectNovemberDay(5)
         compose.onNodeWithText(localizedText(R.string.ui_accept)).performClick()
         compose.onNodeWithText(localizedText(R.string.gallery_dates_invalid)).performScrollTo().assertIsDisplayed()
@@ -206,18 +206,18 @@ class GalleryFiltersTest {
             assertEquals(selected, bar.filters)
             assertTrue(applied.isEmpty())
         }
-        compose.onNodeWithText(localizedText(R.string.gallery_through) + ": 2026-11-03").performScrollTo().performClick()
+        compose.onNodeWithText(localizedText(R.string.gallery_through) + ": " + evidenceDate("2026-11-03", LocalizedText.languageTag)).performScrollTo().performClick()
         selectNovemberDay(9)
         compose.onNodeWithText(localizedText(R.string.ui_accept)).performClick()
         val corrected = selected.copy(from = LocalDate.parse("2026-11-05"), through = LocalDate.parse("2026-11-09"), text = "pending dates")
         compose.runOnIdle { assertEquals(listOf(corrected), applied) }
         compose.onNodeWithText(localizedText(R.string.gallery_dates_invalid)).assertDoesNotExist()
-        compose.onNodeWithText(localizedText(R.string.gallery_from) + ": 2026-11-05").performScrollTo().performClick()
+        compose.onNodeWithText(localizedText(R.string.gallery_from) + ": " + evidenceDate("2026-11-05", LocalizedText.languageTag)).performScrollTo().performClick()
         selectNovemberDay(7)
         compose.runOnIdle { (ShadowDialog.getLatestDialog() as androidx.activity.ComponentDialog).onBackPressedDispatcher.onBackPressed() }
         compose.onNode(isDialog()).assertDoesNotExist()
         compose.runOnIdle { assertEquals(listOf(corrected), applied) }
-        compose.onNodeWithText(localizedText(R.string.gallery_from) + ": 2026-11-05").performScrollTo().performClick()
+        compose.onNodeWithText(localizedText(R.string.gallery_from) + ": " + evidenceDate("2026-11-05", LocalizedText.languageTag)).performScrollTo().performClick()
         compose.onNode(hasText(localizedText(R.string.gallery_clear)) and hasAnyAncestor(isDialog())).performClick()
         compose.runOnIdle { assertEquals(corrected.copy(from = null), bar.filters) }
         compose.onNodeWithTag("gallery-filter-clear").performScrollTo().performClick()
@@ -231,7 +231,7 @@ class GalleryFiltersTest {
             requestedGroups += group
             if (group == "operations") oldCatalog.await() else catalog()
         }
-        compose.onNodeWithText(localizedText(R.string.gallery_from) + ": 2026-11-01").performScrollTo().performClick()
+        compose.onNodeWithText(localizedText(R.string.gallery_from) + ": " + evidenceDate("2026-11-01", LocalizedText.languageTag)).performScrollTo().performClick()
         compose.runOnIdle {
             bar.selectedId = "second-group"
             bar.filters = GalleryFilterSelection(text = "external")

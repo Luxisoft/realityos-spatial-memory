@@ -453,7 +453,7 @@ private suspend fun RealityViewModel.loadGalleryResult(index: Int, revision: Lon
             text(copy(R.string.meta_result_position, index + 1, metaController.matches.size), style = TextStyle.META)
             image(bitmap = bitmap, sizePreset = ImageSize.FILL)
             val confidence = evidencePercent(item.confidence, language).orEmpty()
-            text(copy(R.string.meta_evidence_details, item.publishedAt.take(10), confidence), style = TextStyle.META, color = TextColor.SECONDARY)
+            text(copy(R.string.meta_evidence_details, evidenceDate(item.publishedAt, language).orEmpty(), confidence), style = TextStyle.META, color = TextColor.SECONDARY)
             if (item.simulated) text(copy(R.string.meta_simulated), style = TextStyle.META)
             if (metaController.resultStatus == "partial") text(copy(R.string.meta_partial_results), style = TextStyle.META)
             buttonGroup(alignment = ButtonGroupAlignment.CENTER) {

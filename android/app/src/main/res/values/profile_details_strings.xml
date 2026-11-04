@@ -10,4 +10,8 @@
     <string name="profile_place_error">Use up to 160 characters.</string>
     <string name="profile_choose_birthday">Choose date of birth</string>
     <string name="profile_clear_birthday">Clear date</string>
+    <plurals name="profile_age">
+        <item quantity="one">%d year old</item>
+        <item quantity="other">%d years old</item>
+    </plurals>
 </resources>

@@ -26,7 +26,7 @@
     <string name="storage_search_person">Usar para buscar persona</string>
     <string name="storage_cv">Usar como CV</string>
     <string name="storage_face_settings">Búsqueda facial y consentimiento</string>
-    <string name="storage_sync_help">Sincronizar esta carpeta y sus subcarpetas hacia el destino seleccionado. Los borrados remotos no eliminan las copias importadas.</string>
+    <string name="storage_sync_help">Sincroniza esta carpeta y sus subcarpetas con el grupo de trabajo seleccionado. Las copias de archivos borrados en el origen se retiran solo tras una revisión completa y correcta.</string>
     <string name="storage_sync_every">Activar cada %1$d minutos</string>
     <string name="storage_search_results">Resultados de búsqueda</string>
     <string name="storage_no_results">Sin coincidencias autorizadas</string>
@@ -36,7 +36,7 @@
     <string name="storage_review">Revisar resultado</string>
     <string name="storage_retry">Reintentar fallidos</string>
     <string name="storage_confirm">Confirmar</string>
-    <string name="storage_disconnect_help">Se detendrán las sincronizaciones. Se conservan las copias ya importadas.</string>
+    <string name="storage_disconnect_help">La sincronización se detendrá y se retirarán las copias importadas de este origen. Los archivos de tu bucket no se eliminarán.</string>
     <string name="storage_cv_help">Este documento reemplazará tu CV privado actual.</string>
     <string name="storage_import_help">RealityOS conservará una copia y analizará los recursos seleccionados. Los rostros no se enrolan automáticamente. Para sincronización se incluirán nuevos archivos de la carpeta.</string>
     <string name="storage_done">Completado</string>
@@ -50,4 +50,9 @@
     <string name="storage_duplicate">Duplicado por revisar</string>
     <string name="storage_failed">Falló — puedes reintentar</string>
     <string name="storage_cancelled">Cancelado</string>
+    <string name="storage_endpoint">URL HTTPS del servicio</string>
+    <string name="storage_bucket">Contenedor (bucket)</string>
+    <string name="storage_access_key">ID de clave de acceso</string>
+    <string name="storage_secret_key">Clave de acceso secreta</string>
+    <string name="storage_file_details">%1$s B · %2$s</string>
 </resources>

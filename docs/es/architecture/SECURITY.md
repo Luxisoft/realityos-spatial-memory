@@ -22,4 +22,4 @@ flowchart LR
     N3["Dispositivo"] --> N4["Credencial"] --> N2["Recurso"]
 ```
 
-[API ](../api/API.md) · [WORKSPACE DATA ](../guides/WORKSPACE_DATA.md) · [HACKATHON ](../project/HACKATHON.md)
+[API](../api/API.md) · [Cuentas y expedientes](../guides/WORKSPACE_DATA.md) · [Entrega del hackathon](../project/HACKATHON.md)

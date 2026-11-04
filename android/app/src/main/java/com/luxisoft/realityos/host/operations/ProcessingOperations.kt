@@ -30,7 +30,7 @@ internal fun RealityViewModel.retryPendingUploadOperation() {
             showStatus(copy(pending.successMessage))
             stored = true
         } catch (error: Exception) {
-            showError(error.message ?: copy(R.string.status_capture_upload_failed), retry = ::retryPendingUpload)
+            showError(localizedFailure(error, R.string.status_capture_upload_failed), retry = ::retryPendingUpload)
         } finally {
             setBusy(false)
             if (stored && inputRoute == InputRoute.PHONE) {
@@ -99,7 +99,7 @@ internal fun RealityViewModel.watchProcessingOperation(initial: RemoteJob) {
                 else -> showStatus(copy(R.string.status_evidence_still_processing))
             }
         } catch (error: Exception) {
-            showStatus(error.message ?: copy(R.string.status_processing_status_failed))
+            showStatus(localizedFailure(error, R.string.status_processing_status_failed))
         } finally {
             processingJobIds.remove(initial.id)
             updateProcessingCount()

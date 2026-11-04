@@ -67,7 +67,7 @@ internal fun RealityViewModel.startPhoneSpeechQueryOperation() {
         } catch (error: CancellationException) {
             throw error
         } catch (error: Exception) {
-            showError(error.message ?: copy(R.string.status_query_failed), retry = ::beginQuery)
+            showError(localizedFailure(error, R.string.status_query_failed), retry = ::beginQuery)
         } finally {
             partials.cancel()
             phoneSpeechJob = null
@@ -83,13 +83,13 @@ internal fun RealityViewModel.startWearableSpeechQueryOperation() {
     var failure: String? = null
     activeSession.addSpeech().fold(
         onSuccess = { attached = it },
-        onFailure = { error, _ -> failure = error.description }
+        onFailure = { error, _ -> failure = copy(R.string.status_microphone_not_ready) }
     )
     val activeSpeech = attached ?: return showError(failure ?: copy(R.string.status_microphone_not_ready))
     var startFailure: String? = null
     activeSpeech.start().fold(
         onSuccess = {},
-        onFailure = { error, _ -> startFailure = error.description }
+        onFailure = { error, _ -> startFailure = copy(R.string.status_microphone_not_ready) }
     )
     if (startFailure != null) {
         runCatching { activeSession.removeSpeech() }
@@ -173,7 +173,7 @@ internal fun RealityViewModel.executeQueryOperation(question: String) {
             speak(answer.ttsText, language)
         } catch (error: Exception) {
             if (error is CancellationException) throw error
-            showError(error.message ?: copy(R.string.status_query_failed), retry = { executeQuery(question) })
+            showError(localizedFailure(error, R.string.status_query_failed), retry = { executeQuery(question) })
         } finally {
             if (metaController.generation.accepts(revision)) setBusy(false)
         }

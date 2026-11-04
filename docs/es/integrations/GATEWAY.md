@@ -29,4 +29,4 @@ make gateway-api
 
 El gateway lee variables de entorno inyectadas y no descubre `.env`. `make gateway-api` selecciona explícitamente `infrastructure/gateway/runtime.env`; `GATEWAY_ENV_FILE=/ruta/gateway.env` permite elegir otro archivo privado. Uvicorn directo puede seleccionarlo con `META_GATEWAY_ENV_FILE`. Un archivo seleccionado inexistente impide el arranque. Compose usa `META_GATEWAY_ENV_FILE` para elegir su archivo del host e inyecta los valores, sin leer archivos adicionales dentro del contenedor. Copia el `runtime.env.example` versionado solo al preparar un entorno gateway autorizado y conserva privado el archivo completo.
 
-[DEPLOYMENT GATEWAY ](../deployment/DEPLOYMENT_GATEWAY.md) · [DEPLOYMENT DIRECT ](../deployment/DEPLOYMENT_DIRECT.md) · [TTS ](TTS.md)
+[Despliegue con gateway](../deployment/DEPLOYMENT_GATEWAY.md) · [Despliegue directo](../deployment/DEPLOYMENT_DIRECT.md) · [Voz y transcripción](TTS.md)

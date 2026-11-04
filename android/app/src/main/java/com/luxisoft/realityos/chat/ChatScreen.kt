@@ -463,7 +463,7 @@ private fun ChatPersonFallback() {
 }
 
 @Composable
-private fun AudioPlayButton(playing: Boolean, onToggle: () -> Unit, label: String) {
+private fun AudioPlayButton(playing: Boolean, onToggle: () -> Unit, playLabel: Int, stopLabel: Int) {
     Surface(
         shape = CircleShape,
         color = MaterialTheme.colorScheme.surface,
@@ -473,7 +473,7 @@ private fun AudioPlayButton(playing: Boolean, onToggle: () -> Unit, label: Strin
             IconButton(onClick = onToggle, modifier = Modifier.size(48.dp)) {
                 Icon(
                     if (playing) Icons.Filled.Stop else Icons.Filled.PlayArrow,
-                    contentDescription = if (playing) stringResource(R.string.ui_stop_recording) else stringResource(R.string.ui_play_recording),
+                    contentDescription = stringResource(if (playing) stopLabel else playLabel),
                     tint = MaterialTheme.colorScheme.primary
                 )
             }
@@ -558,7 +558,7 @@ private fun ChatBubble(
                                 horizontalAlignment = Alignment.CenterHorizontally,
                                 verticalArrangement = Arrangement.spacedBy(4.dp)
                             ) {
-                                AudioPlayButton(playing = isPlayingAudio, onToggle = onToggleAudio, label = "audio")
+                                AudioPlayButton(playing = isPlayingAudio, onToggle = onToggleAudio, playLabel = R.string.chat_play_audio, stopLabel = R.string.chat_stop_audio)
                                 Text(
                                     ChatRoutePolicy.formatDuration(message.audioDurationMs),
                                     style = MaterialTheme.typography.labelSmall
@@ -566,7 +566,7 @@ private fun ChatBubble(
                             }
                         }
                         if (message.speakText != null) {
-                            AudioPlayButton(playing = isSpeakingTts, onToggle = onToggleSpeak, label = "respuesta")
+                            AudioPlayButton(playing = isSpeakingTts, onToggle = onToggleSpeak, playLabel = R.string.chat_play_response, stopLabel = R.string.chat_stop_response)
                         }
                     }
                 }

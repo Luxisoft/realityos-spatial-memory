@@ -7,6 +7,13 @@ const jury = JSON.parse(fs.readFileSync('docs/postman/RealityOS.postman_collecti
 const defaults = Object.fromEntries([...c.variable, ...jury.variable].map(v => [v.key, v.value]));
 const contract = JSON.parse(fs.readFileSync('tests/contracts/openapi.json'));
 const walk = items => items.flatMap(i => i.item ? walk(i.item) : [i]);
+for (const collection of [c, jury]) {
+  for (const item of walk(collection.item)) {
+    const languages = item.request.header.filter(h => h.key.toLowerCase() === 'accept-language');
+    assert.equal(languages.length, 1, item.name);
+    assert.match(languages[0].value, /^\{\{(?:server|localhost|security|meta_social)_language\}\}$/, item.name);
+  }
+}
 function execute(item, listen, values = {}, environment = {}, code = 200, body = {}, replies = [], local = {}) {
   let skipped = false;
   const collection = { ...defaults, ...values };
@@ -131,6 +138,8 @@ for (const [index, target] of c.item.entries()) {
   assert.deepEqual(valid.calls.map(r => r.url), [origin + '/v1/auth/me']);
   assert.equal(valid.calls[0].header.Authorization, 'Bearer old-access');
   assert.equal(valid.collection[prefix + 'access_token'], 'old-access');
+  const spanish = execute(query, 'prerequest', { ...cached, [prefix + 'language']: 'es' }, {}, 200, {}, [{ code: 401 }]);
+  assert.deepEqual(spanish.calls.map(r => r.header['Accept-Language']), ['es', 'es']);
   const expired = execute(query, 'prerequest', cached, {}, 200, {}, [{ code: 401 }]);
   assert.deepEqual(expired.calls.map(r => r.url), [origin + '/v1/auth/me', origin + '/v1/auth/refresh']);
   assert.deepEqual(JSON.parse(expired.calls[1].body.raw), { refresh_token: 'old-refresh' });

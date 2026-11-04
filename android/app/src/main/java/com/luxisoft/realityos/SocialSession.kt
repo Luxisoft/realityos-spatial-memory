@@ -210,6 +210,7 @@ internal object SocialSession {
         sessionSnapshot(session.generation)
         val headers = buildMap {
             put("X-Client-Version", BuildConfig.VERSION_NAME)
+            put("Accept-Language", LocalizedText.languageTag)
             if (path in setOf("auth/register", "auth/resend-confirmation", "auth/forgot-password", "auth/change-pending-email")) put("Accept-Language", AccountRequestLanguage.value)
             session.access?.let { put("Authorization", "Bearer $it") }
         }
@@ -235,7 +236,7 @@ internal object SocialSession {
     private fun multipartFileOnce(path: String, fields: Map<String, String>, file: File, mime: String, mayRefresh: Boolean, session: RequestSession = sessionSnapshot()): String {
         sessionSnapshot(session.generation)
         val boundary = "RealityOS-${java.util.UUID.randomUUID()}"
-        val connection = openJsonConnection(path)
+        val connection = openJsonConnection(path).apply { setRequestProperty("Accept-Language", LocalizedText.languageTag) }
         connection.requestMethod = "POST"
         connection.connectTimeout = 15000
         connection.readTimeout = 60000
@@ -273,7 +274,7 @@ internal object SocialSession {
         sessionSnapshot(session.generation)
         val boundary = "RealityOS-${java.util.UUID.randomUUID()}"
         val fieldName = requestedFieldName ?: if (path == "faces/search" || path == "display/face-group-links") "probe" else "file"
-        val connection = openJsonConnection(path)
+        val connection = openJsonConnection(path).apply { setRequestProperty("Accept-Language", LocalizedText.languageTag) }
         connection.requestMethod = "POST"
         connection.setRequestProperty("X-Client-Version", BuildConfig.VERSION_NAME)
         connection.connectTimeout = 15000
@@ -318,7 +319,7 @@ internal object SocialSession {
 
     private fun downloadOnce(path: String, maximum: Int, session: RequestSession, mayRefresh: Boolean): ByteArray {
         sessionSnapshot(session.generation)
-        val connection = openJsonConnection(path)
+        val connection = openJsonConnection(path).apply { setRequestProperty("Accept-Language", LocalizedText.languageTag) }
         connection.instanceFollowRedirects = false
         connection.connectTimeout = 15000
         connection.readTimeout = 90000
@@ -331,7 +332,7 @@ internal object SocialSession {
             }
             if (status == 401 && session.refresh == null) expireSession(session)
             check(status == 200) { localizedHttpError(status) }
-            check(connection.contentLengthLong <= maximum) { "Resource exceeds download limit" }
+            check(connection.contentLengthLong <= maximum) { localizedText(R.string.resource_download_limit) }
             connection.inputStream.use { input ->
                 val output = java.io.ByteArrayOutputStream()
                 val buffer = ByteArray(32768)
@@ -339,7 +340,7 @@ internal object SocialSession {
                     val count = input.read(buffer)
                     if (count < 0) break
                     sessionSnapshot(session.generation)
-                    check(output.size() + count <= maximum) { "Resource exceeds download limit" }
+                    check(output.size() + count <= maximum) { localizedText(R.string.resource_download_limit) }
                     output.write(buffer, 0, count)
                 }
                 output.toByteArray().also { sessionSnapshot(session.generation) }

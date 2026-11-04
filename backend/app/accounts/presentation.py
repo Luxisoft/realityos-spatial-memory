@@ -6,6 +6,8 @@ from html import escape
 
 from fastapi.responses import HTMLResponse
 
+from app.languages import request_language
+
 COPY = {
     "es": {
         "verify": "Confirmar correo",
@@ -22,6 +24,8 @@ COPY = {
         "invalid": "Enlace inválido o vencido. Solicita uno nuevo desde la aplicación.",
         "offline": "No se pudo conectar. Intenta de nuevo.",
         "mismatch": "Las contraseñas no coinciden.",
+        "rejected": "No se pudo completar la solicitud. Revisa los datos e inténtalo de nuevo.",
+        "limited": "Demasiados intentos. Espera unos minutos e inténtalo de nuevo.",
     },
     "en": {
         "verify": "Confirm email",
@@ -38,31 +42,14 @@ COPY = {
         "invalid": "Invalid or expired link. Request a new one from the app.",
         "offline": "Could not connect. Try again.",
         "mismatch": "Passwords do not match.",
+        "rejected": "The request could not be completed. Check the details and try again.",
+        "limited": "Too many attempts. Wait a few minutes and try again.",
     },
 }
 
 
 def language(header: str | None, fallback: str | None = None) -> str:
-    choices = []
-    for item in (header or "").split(","):
-        tag, *params = item.strip().lower().split(";")
-        quality = 1.0
-        try:
-            for param in params:
-                if param.strip().startswith("q="):
-                    quality = float(param.strip()[2:])
-        except ValueError:
-            continue
-        base = tag.split("-")[0]
-        if base in COPY and 0 < quality <= 1:
-            choices.append((quality, base))
-    return (
-        max(choices, key=lambda item: item[0])[1]
-        if choices
-        else fallback
-        if fallback in COPY
-        else "es"
-    )
+    return request_language(header, fallback if fallback in COPY else "es")
 
 
 BODY_STYLE = "margin:0;background:#262729;color:#F4F7F5;font-family:Arial,sans-serif;font-size:16px;line-height:1.5"
@@ -125,14 +112,16 @@ const password=document.querySelector('#password'), confirmation=document.queryS
 if(password&&password.value!==confirmation.value){{status.textContent=words.mismatch;confirmation.focus();return;}}
 busy=true;button.disabled=true;status.textContent=words.busy;
 let body={{token}};if(password)body.password=password.value;
-try{{const r=await fetch('/v1/auth/{endpoint}',{{method:'POST',headers:{{'Content-Type':'application/json'}},body:JSON.stringify(body)}});
-status.textContent=r.ok?words.success:r.status>=500?words.offline:words.invalid;
+try{{const r=await fetch('/v1/auth/{endpoint}',{{method:'POST',headers:{{'Content-Type':'application/json','Accept-Language':'{lang}'}},body:JSON.stringify(body)}});
+status.textContent=r.ok?words.success:r.status>=500?words.offline:r.status===429?words.limited:r.status===400?words.invalid:words.rejected;
 if(r.ok)form.remove();}}catch{{status.textContent=words.offline;}}
 finally{{busy=false;button.disabled=false;}}}};
 </script></body></html>''',
         headers={
             "Cache-Control": "no-store",
             "Referrer-Policy": "no-referrer",
+            "Content-Language": lang,
+            "Vary": "Accept-Language",
             "Content-Security-Policy": f"default-src 'none'; script-src 'nonce-{nonce}'; style-src 'nonce-{nonce}'; connect-src 'self'; form-action 'self'; frame-ancestors 'none'; base-uri 'none'",
         },
     )

@@ -120,7 +120,7 @@ fun SocialGallery(
                 val name = uri.lastPathSegment?.substringAfterLast('/') ?: "publicacion"
                 stageWorkPhoto(bytes, mime, name)
             } catch (failure: Exception) {
-                error = failure.message.orEmpty()
+                error = localizedFailure(failure)
             } finally {
                 publishing = false
             }
@@ -139,7 +139,7 @@ fun SocialGallery(
                 } ?: error(localizedText(R.string.ui_could_not_read_the_photo))
                 stageWorkPhoto(bytes, "image/jpeg", "camara.jpg")
             } catch (failure: Exception) {
-                error = failure.message.orEmpty()
+                error = localizedFailure(failure)
             } finally {
                 publishing = false
             }
@@ -178,7 +178,7 @@ fun SocialGallery(
                     launchWorkPhoneCameraChecked()
                 }
             } catch (failure: Exception) {
-                error = failure.message.orEmpty()
+                error = localizedFailure(failure)
             } finally {
                 publishing = false
             }
@@ -202,7 +202,7 @@ fun SocialGallery(
             } catch (cancelled: kotlinx.coroutines.CancellationException) {
                 throw cancelled
             } catch (e: Exception) {
-                error = e.message ?: localizedText(R.string.ui_connection_error)
+                error = localizedFailure(e, R.string.ui_connection_error)
                 if (SocialSession.token == null && SocialSession.loginNotice == null) SocialSession.loginNotice = error
             }
         }
@@ -397,7 +397,7 @@ fun SocialGallery(
             coroutineContext.ensureActive()
             if (isCurrentRequest()) {
                 pageFailed = true
-                error = e.message.orEmpty()
+                error = localizedFailure(e)
             }
         } finally {
             if (isActive && isCurrentRequest()) {
@@ -417,7 +417,7 @@ fun SocialGallery(
             }
         } catch (e: Exception) {
             if (e is kotlinx.coroutines.CancellationException) throw e
-            error = e.message.orEmpty()
+            error = localizedFailure(e)
         } finally {
             groupsLoading = false
         }
@@ -496,7 +496,7 @@ fun SocialGallery(
             comments = repository.comments(post.id)
         } catch (failure: Exception) {
             if (failure is kotlinx.coroutines.CancellationException) throw failure
-            error = failure.message.orEmpty()
+            error = localizedFailure(failure)
         } finally {
             commentsLoading = false
         }
@@ -514,7 +514,7 @@ fun SocialGallery(
             metaLines = listOf(
                 post.classificationText(),
                 post.ownerName.let { if (it.isNotBlank()) localizedText(R.string.ui_by_1_s, it) else "" },
-                post.publishedAt.substringBefore("T").let { if (it.isNotBlank()) localizedText(R.string.ui_published_on_1_s, it) else "" }
+                evidenceDate(post.publishedAt, LocalizedText.languageTag)?.let { localizedText(R.string.ui_published_on_1_s, it) }.orEmpty()
             ),
             commentsLoading = commentsLoading,
             comments = comments,
@@ -524,7 +524,7 @@ fun SocialGallery(
             },
             topActions = {
                 IconButton(onClick = { interaction = if (likedNow) "unlike" else "like" }) {
-                    Icon(if (likedNow) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder, contentDescription = if (likedNow) localizedText(R.string.ui_unlike) else "Like", tint = Color.White)
+                    Icon(if (likedNow) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder, contentDescription = if (likedNow) localizedText(R.string.ui_unlike) else localizedText(R.string.ui_like), tint = Color.White)
                 }
                 IconButton(onClick = {
                     interaction = "comment"

@@ -42,7 +42,8 @@ data class DeveloperPreviewState(
     val videoFeedName: String? = null,
     val phoneCamera: PreviewPhoneCamera? = null,
     val chrome: ChromePreviewInfo? = null,
-    val message: String = "Developer preview is stopped.",
+    val messageResource: Int = R.string.debug_preview_stopped,
+    val messageArguments: List<Int> = emptyList(),
     val error: String? = null,
     /** Causes Compose to build a fresh WebView after a preview lifecycle change. */
     val previewGeneration: Int = 0

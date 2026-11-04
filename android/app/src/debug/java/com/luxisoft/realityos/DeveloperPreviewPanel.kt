@@ -200,7 +200,8 @@ fun PreviewControlPanel(
     val preview by controller.state.collectAsStateWithLifecycle()
     val scope = rememberCoroutineScope()
     var selectedMode by rememberSaveable { mutableStateOf(DeveloperPreviewMode.IN_APP) }
-    var query by rememberSaveable { mutableStateOf("Where is the yellow drill?") }
+    val queryExample = stringResource(R.string.debug_query_example)
+    var query by rememberSaveable { mutableStateOf(queryExample) }
 
     val photoPicker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         controller.setCapturedPhoto(uri)
@@ -225,7 +226,7 @@ fun PreviewControlPanel(
     ) {
         PreviewStateStrip(preview)
         Text(
-            preview.message,
+            stringResource(preview.messageResource, *preview.messageArguments.map { stringResource(it) }.toTypedArray()),
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             style = MaterialTheme.typography.bodySmall
         )

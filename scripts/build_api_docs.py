@@ -71,7 +71,7 @@ VARIABLE_DESCRIPTIONS = {
     "session_identity": "Managed automatically to keep sessions tied to the configured account and API.",
     "workspace_id": "Workspace preselected. For your own account, copy an ID from GET /v1/workspaces.",
     "user_id": "User ID prefilled. For your own account, copy id from GET /v1/auth/me.",
-    "language": "Response language: en or es.",
+    "language": "Response language and Accept-Language header: en or es.",
     "query": "Question for evidence/record searches.",
     "enable_write_requests": "Set true to enable explicit write operations for this target.",
     "facebook_access_token": "Your Facebook user token; never a RealityOS session token.",
@@ -252,6 +252,14 @@ def variable_description(key):
     )
 
 
+def spanish_operation_label(name, summary, labels):
+    """Require reviewed Spanish copy; route overrides disambiguate generic summaries."""
+    label = labels.get(name) or labels.get(summary)
+    if not label:
+        raise ValueError(f"Missing Spanish operation label: {name} ({summary})")
+    return label
+
+
 def generate(spec, check=False):
     spanish = json.loads((ROOT / "docs/postman/operation-labels.es.json").read_text())
     dataset = evaluation_dataset()
@@ -349,6 +357,12 @@ def generate(spec, check=False):
                             "disabled": not p.get("required", False),
                         }
                     )
+            if not any(
+                h["key"].lower() == "accept-language" for h in request["header"]
+            ):
+                request["header"].append(
+                    {"key": "Accept-Language", "value": "{{language}}"}
+                )
             content = op.get("requestBody", {}).get("content", {})
             body_schema = {}
             if content:
@@ -707,7 +721,7 @@ def generate(spec, check=False):
             ]
             for name, summary, mode, required, mutable in rows[key]:
                 lines.append(
-                    f"| `{name}` | {spanish.get(summary, summary) if es else summary} | {mode} | {required} | {'✓' if mutable else '—'} |"
+                    f"| `{name}` | {spanish_operation_label(name, summary, spanish) if es else summary} | {mode} | {required} | {'✓' if mutable else '—'} |"
                 )
             for name, fields, body, responses in details[key]:
                 lines += [

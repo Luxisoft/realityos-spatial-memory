@@ -38,7 +38,7 @@ internal fun RealityViewModel.connectDisplayOperation(deviceIdentifier: DeviceId
                 current.copy(wearable = current.wearable.copy(sessionActive = true))
             }
             sessionErrorsJob = viewModelScope.launch {
-                created.errors.collect { error -> showError(error.description) }
+                created.errors.collect { error -> showError(copy(R.string.status_display_failed)) }
             }
             sessionStateJob = viewModelScope.launch {
                 created.state.collect { sessionState ->
@@ -54,7 +54,7 @@ internal fun RealityViewModel.connectDisplayOperation(deviceIdentifier: DeviceId
             created.start()
             showStatus(copy(R.string.status_connecting_display))
         },
-        onFailure = { error, _ -> showError(error.description) }
+        onFailure = { error, _ -> showError(copy(R.string.status_display_failed)) }
     )
 }
 
@@ -95,7 +95,7 @@ internal fun RealityViewModel.onDatPermissionResultOperation(
         showError(
             failureMessage ?: copy(
                 R.string.status_permission_denied,
-                permission.name.lowercase().replaceFirstChar(Char::uppercase)
+                if (permission == Permission.CAMERA) copy(R.string.permission_camera) else copy(R.string.permission_microphone)
             )
         )
         return

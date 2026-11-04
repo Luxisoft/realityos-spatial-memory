@@ -19,7 +19,7 @@ def test_all_prepared_display_fields_have_both_languages(evaluation):
             (Record, 16),
             (Publication, 25),
             (UserProfile, 6),
-            (PublicationTerm, 36),
+            (PublicationTerm, 44),
         ):
             rows = list(db.scalars(select(model)))
             assert len(rows) == expected
@@ -30,6 +30,12 @@ def test_all_prepared_display_fields_have_both_languages(evaluation):
                     assert set(pair) == {"source", "en", "es"}
                     assert pair["source"] == getattr(row, field)
                     assert pair["en"] and pair["es"]
+                if model is Record:
+                    for language in ("en", "es"):
+                        fields = row.display_text["data"][language]
+                        assert not (set(fields) & set(row.data))
+                        assert all("_" not in key for key in fields)
+                        assert all(isinstance(value, str) for value in fields.values())
 
 
 def test_authored_copy_is_membership_scoped_and_does_not_rewrite_history(evaluation):

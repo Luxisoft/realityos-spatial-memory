@@ -102,10 +102,10 @@ internal fun ProfileEditDrawer(
                 }
             }
             item {
-                Row(
+                FlowRow(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     OutlinedButton(onClick = { onLinksChange(links + EditableProfileLink()) }, enabled = !busy) { Text(localizedText(R.string.ui_add_social_link)) }
                     Button(onClick = onSave, enabled = !busy, modifier = Modifier.testTag("profile-save")) { Text(localizedText(R.string.ui_save)) }
@@ -142,15 +142,15 @@ internal fun ProfileEditDrawer(
                     cv.optString("updated_at").takeIf { it.isNotBlank() && it != "null" }?.let { updatedAt ->
                         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                             Icon(Icons.Default.Schedule, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
-                            Text(localizedText(R.string.ui_updated_1_s, updatedAt.substringBefore('T')), style = MaterialTheme.typography.bodySmall)
+                            Text(localizedText(R.string.ui_updated_1_s, evidenceDate(updatedAt, LocalizedText.languageTag) ?: updatedAt), style = MaterialTheme.typography.bodySmall)
                         }
                     }
                     cv.optString("analysis").takeIf { it.isNotBlank() && it != "null" }?.let { analysis ->
                         Text(localizedText(R.string.ui_analysis), style = MaterialTheme.typography.labelLarge)
                         Text(analysis, style = MaterialTheme.typography.bodyMedium)
                     }
-                    cv.optString("error").takeIf { it.isNotBlank() && it != "null" }?.let { cvError ->
-                        Text(cvError, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.error)
+                    cv.optString("error").takeIf { it.isNotBlank() && it != "null" }?.let {
+                        Text(localizedText(R.string.ui_processing_failed_you_can_retry), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.error)
                     }
                 }
             }
@@ -180,10 +180,10 @@ internal fun ProfileInformation(
         .distinct()
         .joinToString("–")
     val items = buildList {
-        add(ProfileInfoItem(localizedText(R.string.ui_location), profile.optString("location"), Icons.Default.LocationOn))
-        add(ProfileInfoItem(localizedText(R.string.ui_hometown), profile.optString("hometown"), Icons.Default.Home))
+        add(ProfileInfoItem(localizedText(R.string.ui_location), profile.storedText("location"), Icons.Default.LocationOn))
+        add(ProfileInfoItem(localizedText(R.string.ui_hometown), profile.storedText("hometown"), Icons.Default.Home))
         add(ProfileInfoItem(localizedText(R.string.ui_headline), headline, Icons.Default.Work))
-        add(ProfileInfoItem(localizedText(R.string.ui_age), if (age.isBlank()) "" else localizedText(R.string.ui_1_s_years_old, age), Icons.Default.Badge))
+        add(ProfileInfoItem(localizedText(R.string.ui_age), profileAgeLabel(age), Icons.Default.Badge))
         add(ProfileInfoItem(localizedText(R.string.ui_phone), phone, Icons.Default.Phone))
         add(ProfileInfoItem(localizedText(R.string.ui_birthday), profileBirthdayLabel(profile.optString("birthday")), Icons.Default.Cake))
         add(ProfileInfoItem(localizedText(R.string.ui_gender), profile.storedText("gender"), Icons.Default.Person))

@@ -17,8 +17,6 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import java.time.LocalDate
 import java.time.ZoneOffset
-import java.time.format.DateTimeFormatter
-import java.time.format.FormatStyle
 import org.json.JSONObject
 
 internal data class PersonalProfileDraft(
@@ -48,12 +46,12 @@ internal data class PersonalProfileDraft(
             save = { listOf(it.displayName, it.birthday, it.gender, it.hometown, it.location) },
             restore = { PersonalProfileDraft(it[0], it[1], it[2], it[3], it[4]) }
         )
-        fun from(profile: JSONObject) = PersonalProfileDraft(
+        fun from(profile: JSONObject, language: String? = null) = PersonalProfileDraft(
             profile.optText("display_name").orEmpty(),
             profile.optText("birthday").orEmpty(),
-            profile.optText("gender").orEmpty(),
-            profile.optText("hometown").orEmpty(),
-            profile.optText("location").orEmpty()
+            if (language == null) profile.optText("gender").orEmpty() else profile.storedText("gender", language),
+            if (language == null) profile.optText("hometown").orEmpty() else profile.storedText("hometown", language),
+            if (language == null) profile.optText("location").orEmpty() else profile.storedText("location", language)
         )
     }
 }
@@ -63,9 +61,13 @@ private fun validBirthday(value: String): Boolean = runCatching {
     date.year >= 1900 && !date.isAfter(LocalDate.now(ZoneOffset.UTC)) && date.toString() == value.trim()
 }.getOrDefault(false)
 
-internal fun profileBirthdayLabel(value: String): String = runCatching {
-    LocalDate.parse(value).format(DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM))
-}.getOrDefault(value)
+internal fun profileBirthdayLabel(value: String, language: String = LocalizedText.languageTag): String = evidenceDate(value, language) ?: value
+
+internal fun profileAgeLabel(value: String): String {
+    if (value.isBlank()) return ""
+    val age = value.toIntOrNull()
+    return if (age != null) localizedQuantityText(R.plurals.profile_age, age, age) else localizedText(R.string.ui_1_s_years_old, value)
+}
 
 internal fun LazyListScope.personalProfileFields(
     draft: PersonalProfileDraft,

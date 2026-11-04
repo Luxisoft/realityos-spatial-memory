@@ -57,7 +57,7 @@ class MockDeveloperPreviewController(
                 Wearables.registrationState.first { it == RegistrationState.REGISTERED }
             }
             if (registered == null) {
-                fail("Mock Device Kit did not complete simulated Meta registration.")
+                fail(localizedText(R.string.debug_registration_failed))
                 releaseMockDevice()
                 return null
             }
@@ -65,7 +65,7 @@ class MockDeveloperPreviewController(
             if (!pairing.isSuccess) {
                 pairing.fold(
                     onSuccess = {},
-                    onFailure = { error, _ -> fail(error.description) }
+                    onFailure = { error, _ -> fail(localizedText(R.string.debug_operation_failed)) }
                 )
                 releaseMockDevice()
                 return null
@@ -76,9 +76,9 @@ class MockDeveloperPreviewController(
             paired.powerOn()
             paired.unfold()
             paired.don()
-            paired.services.speech.setLocale(DEFAULT_LOCALE)
+            paired.services.speech.setLocale(if (LocalizedText.languageTag == "es") "es-ES" else "en-US")
             if (!awaitEligibleDevice(paired.deviceIdentifier)) {
-                fail(applicationContext.getString(R.string.debug_virtual_display_not_ready))
+                fail(localizedText(R.string.debug_virtual_display_not_ready))
                 releaseMockDevice()
                 return null
             }
@@ -96,7 +96,7 @@ class MockDeveloperPreviewController(
                         unfolded = true,
                         worn = true,
                         chrome = chrome,
-                        message = "Virtual Meta Ray-Ban Display is ready. Connect RealityOS Display.",
+                        messageResource = R.string.debug_display_ready,
                         error = null,
                         previewGeneration = it.previewGeneration + 1
                     )
@@ -104,7 +104,7 @@ class MockDeveloperPreviewController(
                 paired.deviceIdentifier
             }
         } catch (error: Exception) {
-            fail(error.message ?: "Could not start the virtual glasses.")
+            fail(localizedText(R.string.debug_start_failed))
             releaseMockDevice()
             null
         }
@@ -115,50 +115,51 @@ class MockDeveloperPreviewController(
         _state.update {
             DeveloperPreviewState(
                 available = true,
-                message = "Developer preview is stopped.",
+                messageResource = R.string.debug_preview_stopped,
                 previewGeneration = it.previewGeneration + 1
             )
         }
     }
 
-    override fun powerOn() = withGlasses("Power on the virtual glasses first.") { device ->
+    override fun powerOn() = withGlasses(localizedText(R.string.debug_start_first)) { device ->
         device.powerOn()
-        _state.update { it.copy(poweredOn = true, message = "Virtual glasses are powered on.") }
+        _state.update { it.copy(poweredOn = true, messageResource = R.string.debug_powered_on) }
     }
 
-    override fun powerOff() = withGlasses("Power on the virtual glasses first.") { device ->
+    override fun powerOff() = withGlasses(localizedText(R.string.debug_start_first)) { device ->
         device.powerOff()
-        _state.update { it.copy(poweredOn = false, worn = false, message = "Virtual glasses are powered off.") }
+        _state.update { it.copy(poweredOn = false, worn = false, messageResource = R.string.debug_powered_off) }
     }
 
-    override fun unfold() = withGlasses("Start the virtual glasses first.") { device ->
+    override fun unfold() = withGlasses(localizedText(R.string.debug_start_first)) { device ->
         device.unfold()
-        _state.update { it.copy(unfolded = true, message = "Virtual glasses are unfolded.") }
+        _state.update { it.copy(unfolded = true, messageResource = R.string.debug_unfolded) }
     }
 
-    override fun fold() = withGlasses("Start the virtual glasses first.") { device ->
+    override fun fold() = withGlasses(localizedText(R.string.debug_start_first)) { device ->
         device.fold()
-        _state.update { it.copy(unfolded = false, worn = false, message = "Virtual glasses are folded.") }
+        _state.update { it.copy(unfolded = false, worn = false, messageResource = R.string.debug_folded) }
     }
 
-    override fun don() = withGlasses("Start the virtual glasses first.") { device ->
+    override fun don() = withGlasses(localizedText(R.string.debug_start_first)) { device ->
         device.don()
-        _state.update { it.copy(worn = true, message = "Virtual glasses are being worn.") }
+        _state.update { it.copy(worn = true, messageResource = R.string.debug_status_worn) }
     }
 
-    override fun doff() = withGlasses("Start the virtual glasses first.") { device ->
+    override fun doff() = withGlasses(localizedText(R.string.debug_start_first)) { device ->
         device.doff()
-        _state.update { it.copy(worn = false, message = "Virtual glasses were removed.") }
+        _state.update { it.copy(worn = false, messageResource = R.string.debug_removed) }
     }
 
     override fun setDatPermission(permission: Permission, granted: Boolean) {
-        if (!mock.isEnabled) return fail("Start the virtual glasses before changing DAT permissions.")
+        if (!mock.isEnabled) return fail(localizedText(R.string.debug_start_first))
         val status = if (granted) PermissionStatus.Granted else PermissionStatus.Denied
         mock.permissions.set(permission, status)
         mock.permissions.setRequestResult(permission, status)
         _state.update {
             it.copy(
-                message = "${permission.name.lowercase().replaceFirstChar(Char::uppercase)} permission is ${if (granted) "granted" else "denied"} in Mock Device Kit.",
+                messageResource = if (granted) R.string.debug_permission_granted else R.string.debug_permission_denied,
+                messageArguments = listOf(if (permission == Permission.CAMERA) R.string.permission_camera else R.string.permission_microphone),
                 error = null
             )
         }
@@ -167,13 +168,13 @@ class MockDeveloperPreviewController(
     override fun setCapturedPhoto(uri: Uri?) {
         if (uri == null) return
         val mime = applicationContext.contentResolver.getType(uri)
-        if (mime !in SUPPORTED_IMAGE_TYPES) return fail("Choose a JPEG or PNG image for mock photo capture.")
-        withGlasses("Start the virtual glasses before selecting a photo.") { device ->
+        if (mime !in SUPPORTED_IMAGE_TYPES) return fail(localizedText(R.string.debug_photo_format))
+        withGlasses(localizedText(R.string.debug_start_first)) { device ->
             device.services.camera.setCapturedImage(uri)
             _state.update {
                 it.copy(
                     capturedPhotoName = displayName(uri),
-                    message = "Mock photo capture is configured.",
+                    messageResource = R.string.debug_photo_ready,
                     error = null
                 )
             }
@@ -183,15 +184,15 @@ class MockDeveloperPreviewController(
     override fun setVideoFeed(uri: Uri?) {
         if (uri == null) return
         if (!hasSupportedVideoCodec(uri)) {
-            return fail("Choose a video with AVC/H.264 or HEVC/H.265 video.")
+            return fail(localizedText(R.string.debug_video_format))
         }
-        withGlasses("Start the virtual glasses before selecting a video.") { device ->
+        withGlasses(localizedText(R.string.debug_start_first)) { device ->
             device.services.camera.setCameraFeed(uri)
             _state.update {
                 it.copy(
                     videoFeedName = displayName(uri),
                     phoneCamera = null,
-                    message = "Mock video feed is configured.",
+                    messageResource = R.string.debug_video_ready,
                     error = null
                 )
             }
@@ -199,7 +200,7 @@ class MockDeveloperPreviewController(
     }
 
     override fun setPhoneCamera(camera: PreviewPhoneCamera) = withGlasses(
-        "Start the virtual glasses before using the phone camera."
+        localizedText(R.string.debug_start_first)
     ) { device ->
         // CameraX owns the phone sensors. Opening a second phone feed in the
         // SDK would compete with the actual photo/video source.
@@ -207,21 +208,21 @@ class MockDeveloperPreviewController(
             it.copy(
                 phoneCamera = camera,
                 videoFeedName = null,
-                message = "${camera.name.lowercase().replaceFirstChar(Char::uppercase)} phone camera selected for capture.",
+                messageResource = if (camera == PreviewPhoneCamera.FRONT) R.string.debug_front_camera_selected else R.string.debug_back_camera_selected,
                 error = null
             )
         }
     }
 
     override fun simulateTranscription(text: String, isFinal: Boolean) = withGlasses(
-        "Start the virtual glasses before simulating speech."
+        localizedText(R.string.debug_start_first)
     ) { device ->
         val normalized = text.trim()
-        if (normalized.isBlank()) return@withGlasses fail("Enter a query before simulating speech.")
+        if (normalized.isBlank()) return@withGlasses fail(localizedText(R.string.debug_query_required))
         device.services.speech.simulateTranscription(normalized, isFinal, DEFAULT_CONFIDENCE)
         _state.update {
             it.copy(
-                message = if (isFinal) "Sent final simulated speech." else "Sent partial simulated speech.",
+                messageResource = if (isFinal) R.string.debug_speech_final else R.string.debug_speech_partial,
                 error = null
             )
         }
@@ -288,7 +289,7 @@ class MockDeveloperPreviewController(
             )
         },
         onFailure = { error, _ ->
-            fail(error.description)
+            fail(localizedText(R.string.debug_operation_failed))
             null
         }
     )
@@ -307,10 +308,10 @@ class MockDeveloperPreviewController(
 
     private fun withGlasses(message: String, action: (MockGlasses) -> Unit) {
         val device = glasses ?: return fail(message)
-        runCatching { action(device) }.onFailure { error -> fail(error.message ?: message) }
+        runCatching { action(device) }.onFailure { error -> fail(localizedText(R.string.debug_operation_failed)) }
     }
 
-    private fun displayName(uri: Uri): String = uri.lastPathSegment?.substringAfterLast('/') ?: "selected media"
+    private fun displayName(uri: Uri): String = uri.lastPathSegment?.substringAfterLast('/') ?: localizedText(R.string.debug_selected_media)
 
     private fun hasSupportedVideoCodec(uri: Uri): Boolean = runCatching {
         val extractor = MediaExtractor()
@@ -329,11 +330,10 @@ class MockDeveloperPreviewController(
     }.getOrDefault(false)
 
     private fun fail(message: String) {
-        _state.update { it.copy(error = message, message = message) }
+        _state.update { it.copy(error = message) }
     }
 
     private companion object {
-        const val DEFAULT_LOCALE = "en-US"
         const val DEFAULT_CONFIDENCE = 0.92f
         const val REGISTRATION_TIMEOUT_MS = 3_000L
         const val DEVICE_READY_TIMEOUT_MS = 3_000L

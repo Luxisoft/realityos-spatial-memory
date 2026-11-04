@@ -67,7 +67,7 @@ internal fun ClassificationFields(workspaceId: String, value: PublicationClassif
         } catch (cancelled: CancellationException) {
             throw cancelled
         } catch (failure: Exception) {
-            error = failure.message.orEmpty()
+            error = localizedFailure(failure)
         } finally {
             loading = false
         }
@@ -113,7 +113,7 @@ internal fun ClassificationDialog(workspaceId: String, initial: PublicationClass
                 } catch (cancelled: CancellationException) {
                     throw cancelled
                 } catch (failure: Exception) {
-                    error = failure.message.orEmpty()
+                    error = localizedFailure(failure)
                 } finally {
                     busy = false
                 }
@@ -193,7 +193,7 @@ internal fun GroupCatalogEditor(workspaceId: String, onChanged: () -> Unit) {
         } catch (cancelled: CancellationException) {
             throw cancelled
         } catch (failure: Exception) {
-            error = failure.message.orEmpty()
+            error = localizedFailure(failure)
         }
     }
     if (error.isNotBlank()) {
@@ -216,7 +216,7 @@ internal fun GroupCatalogEditor(workspaceId: String, onChanged: () -> Unit) {
             } catch (cancelled: CancellationException) {
                 throw cancelled
             } catch (failure: Exception) {
-                error = failure.message.orEmpty()
+                error = localizedFailure(failure)
             } finally {
                 busy = false
             }

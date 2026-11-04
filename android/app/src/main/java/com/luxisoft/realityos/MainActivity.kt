@@ -6,8 +6,8 @@ import android.media.AudioAttributes
 import android.os.Bundle
 import android.speech.tts.TextToSpeech
 import android.util.Log
-import androidx.activity.enableEdgeToEdge
 import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
@@ -19,8 +19,8 @@ import androidx.lifecycle.repeatOnLifecycle
 import com.meta.wearable.dat.core.Wearables
 import com.meta.wearable.dat.core.types.Permission
 import com.meta.wearable.dat.core.types.PermissionStatus
-import kotlinx.coroutines.launch
 import java.util.Locale
+import kotlinx.coroutines.launch
 
 class MainActivity : AppCompatActivity() {
     val facebookCallbacks = com.facebook.CallbackManager.Factory.create()
@@ -40,17 +40,20 @@ class MainActivity : AppCompatActivity() {
     private var speechRevision = 0L
     private val agentSpeech by lazy {
         AgentSpeechPlayer(
-            this, lifecycleScope, { viewModel.state.value.provisioning },
-            viewModel::onSpeechStarted, viewModel::onSpeechDone,
+            this,
+            lifecycleScope,
+            { viewModel.state.value.provisioning },
+            viewModel::onSpeechStarted,
+            viewModel::onSpeechDone,
             ::speakWithDeviceVoice,
-            { AppNotices.show(getString(R.string.voice_device_fallback), NoticeKind.WARNING) },
+            { AppNotices.show(getString(R.string.voice_device_fallback), NoticeKind.WARNING) }
         )
     }
     private val phoneCaptureSource by lazy { CameraXPhoneCaptureSource(this, this) }
     private val phoneSpeechSource by lazy { AndroidPhoneSpeechSource(this) }
 
     private val bluetoothPermissionLauncher = registerForActivityResult(
-        ActivityResultContracts.RequestMultiplePermissions(),
+        ActivityResultContracts.RequestMultiplePermissions()
     ) { grants ->
         if (grants[Manifest.permission.BLUETOOTH_CONNECT] != true) {
             viewModel.onWearablesInitializationFailure(getString(R.string.status_bluetooth_permission))
@@ -60,7 +63,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private val datPermissionLauncher = registerForActivityResult(
-        Wearables.RequestPermissionContract(),
+        Wearables.RequestPermissionContract()
     ) { result ->
         val requested = requestedDatPermission ?: return@registerForActivityResult
         requestedDatPermission = null
@@ -69,7 +72,7 @@ class MainActivity : AppCompatActivity() {
                 viewModel.onDatPermissionResult(
                     requested.id,
                     requested.permission,
-                    status is PermissionStatus.Granted,
+                    status is PermissionStatus.Granted
                 )
             },
             onFailure = { error, _ ->
@@ -77,14 +80,14 @@ class MainActivity : AppCompatActivity() {
                     requested.id,
                     requested.permission,
                     granted = false,
-                    failureMessage = error.description,
+                    failureMessage = localizedText(R.string.status_permission_request_failed)
                 )
-            },
+            }
         )
     }
 
     private val phonePermissionLauncher = registerForActivityResult(
-        ActivityResultContracts.RequestPermission(),
+        ActivityResultContracts.RequestPermission()
     ) { granted ->
         val requested = requestedPhonePermission ?: return@registerForActivityResult
         requestedPhonePermission = null
@@ -111,7 +114,7 @@ class MainActivity : AppCompatActivity() {
                     AudioAttributes.Builder()
                         .setUsage(AudioAttributes.USAGE_ASSISTANCE_NAVIGATION_GUIDANCE)
                         .setContentType(AudioAttributes.CONTENT_TYPE_SPEECH)
-                        .build(),
+                        .build()
                 )
             }
         }
@@ -134,7 +137,7 @@ class MainActivity : AppCompatActivity() {
                                             Manifest.permission.CAMERA
                                         } else {
                                             Manifest.permission.RECORD_AUDIO
-                                        },
+                                        }
                                     )
                                 } catch (error: IllegalStateException) {
                                     requestedPhonePermission = null
@@ -159,7 +162,9 @@ class MainActivity : AppCompatActivity() {
                     viewModel.speechStopRequests.collect {
                         speechRevision++
                         agentSpeech.stop()
-                        try { speech.stop() } catch (_: Exception) { }
+                        try {
+                            speech.stop()
+                        } catch (_: Exception) { }
                         viewModel.onSpeechDone()
                     }
                 }
@@ -170,7 +175,7 @@ class MainActivity : AppCompatActivity() {
                 viewModel = viewModel,
                 onRegisterWithMeta = { viewModel.registerWithMeta(this) },
                 onConnectDisplay = viewModel::connectDisplay,
-                onDisconnectDisplay = viewModel::disconnectDisplay,
+                onDisconnectDisplay = viewModel::disconnectDisplay
             )
         }
     }
@@ -200,8 +205,8 @@ class MainActivity : AppCompatActivity() {
             },
             onFailure = { error, _ ->
                 Log.e("RealityOS", "DAT initialization failed: ${error.description}")
-                viewModel.onWearablesInitializationFailure(error.description)
-            },
+                viewModel.onWearablesInitializationFailure(localizedText(R.string.status_display_failed))
+            }
         )
     }
 

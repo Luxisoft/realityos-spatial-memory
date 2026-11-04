@@ -3,6 +3,7 @@
 (function () {
   const origin = String(pm.variables.get("base_url") || "").replace(/\/$/, "");
   const email = pm.variables.get("email");
+  const language = pm.variables.get("language") || "en";
   const local = pm.variables.get("auth_mode") === "local-select";
   const identity = JSON.stringify([origin, local ? pm.variables.get("user_id") : email]);
   const sameAccount = pm.variables.get("session_identity") === identity;
@@ -39,7 +40,7 @@
     pm.sendRequest({
       url: origin + path,
       method: "POST",
-      header: { "Content-Type": "application/json" },
+      header: { "Content-Type": "application/json", "Accept-Language": language },
       body: { mode: "raw", raw: JSON.stringify(body) }
     }, done);
   }
@@ -66,7 +67,7 @@
   pm.sendRequest({
     url: origin + "/v1/auth/me",
     method: "GET",
-    header: { Authorization: "Bearer " + access }
+    header: { Authorization: "Bearer " + access, "Accept-Language": language }
   }, (error, response) => {
     if (error || !response) fail("Session validation could not reach the configured API.");
     if (response.code === 401) return renew();

@@ -273,7 +273,7 @@ class RealityViewModel(application: Application) : AndroidViewModel(application)
                 mutableUiState.update {
                     it.copy(
                         virtualProfileLoading = false,
-                        virtualProfileError = error.message ?: copy(R.string.status_load_live_failed),
+                        virtualProfileError = localizedFailure(error, R.string.status_load_live_failed),
                         message = copy(R.string.status_enter_custom_or_retry)
                     )
                 }
@@ -332,7 +332,7 @@ class RealityViewModel(application: Application) : AndroidViewModel(application)
                     inputRoute == InputRoute.PHONE &&
                     mutableUiState.value.wearable.cameraActive
                 ) {
-                    onPhonePreviewFailure(generation, error.message ?: copy(R.string.status_camera_not_ready))
+                    onPhonePreviewFailure(generation, localizedFailure(error, R.string.status_camera_not_ready))
                 }
             }
         }
@@ -380,7 +380,7 @@ class RealityViewModel(application: Application) : AndroidViewModel(application)
         var failure: String? = null
         activeCamera.stream.capturePhoto().fold(
             onSuccess = { photo = it },
-            onFailure = { error, _ -> failure = error.description }
+            onFailure = { error, _ -> failure = copy(R.string.status_photo_capture_failed) }
         )
         return photo?.asJpegBytes() ?: throw IllegalStateException(failure ?: localizedText(R.string.ui_could_not_capture_the_photo))
     }
@@ -525,7 +525,7 @@ class RealityViewModel(application: Application) : AndroidViewModel(application)
                     }
                 }
             },
-            onFailure = { error, _ -> showError(error.description) }
+            onFailure = { error, _ -> showError(copy(R.string.status_display_failed)) }
         )
     }
 
@@ -708,7 +708,7 @@ class RealityViewModel(application: Application) : AndroidViewModel(application)
             imageUrl?.let { image(uri = it, sizePreset = ImageSize.FILL) }
             text(answer.message.take(180), style = TextStyle.BODY)
             if (answer.found) {
-                text(copy(R.string.meta_evidence_details, answer.seenAt?.take(10).orEmpty(), evidencePercent(answer.visualConfidence, language).orEmpty()), style = TextStyle.META)
+                text(copy(R.string.meta_evidence_details, answer.seenAt?.let { evidenceDate(it, language) }.orEmpty(), evidencePercent(answer.visualConfidence, language).orEmpty()), style = TextStyle.META)
             }
             if (answer.simulated) text(copy(R.string.meta_simulated), style = TextStyle.META)
             button(copy(R.string.display_hear_again), style = ButtonStyle.SECONDARY, iconName = IconName.SPEAKER_WITH_TWO_ARCS, onClick = { speak(answer.ttsText, language) })
@@ -772,7 +772,7 @@ class RealityViewModel(application: Application) : AndroidViewModel(application)
                     // A transport error cannot be rendered through the failed
                     // display; retain it on the phone host instead of replacing
                     // a newer screen with an obsolete callback map.
-                    if (revision == renderRevision) showStatus(error.description)
+                    if (revision == renderRevision) showStatus(copy(R.string.status_display_failed))
                 }
             }
         }

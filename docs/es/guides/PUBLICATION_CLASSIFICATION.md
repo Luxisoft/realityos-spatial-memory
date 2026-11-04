@@ -4,19 +4,19 @@
 
 ## Catálogo de cada grupo
 
-El dueño del grupo añade categorías y tags al crearlo, y puede renombrarlos, archivarlos o restaurarlos en Administrar grupo. Los demás miembros pueden consultarlos y seleccionarlos, sin modificar el catálogo. Los valores tienen identificadores propios de su grupo; un nombre coincidente en otro grupo no comparte permisos ni identidad.
+El dueño del grupo añade categorías y etiquetas al crearlo, y puede renombrarlas, archivarlas o restaurarlas en Administrar grupo. Los demás miembros pueden consultarlas y seleccionarlas, sin modificar el catálogo. Los valores tienen identificadores propios de su grupo; un nombre coincidente en otro grupo no comparte permisos ni identidad.
 
-Publicar exige una categoría y entre uno y veinte tags activos del grupo seleccionado. La nota escrita o transcrita sigue siendo opcional. Si cambia el grupo, hay que volver a elegir la clasificación. Un catálogo vacío bloquea la publicación y señala que debe completarlo el dueño.
+Publicar exige una categoría y entre una y veinte etiquetas activas del grupo seleccionado. La nota escrita o transcrita sigue siendo opcional. Si cambia el grupo, hay que volver a elegir la clasificación. Un catálogo vacío bloquea la publicación y señala que debe completarlo el dueño.
 
-Las categorías y tags de los dos grupos locales tienen nombres redactados y guardados en español e inglés. Categorías, tags, miniaturas, filtros y visor leen la versión del idioma seleccionado sin traducir al abrir la pantalla. Los identificadores y asociaciones permanecen iguales. Las publicaciones, los expedientes y los textos descriptivos de los perfiles preparados también conservan ambas versiones en la base de datos.
+Las categorías y etiquetas de los dos grupos locales tienen nombres redactados y guardados en español e inglés. Categorías, etiquetas, miniaturas, filtros y visor leen la versión del idioma seleccionado sin traducir al abrir la pantalla. Los identificadores y asociaciones permanecen iguales. Las publicaciones, los expedientes y los textos descriptivos de los perfiles preparados también conservan ambas versiones en la base de datos.
 
 La copia revisada y las asociaciones de clasificación están en el SQL versionado de `simulator/database/` y se incorporan una sola vez, sin recrear filas borradas ni sustituir ediciones del propietario. No hay un nuevo servicio, modelo, cola ni traductor automático. Los nombres propios, identificadores y fechas no se traducen. Una edición posterior conserva el texto del dueño y deja de mostrar una versión antigua que ya no corresponde. Archivar conserva las etiquetas de publicaciones anteriores y las opciones históricas del filtro, pero impide nuevas selecciones. La clasificación manual no se convierte en evidencia visual ni sustituye al análisis de objetos.
 
 ## Miniaturas y búsqueda
 
-La miniatura muestra la categoría y hasta dos tags, con `+N` para los restantes. El visor muestra la clasificación completa. Los videos llevan un icono de reproducción. La antigua etiqueta de procedencia «MEDIA/Archivo» desaparece; la procedencia se conserva internamente.
+La miniatura muestra la categoría y hasta dos etiquetas, con `+N` para las restantes. El visor muestra la clasificación completa. Los videos llevan un icono de reproducción. La antigua etiqueta de procedencia «MEDIA/Archivo» desaparece; la procedencia se conserva internamente.
 
-El botón de filtro contiene solo el icono y una descripción para accesibilidad. Su desplegable permite elegir categorías, tags y autores; fechas Desde/Hasta; y texto en descripción o nota. Cada cambio válido aplica el filtro inmediatamente y reinicia la paginación, manteniendo abierto el menú. Limpiar es un botón de texto en la fila del título y elimina los criterios. No hay botón Aplicar. Cambiar de grupo limpia los filtros; abrir y cerrar el visor los conserva.
+El botón de filtro contiene solo el icono y una descripción para accesibilidad. Su desplegable permite elegir categorías, etiquetas y autores; fechas Desde/Hasta; y texto en descripción o nota. Cada cambio válido aplica el filtro inmediatamente y reinicia la paginación, manteniendo abierto el menú. Limpiar es un botón de texto en la fila del título y elimina los criterios. No hay botón Aplicar. Cambiar de grupo limpia los filtros; abrir y cerrar el visor los conserva.
 
 Los distintos criterios se combinan con AND; varias selecciones dentro de un criterio se combinan con OR. Las fechas abarcan días completos en la zona horaria del teléfono. Las opciones y los resultados proceden de todo el contenido autorizado, no solo de las miniaturas ya descargadas.
 
@@ -55,21 +55,21 @@ Las correcciones posteriores usan las APIs autenticadas de catálogo y clasifica
 
 ## Clasificación preparada de Police y Meta
 
-La revisión [008-shared-publication-classification.sql](../../../simulator/database/008-shared-publication-classification.sql) clasifica las publicaciones por su contenido y por los estados explícitos de los expedientes. Cada grupo tiene sus propios términos bilingües.
+La revisión [010-use-case-classification.sql](../../../simulator/database/010-use-case-classification.sql) reemplaza la clasificación anterior por temas de la escena con las categorías y etiquetas por caso de uso aprobadas por el propietario. Cada grupo tiene sus propios términos bilingües.
 
 | Grupo | Categoría | Publicaciones | Etiquetas complementarias |
 | --- | --- | --- | --- |
-| Police | Órdenes de captura vigentes | 5 | Retrato; Procesos judiciales activos en 2, Sin procesos activos en 3. |
-| Police | Personas desaparecidas | 4 | Retrato; Orden de búsqueda vigente; Sin órdenes de captura; Sin procesos activos. |
-| Police | Sin órdenes ni antecedentes | 7 | Retrato; Sin órdenes de captura; Sin procesos activos. |
-| Police | Videos de espacios públicos | 3 | Parque y Caminata; Ciclismo, Día nublado o Primavera según la descripción del clip. |
-| Meta Social Media | Presentaciones | 3 | Comunidad; Elena: Fotografía y Proyectos; Mateo: Experiencias; Sarah: Fotografía e Historias. |
-| Meta Social Media | Videos de espacios públicos | 3 | Caminata; Parque y Ciclismo, Acera urbana, o Parque e Invierno según el clip. |
+| Police | Órdenes de captura vigentes | 5 | Orden de captura vigente; Sin antecedentes registrados; Proceso judicial activo en 2, Sin procesos activos en 3. |
+| Police | Personas desaparecidas | 4 | Orden de búsqueda vigente; Sin órdenes de captura; Sin procesos activos; Sin antecedentes registrados. |
+| Police | Sin órdenes ni antecedentes | 7 | Sin órdenes de captura; Sin procesos activos; Sin antecedentes registrados. |
+| Police | Material audiovisual | 3 | Video de observación. |
+| Meta Social Media | Presentaciones | 3 | Presentación personal; Comunidad. |
+| Meta Social Media | Contenido social | 3 | Video; Vida cotidiana. |
 
-Los 16 expedientes no tienen condenas ni antecedentes penales registrados. Una orden de captura no implica condena. La categoría «Sin órdenes ni antecedentes» reúne los siete expedientes que además no tienen orden de captura, búsqueda ni proceso activo. Los cuatro expedientes de personas desaparecidas tienen órdenes de búsqueda, separadas de las órdenes de captura. El filtro Sin órdenes de captura devuelve 11 retratos; Sin procesos activos, 14; Procesos judiciales activos, 2; Orden de búsqueda vigente, 4.
+Los 16 expedientes no tienen condenas ni antecedentes penales registrados. Una orden de captura no implica condena. La categoría «Sin órdenes ni antecedentes» reúne los siete expedientes que además no tienen orden de captura, búsqueda ni proceso activo. Los cuatro expedientes de personas desaparecidas tienen órdenes de búsqueda, separadas de las órdenes de captura. El filtro Sin órdenes de captura devuelve 11 retratos; Sin procesos activos, 14; Proceso judicial activo, 2; Orden de búsqueda vigente, 4.
 
-Las etiquetas de video describen exclusivamente el texto existente de cada clip. No identifican personas ni afirman incidentes, delitos o resultados de análisis. Los 13 perfiles privados de Meta y sus referencias siguen fuera de las publicaciones.
+Las etiquetas de video describen su función dentro del caso de uso. No identifican personas ni les atribuyen antecedentes, órdenes, procesos, incidentes o resultados de análisis. Los temas de paisaje, como estaciones, clima, parques, caminata o ciclismo, dejan de ser etiquetas de la clasificación preparada. Los 13 perfiles privados de Meta y sus referencias siguen fuera de las publicaciones.
 
-La revisión se instala una vez mediante el cargador SQL compartido y su recibo `shared-publication-classification-v1`. Solo corrige publicaciones preparadas cuya categoría, etiquetas, texto y hechos pertinentes siguen intactos, con autor activo y membresía vigente. Conserva clasificaciones manuales, vocabularios renombrados o archivados, publicaciones ocultas, borrados, grupos retirados y estados desconocidos. No repone filas ni modifica los medios. Los términos equivalentes ya creados por el dueño se reutilizan sin sobrescribirlos.
+La revisión se instala una vez mediante el cargador SQL compartido y su recibo `use-case-publication-classification-v1`, después de la revisión 008. Solo corrige publicaciones preparadas cuya categoría, etiquetas, texto y hechos pertinentes siguen intactos, con autor activo y membresía vigente. Conserva clasificaciones manuales, vocabularios renombrados o archivados, publicaciones ocultas, borrados, grupos retirados y estados desconocidos. No repone filas ni modifica los medios. Los términos equivalentes ya creados por el dueño se reutilizan sin sobrescribirlos.
 
-Una instalación nueva queda con 26 términos activos y 10 términos anteriores archivados. En instalaciones editadas, un término anterior continúa activo si todavía clasifica otra publicación o figura en una carga pendiente; tampoco se archiva un término renombrado por el dueño. Un reinicio no vuelve a aplicar la revisión.
+Una instalación nueva queda con 17 términos activos: cuatro categorías y siete etiquetas de Police, dos categorías y cuatro etiquetas de Meta. Se retiran las asociaciones preparadas anteriores antes de archivar los términos sin uso, para que dejen de aparecer en los filtros de publicaciones. En instalaciones editadas, un término anterior continúa activo si todavía clasifica otra publicación o figura en una carga pendiente; tampoco se archiva un término renombrado por el dueño. Un reinicio no vuelve a aplicar la revisión.

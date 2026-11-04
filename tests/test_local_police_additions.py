@@ -83,7 +83,7 @@ def test_six_portraits_create_correct_scoped_records_and_publications(evaluation
         assert db.query(MediaAsset).count() == 28
         assert db.query(Record).count() == 16
         assert db.query(RecordMedia).count() == 16
-        assert db.query(PublicationTerm).count() == 36
+        assert db.query(PublicationTerm).count() == 44
         assert db.query(User).count() == 6
         assert db.query(WorkspaceMember).count() == 6
         assert db.query(Publication).filter_by(workspace_id=POLICE).count() == 19

@@ -23,4 +23,4 @@ flowchart LR
     N3["Evidencia"] --> N4["Usuario"]
 ```
 
-[API ](../api/API.md) · [DEMO ](../guides/DEMO.md) · [HACKATHON ](HACKATHON.md)
+[API](../api/API.md) · [Evaluación local](../guides/DEMO.md) · [Entrega del hackathon](HACKATHON.md)

@@ -55,21 +55,21 @@ Subsequent corrections use the authenticated catalog and classification APIs abo
 
 ## Prepared Police and Meta classification
 
-Revision [008-shared-publication-classification.sql](../../../simulator/database/008-shared-publication-classification.sql) classifies publications using their content and explicit case states. Each group has its own bilingual terms.
+Revision [010-use-case-classification.sql](../../../simulator/database/010-use-case-classification.sql) replaces the former scene-topic classification with the use-case categories and tags approved by the owner. Each group has its own bilingual terms.
 
 | Group | Category | Publications | Supporting tags |
 | --- | --- | --- | --- |
-| Police | Active arrest warrants | 5 | Portrait; Active judicial proceedings for 2, No active proceedings for 3. |
-| Police | Missing persons | 4 | Portrait; Active search order; No active arrest warrants; No active proceedings. |
-| Police | No warrants or criminal history | 7 | Portrait; No active arrest warrants; No active proceedings. |
-| Police | Public space videos | 3 | Park and Walking; Cycling, Overcast day or Spring according to the clip description. |
-| Meta Social Media | Introductions | 3 | Community; Elena: Photography and Projects; Mateo: Experiences; Sarah: Photography and Stories. |
-| Meta Social Media | Public space videos | 3 | Walking; Park and Cycling, City sidewalk, or Park and Winter according to the clip. |
+| Police | Active arrest warrants | 5 | Active arrest warrant; No recorded criminal history; Active judicial proceedings for 2, No active proceedings for 3. |
+| Police | Missing persons | 4 | Active search order; No active arrest warrants; No active proceedings; No recorded criminal history. |
+| Police | No warrants or criminal history | 7 | No active arrest warrants; No active proceedings; No recorded criminal history. |
+| Police | Audiovisual material | 3 | Observation video. |
+| Meta Social Media | Introductions | 3 | Personal introduction; Community. |
+| Meta Social Media | Social content | 3 | Video; Everyday life. |
 
 All 16 cases have no recorded convictions or criminal history. An arrest warrant does not imply a conviction. “No warrants or criminal history” groups the seven cases that also have no arrest warrant, search order or active proceedings. The four missing-person cases have search orders, separately from arrest warrants. No active arrest warrants returns 11 portraits; No active proceedings, 14; Active judicial proceedings, 2; Active search order, 4.
 
-Video tags describe only the existing clip text. They do not identify people or claim incidents, crimes or analysis results. Meta's 13 private profiles and their references remain outside publications.
+Video tags describe their role in the use case. They do not identify people or assign criminal history, warrants, proceedings, incidents or analysis results. Scene topics such as seasons, weather, parks, walking and cycling are no longer prepared classification tags. Meta's 13 private profiles and their references remain outside publications.
 
-The shared SQL loader installs the revision once using its `shared-publication-classification-v1` receipt. It only changes prepared publications whose category, tags, text and relevant recorded facts remain intact, with an active author and current group membership. It preserves manual classification, renamed or archived vocabulary, hidden publications, deletions, removed groups and unknown states. It does not restore rows or change media. Equivalent terms already created by the owner are reused without overwriting them.
+The shared SQL loader installs the revision once using its `use-case-publication-classification-v1` receipt, after revision 008. It only changes prepared publications whose category, tags, text and relevant recorded facts remain intact, with an active author and current group membership. It preserves manual classification, renamed or archived vocabulary, hidden publications, deletions, removed groups and unknown states. It does not restore rows or change media. Equivalent terms already created by the owner are reused without overwriting them.
 
-A fresh installation has 26 active terms and 10 archived former terms. On edited installations, a former term stays active if another publication or pending upload still references it; owner-renamed terms are also retained. Restart does not reapply the revision.
+A fresh installation has 17 active terms: four categories and seven tags for Police, two categories and four tags for Meta. Superseded prepared associations are removed before unused terms are archived, so they no longer appear in publication filters. On edited installations, a former term stays active if another publication or pending upload still references it; owner-renamed terms are also retained. Restart does not reapply the revision.

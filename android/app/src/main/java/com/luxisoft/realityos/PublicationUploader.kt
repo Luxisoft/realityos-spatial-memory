@@ -19,13 +19,13 @@ internal fun publicationUploadFailure(path: String, status: Int, body: String): 
         status == 403 -> R.string.publication_group_permission
         status == 413 -> R.string.biometric_photo_too_large
         status == 415 -> R.string.publication_media_format
-        status == 422 && detail in setOf("Join or create a work group before publishing.", "Choose a work group.") -> R.string.publish_needs_group
-        status == 422 && detail == "Invalid image." -> R.string.ui_could_not_read_the_image
+        status == 422 && detail in setOf("Join or create a work group before publishing.", "Choose a work group.", "Únete a un grupo de trabajo o crea uno antes de publicar.", "Elige un grupo de trabajo.") -> R.string.publish_needs_group
+        status == 422 && detail in setOf("Invalid image.", "Imagen no válida.") -> R.string.ui_could_not_read_the_image
         status == 422 && detail is org.json.JSONArray && (0 until detail.length()).any { index ->
             val location = detail.optJSONObject(index)?.optJSONArray("loc")
             location?.optString(location.length() - 1) in setOf("workspace_id")
         } -> R.string.publish_needs_group
-        status == 422 && (detail.toString().contains("category") || detail.toString().contains("tag")) -> R.string.catalog_required
+        status == 422 && (detail.toString().contains("category") || detail.toString().contains("tag") || detail.toString().contains("categoría") || detail.toString().contains("etiqueta")) -> R.string.catalog_required
         status == 422 -> R.string.publication_upload_validation
         else -> return null
     }
@@ -49,7 +49,7 @@ internal class PublicationUploader(
             id = null
             saveId(null)
             onBusy(false)
-            error = value.optText("error").orEmpty()
+            error = if (value.optText("error") == null) "" else localizedText(R.string.ui_processing_failed_you_can_retry)
         }
         if (value.optString("status") == "published") {
             id = null
@@ -77,7 +77,7 @@ internal class PublicationUploader(
                 update(value)
             } catch (e: Exception) {
                 if (e is CancellationException) throw e
-                error = e.message.orEmpty()
+                error = localizedFailure(e)
                 if (error.contains("review_busy")) {
                     retryAction = "confirm"
                     error = localizedText(R.string.ui_another_image_is_being_processed_try_confirming_again_shortly)
@@ -99,7 +99,7 @@ internal class PublicationUploader(
                 if (value.optString("status") != "pending") break
             } catch (e: Exception) {
                 if (e is CancellationException) throw e
-                error = e.message.orEmpty()
+                error = localizedFailure(e)
                 if (error.contains("review_busy")) {
                     retryAction = "confirm"
                     error = localizedText(R.string.ui_another_image_is_being_processed_try_confirming_again_shortly)
@@ -133,7 +133,7 @@ internal class PublicationUploader(
                 }
             } catch (e: Exception) {
                 if (e is CancellationException) throw e
-                error = e.message.orEmpty()
+                error = localizedFailure(e)
                 if (error.contains("review_busy")) {
                     retryAction = "confirm"
                     error = localizedText(R.string.ui_another_image_is_being_processed_try_confirming_again_shortly)
@@ -191,7 +191,7 @@ internal fun PublicationUploadDialog(state: PublicationUploader) {
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 when {
-                    failed -> NoticeEffect(state.error.ifBlank { value?.optString("error").orEmpty() }, {})
+                    failed -> NoticeEffect(state.error.ifBlank { localizedText(R.string.ui_processing_failed_you_can_retry) }, {})
                     duplicate -> {
                         Text(localizedText(R.string.ui_a_publication_with_this_photo_already_exists_in_the_same_profile_or_group_would_you_l))
                         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {

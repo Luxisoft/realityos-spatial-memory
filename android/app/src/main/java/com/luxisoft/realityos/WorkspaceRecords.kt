@@ -143,7 +143,7 @@ private fun WorkspaceRecordsContent(workspaceId: String, canWrite: Boolean, onBa
             val item = details.legacyDocument()
             Text(details.record.title.display(), style = MaterialTheme.typography.titleLarge)
             Text(item.getString("external_id") + " · v" + item.getInt("version"))
-            Text(item.getString("occurred_at"), style = MaterialTheme.typography.bodySmall)
+            Text(presentationDateTime(item.getString("occurred_at")), style = MaterialTheme.typography.bodySmall)
             if (item.optString("kind") == "person") {
                 if (item.optBoolean("biometric_authorized")) {
                     Text(stringResource(R.string.records_face_authorized), style = MaterialTheme.typography.labelMedium)
@@ -157,7 +157,7 @@ private fun WorkspaceRecordsContent(workspaceId: String, canWrite: Boolean, onBa
             }
             Text(stringResource(R.string.records_timeline), style = MaterialTheme.typography.titleMedium)
             details.notes.forEach { entry ->
-                Text(entry.occurredAt, style = MaterialTheme.typography.labelSmall)
+                Text(presentationDateTime(entry.occurredAt), style = MaterialTheme.typography.labelSmall)
                 Text(entry.text)
             }
             if (canWrite) {
