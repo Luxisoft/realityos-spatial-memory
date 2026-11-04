@@ -15,6 +15,8 @@
 
 Android app for saving photos, videos and records in groups and searching evidence with AI. The local server runs PostgreSQL, Redis, API and worker in Docker.
 
+**[Download APK for Android 12+](https://github.com/Luxisoft/realityos-spatial-memory/releases/download/local-evaluation/app-debug.apk)** · [Install and open on your phone](#android) · [Published build](https://github.com/Luxisoft/realityos-spatial-memory/releases/tag/local-evaluation)
+
 <p align="center">
   <a href="#linux-server"><img src="docs/assets/readme/linux-server-en.svg" alt="Deploy on a Linux server — private evaluation steps" height="40"></a>
 </p>
@@ -22,7 +24,7 @@ Android app for saving photos, videos and records in groups and searching eviden
 ## Requirements
 
 - Windows x64 with [Docker Desktop](https://docs.docker.com/desktop/setup/install/windows-install/) and WSL2, or Linux x64 with [Docker Engine and Compose](https://docs.docker.com/engine/install/). Allocate **4 CPU cores, 8 GiB RAM and 25 GiB free storage** to Docker.
-- Android 12+, USB cable and USB debugging; [Platform Tools (`adb`)](https://developer.android.com/tools/releases/platform-tools) on your `Path`.
+- Phone running Android 12+, USB cable and USB debugging. Download Platform Tools (`adb`): [Windows ZIP](https://dl.google.com/android/repository/platform-tools-latest-windows.zip) · [Linux ZIP](https://dl.google.com/android/repository/platform-tools-latest-linux.zip). Extract the ZIP, add its `platform-tools` folder to `Path` and open a new terminal.
 - Internet and your own Meta `MODEL_API_KEY` with access to Muse Spark, SAM and Muse Voice Transcribe.
 
 <a id="evaluate"></a>
@@ -68,12 +70,13 @@ session permissions and request my involvement when necessary.
    Use the existing initialization for three groups and nine accounts. Preserve
    edits and deletions on restart, along with permissions and consent.
 
-5. Prepare JDK 21 LTS, Android SDK 36 and Platform Tools. On Windows, check user
-   and system JAVA_HOME: the user value takes precedence. Build from android/
-   with the Gradle Wrapper for your OS and these arguments:
-   -PlocalDevelopment=true -PrealityosApiBaseUrl=http://localhost:8080/v1 :app:assembleDebug
-   Check that REALITYOS_API_BASE_URL does not override this local URL.
-   Keep the APK at android/app/build/outputs/apk/debug/app-debug.apk.
+5. Prepare Platform Tools (adb) and download the APK built on the server:
+   https://github.com/Luxisoft/realityos-spatial-memory/releases/download/local-evaluation/app-debug.apk
+   Save it to android/app/build/outputs/apk/debug/app-debug.apk; create the folder
+   if needed. Check the commit and SHA-256 in the local-evaluation release.
+   This path does not require Java, Android SDK 36 or Android Studio locally.
+   If Android or API contract changes are newer than the published APK, request
+   a new server build or follow the README's build section.
 
 6. Check adb devices. On the selected Android 12+ phone or emulator, run
    adb reverse tcp:8080 tcp:8080 and install the APK with adb install -r. If
@@ -81,6 +84,8 @@ session permissions and request my involvement when necessary.
    serial. If connection or device authorization is missing, explain the pending
    step. Verify the local account selector and installed offline ES/EN voices
    when device access is available.
+   Open the app with:
+   adb shell am start -n com.luxisoft.realityos.local/com.luxisoft.realityos.MainActivity
 
 7. Run Test-RealityOS.ps1 with PowerShell or bash scripts/local/test.sh.
    Check http://localhost:8080/health/ready, /docs, /v1/openapi.json and
@@ -123,11 +128,27 @@ On Windows, append `-NoCache` to the start command to rebuild the backend depend
 
 <a id="android"></a>
 
-## 2. Build, install and update Android
+## 2. Download, install and open Android
 
-During development, **build the APK from your current checkout**. A previously published APK contains only the code from that build. The Docker launcher starts the backend; it does not compile Android. You can generate a Debug APK while development continues.
+**[Download app-debug.apk](https://github.com/Luxisoft/realityos-spatial-memory/releases/download/local-evaluation/app-debug.apk)**, built on the server for Android 12+ and `http://localhost:8080/v1`. Installation needs `adb`; **your computer does not need Android Studio, a JDK or SDK 36**. The commit and SHA-256 are listed in the [release](https://github.com/Luxisoft/realityos-spatial-memory/releases/tag/local-evaluation).
 
-Prepare [JDK 21, Android SDK 36 and Platform Tools](#java-windows), then run from the repository root:
+Start the backend from step 1, connect your phone by USB and accept its debugging prompt. Open a terminal **in the folder where you downloaded `app-debug.apk`** and run:
+
+```powershell
+adb devices
+adb reverse tcp:8080 tcp:8080
+adb install -r app-debug.apk
+adb shell am start -n com.luxisoft.realityos.local/com.luxisoft.realityos.MainActivity
+```
+
+The phone must appear as `device`; if it says `unauthorized`, accept the prompt on its screen. With multiple devices, add `-s SERIAL` after `adb` in each command. To open the app again, use the last command or tap its icon; repeat `adb reverse` after reconnecting USB. The same APK works through the [private Linux server tunnel](#linux-server).
+
+<a id="android-build"></a>
+
+<details>
+<summary><strong>Optional: build from current source</strong></summary>
+
+If you change Android, generate a new APK on the server or on a computer with [JDK 21 and Android SDK 36](#java-windows). A downloaded APK only contains the code from its build; Docker prepares the backend. From the repository root:
 
 **Windows — PowerShell**
 
@@ -143,15 +164,15 @@ if ($LASTEXITCODE -ne 0) { throw "Android build failed. Do not install an older 
 REALITYOS_API_BASE_URL=http://localhost:8080/v1 ./android/gradlew -p android -PlocalDevelopment=true :app:assembleDebug
 ```
 
-Wait for **BUILD SUCCESSFUL**. Each successful build replaces `android/app/build/outputs/apk/debug/app-debug.apk`; use this file for installation and sharing. Connect the phone by USB, accept its debugging prompt, then run from the repository root:
+Wait for **BUILD SUCCESSFUL**. This replaces `android/app/build/outputs/apk/debug/app-debug.apk`. Install and open it from the repository root:
 
 ```bash
-adb devices
 adb reverse tcp:8080 tcp:8080
 adb install -r android/app/build/outputs/apk/debug/app-debug.apk
+adb shell am start -n com.luxisoft.realityos.local/com.luxisoft.realityos.MainActivity
 ```
 
-If multiple devices are connected, use `adb -s SERIAL` for the selected device. This builds the local app `com.luxisoft.realityos.local`, also used through the [private Linux server tunnel](#linux-server).
+</details>
 
 <a id="android-updates"></a>
 
@@ -159,14 +180,14 @@ If multiple devices are connected, use `adb -s SERIAL` for the selected device. 
 
 | What changed | What to run |
 | --- | --- |
-| Android code or resources | Repeat the build and `adb install -r` above. |
+| Android code or resources | Publish a new server build, download it and run `adb install -r app-debug.apk`; you can also [build it yourself](#android-build). |
 | Backend code or server configuration | Run `Start-RealityOS.ps1` on Windows or `bash scripts/local/start.sh` on Linux to rebuild/start the local services. Existing data is preserved. |
 | The API contract used by Android | Update both the backend and the APK. |
 | Documentation only | No app or container rebuild is needed. |
 
-`adb install -r` replaces the installed app while retaining its data. Keep the same application ID and signing key; an APK signed by another computer or CI may require a different installation path. Do not uninstall automatically after a signature mismatch. See [ADB installation](https://developer.android.com/tools/adb#move) and [Android signing](https://developer.android.com/studio/publish/app-signing).
+`adb install -r` retains data with the same application ID and signing key. Builds published from this server keep that signature; another computer or CI may use a different one. Do not uninstall automatically after a mismatch. See [ADB installation](https://developer.android.com/tools/adb#move).
 
-To share a tested snapshot without building on the recipient's computer, use this APK or the `realityos-android-debug-apk` artifact from a successful [CI run](https://github.com/Luxisoft/realityos-spatial-memory/actions/workflows/ci.yml) for the intended commit. CI retains that artifact for 14 days; it does not automatically replace a GitHub Release asset or update an installed phone app. The Debug version name includes the build timestamp so you can identify the installed build.
+The download link stays the same when a new APK is published. GitHub Releases and the phone must be updated explicitly: changes to `main` do not update either automatically. The Debug version name includes the build timestamp.
 
 <a id="cases"></a>
 
@@ -224,9 +245,9 @@ API: [documentation](http://localhost:8080/docs) · [health](http://localhost:80
 
 <a id="java-windows"></a>
 
-## 4. Prepare Java and the Android SDK
+## 4. Java and the Android SDK — for building only
 
-Use **JDK 21 LTS** and **Android SDK 36**. On Windows:
+To [build from source](#android-build), use **JDK 21 LTS** and **Android SDK 36**. Skip this section when installing the published APK. On Windows:
 
 1. Install [Temurin 21 x64](https://adoptium.net/temurin/releases/?version=21&os=windows&arch=x64&package=jdk), choosing the **JDK** package and MSI installer.
 2. In **Environment Variables**, set `JAVA_HOME` to the installed JDK directory, without quotes or `\bin`. **The user variable takes precedence over the system variable**: if both exist, use the same valid path. Also correct `JDK_HOME` if it points to an old installation.
@@ -244,7 +265,7 @@ Expect `True` and version **21**. If the editor retains an old path, remove it f
 
 Install Android SDK Platform 36, Build-Tools 36.0.0 and Platform Tools through Android Studio's SDK Manager. Set `ANDROID_HOME` to your SDK directory, or set `sdk.dir` in the ignored `android/local.properties`. Add the SDK's `platform-tools` directory to `Path` so `adb devices` works.
 
-Once these tools are ready, follow [Build, install and update Android](#android). Gradle uses the existing Wrapper; no separate Gradle installation is needed.
+Once these tools are ready, follow [Build from source](#android-build). Gradle uses the existing Wrapper; no separate Gradle installation is needed.
 
 <a id="linux-server"></a>
 
