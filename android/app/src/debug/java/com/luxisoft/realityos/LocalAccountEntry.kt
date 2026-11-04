@@ -6,8 +6,11 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowForward
+import androidx.compose.material.icons.outlined.ExpandLess
+import androidx.compose.material.icons.outlined.ExpandMore
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -111,18 +114,32 @@ internal fun LocalAccountChooser(accounts: List<JSONObject>, busy: Boolean, fail
                         OutlinedButton(onClick = onRetry, enabled = !busy) { Text(stringResource(R.string.local_account_retry)) }
                     }
                     accounts.groupBy { it.getString("workspace_name") }.forEach { (group, members) ->
-                        Text(group, style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(top = 12.dp))
-                        members.forEach { account ->
+                        key(group) {
+                            var expanded by rememberSaveable { mutableStateOf(false) }
                             OutlinedCard(
-                                enabled = !busy,
-                                modifier = Modifier.fillMaxWidth().testTag("local-account-${account.getString("username")}"),
-                                shape = MaterialTheme.shapes.medium,
-                                onClick = { onSelect(account) }
+                                onClick = { expanded = !expanded },
+                                modifier = Modifier.fillMaxWidth().testTag("local-group-$group"),
+                                shape = MaterialTheme.shapes.medium
                             ) {
                                 Row(Modifier.fillMaxWidth().padding(16.dp).heightIn(min = 32.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                                    LocalAccountAvatar(account)
-                                    Text(account.getString("display_name"), style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f))
-                                    Icon(Icons.AutoMirrored.Outlined.ArrowForward, null, Modifier.size(20.dp))
+                                    Text(group, style = MaterialTheme.typography.titleSmall, modifier = Modifier.weight(1f))
+                                    Icon(if (expanded) Icons.Outlined.ExpandLess else Icons.Outlined.ExpandMore, stringResource(if (expanded) R.string.ui_hide_information else R.string.ui_show_information))
+                                }
+                            }
+                            if (expanded) {
+                                members.forEach { account ->
+                                    OutlinedCard(
+                                        enabled = !busy,
+                                        modifier = Modifier.fillMaxWidth().testTag("local-account-${account.getString("username")}"),
+                                        shape = MaterialTheme.shapes.medium,
+                                        onClick = { onSelect(account) }
+                                    ) {
+                                        Row(Modifier.fillMaxWidth().padding(16.dp).heightIn(min = 32.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                                            LocalAccountAvatar(account)
+                                            Text(account.getString("display_name"), style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f))
+                                            Icon(Icons.AutoMirrored.Outlined.ArrowForward, null, Modifier.size(20.dp))
+                                        }
+                                    }
                                 }
                             }
                         }

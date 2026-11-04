@@ -2,6 +2,7 @@
 
 import io
 import uuid
+from pathlib import Path
 
 import pytest
 from app.db import Base
@@ -17,6 +18,100 @@ from sqlalchemy import delete, select
 from test_local_access import local_settings
 
 
+def test_meta_social_starts_empty_with_original_accounts(evaluation):
+    group = catalog()["groups"][1]
+    assert group["name"] == "Meta Social Media"
+    workspace_id = uuid.UUID(group["id"])
+    with evaluation.app.state.database.session_factory() as db:
+        assert db.query(Publication).filter_by(workspace_id=workspace_id).count() == 0
+        assert db.query(Record).filter_by(workspace_id=workspace_id).count() == 0
+        assert db.query(MediaAsset).filter_by(workspace_id=workspace_id).count() == 3
+        assert {
+            db.get(User, uuid.UUID(u["id"])).display_name for u in group["users"]
+        } == {"Elena Marquez", "Mateo Rios", "Sarah Chen"}
+
+
+@pytest.mark.parametrize("cross_workspace", [False, True])
+def test_replacement_preserves_profiles_and_is_one_time(
+    evaluation, monkeypatch, cross_workspace
+):
+    monkeypatch.syspath_prepend(str(Path(__file__).resolve().parents[1] / "scripts"))
+    from replace_local_hospital import OLD_ID, replace_local_hospital
+
+    group = catalog()["groups"][1]
+    destination = uuid.UUID(group["id"])
+    settings = evaluation.app.state.settings
+    with evaluation.app.state.database.session_factory() as db:
+        new = db.get(Workspace, destination)
+        db.add(
+            Workspace(
+                id=OLD_ID,
+                name="California Valley Medical Center",
+                created_by_id=new.created_by_id,
+            )
+        )
+        db.flush()
+        profiles = {}
+        for member in db.scalars(
+            select(WorkspaceMember).where(WorkspaceMember.workspace_id == destination)
+        ):
+            member.workspace_id = OLD_ID
+            profile = db.get(UserProfile, member.user_id)
+            profiles[member.user_id] = (
+                profile.headline,
+                profile.biography,
+                profile.avatar_media_id,
+            )
+            db.get(MediaAsset, profile.avatar_media_id).workspace_id = OLD_ID
+        db.flush()
+        db.execute(delete(Workspace).where(Workspace.id == destination))
+        post = db.scalar(select(Publication))
+        post.workspace_id = OLD_ID
+        db.get(MediaAsset, post.media_id).workspace_id = OLD_ID
+        removed_post, removed_media = post.id, post.media_id
+        record = db.scalar(select(Record))
+        record.workspace_id = OLD_ID
+        removed_record = record.id
+        if cross_workspace:
+            other = db.scalar(select(Publication).where(Publication.id != post.id))
+            other.shared_from_id = post.id
+        db.commit()
+        if cross_workspace:
+            with pytest.raises(RuntimeError, match="another workspace"):
+                replace_local_hospital(db, settings)
+            db.rollback()
+            assert db.get(Workspace, OLD_ID) is not None
+            assert db.get(Publication, removed_post) is not None
+            return
+        report = replace_local_hospital(db, settings)
+        assert report["rows"]["publications"] == 1
+        db.commit()
+        db.expire_all()
+        assert db.get(Workspace, OLD_ID) is None
+        assert db.get(Publication, removed_post) is None
+        assert db.get(MediaAsset, removed_media) is None
+        assert db.get(Record, removed_record) is None
+        assert db.query(Publication).count() == 31
+        for user_id, snapshot in profiles.items():
+            profile = db.get(UserProfile, user_id)
+            assert (
+                profile.headline,
+                profile.biography,
+                profile.avatar_media_id,
+            ) == snapshot
+            assert (
+                db.get(MediaAsset, profile.avatar_media_id).workspace_id == destination
+            )
+        db.get(Workspace, destination).name = "Edited locally"
+        db.commit()
+        assert replace_local_hospital(db, settings) is None
+        assert db.get(Workspace, destination).name == "Edited locally"
+        with pytest.raises(ValueError):
+            replace_local_hospital(
+                db, settings.model_copy(update={"environment": "production"})
+            )
+
+
 @pytest.fixture
 def evaluation(tmp_path):
     app = create_app(
@@ -29,9 +124,9 @@ def evaluation(tmp_path):
             "initialized": True,
             "groups": 3,
             "users": 9,
-            "records": 47,
-            "attachments": 27,
-            "publications": 48,
+            "records": 27,
+            "attachments": 17,
+            "publications": 32,
         }
         db.commit()
     return APIClient(app)
@@ -54,7 +149,7 @@ def test_seed_restart_preserves_edits_and_deletions(evaluation):
         assert db.get(Publication, post.id).hidden
         assert db.get(Record, record.id).title == "Edited record"
         assert db.query(Workspace).count() == 3
-        assert db.query(RecordMedia).count() == 27
+        assert db.query(RecordMedia).count() == 17
 
 
 def test_selector_issues_session_and_cannot_cross_groups(evaluation):
@@ -207,7 +302,7 @@ def test_queue_dispatch_resumes_without_repeating_successful_jobs(
             enqueue_initial_media(db)
         assert len(calls) == 3
         monkeypatch.setattr("app.tasks.index_gallery_media.delay", calls.append)
-        assert enqueue_initial_media(db) == {"dispatched": 48}
-        assert len(set(calls)) == len(calls) == 48
-        assert enqueue_initial_media(db) == {"dispatched": 48}
-        assert len(calls) == 48
+        assert enqueue_initial_media(db) == {"dispatched": 32}
+        assert len(set(calls)) == len(calls) == 32
+        assert enqueue_initial_media(db) == {"dispatched": 32}
+        assert len(calls) == 32

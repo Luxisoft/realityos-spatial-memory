@@ -63,10 +63,10 @@
       "record_question": "Summarize the first police case and its related evidence."
     },
     {
-      "slug": "hospital",
-      "media_group": "nursing",
-      "id": "749f3aad-1543-55d1-9633-03f0cf443a1a",
-      "name": "California Valley Medical Center",
+      "slug": "meta-social",
+      "media_group": "meta-social",
+      "id": "3ea760d8-8394-5ddd-b1d7-ad27bd996b17",
+      "name": "Meta Social Media",
       "users": [
         {
           "id": "484b7800-2745-5aa4-aa0f-3d3ed603acf6",
@@ -90,48 +90,10 @@
           "avatar_sha256": "a15344dbdc6f7e4190e21a143d30bd11e7bf909c6883d86be812e73a09146b94"
         }
       ],
-      "records": {
-        "hospital-case-1": "688b9e79-c447-5e40-be26-34e52519da46",
-        "hospital-event-1": "f1bd850d-d6e4-5639-bc10-028947ed7706",
-        "hospital-object-1": "14aac29c-8dc0-5e7a-aa66-8a23efe3f6e1",
-        "hospital-case-2": "88e6f12c-f0ba-5571-9c03-ead740cea457",
-        "hospital-event-2": "334e983a-5092-516c-9889-a1be49b2cb9a",
-        "hospital-object-2": "ffc178d1-e849-5797-a4c7-03eaf02e1822",
-        "hospital-case-3": "c414e440-7711-578a-adb9-019eaea0310f",
-        "hospital-event-3": "b345c77a-f9b6-5118-bc92-ff3455631a9d",
-        "hospital-object-3": "5a9cb47b-aa3a-5dba-835e-b0daccaba2d0",
-        "hospital-person-1": "4f248758-9347-50f6-9f62-0cc8c9cdb1a3",
-        "hospital-encounter-1": "621a97f8-c37a-5638-8ad0-79f92dd82b89",
-        "hospital-rx-1": "d048be67-95c3-55b4-9110-a99747794bba",
-        "hospital-person-2": "e9946400-f2bc-5033-bfee-6fa29aa338e9",
-        "hospital-encounter-2": "65ec15fd-4973-51ce-ae50-0fe219982985",
-        "hospital-rx-2": "69d6a127-0b63-5380-b7ce-fb7bdb46964c",
-        "hospital-allergy-2": "7d64b769-6908-53c4-8a7f-0f9fe9de6217",
-        "hospital-person-3": "b1505b95-5528-5850-ad35-a0cce93c6340",
-        "hospital-encounter-3": "52fb65f3-08cf-5b5b-81a8-eb1c26487dc9",
-        "hospital-rx-3": "8711530b-7ee5-5433-a48e-a14450e60a23",
-        "hospital-admin-3": "7549bc37-8270-58e2-839f-dca54d120c41"
-      },
-      "publications": {
-        "4421490": "ddb2f22e-be3e-53c3-9856-8b6c33f0c618",
-        "6129899": "5b2d8ccd-1473-55f8-80b8-c8e9d7ec45ea",
-        "7089016": "b6bfb2e9-7d7d-5bcf-a76e-3977b2a82ffd",
-        "7108117": "7ad7979a-f2dc-50d1-b850-b093a35b5325",
-        "8670190": "aa328da6-72c1-5c97-a716-8d42ea83ac62",
-        "11782003": "0787c13b-240a-5dea-88c6-bf74fb22efd0",
-        "13083355": "9b16b6fb-5358-5f64-b071-45e5f801a1b4",
-        "13697729": "033f86b3-fbab-57b0-a222-bc3422de9d55",
-        "17112252": "a3999644-600e-55e6-9ccd-d202def3feb4",
-        "17112256": "2ed20376-7167-5c90-9bfb-6c48d63cb8ad",
-        "24022653": "22bd86bf-3d5b-5761-84d8-f8c33d92b67e",
-        "28727573": "25cfd729-2e51-594a-bca0-2ba3e8b41f64",
-        "6036527": "5fe6823a-e69f-5b77-9d4c-fe619a274978",
-        "7585003": "1fa396f5-e86e-5bfa-b1e6-9b6fffed47fa",
-        "8381611": "f66cbb9f-4c13-5fc1-9d44-7911f765cc7d",
-        "8413544": "56a6f690-c7c7-50f3-9297-4404341f26ef"
-      },
-      "query": "Find the syringes on the tray.",
-      "record_question": "Summarize Ana Solis and her related records."
+      "records": {},
+      "publications": {},
+      "query": "",
+      "record_question": ""
     },
     {
       "slug": "memory",

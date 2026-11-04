@@ -195,7 +195,7 @@ If you change Android, follow the [build guide](docs/en/integrations/ANDROID.md#
 
 <a id="cases"></a>
 
-Open the app and choose one of the **9 accounts across 3 groups: police, nursing and memory**. Explore the gallery and records; to publish, select a group, category and tag. Wait for indexing to finish before searching.
+Open the app and choose one of the **9 accounts across 3 groups: police, Meta Social Media and memory**. Groups start collapsed: tap one to see its accounts. Meta Social Media starts empty with Elena Marquez, Mateo Rios and Sarah Chen. Explore the gallery and records; to publish, select a group, category and tag. Wait for indexing to finish before searching.
 
 | Preview / video | Use |
 | --- | --- |

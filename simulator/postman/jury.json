@@ -21,22 +21,23 @@
       }
     },
     {
-      "prefix": "hospital",
-      "name": "02 Nursing",
-      "workspace_name": "California Valley Medical Center",
+      "prefix": "meta_social",
+      "name": "02 Meta Social Media",
+      "workspace_name": "Meta Social Media",
       "values": {
         "email": "",
         "username": "elena-marquez",
         "password": "",
         "display_name": "Elena Marquez",
         "user_id": "484b7800-2745-5aa4-aa0f-3d3ed603acf6",
-        "workspace_id": "749f3aad-1543-55d1-9633-03f0cf443a1a",
-        "record_id": "688b9e79-c447-5e40-be26-34e52519da46",
-        "post_id": "ddb2f22e-be3e-53c3-9856-8b6c33f0c618",
-        "query": "Find the syringes on the tray.",
-        "record_question": "Summarize Ana Solis and her related records.",
+        "workspace_id": "3ea760d8-8394-5ddd-b1d7-ad27bd996b17",
+        "record_id": "",
+        "post_id": "",
+        "query": "",
+        "record_question": "",
         "auth_mode": "local-select"
-      }
+      },
+      "empty": true
     },
     {
       "prefix": "memory",

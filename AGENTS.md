@@ -171,3 +171,11 @@ use natural operational descriptions without `[Demo]`, simulated, fictional or
 test-data labels. Preserve internal provenance, licensing, mock-provider flags,
 credentials, consent and immutable history. Do not reintroduce these labels in
 fixture-generated captions or the stored-content UI.
+
+## Owner correction: local account groups (2026-11-04)
+
+The local account chooser starts with all work groups collapsed. California Valley
+Medical Center is retired locally, including its publications, records and exclusive
+media. Meta Social Media replaces it as an empty group with the same Elena Marquez,
+Mateo Rios and Sarah Chen accounts, profile fields and avatars. Do not recreate
+the hospital or seed content into Meta Social Media. Keep Police and Memory intact.

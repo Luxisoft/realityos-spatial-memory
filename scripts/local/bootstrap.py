@@ -1,9 +1,15 @@
 """Prepare public local scenarios transactionally, without importing server data."""
+
 import argparse
 import json
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from app.local_seed import enqueue_initial_media, seed_evaluation
 from app.main import app
+from replace_local_hospital import replace_local_hospital
 
 
 def main():
@@ -12,9 +18,15 @@ def main():
     args = parser.parse_args()
     settings = app.state.settings
     if settings.environment != "local" or not settings.local_evaluation_enabled:
-        raise SystemExit("This command requires the isolated local evaluation environment.")
+        raise SystemExit(
+            "This command requires the isolated local evaluation environment."
+        )
     with app.state.database.session_factory() as db:
-        result = enqueue_initial_media(db) if args.queue else seed_evaluation(db, settings)
+        if not args.queue:
+            replace_local_hospital(db, settings)
+        result = (
+            enqueue_initial_media(db) if args.queue else seed_evaluation(db, settings)
+        )
         db.commit()
     print(json.dumps(result))
 

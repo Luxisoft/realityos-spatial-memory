@@ -46,6 +46,12 @@ def preflight(root):
         if hashlib.sha256(path.read_bytes()).hexdigest() != entry["sha256"]:
             raise ValueError(f"Fixture integrity failed: {path.name}")
     for group in data["groups"]:
+        if not group["records"] and not group["publications"]:
+            for user in group["users"]:
+                raw = fixture_file(root, user["avatar"]).read_bytes()
+                if hashlib.sha256(raw).hexdigest() != user["avatar_sha256"]:
+                    raise ValueError("Avatar fixture integrity failed.")
+            continue
         group["fixture"] = read_json(root / f"workspaces/{group['slug']}.json")
         batch = ImportBatch.model_validate(group["fixture"]["batch"])
         ids = {r.external_id for r in batch.records}
@@ -130,7 +136,7 @@ def seed_evaluation(db, settings, root=FIXTURES):
                 id=workspace_id,
                 name=group["name"],
                 created_by_id=owner.id,
-                description="Local evaluation · fictional scenario",
+                description="Local evaluation · fictional scenario" if group["records"] else "",
             )
         )
         db.flush()
@@ -156,6 +162,8 @@ def seed_evaluation(db, settings, root=FIXTURES):
             if fields.get("birthday"):
                 fields["birthday"] = date.fromisoformat(fields["birthday"])
             db.add(UserProfile(user_id=user.id, avatar_media_id=media.id, **fields))
+        if not group["records"] and not group["publications"]:
+            continue
         # Required provenance FK in the existing record schema, never an external connection.
         connection = Connection(
             id=local_id("provenance", group["slug"]),

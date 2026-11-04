@@ -193,7 +193,7 @@ Si modificas Android, sigue la [guía de compilación](integrations/ANDROID.md#b
 
 <a id="cases"></a>
 
-Abre la app y elige una de las **9 cuentas de los 3 grupos: policía, enfermería y memoria**. Explora galería y expedientes; para publicar, selecciona grupo, categoría y etiqueta. Espera a que termine la indexación para buscar.
+Abre la app y elige una de las **9 cuentas de los 3 grupos: policía, Meta Social Media y memoria**. Los grupos aparecen contraídos: toca uno para ver sus cuentas. Meta Social Media empieza vacío, con Elena Marquez, Mateo Rios y Sarah Chen. Explora galería y expedientes; para publicar, selecciona grupo, categoría y etiqueta. Espera a que termine la indexación para buscar.
 
 | Vista / video | Uso |
 | --- | --- |

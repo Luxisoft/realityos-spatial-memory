@@ -6,25 +6,9 @@ Abre esta página renderizada en GitHub en la computadora. Haz clic en una image
 **Datos sintéticos.** Reutilizar un retrato enrolado verifica integración, no precisión representativa. Se mantienen todos los permisos y controles de calidad. Estas imágenes no se usan para suplantar el login Facebook; ese recorrido usa tu propia cuenta y rostro.
 
 <a id="clinical"></a>
-## Clínica / Nursing
-**elena-marquez → California Valley Medical Center**
+## Meta Social Media
 
-Resultado esperado: candidatos de expediente de este espacio, con similitud y enlace al expediente. El consentimiento del usuario que busca sigue siendo necesario.
-
-### Ana Solis
-<a href="../../../simulator/workspaces/assets/patient-ana.png"><img src="../../../simulator/workspaces/assets/patient-ana.png" alt="Ana Solis — synthetic" width="600"></a>
-
-### Robert Lane
-<a href="../../../simulator/workspaces/assets/patient-robert.png"><img src="../../../simulator/workspaces/assets/patient-robert.png" alt="Robert Lane — synthetic" width="600"></a>
-
-### Fatima Nasser
-<a href="../../../simulator/workspaces/assets/patient-fatima.png"><img src="../../../simulator/workspaces/assets/patient-fatima.png" alt="Fatima Nasser — synthetic" width="600"></a>
-
-### Tres rostros en una captura
-
-| Ana Solis | Robert Lane | Fatima Nasser |
-| --- | --- | --- |
-| <img src="../../../simulator/workspaces/assets/patient-ana.png" alt="Ana Solis — synthetic" width="270"> | <img src="../../../simulator/workspaces/assets/patient-robert.png" alt="Robert Lane — synthetic" width="270"> | <img src="../../../simulator/workspaces/assets/patient-fatima.png" alt="Fatima Nasser — synthetic" width="270"> |
+Meta Social Media empieza vacío. Elena Marquez, Mateo Rios y Sarah Chen conservan sus perfiles; los expedientes y medios del antiguo hospital se eliminaron.
 
 <a id="memory"></a>
 ## Memoria / Memory
@@ -67,11 +51,6 @@ El responsable prepara dos enrolamientos explícitos. La foto del miembro repres
 Linterna amarilla / yellow flashlight; destornillador rojo / red screwdriver
 
 <a href="../../../simulator/workspaces/assets/evidence-desk.png"><img src="../../../simulator/workspaces/assets/evidence-desk.png" alt="Pacific Ridge Police Department — synthetic objects" width="1000"></a>
-
-### elena-marquez → California Valley Medical Center
-Carro de medicación / medicine cart; bolígrafo azul / blue pen; guantes / gloves
-
-<a href="../../../simulator/workspaces/assets/medicine-cart.png"><img src="../../../simulator/workspaces/assets/medicine-cart.png" alt="California Valley Medical Center — synthetic objects" width="1000"></a>
 
 ### noah-brooks → Sonoran Neurological Institute
 Carpeta roja / red folder; llaves de latón / brass keys; cuaderno azul / blue notebook

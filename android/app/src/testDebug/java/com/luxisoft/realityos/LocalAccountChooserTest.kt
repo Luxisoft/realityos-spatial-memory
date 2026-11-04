@@ -28,7 +28,7 @@ class LocalAccountChooserTest {
     @get:Rule val compose = createAndroidComposeRule<androidx.activity.ComponentActivity>()
 
     private fun chooser(scale: Float) {
-        val groups = listOf("Pacific Ridge Police Department", "California Valley Medical Center", "Sonoran Neurological Institute")
+        val groups = listOf("Pacific Ridge Police Department", "Meta Social Media", "Sonoran Neurological Institute")
         val names = listOf("Alex Rivera", "Maya Johnson", "Daniel Kim", "Elena Marquez", "Mateo Rios", "Sarah Chen", "Noah Brooks", "Lucia Vega", "Owen Patel")
         val accounts = names.mapIndexed { index, name -> JSONObject().put("id", index.toString()).put("username", "person-$index").put("display_name", name).put("workspace_name", groups[index / 3]) }
         var selected = ""
@@ -37,11 +37,19 @@ class LocalAccountChooserTest {
                 RealityOsTheme { LocalAccountChooser(accounts, false, false, {}, { selected = it.getString("id") }) }
             }
         }
-        compose.onNodeWithText("Alex Rivera").assertIsDisplayed()
-        capture("top-$scale")
-        compose.onNodeWithTag("local-account-person-8").performScrollTo().assertIsDisplayed().performClick()
+        names.forEach { compose.onNodeWithText(it).assertDoesNotExist() }
+        capture("collapsed-$scale")
+        groups.forEachIndexed { index, group ->
+            compose.onNodeWithTag("local-group-$group").performScrollTo().performClick()
+            for (member in index * 3 until index * 3 + 3) {
+                compose.onNodeWithTag("local-account-person-$member").performScrollTo().assertIsDisplayed().performClick()
+                assertEquals(member.toString(), selected)
+            }
+            capture("expanded-$index-$scale")
+            compose.onNodeWithTag("local-group-$group").performScrollTo().performClick()
+            names.slice(index * 3 until index * 3 + 3).forEach { compose.onNodeWithText(it).assertDoesNotExist() }
+        }
         assertEquals("8", selected)
-        capture("bottom-$scale")
     }
 
     private fun capture(name: String) {

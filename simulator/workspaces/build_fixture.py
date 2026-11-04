@@ -13,12 +13,6 @@ GROUPS = [
         "evidence-desk",
     ),
     (
-        "hospital",
-        "California Valley Medical Center",
-        ["elena-marquez", "mateo-rios", "sarah-chen"],
-        "medicine-cart",
-    ),
-    (
         "memory",
         "Sonoran Neurological Institute",
         ["noah-brooks", "lucia-vega", "owen-patel"],

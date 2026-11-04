@@ -29,7 +29,9 @@ def publish(folders, root, write, namespace, describe, check, reference):
     )
     local_catalog = json.loads((root / "simulator/local/catalog.json").read_text())
     for video in evaluation["videos"]:
-        group = next(g for g in local_catalog["groups"] if g["media_group"] == video["group"])
+        group = next(
+            g for g in local_catalog["groups"] if g["media_group"] == video["group"]
+        )
         video["post_id"] = group["publications"][str(video["id"])]
     templates = {item["name"]: item for items in folders.values() for item in items}
     collection = {
@@ -52,6 +54,17 @@ def publish(folders, root, write, namespace, describe, check, reference):
         )
         items = []
         for name in REQUESTS:
+            if scenario.get("empty") and name not in {
+                "GET /v1/auth/me",
+                "POST /v1/auth/local-select",
+                "POST /v1/auth/refresh",
+                "GET /v1/workspaces",
+                "GET /v1/workspaces/{workspace_id}/records",
+                "GET /v1/gallery/page",
+                "GET /v1/me/profile",
+                "GET /v1/profiles/{user_id}",
+            }:
+                continue
             item = copy.deepcopy(templates[name])
             item["response"] = []
             request = item["request"]
@@ -86,12 +99,16 @@ def publish(folders, root, write, namespace, describe, check, reference):
                 ]
             elif name == "GET /v1/workspaces/{workspace_id}/records":
                 tests += [
-                    'pm.test("Existing record is listed", () => pm.expect(pm.response.json().some(r => r.id === pm.variables.get("record_id"))).to.eql(true));',
+                    'pm.test("Empty workspace records", () => pm.expect(pm.response.json()).to.have.length(0));'
+                    if scenario.get("empty")
+                    else 'pm.test("Existing record is listed", () => pm.expect(pm.response.json().some(r => r.id === pm.variables.get("record_id"))).to.eql(true));',
                     'pm.test("Records stay in the selected workspace", () => pm.expect(pm.response.json().every(r => r.workspace_id === pm.variables.get("workspace_id"))).to.eql(true));',
                 ]
             elif name == "GET /v1/gallery/page":
                 tests += [
-                    'pm.test("Existing publication is listed", () => pm.expect(pm.response.json().items.some(p => p.id === pm.variables.get("post_id"))).to.eql(true));',
+                    'pm.test("Empty workspace gallery", () => pm.expect(pm.response.json().items).to.have.length(0));'
+                    if scenario.get("empty")
+                    else 'pm.test("Existing publication is listed", () => pm.expect(pm.response.json().items.some(p => p.id === pm.variables.get("post_id"))).to.eql(true));',
                     'pm.test("Gallery stays in the selected workspace", () => pm.expect(pm.response.json().items.every(p => p.workspace_id === pm.variables.get("workspace_id"))).to.eql(true));',
                 ]
             request["description"] += (
@@ -129,13 +146,20 @@ def publish(folders, root, write, namespace, describe, check, reference):
         description="Start the four local Docker services, select No environment and open Localhost requests. Nine accounts and three scenarios are prepared locally. Authentication uses the local selector; no passwords or provider keys are published. Historical Server requests is disabled. AI requests use your Meta key from the private .env.local file; allow indexing to finish before running video checks.",
     )
     server, localhost = collection["item"]
-    server["description"] = "Disabled historical catalog. No server URL, account or password is supplied."
-    localhost["description"] = "Primary destination: http://localhost:8080. Local selector, independent sessions, existing scenarios and normal processing."
-    localhost["item"].insert(1, {
-        "name": "00 Local scenarios",
-        "description": "Locally prepared Police, Nursing and Memory fixtures. Indexing uses real Meta models.",
-        "item": scenarios["item"],
-    })
+    server["description"] = (
+        "Disabled historical catalog. No server URL, account or password is supplied."
+    )
+    localhost["description"] = (
+        "Primary destination: http://localhost:8080. Local selector, independent sessions, existing scenarios and normal processing."
+    )
+    localhost["item"].insert(
+        1,
+        {
+            "name": "00 Local scenarios",
+            "description": "Police and Memory fixtures, plus Meta Social Media with three accounts and no content. Indexing uses real Meta models.",
+            "item": scenarios["item"],
+        },
+    )
     collection["item"] = [localhost, server]
     collection["variable"].extend(scenarios["variable"])
     write(

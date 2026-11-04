@@ -36,7 +36,7 @@ def condition(table, keys):
     return tuple_(*columns).in_(list(keys))
 
 
-def purge(db, workspace_ids, apply=False):
+def purge(db, workspace_ids, apply=False, *, commit=True, strict_scope=False):
     targets = {uuid.UUID(str(value)) for value in workspace_ids}
     spaces = list(db.scalars(select(Workspace).where(Workspace.id.in_(targets))))
     if len(spaces) != len(targets) or any(s.name.startswith("home:") for s in spaces):
@@ -71,7 +71,10 @@ def purge(db, workspace_ids, apply=False):
     db.flush()
     metadata = MetaData()
     metadata.reflect(bind=db.get_bind())
-    selected = {"workspaces": {(value,) for value in targets}}
+    reflected_targets = (
+        targets if db.bind.dialect.name == "postgresql" else {v.hex for v in targets}
+    )
+    selected = {"workspaces": {(value,) for value in reflected_targets}}
     changed = True
     while changed:
         changed = False
@@ -95,6 +98,19 @@ def purge(db, workspace_ids, apply=False):
                 raise RuntimeError(
                     f"Purge would affect protected identity table {table.name}; aborting."
                 )
+            if keys and strict_scope and "workspace_id" in table.c:
+                outside = db.scalar(
+                    select(table.c.workspace_id)
+                    .where(
+                        condition(table, keys),
+                        table.c.workspace_id.not_in(reflected_targets),
+                    )
+                    .limit(1)
+                )
+                if outside is not None:
+                    raise RuntimeError(
+                        f"Purge would affect another workspace: {table.name}"
+                    )
             new = keys - selected.get(table.name, set())
             if new:
                 selected.setdefault(table.name, set()).update(new)
@@ -143,7 +159,8 @@ def purge(db, workspace_ids, apply=False):
         for name in order:
             table = metadata.tables[name]
             db.execute(delete(table).where(condition(table, selected[name])))
-        db.commit()
+        if commit:
+            db.commit()
     else:
         db.rollback()
     return report
