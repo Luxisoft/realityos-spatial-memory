@@ -7,11 +7,10 @@ function Get-LocalEnvironment([string]$Root) {
 }
 function Write-Host([string]$Object) { $script:messages.Add($Object) }
 function Write-Progress([int]$Id, [string]$Activity, [string]$Status, [int]$PercentComplete, [switch]$Completed) {
-    $script:percentages.Add($PercentComplete)
+    throw 'The native PowerShell progress overlay must not be mixed with console summaries.'
 }
 function Reset-Console {
     $script:messages = New-Object 'System.Collections.Generic.List[string]'
-    $script:percentages = New-Object 'System.Collections.Generic.List[int]'
     $script:mode = 'build'
     $script:streamed = $false
 }
@@ -76,6 +75,8 @@ Reset-Console
 Write-LocalProgress 'Setup' 0 10 'Checking Docker'
 Write-LocalProgress 'Setup' 3 10 'Building the backend image'
 Write-LocalProgress 'Setup' 10 10 'Local setup completed'
-Assert-Condition (($script:percentages -join ',') -eq '0,30,100') 'Progress is not based on completed steps.'
+Assert-Condition ($script:messages[0] -match '0%.*0/10' -and $script:messages[1] -match '30%.*3/10') 'Progress is not based on completed steps.'
 Assert-Condition ($script:messages[2] -match '^\[SUCCESS\] \[####################\] 100%') 'Completion is not visible without an interactive host.'
-Write-Output '6 console regression cases passed: live summaries, redaction, quiet probes, errors and progress.'
+Assert-Condition ((Get-LocalBuildArguments) -join ' ' -eq '--progress plain build api') 'Normal startup stopped reusing the build cache.'
+Assert-Condition ((Get-LocalBuildArguments -NoCache) -join ' ' -eq '--progress plain build --no-cache api') 'A fresh build is not scoped to the local API image.'
+Write-Output '7 console regression cases passed: live summaries, redaction, probes, errors, text progress and fresh builds.'

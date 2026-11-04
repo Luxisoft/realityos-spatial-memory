@@ -16,6 +16,8 @@ El inicio de Windows ahora abre Docker Desktop instalado si el motor local no es
 
 Los comandos locales de inicio, diagnóstico y parada ahora muestran progreso en inglés por etapas completadas y resúmenes, advertencias, errores y éxitos en tiempo real. Se ocultan los logs de descarga de paquetes y los valores privados. Pasaron seis casos de consola en PowerShell 5.1, seis en Bash y la suite de aislamiento de Windows. Una consulta de estado confirmó la API, PostgreSQL y Redis locales saludables y el worker en ejecución; no se reiniciaron servicios para probar este cambio de consola.
 
+Seguimiento: Windows usa únicamente la barra de texto para evitar superposiciones en VS Code. `Start-RealityOS.ps1 -NoCache` reconstruye las capas del backend conservando las cachés compartidas. Pasaron siete casos de consola PowerShell y la suite de inicio/aislamiento. La opción de pip para instalaciones intencionales como root se verificó sin red en un contenedor desechable; no se ha reconstruido la imagen modificada completa. Por solicitud del propietario se eliminaron los contenedores locales, dos volúmenes de datos, redes e imagen del backend para repetir el primer inicio; `.env.local` se conservó sin cambios. El siguiente arranque debe recrear el entorno local.
+
 Pendiente de validación externa: instalación Windows completa, teléfono físico/USB/voces, gafas y llamadas reales con la clave Meta del jurado. Las pruebas Linux/Docker no certifican estos recorridos. Los resultados históricos del servidor que siguen se conservan como referencia y no son requisitos de localhost. El despliegue remoto automático está desactivado; el instalador local no detiene ni modifica servidores históricos.
 
 ## Clasificación de publicaciones

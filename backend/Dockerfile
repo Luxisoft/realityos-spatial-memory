@@ -11,9 +11,10 @@ COPY backend/app ./app
 COPY backend/alembic ./alembic
 COPY backend/alembic.ini ./
 COPY scripts /scripts
+# Dependencies are installed into the image's own Python environment as root.
 RUN apt-get update \
     && apt-get install --no-install-recommends -y ffmpeg g++ \
-    && pip install --no-cache-dir ".[faces]" \
+    && pip install --no-cache-dir --root-user-action=ignore ".[faces]" \
     && apt-get purge -y g++ \
     && apt-get autoremove -y \
     && rm -rf /var/lib/apt/lists/*

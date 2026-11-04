@@ -16,6 +16,8 @@ Windows startup now opens an installed Docker Desktop when the local engine is u
 
 Local start, diagnostics and stop commands now show English progress by completed steps and live phase summaries, warnings, errors and success messages. Package download logs are suppressed and private values are redacted. Six console regression cases passed in PowerShell 5.1 and six in Bash, plus the Windows isolation suite. A read-only status check confirmed the existing local API, PostgreSQL and Redis healthy and the worker running; no services were restarted to test this console change.
 
+Follow-up: the Windows console uses only the text bar to avoid VS Code overlay collisions. `Start-RealityOS.ps1 -NoCache` rebuilds backend layers while preserving shared caches. Seven PowerShell console cases and the startup/isolation suite passed. The container pip option for intentional root installs was verified offline in a disposable container; the entire modified image has not been rebuilt. At the owner's request, the local containers, two data volumes, networks and backend image were removed for a first-run retest; `.env.local` was preserved unchanged. The next startup must recreate the local runtime.
+
 Pending external validation: complete Windows installation, physical phone/USB/audio voices, glasses and live requests using the judge's own Meta key. These are not claimed by the Linux/container tests. Historical server release details below are retained for traceability and are not prerequisites for this installation. Automatic remote deployments are disabled; the local installer does not stop or modify historical servers.
 
 ## Publication classification

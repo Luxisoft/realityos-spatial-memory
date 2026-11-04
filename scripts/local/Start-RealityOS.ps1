@@ -1,5 +1,5 @@
 [CmdletBinding()]
-param([string]$DockerDataDrive = "")
+param([string]$DockerDataDrive = "", [switch]$NoCache)
 $ErrorActionPreference = 'Stop'
 . (Join-Path $PSScriptRoot 'Common.ps1')
 $activity = 'RealityOS local setup'
@@ -40,7 +40,8 @@ try {
     if ([double]$lastRow[3] * 1KB -lt 25GB) { throw 'The Docker Linux disk needs at least 25 GiB free storage.' }
 
     Write-LocalProgress $activity 3 10 'Building the backend image; first-time downloads can take several minutes'
-    Invoke-LocalCompose $root @('--progress', 'plain', 'build', 'api')
+    if ($NoCache) { Write-Host '[INFO] Rebuilding the backend without the build cache.' }
+    Invoke-LocalCompose $root (Get-LocalBuildArguments -NoCache:$NoCache)
     Write-LocalProgress $activity 4 10 'Checking model availability'
     Invoke-LocalCompose $root @('run', '--rm', '--no-deps', 'api', 'python', '/scripts/local/check_runtime.py', '--providers')
     Write-LocalProgress $activity 5 10 'Starting PostgreSQL and Redis'
@@ -56,6 +57,7 @@ try {
     Write-LocalProgress $activity 10 10 'Local setup completed'
     Write-Host "[SUCCESS] Ready: http://localhost:$($values.LOCAL_HTTP_PORT)/docs | Android: select one of the nine local accounts."
     Write-Host '[INFO] Scenarios are initialized once. Restarting preserves edits and deletions. Indexing continues in the worker.'
-} finally {
-    Write-Progress -Id 0 -Activity $activity -Completed
+} catch {
+    Write-Host ('[ERROR] ' + $_.Exception.Message)
+    exit 1
 }

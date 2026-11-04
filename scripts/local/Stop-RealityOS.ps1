@@ -11,6 +11,7 @@ try {
     Write-LocalProgress $activity 1 2 'Stopping local services'
     Invoke-LocalCompose $root @('down')
     Write-LocalProgress $activity 2 2 'Local services stopped; database and queue volumes are preserved'
-} finally {
-    Write-Progress -Id 0 -Activity $activity -Completed
+} catch {
+    Write-Host ('[ERROR] ' + $_.Exception.Message)
+    exit 1
 }

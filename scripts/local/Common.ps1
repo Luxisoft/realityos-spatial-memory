@@ -75,7 +75,8 @@ function Write-LocalProgress([string]$Activity, [int]$Completed, [int]$Total, [s
     $bar = ('#' * $filled) + ('-' * (20 - $filled))
     $level = if ($Completed -eq $Total) { 'SUCCESS' } else { 'INFO' }
     Write-Host "[$level] [$bar] $percent% | $Status ($Completed/$Total steps complete)"
-    Write-Progress -Id 0 -Activity $Activity -Status $Status -PercentComplete $percent
+    # Use one text renderer: Windows PowerShell's overlay can corrupt VS Code
+    # terminal output when mixed with streamed status messages.
 }
 
 function Protect-LocalConsoleText([string]$Text, [hashtable]$Values) {
@@ -163,6 +164,12 @@ function Invoke-LocalDocker([string]$Root, [string[]]$DockerArguments, [switch]$
 function Get-LocalComposeArguments([string]$Root, [string[]]$Command) {
     return @('compose', '--project-name', 'realityos-local', '--env-file', (Join-Path $Root '.env.local'),
         '--file', (Join-Path $Root 'infrastructure/docker-compose.local.yml')) + $Command
+}
+
+function Get-LocalBuildArguments([switch]$NoCache) {
+    $arguments = @('--progress', 'plain', 'build')
+    if ($NoCache) { $arguments += '--no-cache' }
+    return $arguments + @('api')
 }
 
 function Invoke-LocalCompose([string]$Root, [string[]]$Command, [switch]$Quiet) {

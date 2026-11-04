@@ -13,6 +13,7 @@ try {
     Write-LocalProgress $activity 2 3 'Checking model availability'
     Invoke-LocalCompose $root @('exec', '-T', 'api', 'python', '/scripts/local/check_runtime.py')
     Write-LocalProgress $activity 3 3 'Local diagnostics completed'
-} finally {
-    Write-Progress -Id 0 -Activity $activity -Completed
+} catch {
+    Write-Host ('[ERROR] ' + $_.Exception.Message)
+    exit 1
 }
