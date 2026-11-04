@@ -2,7 +2,7 @@
 
 # RealityOS guides
 
-**Setup and usage in one file:** [English README](README.md). This index contains the technical reference.
+**Windows setup and usage:** [English README](README.md). This index contains the technical reference.
 
 ## Usage and data
 
@@ -33,6 +33,8 @@
 - [Deploy a server with direct Meta access](deployment/DEPLOYMENT_DIRECT.md)
 - [Deploy with a restricted Meta gateway](deployment/DEPLOYMENT_GATEWAY.md)
 - [Run locally on Windows](deployment/DEPLOYMENT_LOCALHOST.md)
+
+- [Private evaluation on Linux](deployment/DEPLOYMENT_LINUX.md)
 
 ## Integrations
 

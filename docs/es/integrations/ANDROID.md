@@ -57,11 +57,45 @@ Las regresiones Android cubren consultas simultáneas, acceso vencido y revocado
 
 ## Compilar e instalar
 
-Requisitos: **Java 21**, **Android SDK 36**, un teléfono o emulador Android 12+ y ADB para instalar. Para generar la variante Debug local desde el código actual, sigue los [comandos de compilación e instalación para Windows y Linux](../README.md#android). El instalador Docker no compila Android. Repite la compilación y la instalación cuando cambie la app; si cambia el contrato de la API, actualiza también el backend.
+<a id="android-build"></a>
 
-El único APK Debug instalable está en `android/app/build/outputs/apk/debug/app-debug.apk`. La fecha de compilación aparece en el nombre de versión, no en copias adicionales del archivo.
+Si modificas Android, genera un APK nuevo en el servidor o en una computadora con [JDK 21 y Android SDK 36](#java-windows). Un APK descargado solo contiene el código de su compilación; Docker prepara el backend. Desde la raíz del repositorio:
 
-También puedes descargar `realityos-android-debug-apk` de una [ejecución de CI aprobada](https://github.com/Luxisoft/realityos-spatial-memory/actions/workflows/ci.yml). Los artefactos duran 14 días y pueden exigir acceso a GitHub. La firma de Release se configura por separado.
+**Windows — PowerShell**
+
+```powershell
+$env:REALITYOS_API_BASE_URL = "http://localhost:8080/v1"
+.\android\gradlew.bat -p android -PlocalDevelopment=true :app:assembleDebug
+if ($LASTEXITCODE -ne 0) { throw "Android build failed. Do not install an older APK." }
+```
+
+Espera a **BUILD SUCCESSFUL**. Se reemplaza `android/app/build/outputs/apk/debug/app-debug.apk`. Instálalo y ábrelo desde la raíz del repositorio:
+
+En Git Bash, usa los [comandos de instalación del README](../README.md#android).
+
+<a id="java-windows"></a>
+
+### Java y Android SDK — solo para compilar
+
+Para [compilar desde código](#android-build), usa **JDK 21 LTS** y **Android SDK 36**. Si instalas el APK publicado, puedes omitir esta sección. En Windows:
+
+1. Instala [Temurin 21 x64](https://adoptium.net/temurin/releases/?version=21&os=windows&arch=x64&package=jdk), paquete **JDK**, instalador MSI.
+2. En **Variables de entorno**, configura `JAVA_HOME` con la carpeta instalada, sin comillas ni `\bin`. **La variable de usuario tiene prioridad sobre la del sistema**: si existen ambas, usa la misma ruta válida. Corrige también `JDK_HOME` si apunta a una instalación vieja.
+3. Coloca `%JAVA_HOME%\bin` primero entre las entradas de Java del `Path`. Cierra completamente el editor y las terminales; abre una PowerShell nueva:
+
+```powershell
+$env:JAVA_HOME
+Test-Path "$env:JAVA_HOME\bin\java.exe"
+& "$env:JAVA_HOME\bin\java.exe" -version
+java -version
+javac -version
+```
+
+Debe aparecer `True` y versión **21**. Si el editor conserva una ruta vieja, elimínala de `java.home` o `java.jdt.ls.java.home`. En Android Studio, selecciona JDK 21 en **Settings → Build, Execution, Deployment → Build Tools → Gradle → Gradle JDK**.
+
+Instala Android SDK Platform 36, Build-Tools 36.0.0 y Platform Tools desde SDK Manager de Android Studio. Configura `ANDROID_HOME` con la carpeta del SDK, o `sdk.dir` en el archivo ignorado `android/local.properties`. Para instalar usa `C:\platform-tools\adb.exe`, como indica el README.
+
+Con esas herramientas listas, sigue [Compilar desde código](#android-build). Gradle utiliza el Wrapper del repositorio; no necesitas instalar Gradle por separado.
 
 <details>
 <summary><strong>Dirección del servidor y configuración privada</strong></summary>
