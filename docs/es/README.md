@@ -172,6 +172,35 @@ Mantén la conexión inalámbrica activa para usar el backend. Si se desconecta 
 
 </details>
 
+### Elegir modo e IPv4 desde el archivo de entorno
+
+En el PC, edita `.env.local` (sin reemplazar sus claves ni contraseñas) y añade
+o actualiza estas líneas; no dupliques las variables:
+
+```dotenv
+ANDROID_CONNECTION_MODE=hotspot
+ANDROID_HOTSPOT_PC_IP=10.108.140.109
+ANDROID_ADB_PATH=C:\platform-tools\adb.exe
+```
+
+Ejecuta siempre desde CMD, en la raíz del repositorio:
+
+```bat
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts\local\Connect-Android.ps1
+```
+
+El modo `localhost` es el predeterminado y conserva la conexión ADB USB/Wi-Fi
+habitual. El modo `hotspot` usa la IPv4 indicada para encontrar la puerta de enlace
+del celular. Para reconectar sin USB, añade `-Reconnect`. Antes de volver a
+`ANDROID_CONNECTION_MODE=localhost`, ejecuta el mismo comando con `-Stop`, todavía
+en modo `hotspot`, y reconecta USB o tu ADB inalámbrico habitual. Si cambia la IPv4,
+actualiza únicamente `ANDROID_HOTSPOT_PC_IP`. No necesitas recompilar el APK ni
+reiniciar Docker para estos cambios. El puerto del backend se lee de `LOCAL_HTTP_PORT`.
+
+Si prefieres guardar estas opciones literalmente en `.env`, usa el parámetro
+`-EnvFile .env`; por defecto se lee exclusivamente `.env.local`. No copies
+credenciales del servidor. El helper solo configura ADB, no cambia el entorno del backend.
+
 <a id="android-hotspot"></a>
 
 ### Prueba puntual con el hotspot del celular

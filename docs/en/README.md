@@ -172,6 +172,35 @@ Keep the wireless connection active to use the backend. If it disconnects or you
 
 </details>
 
+### Select connection mode and IPv4 in the environment file
+
+On the PC, add or update these entries in `.env.local`, preserving existing keys
+and passwords and avoiding duplicate variables:
+
+```dotenv
+ANDROID_CONNECTION_MODE=hotspot
+ANDROID_HOTSPOT_PC_IP=10.108.140.109
+ANDROID_ADB_PATH=C:\platform-tools\adb.exe
+```
+
+Always run from CMD at the repository root:
+
+```bat
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts\local\Connect-Android.ps1
+```
+
+The default `localhost` mode preserves the existing USB/paired Wi-Fi ADB transport.
+The `hotspot` mode uses the configured PC IPv4 to find the phone gateway. Append
+`-Reconnect` to reconnect without USB. Before switching back to
+`ANDROID_CONNECTION_MODE=localhost`, run the same command with `-Stop` while still
+in `hotspot` mode, then reconnect USB or your usual wireless ADB connection.
+When IPv4 changes, update only `ANDROID_HOTSPOT_PC_IP`. These settings require no
+APK rebuild or Docker restart. The backend port is read from `LOCAL_HTTP_PORT`.
+
+To store these options literally in `.env`, pass `-EnvFile .env`; only `.env.local`
+is read by default. Do not copy server credentials. This helper configures ADB
+only and does not change the backend environment.
+
 <a id="android-hotspot"></a>
 
 ### Temporary phone hotspot test

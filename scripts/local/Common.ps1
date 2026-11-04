@@ -5,9 +5,9 @@ $script:LocalUpdateImage = $null
 
 function Get-LocalRoot { return (Resolve-Path (Join-Path $PSScriptRoot '../..')).Path }
 
-function Get-LocalEnvironment([string]$Root) {
+function Get-LocalEnvironment([string]$Root, [string]$FileName = '.env.local') {
     $values = @{}
-    $path = Join-Path $Root '.env.local'
+    $path = if ([IO.Path]::IsPathRooted($FileName)) { $FileName } else { Join-Path $Root $FileName }
     if (!(Test-Path -LiteralPath $path)) { return $values }
     foreach ($line in [IO.File]::ReadAllLines($path)) {
         if ($line -match '^\s*([A-Z][A-Z0-9_]*)=(.*)$') {

@@ -1,6 +1,7 @@
 $ErrorActionPreference = 'Stop'
 $script = Join-Path $PSScriptRoot '../../scripts/local/Connect-Hotspot.ps1'
 $fakeAdb = Join-Path ([IO.Path]::GetTempPath()) ('hotspot-adb-' + [Guid]::NewGuid().ToString('N') + '.ps1')
+$connectionEnv = $fakeAdb + '.env'
 Set-Content -LiteralPath $fakeAdb -Value @'
 $global:HotspotCalls.Add(($args -join ' '))
 $global:LASTEXITCODE = 0
@@ -25,8 +26,24 @@ try {
     & $script -Adb $fakeAdb -Stop
     Assert-Hotspot ($global:HotspotCalls.Count -eq 2) 'Stop must only reset and disconnect this phone.'
     Assert-Hotspot ($global:HotspotCalls[0] -eq '-s 10.108.140.192:5555 usb') 'Stop must restore USB mode.'
+    $connector = Join-Path $PSScriptRoot '../../scripts/local/Connect-Android.ps1'
+    Set-Content -LiteralPath $connectionEnv -Value @(
+        'ANDROID_CONNECTION_MODE=localhost', "ANDROID_ADB_PATH='$fakeAdb'", 'LOCAL_HTTP_PORT=8091'
+    )
+    $global:HotspotCalls.Clear()
+    & $connector -EnvFile $connectionEnv
+    Assert-Hotspot ($global:HotspotCalls.Contains('reverse tcp:8080 tcp:8091')) 'Localhost must read its backend port from the env file.'
+    Assert-Hotspot (!$global:HotspotCalls.Contains('-d tcpip 5555')) 'Localhost must preserve existing ADB transport.'
+    Set-Content -LiteralPath $connectionEnv -Value @(
+        'ANDROID_CONNECTION_MODE="hotspot"', "ANDROID_ADB_PATH='$fakeAdb'",
+        'ANDROID_HOTSPOT_PC_IP=10.108.140.109', 'LOCAL_HTTP_PORT=8092'
+    )
+    $global:HotspotCalls.Clear()
+    & $connector -EnvFile $connectionEnv -Reconnect
+    Assert-Hotspot ($global:HotspotCalls.Contains('-s 10.108.140.192:5555 reverse tcp:8080 tcp:8092')) 'Env hotspot mode must forward settings to the isolated helper.'
     Write-Host 'Hotspot USB setup, targeted network reconnect and cleanup tests passed.'
 } finally {
     Remove-Item -LiteralPath $fakeAdb -Force
+    Remove-Item -LiteralPath $connectionEnv -Force -ErrorAction SilentlyContinue
     Remove-Variable HotspotCalls, HotspotHealthUri -Scope Global -ErrorAction SilentlyContinue
 }
