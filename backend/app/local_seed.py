@@ -17,7 +17,7 @@ from app.local_runtime import validate_local_settings
 from app.models import MediaAsset, MediaKind, Role, User, Workspace, WorkspaceMember, Zone
 from app.security import hash_password
 from app.social_features.classification import add_term, set_classification
-from app.social_features.models import Publication, UserProfile
+from app.social_features.models import Publication, PublicationTerm, UserProfile
 from app.workspaces.models import Connection, Record, RecordMedia, RecordRevision
 from app.workspaces.schemas import ImportBatch
 from app.workspaces.service import record_json
@@ -46,23 +46,21 @@ def preflight(root):
         if hashlib.sha256(path.read_bytes()).hexdigest() != entry["sha256"]:
             raise ValueError(f"Fixture integrity failed: {path.name}")
     for group in data["groups"]:
-        if not group["records"] and not group["publications"]:
-            for user in group["users"]:
-                raw = fixture_file(root, user["avatar"]).read_bytes()
-                if hashlib.sha256(raw).hexdigest() != user["avatar_sha256"]:
-                    raise ValueError("Avatar fixture integrity failed.")
-            continue
-        group["fixture"] = read_json(root / f"workspaces/{group['slug']}.json")
-        batch = ImportBatch.model_validate(group["fixture"]["batch"])
-        ids = {r.external_id for r in batch.records}
-        if any(set(r.related_ids) - ids for r in batch.records):
-            raise ValueError("Unresolved fixture record relationships.")
-        for attachment in group["fixture"]["attachments"]:
-            raw = fixture_file(root, "workspaces/" + attachment["path"]).read_bytes()
-            if attachment.get("sha256") and hashlib.sha256(raw).hexdigest() != attachment["sha256"]:
-                raise ValueError("Attachment fixture integrity failed.")
-            if attachment["record"] not in ids:
-                raise ValueError("Unresolved fixture attachment.")
+        if group["records"]:
+            group["fixture"] = read_json(root / f"workspaces/{group['slug']}.json")
+            batch = ImportBatch.model_validate(group["fixture"]["batch"])
+            ids = {r.external_id for r in batch.records}
+            if any(set(r.related_ids) - ids for r in batch.records):
+                raise ValueError("Unresolved fixture record relationships.")
+            for attachment in group["fixture"]["attachments"]:
+                raw = fixture_file(root, "workspaces/" + attachment["path"]).read_bytes()
+                if (
+                    attachment.get("sha256")
+                    and hashlib.sha256(raw).hexdigest() != attachment["sha256"]
+                ):
+                    raise ValueError("Attachment fixture integrity failed.")
+                if attachment["record"] not in ids:
+                    raise ValueError("Unresolved fixture attachment.")
         for user in group["users"]:
             raw = fixture_file(root, user["avatar"]).read_bytes()
             if hashlib.sha256(raw).hexdigest() != user["avatar_sha256"]:
@@ -149,6 +147,115 @@ def seed_records(db, root, group, workspace_id, owner_id, counts):
         db.flush()
 
 
+def seed_publications(db, root, group, *, preserve_missing=False):
+    """Use the same media, classification and display catalogs for every group."""
+    workspace_id = uuid.UUID(group["id"])
+    scenes = read_json(root / "real-scenes/manifest.json")["items"]
+    labels = {
+        row["post_id"]: row
+        for row in read_json(root / "real-scenes/publication-classification.json")["items"]
+    }
+    display = next(
+        g for g in read_json(root / "local/display-text.json")["groups"] if g["id"] == group["id"]
+    )
+    post_text = {row["id"]: row["fields"] for row in display["publications"]}
+    term_text = {(row["kind"], row["name"]): row["fields"] for row in display["terms"]}
+    owners = {u["username"]: uuid.UUID(u["id"]) for u in group["users"]}
+    created = 0
+    for entry in (row for row in scenes if row["group"] == group["media_group"]):
+        post_id = uuid.UUID(group["publications"][str(entry["id"])])
+        if db.get(Publication, post_id) is not None:
+            continue
+        owner_id = owners[entry["owner"]]
+        member = db.scalar(
+            select(WorkspaceMember).where(
+                WorkspaceMember.workspace_id == workspace_id, WorkspaceMember.user_id == owner_id
+            )
+        )
+        if member is None:
+            if preserve_missing:
+                continue
+            raise ValueError("Publication owner must belong to its workspace.")
+        asset = db.scalar(
+            select(MediaAsset).where(
+                MediaAsset.workspace_id == workspace_id,
+                MediaAsset.sha256 == entry["sha256"],
+                MediaAsset.extra_metadata["origin"]
+                .as_string()
+                .in_(["local-evaluation", "account-avatar"]),
+            )
+        )
+        key = f"{entry['group']}:{entry['id']}"
+        if asset is None:
+            if preserve_missing:
+                continue
+            path = fixture_file(root, entry["path"].removeprefix("simulator/"))
+            if hashlib.sha256(path.read_bytes()).hexdigest() != entry["sha256"]:
+                raise ValueError("Publication fixture integrity failed.")
+            asset = add_media(
+                db,
+                workspace_id,
+                path,
+                key,
+                {
+                    "origin": "local-evaluation",
+                    "source": entry["source"],
+                    "license": entry["license"],
+                    "staged_evaluation": True,
+                },
+            )
+        fields = post_text.get(str(post_id), {})
+        post = Publication(
+            id=post_id,
+            workspace_id=workspace_id,
+            owner_id=owner_id,
+            media_id=asset.id,
+            caption=entry["label"],
+            note_text=fields.get("note_text", {}).get("source", ""),
+            note_source="text" if "note_text" in fields else "",
+            source="local-evaluation",
+            source_ref=key,
+            display_text=fields,
+        )
+        db.add(post)
+        db.flush()
+        classification = labels[entry["post_id"]]
+        if classification["media_sha256"] != asset.sha256:
+            raise ValueError("Classification media mismatch.")
+        terms = {}
+        for kind, names in (
+            ("category", [classification["category"]]),
+            ("tag", classification["tags"]),
+        ):
+            for name in names:
+                term = db.scalar(
+                    select(PublicationTerm).where(
+                        PublicationTerm.workspace_id == workspace_id,
+                        PublicationTerm.kind == kind,
+                        PublicationTerm.name_key == name.casefold(),
+                    )
+                )
+                if term is None:
+                    term = add_term(db, workspace_id, kind, name)
+                    term.display_text = term_text.get((kind, name), {})
+                terms[kind, name] = term.id
+        set_classification(
+            db,
+            post,
+            terms["category", classification["category"]],
+            [terms["tag", tag] for tag in classification["tags"]],
+        )
+        for attachment in db.scalars(
+            select(RecordMedia)
+            .join(Record)
+            .where(Record.workspace_id == workspace_id, RecordMedia.media_id == asset.id)
+        ):
+            if attachment.publication_id is None:
+                attachment.publication_id = post.id
+        created += 1
+    return created
+
+
 def seed_evaluation(db, settings, root=FIXTURES):
     validate_local_settings(settings)
     if not (
@@ -170,9 +277,8 @@ def seed_evaluation(db, settings, root=FIXTURES):
         raise ValueError(
             "Use an empty isolated local database; existing accounts were not changed."
         )
-    data, scenes, classifications, profiles = preflight(root)
+    data, _, _, profiles = preflight(root)
     profile_fields = {p["username"]: p["fields"] for p in profiles}
-    classification = {p["post_id"]: p for p in classifications}
     counts = {"groups": 0, "users": 0, "records": 0, "attachments": 0, "publications": 0}
     for group in data["groups"]:
         workspace_id = uuid.UUID(group["id"])
@@ -225,49 +331,9 @@ def seed_evaluation(db, settings, root=FIXTURES):
             if fields.get("birthday"):
                 fields["birthday"] = date.fromisoformat(fields["birthday"])
             db.add(UserProfile(user_id=user.id, avatar_media_id=media.id, **fields))
-        if not group["records"] and not group["publications"]:
-            continue
-        seed_records(db, root, group, workspace_id, owner.id, counts)
-        terms = {}
-        for entry in [s for s in scenes if s["group"] == group["media_group"]]:
-            key = f"{entry['group']}:{entry['id']}"
-            asset = add_media(
-                db,
-                workspace_id,
-                fixture_file(root, entry["path"].removeprefix("simulator/")),
-                key,
-                {
-                    "origin": "local-evaluation",
-                    "source": entry["source"],
-                    "license": entry["license"],
-                    "staged_evaluation": True,
-                },
-            )
-            post = Publication(
-                id=uuid.UUID(group["publications"][str(entry["id"])]),
-                workspace_id=workspace_id,
-                owner_id=users[entry["owner"]].id,
-                media_id=asset.id,
-                caption=entry["label"],
-                source="local-evaluation",
-                source_ref=key,
-            )
-            db.add(post)
-            db.flush()
-            labels = classification[entry["post_id"]]
-            if labels["media_sha256"] != asset.sha256:
-                raise ValueError("Classification media mismatch.")
-            for kind, names in (("category", [labels["category"]]), ("tag", labels["tags"])):
-                for name in names:
-                    if (kind, name) not in terms:
-                        terms[kind, name] = add_term(db, workspace_id, kind, name).id
-            set_classification(
-                db,
-                post,
-                terms["category", labels["category"]],
-                [terms["tag", tag] for tag in labels["tags"]],
-            )
-            counts["publications"] += 1
+        if group["records"]:
+            seed_records(db, root, group, workspace_id, owner.id, counts)
+        counts["publications"] += seed_publications(db, root, group)
     digest = hashlib.sha256(json.dumps(data, sort_keys=True).encode()).hexdigest()
     db.add(LocalEvaluationState(name=RECEIPT, manifest_hash=digest, counts=counts))
     db.flush()

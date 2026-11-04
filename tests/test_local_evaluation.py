@@ -18,12 +18,12 @@ from sqlalchemy import delete, select
 from test_local_access import local_settings
 
 
-def test_meta_social_starts_empty_with_original_accounts(evaluation):
+def test_meta_social_starts_with_three_publications_and_original_accounts(evaluation):
     group = catalog()["groups"][1]
     assert group["name"] == "Meta Social Media"
     workspace_id = uuid.UUID(group["id"])
     with evaluation.app.state.database.session_factory() as db:
-        assert db.query(Publication).filter_by(workspace_id=workspace_id).count() == 0
+        assert db.query(Publication).filter_by(workspace_id=workspace_id).count() == 3
         assert db.query(Record).filter_by(workspace_id=workspace_id).count() == 0
         assert db.query(MediaAsset).filter_by(workspace_id=workspace_id).count() == 3
         assert {
@@ -91,7 +91,7 @@ def test_replacement_preserves_profiles_and_is_one_time(
         assert db.get(Publication, removed_post) is None
         assert db.get(MediaAsset, removed_media) is None
         assert db.get(Record, removed_record) is None
-        assert db.query(Publication).count() == 15
+        assert db.query(Publication).count() == 28
         for user_id, snapshot in profiles.items():
             profile = db.get(UserProfile, user_id)
             assert (
@@ -126,7 +126,7 @@ def evaluation(tmp_path):
             "users": 9,
             "records": 28,
             "attachments": 20,
-            "publications": 16,
+            "publications": 29,
         }
         db.commit()
     return APIClient(app)
@@ -302,7 +302,7 @@ def test_queue_dispatch_resumes_without_repeating_successful_jobs(
             enqueue_initial_media(db)
         assert len(calls) == 3
         monkeypatch.setattr("app.tasks.index_gallery_media.delay", calls.append)
-        assert enqueue_initial_media(db) == {"dispatched": 16}
-        assert len(set(calls)) == len(calls) == 16
-        assert enqueue_initial_media(db) == {"dispatched": 16}
-        assert len(calls) == 16
+        assert enqueue_initial_media(db) == {"dispatched": 29}
+        assert len(set(calls)) == len(calls) == 29
+        assert enqueue_initial_media(db) == {"dispatched": 29}
+        assert len(calls) == 29

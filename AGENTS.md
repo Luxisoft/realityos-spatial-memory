@@ -198,3 +198,9 @@ three access accounts. Use their separate avatars for these introductions;
 never publish biometric references. This supersedes the earlier empty-gallery
 and record-only instructions. Initialize these additions once and preserve edits,
 deletions, memberships and existing consent gates. Do not modify biometric code.
+
+Keep all three groups on the same publication fixture structure and shared loader:
+`simulator/local/catalog.json`, `simulator/real-scenes/manifest.json`,
+`simulator/real-scenes/publication-classification.json` and
+`simulator/local/display-text.json`. Do not introduce parallel per-feature
+publication manifests or duplicate publication creation logic.

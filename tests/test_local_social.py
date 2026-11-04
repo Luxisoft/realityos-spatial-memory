@@ -99,7 +99,7 @@ def test_directory_counts_and_restart_preserve_changes(evaluation, provision):
         )
         assert (
             db.query(Publication).filter_by(workspace_id=provision.WORKSPACE).count()
-            == 0
+            == 3
         )
         assert all(p.imported_photos == 3 for p in db.scalars(select(FacebookProfile)))
         db.get(User, user_id).display_name = "Edited"

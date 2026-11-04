@@ -11,6 +11,50 @@ from app.workspaces.models import RecordMedia
 from test_local_evaluation import evaluation as evaluation  # noqa: PLC0414
 
 
+def test_existing_installation_uses_shared_catalog_without_duplicate_media(
+    evaluation, monkeypatch
+):
+    from app.models import MediaAsset
+    from app.social_features.models import PublicationTag
+    from sqlalchemy import delete, select, update
+
+    monkeypatch.syspath_prepend(str(Path(__file__).resolve().parents[1] / "scripts"))
+    from seed_local_publications import seed_local_publications
+
+    groups = [
+        g for g in catalog()["groups"] if g["slug"] in {"security", "meta-social"}
+    ]
+    ids = [uuid.UUID(value) for g in groups for value in g["publications"].values()]
+    with evaluation.app.state.database.session_factory() as db:
+        originals = {
+            p.id: p.media_id
+            for p in db.scalars(select(Publication).where(Publication.id.in_(ids)))
+        }
+        media_count = db.query(MediaAsset).count()
+        db.execute(
+            update(RecordMedia)
+            .where(RecordMedia.publication_id.in_(ids))
+            .values(publication_id=None)
+        )
+        db.execute(delete(PublicationTag).where(PublicationTag.post_id.in_(ids)))
+        db.execute(delete(Publication).where(Publication.id.in_(ids)))
+        db.commit()
+        assert seed_local_publications(db, evaluation.app.state.settings) == {
+            "initialized": True,
+            "publications": 13,
+        }
+        db.commit()
+        assert db.query(MediaAsset).count() == media_count
+        assert {
+            p.id: p.media_id
+            for p in db.scalars(select(Publication).where(Publication.id.in_(ids)))
+        } == originals
+        assert (
+            seed_local_publications(db, evaluation.app.state.settings)["initialized"]
+            is False
+        )
+
+
 def test_publication_seed_gallery_scope_and_restart(evaluation, monkeypatch):
     monkeypatch.syspath_prepend(str(Path(__file__).resolve().parents[1] / "scripts"))
     from seed_local_publications import seed_local_publications
@@ -18,7 +62,7 @@ def test_publication_seed_gallery_scope_and_restart(evaluation, monkeypatch):
     with evaluation.app.state.database.session_factory() as db:
         result = seed_local_publications(db, evaluation.app.state.settings)
         db.commit()
-        assert result == {"initialized": True, "publications": 13}
+        assert result == {"initialized": True, "publications": 0}
         assert (
             db.query(RecordMedia)
             .filter(RecordMedia.publication_id.is_not(None))

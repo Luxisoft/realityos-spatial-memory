@@ -57,7 +57,8 @@ def test_meta_photos_reference_only_the_existing_group_avatars():
         assert reference_hash == item["reference_sha256"] == user["avatar_sha256"]
         assert item["sha256"] != reference_hash
         assert item["people_count"] == 1
-    assert group["publications"] == group["records"] == {}
+    assert len(group["publications"]) == 3
+    assert group["records"] == {}
 
 
 def test_local_seed_never_imports_query_photos(evaluation):  # noqa: F811

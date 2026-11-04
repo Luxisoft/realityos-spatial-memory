@@ -42,7 +42,18 @@
         "security-person-09": "ba595358-1365-5989-a487-18c54f48e066",
         "security-person-10": "cde43426-901a-5c93-8601-2f78935464d2"
       },
-      "publications": {},
+      "publications": {
+        "police-case:security-person-01": "be1c4ea0-1ab8-56d1-abde-bd7ff0d8f81b",
+        "police-case:security-person-02": "5344161d-0fa6-51e0-ae48-92a37e3e65c6",
+        "police-case:security-person-03": "4384e305-ef32-5c7d-9b8d-6bd2c80c8b05",
+        "police-case:security-person-04": "5217d89a-1dba-5d0f-b6a5-f51b10e22c13",
+        "police-case:security-person-05": "3a13e840-a414-56a4-b85a-3f0a4930b37b",
+        "police-case:security-person-06": "4fe1617c-8a1b-5008-9508-572418d8f17c",
+        "police-case:security-person-07": "11a0c844-9324-5994-bd30-99f55ff1c7da",
+        "police-case:security-person-08": "b531b3d7-de89-559f-9173-2114c30a4310",
+        "police-case:security-person-09": "118407b2-4801-5720-9ab9-729c18c14294",
+        "police-case:security-person-10": "0a691133-f51f-583a-840e-3187f5222b39"
+      },
       "query": "",
       "record_question": "Which people have an active arrest warrant, which of them have active judicial proceedings, and which have no registered history?",
       "content_revision": "police-people-v1"
@@ -76,7 +87,11 @@
         }
       ],
       "records": {},
-      "publications": {},
+      "publications": {
+        "social-introduction:elena-marquez": "9c941832-fbbb-5bd1-a4f8-5a97cd82acb2",
+        "social-introduction:mateo-rios": "274fc4bb-2238-52fc-9bc5-e8ed8829ec8d",
+        "social-introduction:sarah-chen": "83f44974-0fe3-57c2-ae3a-5b8b223ec53e"
+      },
       "query": "",
       "record_question": ""
     },

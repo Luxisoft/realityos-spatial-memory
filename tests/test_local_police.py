@@ -55,7 +55,7 @@ def test_police_people_portraits_and_access(evaluation):  # noqa: F811
     with evaluation.app.state.database.session_factory() as db:
         assert (
             db.query(Publication).filter_by(workspace_id=uuid.UUID(group["id"])).count()
-            == 0
+            == 10
         )
 
 
@@ -91,7 +91,7 @@ def test_police_replacement_is_atomic_and_preserves_accounts(evaluation, monkeyp
         db.add(stale)
         db.commit()
         report = refresh_local_police(db, settings)
-        assert report["removed"]["publications"] == 1
+        assert report["removed"]["publications"] == 11
         assert report["created"] == {"records": 10, "attachments": 10}
         db.commit()
         db.expire_all()
