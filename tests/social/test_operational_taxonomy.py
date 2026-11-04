@@ -51,7 +51,7 @@ def authorization(evaluation, workspace):
     }
 
 
-def test_approved_terms_and_counts_are_the_actual_gallery_filters(evaluation):
+def assert_approved_gallery_filters(evaluation):
     for workspace, expected in EXPECTED.items():
         _, headers = authorization(evaluation, workspace)
         scoped = {"workspace_id": str(workspace)}
@@ -128,6 +128,10 @@ def test_approved_terms_and_counts_are_the_actual_gallery_filters(evaluation):
             ).json()["items"]
             == []
         )
+
+
+def test_approved_terms_and_counts_are_the_actual_gallery_filters(evaluation):
+    assert_approved_gallery_filters(evaluation)
 
 
 def test_hidden_content_and_removed_membership_do_not_leave_filter_options(evaluation):

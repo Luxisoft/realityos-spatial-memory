@@ -52,6 +52,23 @@ migration checks. Fresh and upgraded databases retain
 associations, preserves manual changes and pending uploads, rolls back completely
 on failure and does not require fixture files on later restarts.
 
+The later “Case information” plus “Observation video” report exposed a case those
+tests did not cover: installations predating the SQL loader generated different
+catalog UUIDs and retained older provenance references. The exact result was
+reproduced through the real initializer. The additional
+`legacy-publication-classification-repair-v1` revision recognizes that state and
+applies the same approved classification even when receipts 008 and 010 already
+exist. It preserves existing identifiers, media, copy and owner edits; associations
+are checked against workspace and provenance.
+
+The repair passed **38 distinct tests**: 16 data cases on SQLite and PostgreSQL,
+two API tests reproducing the reported failure, two fresh-install API tests and
+18 revision-010 regressions. They cover the seven Police tags and four Meta tags,
+their categories and ES/EN counts, reused media, partial upgrades, manual history,
+isolation, rollback and restart. Formatting, lint, architecture and documentation
+checks passed. This correction changes neither Android nor the API contract;
+the canonical APK retains the version recorded below.
+
 The preceding classification revision passed **101 distinct tests**: 21 new regressions on isolated
 SQLite and PostgreSQL (119.33 seconds) and 80 existing local-data/API checks
 (226.88 seconds), with no failures or skips. They cover API filter queries,

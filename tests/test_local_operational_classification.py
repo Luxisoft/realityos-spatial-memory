@@ -24,7 +24,25 @@ from test_local_access import local_settings
 
 RECEIPT = "use-case-publication-classification-v1"
 FILENAME = "010-use-case-classification.sql"
-EARLIER = tuple(item for item in bootstrap.DATA_UPDATES if item[0] != RECEIPT)
+REVISIONS = {
+    "group-videos-v1",
+    "police-records-v2",
+    "shared-publication-classification-v1",
+    RECEIPT,
+}
+EARLIER = tuple(
+    item for item in bootstrap.DATA_UPDATES if item[0] in REVISIONS - {RECEIPT}
+)
+
+
+@pytest.fixture(autouse=True)
+def isolate_reviewed_revision(monkeypatch):
+    """Keep revision 010's upgrade scenarios independent of later repairs."""
+    monkeypatch.setattr(
+        bootstrap,
+        "DATA_UPDATES",
+        tuple(item for item in bootstrap.DATA_UPDATES if item[0] in REVISIONS),
+    )
 
 
 @pytest.fixture(params=["sqlite", "postgresql"])

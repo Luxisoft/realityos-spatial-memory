@@ -17,6 +17,7 @@ DATA_UPDATES = (
     ("police-records-v2", "005-police-records.sql"),
     ("shared-publication-classification-v1", "008-shared-publication-classification.sql"),
     ("use-case-publication-classification-v1", "010-use-case-classification.sql"),
+    ("legacy-publication-classification-repair-v1", "011-legacy-classification-repair.sql"),
 )
 
 

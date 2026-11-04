@@ -73,3 +73,21 @@ Las etiquetas de video describen su función dentro del caso de uso. No identifi
 La revisión se instala una vez mediante el cargador SQL compartido y su recibo `use-case-publication-classification-v1`, después de la revisión 008. Solo corrige publicaciones preparadas cuya categoría, etiquetas, texto y hechos pertinentes siguen intactos, con autor activo y membresía vigente. Conserva clasificaciones manuales, vocabularios renombrados o archivados, publicaciones ocultas, borrados, grupos retirados y estados desconocidos. No repone filas ni modifica los medios. Los términos equivalentes ya creados por el dueño se reutilizan sin sobrescribirlos.
 
 Una instalación nueva queda con 17 términos activos: cuatro categorías y siete etiquetas de Police, dos categorías y cuatro etiquetas de Meta. Se retiran las asociaciones preparadas anteriores antes de archivar los términos sin uso, para que dejen de aparecer en los filtros de publicaciones. En instalaciones editadas, un término anterior continúa activo si todavía clasifica otra publicación o figura en una carga pendiente; tampoco se archiva un término renombrado por el dueño. Un reinicio no vuelve a aplicar la revisión.
+
+### Instalaciones anteriores al cargador SQL
+
+Las versiones anteriores creaban los identificadores del catálogo al instalarlo
+y guardaban algunas referencias de procedencia sin el prefijo del grupo.
+Las revisiones 008 y 010 esperaban los identificadores y referencias exportados
+en el SQL y podían omitir esos expedientes aunque registraran la actualización como ejecutada. El
+síntoma reproducido es conservar «Información del expediente» junto a «Video de
+observación», sin las etiquetas judiciales; las presentaciones de Meta también
+podían conservar su clasificación anterior.
+
+La revisión [011-legacy-classification-repair.sql](../../../simulator/database/011-legacy-classification-repair.sql), con recibo
+`legacy-publication-classification-repair-v1`, corrige esas instalaciones una sola
+vez. Reconoce el vocabulario anterior por grupo y contenido original, valida la
+procedencia y los vínculos de las publicaciones, y conserva los identificadores
+existentes. Aplica los mismos 17 términos aprobados y respeta las ediciones,
+eliminaciones y permisos. Se ejecuta con el inicio local habitual después de
+actualizar el repositorio; no requiere borrar la base ni los recibos anteriores.

@@ -53,6 +53,23 @@ La migración retira asociaciones obsoletas, conserva cambios manuales y cargas
 pendientes, revierte completamente ante fallos y no requiere los archivos de
 instalación en reinicios posteriores.
 
+La incidencia posterior con «Información del expediente» y «Video de observación»
+reveló un caso que esas pruebas no cubrían: instalaciones anteriores al cargador
+SQL generaban UUID distintos para el catálogo y conservaban referencias de
+procedencia antiguas. Se reprodujo el resultado exacto con el inicializador real.
+La revisión adicional `legacy-publication-classification-repair-v1` reconoce ese
+estado y aplica la misma clasificación aprobada, incluso cuando ya existen los
+recibos 008 y 010. Conserva los identificadores existentes, los medios, los textos
+y las ediciones; las asociaciones se verifican por grupo y procedencia.
+
+La reparación aprobó **38 pruebas distintas**: 16 casos de datos en SQLite y
+PostgreSQL, dos pruebas API del fallo reproducido, dos pruebas API de instalación
+nueva y 18 regresiones de la revisión 010. Cubren las siete etiquetas de Police y
+las cuatro de Meta, sus categorías y conteos ES/EN, medios reutilizados,
+actualizaciones parciales, historial manual, aislamiento, rollback y reinicio.
+Pasaron formato, lint, arquitectura y documentación. Esta corrección no cambia
+Android ni el contrato API; el APK canónico conserva la versión indicada abajo.
+
 La revisión anterior de clasificación aprobó **101 pruebas distintas**: 21 regresiones nuevas en
 SQLite y PostgreSQL aislado (119,33 segundos) y 80 comprobaciones anteriores de
 datos locales y API (226,88 segundos), sin fallos ni omisiones. Cubren los filtros

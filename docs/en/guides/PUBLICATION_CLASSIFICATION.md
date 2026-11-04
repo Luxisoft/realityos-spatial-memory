@@ -73,3 +73,20 @@ Video tags describe their role in the use case. They do not identify people or a
 The shared SQL loader installs the revision once using its `use-case-publication-classification-v1` receipt, after revision 008. It only changes prepared publications whose category, tags, text and relevant recorded facts remain intact, with an active author and current group membership. It preserves manual classification, renamed or archived vocabulary, hidden publications, deletions, removed groups and unknown states. It does not restore rows or change media. Equivalent terms already created by the owner are reused without overwriting them.
 
 A fresh installation has 17 active terms: four categories and seven tags for Police, two categories and four tags for Meta. Superseded prepared associations are removed before unused terms are archived, so they no longer appear in publication filters. On edited installations, a former term stays active if another publication or pending upload still references it; owner-renamed terms are also retained. Restart does not reapply the revision.
+
+### Installations predating the SQL loader
+
+Earlier versions generated catalog identifiers during installation and stored
+some provenance references without the workspace prefix. Revisions 008 and 010
+expected the identifiers and references exported in SQL and could skip those cases
+while still recording the update as executed. The reproduced symptom is retaining
+“Case information” alongside “Observation video”, without the judicial tags;
+Meta introductions could also keep their former classification.
+
+Revision [011-legacy-classification-repair.sql](../../../simulator/database/011-legacy-classification-repair.sql), with receipt
+`legacy-publication-classification-repair-v1`, repairs those installations once.
+It recognizes the former vocabulary by workspace and original content, validates
+publication provenance and links, and preserves existing identifiers. It applies
+the same 17 approved terms while respecting edits, deletions and permissions.
+Regular local startup applies it after updating the repository; it does not
+require deleting the database or earlier receipts.
