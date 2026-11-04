@@ -290,6 +290,10 @@ Use the owner's `logo_splash.png` for the native Android splash, rehomed as
 the separate launcher icon and the internal UI theme. Keep the supplied PNG
 unchanged and remove its temporary root copy after rehoming.
 
+The splash logo must retain its complete original shape and aspect ratio, with
+no rounded treatment or crop. Keep sufficient transparent padding so the native
+Android splash mask cannot cut any visible part of the supplied logo.
+
 The internal app logo also uses `icon_app.png`, displayed with a fully circular
 crop through one shared component. Apply it to entry/account headers and the app
 drawer. Keep the separate splash logo and the existing screen/button colors.
