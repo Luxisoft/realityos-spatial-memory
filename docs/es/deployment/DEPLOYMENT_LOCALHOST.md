@@ -2,14 +2,14 @@
 
 # Instalación local: Windows y Linux
 
-Esta es la instalación principal para evaluar el proyecto. Docker ejecuta cuatro servicios en tu computadora: PostgreSQL (una sola base de datos de la aplicación), Redis (cola de tareas), la API existente y el worker existente. Solo se publica la API en `127.0.0.1:8080`. No requiere gateway, proxy, scheduler, buckets, login Facebook, SMTP ni ElevenLabs. La IA sigue usando internet y tu propia `MODEL_API_KEY` de Meta.
+Docker ejecuta cuatro servicios en tu computadora: PostgreSQL (base de datos), Redis (cola de tareas), API y worker. La API está disponible en `127.0.0.1:8080`.
 
 ## Requisitos
 
 - Windows x64 con Docker Desktop, contenedores Linux y WSL2; o Linux x64 con Docker Engine y Compose. Esta instalación no admite macOS.
 - Al menos 4 CPU, 8 GiB de RAM y 25 GiB libres para Docker. La primera construcción descarga dependencias y pesos de InsightFace.
 - Android 12+ y Android Platform Tools (`adb`), cable USB y depuración USB. Las gafas son opcionales para capturar con el teléfono y consultar evidencia guardada.
-- Tu clave Meta con acceso a los modelos actuales de RealityOS: Muse Spark, SAM y Muse Voice Transcribe. No necesitas cuentas de otros proveedores para el recorrido local.
+- Conexión a internet y tu `MODEL_API_KEY` de Meta con acceso a Muse Spark, SAM y Muse Voice Transcribe.
 
 Clona o descarga el repositorio público. Ejecuta los comandos desde la raíz. No copies un `.env` de producción.
 
@@ -46,14 +46,23 @@ Reiniciar no vuelve a cargar los escenarios ni restaura lo eliminado. No ejecute
 
 ## 3. Android
 
-Descarga **[app-debug.apk](https://github.com/Luxisoft/realityos-spatial-memory/releases/download/local-evaluation/app-debug.apk)** de la publicación pública de GitHub (sin iniciar sesión). Para instalarlo no necesitas Android Studio, Java ni el SDK completo; basta Platform Tools. Compilarlo es opcional y requiere Java 21 y Android SDK 36:
+Descarga **[app-debug.apk](https://github.com/Luxisoft/realityos-spatial-memory/releases/download/local-evaluation/app-debug.apk)** de la publicación pública de GitHub (sin iniciar sesión). Para instalarlo basta Platform Tools. Para compilarlo, usa **JDK 21 LTS** (la versión de CI) y Android SDK 36. [Configuración de Java en Windows](#java-windows).
+
+Linux:
 
 ```bash
 cd android
 ./gradlew :app:assembleDebug
 ```
 
-En Windows usa `gradlew.bat`. El resultado único es `android/app/build/outputs/apk/debug/app-debug.apk`. Debug usa por defecto `com.luxisoft.realityos.local` y `http://localhost:8080/v1`.
+Windows PowerShell:
+
+```powershell
+cd android
+.\gradlew.bat :app:assembleDebug
+```
+
+El resultado único es `android/app/build/outputs/apk/debug/app-debug.apk`. Debug usa por defecto `com.luxisoft.realityos.local` y `http://localhost:8080/v1`.
 
 Conecta el teléfono, acepta la depuración y ejecuta desde la raíz:
 
@@ -64,7 +73,7 @@ adb install -r android/app/build/outputs/apk/debug/app-debug.apk
 
 Si descargaste el APK, indica su ruta. Repite `adb reverse` después de reconectar. Sin ese túnel, localhost en Android apunta al teléfono, no a tu computadora. No hace falta exponer un puerto a la red local.
 
-Abre RealityOS y elige una de las nueve cuentas agrupadas por escenario. No hay contraseña ni login de Facebook. Cambiar de usuario conserva los permisos y el aislamiento entre grupos. El ingreso local no enrola un rostro ni concede consentimiento biométrico.
+Abre RealityOS y elige una de las nueve cuentas agrupadas por escenario. Cambiar de usuario conserva los permisos y el aislamiento entre grupos. El ingreso local no enrola un rostro ni concede consentimiento biométrico.
 
 La respuesta hablada usa una voz ES/EN instalada sin conexión en Android. Si falta, instala el idioma en los ajustes de texto a voz; la respuesta sigue visible como texto. La entrada de audio conserva la transcripción Meta. La clave Meta nunca va en el APK.
 
@@ -72,7 +81,7 @@ La respuesta hablada usa una voz ES/EN instalada sin conexión en Android. Si fa
 
 Los recursos públicos iniciales están en `simulator/workspaces/assets/`, `simulator/workspaces/profile-photos/` y `simulator/real-scenes/assets/`, con sus manifiestos. Se incluyen en la imagen; no se descarga contenido privado de producción. Para agregar una foto o video, selecciónalo en Android y publícalo en un grupo con categoría y etiquetas. Editar, borrar, consultar y actualizar el perfil usan las operaciones actuales sobre PostgreSQL local.
 
-Los originales se guardan como `BYTEA` en PostgreSQL o sus fragmentos ordenados existentes. Los datos y archivos quedan juntos en el volumen `realityos-local_postgres_data`. Redis conserva la cola en su propio volumen. No hay observadores de carpetas, adaptadores, conexiones a buckets ni sincronización. Copiar un archivo nuevo a una carpeta de fixtures no lo publica automáticamente.
+Los originales se guardan como `BYTEA` en PostgreSQL o sus fragmentos ordenados existentes. Los datos y archivos quedan juntos en el volumen `realityos-local_postgres_data`. Redis conserva la cola en su propio volumen. Agrega publicaciones desde Android.
 
 ## Postman y diagnóstico
 
@@ -95,3 +104,30 @@ bash scripts/local/stop.sh
 Comprueba `http://localhost:8080/health/ready` y `http://localhost:8080/docs`. El diagnóstico consulta Meta con tu clave real. Detener conserva los datos. Si la clave falla, corrígela en el archivo privado y reinicia; no hay sustitución por modelos simulados. Consulta los logs de API/worker con el Compose local y evita publicar secretos o archivos personales en reportes.
 
 La instalación Windows completa, el teléfono físico, las voces instaladas y el recorrido Meta real requieren su propia comprobación. Las pruebas automáticas no certifican esos resultados. Consulta el [estado verificado](../project/IMPLEMENTATION_STATUS.md).
+
+<a id="java-windows"></a>
+
+## Java en Windows: corregir `JAVA_HOME`
+
+Usa **JDK 21 LTS**, igual que la [compilación de CI](../../../.github/workflows/ci.yml). El [proyecto Android](../../../android/app/build.gradle.kts) genera bytecode Java/Kotlin 17; eso no cambia el JDK recomendado para compilar. [AGP 8.11 requiere como mínimo JDK 17](https://developer.android.com/build/releases/agp-8-11-0-release-notes#compatibility).
+
+El aviso `JAVA_HOME is set to 'C:\Program Files\Java\jdk-23', but it does not contain a usable Java executable` indica que el editor no puede ejecutar Java desde esa ruta.
+
+1. Instala [Eclipse Temurin JDK 21 LTS para Windows x64](https://adoptium.net/temurin/releases/?version=21&os=windows&arch=x64&package=jdk), paquete **JDK**, instalador MSI. Comprueba la carpeta exacta de instalación: debe contener `bin\java.exe` y `bin\javac.exe`.
+2. En Windows, busca **Editar las variables de entorno del sistema** y abre **Variables de entorno**. Cambia `JAVA_HOME` a esa carpeta raíz del JDK, sin comillas y sin añadir `\bin`. Revisa las variables de usuario y de sistema para que ninguna conserve la ruta obsoleta. Si existe `JDK_HOME` con esa ruta vieja, corrígelo o elimínalo.
+3. En `Path`, coloca `%JAVA_HOME%\bin` antes de otras entradas de Java y retira las entradas que apunten a instalaciones eliminadas.
+4. Cierra completamente el editor y las terminales. Abre una nueva PowerShell y comprueba:
+
+```powershell
+$env:JAVA_HOME
+Test-Path "$env:JAVA_HOME\bin\java.exe"
+Test-Path "$env:JAVA_HOME\bin\javac.exe"
+& "$env:JAVA_HOME\bin\java.exe" -version
+java -version
+javac -version
+.\android\gradlew.bat --version
+```
+
+Los dos `Test-Path` deben devolver `True`; Java, javac y la JVM de Gradle deben mostrar la versión 21. Si `java -version` muestra otra, usa `where.exe java` para localizar la entrada que tiene prioridad en `Path`.
+
+Si el editor mantiene el aviso, abre sus ajustes JSON de usuario y del proyecto. Elimina las referencias a la instalación vieja en `java.home` o `java.jdt.ls.java.home`. La [extensión Java actual para Windows x64](https://github.com/redhat-developer/vscode-java#java-tooling-jdk) incluye su propio runtime para el servidor de lenguaje; configura `java.import.gradle.java.home` con la ruta real del JDK 21 para compilar el proyecto. Si usas Android Studio, selecciona el mismo JDK 21 en **Settings → Build, Execution, Deployment → Build Tools → Gradle → Gradle JDK**.

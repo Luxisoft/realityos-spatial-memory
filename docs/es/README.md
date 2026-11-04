@@ -22,6 +22,8 @@ El primer inicio prepara **3 grupos, 9 usuarios, 47 expedientes, 27 adjuntos y 4
 
 El archivo instalable es `android/app/build/outputs/apk/debug/app-debug.apk`. [Compilación y conexión USB](deployment/DEPLOYMENT_LOCALHOST.md#android). Debug usa localhost por defecto; las credenciales de proveedores nunca van en el APK.
 
+Para compilar Android, usa **JDK 21 LTS** y Android SDK 36. [Configurar Java y corregir `JAVA_HOME` en Windows](deployment/DEPLOYMENT_LOCALHOST.md#java-windows).
+
 Importa la [colección Postman](../postman/RealityOS.postman_collection.json), elige **No environment** y abre **Localhost requests → 00 Quick start** o **00 Local scenarios**. El acceso y la renovación de sesión son automáticos. **Server requests** está desactivado, sin endpoint ni contraseñas configuradas. [Guía API](api/API.md#quick-start).
 
 <a id="cases"></a>
@@ -47,8 +49,6 @@ InsightFace sigue aislado y sujeto a consentimiento. Autoriza y enrola expresame
 ## Arquitectura local
 
 Cuatro servicios Docker: **PostgreSQL + Redis + API + worker**. PostgreSQL es la única base de datos de la aplicación y guarda los originales como BYTEA; Redis conserva la cola de procesamiento. Los recursos públicos iniciales son carpetas normales del repositorio bajo `simulator/`. Las publicaciones y cambios de cuentas/grupos quedan en el volumen local de la base de datos.
-
-Este recorrido no requiere gateway, proxy, scheduler, R2/S3, importadores remotos, login Facebook, SMTP ni ElevenLabs. No hay observadores de carpetas ni adaptadores de sincronización. Los instaladores locales no actúan sobre los hosts históricos; el despliegue automático a producción está desactivado.
 
 Muse Spark, SAM y Muse Voice Transcribe mantienen su lógica actual y usan directamente tu clave Meta. La voz de salida usa voces instaladas sin conexión en Android; si falta una voz, queda el texto. Se necesita internet para Meta y las descargas iniciales de dependencias/modelos.
 

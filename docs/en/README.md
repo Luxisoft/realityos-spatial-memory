@@ -22,6 +22,8 @@ The first start prepares **3 groups, 9 users, 47 records, 27 attachments and 48 
 
 The installable artifact is `android/app/build/outputs/apk/debug/app-debug.apk`. [Build and USB connection instructions](deployment/DEPLOYMENT_LOCALHOST.md#android). Debug defaults to localhost; provider credentials never enter the APK.
 
+To build Android, use **JDK 21 LTS** and Android SDK 36. [Configure Java and fix `JAVA_HOME` on Windows](deployment/DEPLOYMENT_LOCALHOST.md#java-windows).
+
 Import the [Postman collection](../postman/RealityOS.postman_collection.json), choose **No environment**, and open **Localhost requests → 00 Quick start** or **00 Local scenarios**. Account selection and session renewal are automatic. **Server requests** is disabled, without a configured endpoint or passwords. [API guide](api/API.md#quick-start).
 
 <a id="cases"></a>
@@ -47,8 +49,6 @@ InsightFace remains an isolated, consent-gated feature. Explicitly authorize and
 ## Local architecture
 
 Four Docker services: **PostgreSQL + Redis + API + worker**. PostgreSQL is the one application database and stores original media as BYTEA; Redis holds the processing queue. Public starting files are ordinary repository folders under `simulator/`. Uploads and all account/workspace changes stay in the local database volume.
-
-No gateway, reverse proxy, scheduler, R2/S3 bucket, remote import service, Facebook login, SMTP or ElevenLabs is required by this local runtime. There are no folder watchers or synchronization adapters. Local launchers never operate on the historical production hosts; automatic production deployment is disabled.
 
 Muse Spark, SAM and Muse Voice Transcribe keep their existing processing and search logic, using your Meta key directly. Audio replies use Android's installed offline voices; text remains available if a voice is missing. Internet is required for Meta and the first dependency/model downloads.
 
