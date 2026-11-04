@@ -2,7 +2,7 @@
 
 # Guías de RealityOS
 
-**Para probar la app:** [acceso y APK](README.md#evaluate) → [recorridos](guides/DEMO.md) → [checklist](testing/IMPLEMENTATION_CHECKLIST.md). Para conectar tus recursos: [buckets R2/S3](guides/STORAGE_CONNECTIONS.md).
+**Instalación y uso en un solo archivo:** [README en español](README.md). Este índice reúne la referencia técnica.
 
 ## Uso y datos
 

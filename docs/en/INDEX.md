@@ -2,7 +2,7 @@
 
 # RealityOS guides
 
-**To try the app:** [access and APK](README.md#evaluate) → [walkthroughs](guides/DEMO.md) → [checklist](testing/IMPLEMENTATION_CHECKLIST.md). To connect your resources: [R2/S3 buckets](guides/STORAGE_CONNECTIONS.md).
+**Setup and usage in one file:** [English README](README.md). This index contains the technical reference.
 
 ## Usage and data
 

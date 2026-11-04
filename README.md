@@ -1,92 +1,102 @@
 <!-- Generated from docs/en/README.md. Edit the EN/ES originals, then run python3 scripts/check_docs.py --sync-readme. -->
 
 <a id="top"></a>
-[Español](docs/es/README.md) · [Documentation](docs/en/INDEX.md)
+
+[Español](docs/es/README.md)
 
 # RealityOS
 
-Local evaluation on Windows and Linux x64, with Android as the only app. RealityOS keeps its existing evidence processing, visual search, workspace permissions and isolated consent-based face search.
-
-![RealityOS](docs/assets/readme/banner-en.png)
-
-<a id="evaluate"></a>
-
-## Start testing
-
-1. Download or clone this public repository and install Docker. Follow the [local installation guide](docs/en/deployment/DEPLOYMENT_LOCALHOST.md).
-2. Run `scripts/local/start.sh` on Linux, or `scripts/local/Start-RealityOS.ps1` on Windows. Supply **only your own Meta `MODEL_API_KEY`**. Internal secrets are generated locally.
-3. Install the local Debug APK on Android 12+, connect USB and run `adb reverse tcp:8080 tcp:8080`.
-4. Choose a local account. Explore its gallery and group records; publish, edit, delete and query local data. Allow the worker to finish real Meta indexing before checking visual-search results.
-
-The first start prepares **3 groups, 9 users, 47 records, 27 attachments and 48 existing licensed gallery scenes**. Restarting preserves edits and deletions. Fictional records are labelled simulated; AI answers and indexes use real models. No biometric enrollment or consent is seeded.
-
-**[Download the local Android APK](https://github.com/Luxisoft/realityos-spatial-memory/releases/download/local-evaluation/app-debug.apk)** — public download, no GitHub sign-in required.
-
-The installable artifact is `android/app/build/outputs/apk/debug/app-debug.apk`. [Build and USB connection instructions](docs/en/deployment/DEPLOYMENT_LOCALHOST.md#android). Debug defaults to localhost; provider credentials never enter the APK.
-
-To build Android, use **JDK 21 LTS** and Android SDK 36. [Configure Java and fix `JAVA_HOME` on Windows](docs/en/deployment/DEPLOYMENT_LOCALHOST.md#java-windows).
-
-Import the [Postman collection](docs/postman/RealityOS.postman_collection.json), choose **No environment**, and open **Localhost requests → 00 Quick start** or **00 Local scenarios**. Account selection and session renewal are automatic. **Server requests** is disabled, without a configured endpoint or passwords. [API guide](docs/en/api/API.md#quick-start).
-
-<a id="cases"></a>
-
-## Existing scenarios
-
-| Scenario | Group | Accounts |
-| --- | --- | --- |
-| Police | Pacific Ridge Police Department | Alex Rivera, Maya Johnson, Daniel Kim |
-| Nursing | California Valley Medical Center | Elena Marquez, Mateo Rios, Sarah Chen |
-| Memory | Sonoran Neurological Institute | Noah Brooks, Lucia Vega, Owen Patel |
-
-Gallery is the main view. Publications require an existing group, one category and at least one tag. The owner manages the group catalog. Filters, profiles, records, attachments and search retain their existing behavior and permissions. [Walkthrough](docs/en/guides/DEMO.md#access) · [Publication classification](docs/en/guides/PUBLICATION_CLASSIFICATION.md).
-
-<a id="biometrics"></a>
-
-## Facial recognition and context
-
-InsightFace remains an isolated, consent-gated feature. Explicitly authorize and enroll a person before using biometric search. Local account selection only bypasses facial verification at login; it does not bypass search consent, workspace authorization or enrollment. Probe results are candidates with evidence, never a guarantee of identity. [Architecture](docs/en/architecture/ARCHITECTURE.md) · [Security](docs/en/architecture/SECURITY.md).
-
 <a id="architecture"></a>
 
-## Local architecture
+Android app for saving photos, videos and records in groups and searching evidence with AI. The local server runs PostgreSQL, Redis, API and worker in Docker.
 
-Four Docker services: **PostgreSQL + Redis + API + worker**. PostgreSQL is the one application database and stores original media as BYTEA; Redis holds the processing queue. Public starting files are ordinary repository folders under `simulator/`. Uploads and all account/workspace changes stay in the local database volume.
+## Requirements
 
-Muse Spark, SAM and Muse Voice Transcribe keep their existing processing and search logic, using your Meta key directly. Audio replies use Android's installed offline voices; text remains available if a voice is missing. Internet is required for Meta and the first dependency/model downloads.
+- Windows x64 with [Docker Desktop](https://docs.docker.com/desktop/setup/install/windows-install/) and WSL2, or Linux x64 with [Docker Engine and Compose](https://docs.docker.com/engine/install/). Allocate **4 CPU cores, 8 GiB RAM and 25 GiB free storage** to Docker.
+- Android 12+, USB cable and USB debugging; [Platform Tools (`adb`)](https://developer.android.com/tools/releases/platform-tools) on your `Path`.
+- Internet and your own Meta `MODEL_API_KEY` with access to Muse Spark, SAM and Muse Voice Transcribe.
 
-```mermaid
-flowchart LR
-    Android -->|USB / localhost:8080| API
-    API --> PostgreSQL
-    API --> Redis
-    Redis --> Worker
-    Worker --> PostgreSQL
-    API --> Meta
-    Worker --> Meta
-```
-
+<a id="evaluate"></a>
 <a id="deploy"></a>
 
-## Start with Docker
+## 1. Start
 
-Windows:
+Download and extract the [repository](https://github.com/Luxisoft/realityos-spatial-memory/archive/refs/heads/main.zip), start Docker and run from the project folder:
+
+**Windows — PowerShell**
 
 ```powershell
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\local\Start-RealityOS.ps1
 ```
 
-Linux:
+**Linux**
 
 ```bash
 bash scripts/local/start.sh
 ```
 
-Keep `.env.local` private. `.env.example` and `.env.local.example` contain placeholders, not credentials. See [requirements, persistence, diagnostics and stop commands](docs/en/deployment/DEPLOYMENT_LOCALHOST.md). macOS is outside this setup's supported scope.
+Enter your Meta key when prompted. The launcher generates `.env.local`; keep it private. The first run downloads dependencies and prepares the data. Restarting preserves edits and deletions.
+
+<a id="android"></a>
+
+## 2. Install and use Android
+
+Download [app-debug.apk](https://github.com/Luxisoft/realityos-spatial-memory/releases/download/local-evaluation/app-debug.apk) into the project folder. Connect the phone by USB, accept its debugging prompt and run:
+
+```bash
+adb reverse tcp:8080 tcp:8080
+adb install -r app-debug.apk
+```
+
+<a id="cases"></a>
+
+Open the app and choose one of the **9 accounts across 3 groups: police, nursing and memory**. Explore the gallery and records; to publish, select a group, category and tag. Wait for indexing to finish before searching.
+
+<a id="biometrics"></a>
+
+Face search requires explicit consent and enrollment. For spoken replies, install an offline ES/EN voice on Android. Repeat `adb reverse` after reconnecting the phone.
+
+## 3. Diagnostics, shutdown and Postman
+
+From the project folder:
+
+| Action | Windows — PowerShell | Linux |
+| --- | --- | --- |
+| Diagnostics | `powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\local\Test-RealityOS.ps1` | `bash scripts/local/test.sh` |
+| Stop | `powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\local\Stop-RealityOS.ps1` | `bash scripts/local/stop.sh` |
+
+API: [documentation](http://localhost:8080/docs) · [health](http://localhost:8080/health/ready). Stopping preserves data; `down -v` deletes it. If the Meta key fails, correct `MODEL_API_KEY` in `.env.local` and start again.
+
+**Postman:** import the [collection](docs/postman/RealityOS.postman_collection.json), choose **No environment → Localhost requests → 00 Quick start** or **00 Local scenarios**. Sign-in is automatic; enable `enable_write_requests=true` to write. **Server requests** is disabled, with no URL or credentials.
+
+<a id="java-windows"></a>
+
+## 4. Build Android (optional)
+
+Use **JDK 21 LTS** and **Android SDK 36**. On Windows:
+
+1. Install [Temurin 21 x64](https://adoptium.net/temurin/releases/?version=21&os=windows&arch=x64&package=jdk), choosing the **JDK** package and MSI installer.
+2. In **Environment Variables**, set `JAVA_HOME` to the installed JDK directory, without quotes or `\bin`. **The user variable takes precedence over the system variable**: if both exist, use the same valid path. Also correct `JDK_HOME` if it points to an old installation.
+3. Place `%JAVA_HOME%\bin` before other Java entries in `Path`. Fully close the editor and terminals, then open a new PowerShell:
+
+```powershell
+$env:JAVA_HOME
+Test-Path "$env:JAVA_HOME\bin\java.exe"
+& "$env:JAVA_HOME\bin\java.exe" -version
+java -version
+javac -version
+```
+
+Expect `True` and version **21**. If the editor retains an old path, remove it from `java.home` or `java.jdt.ls.java.home`. In Android Studio, select JDK 21 under **Settings → Build, Execution, Deployment → Build Tools → Gradle → Gradle JDK**.
+
+Build from the project folder:
+
+| Windows — PowerShell | Linux |
+| --- | --- |
+| `.\android\gradlew.bat -p android :app:assembleDebug` | `./android/gradlew -p android :app:assembleDebug` |
+
+Output: `android/app/build/outputs/apk/debug/app-debug.apk`. Install it with `adb install -r android/app/build/outputs/apk/debug/app-debug.apk`.
 
 <a id="hackathon"></a>
 
-## Evaluation and validation
-
-Use the public repository instructions and a three-minute video showing the real features. Never publish provider keys, database/JWT secrets or private media. The hosted system is not required for this local walkthrough. Read [verified implementation status](docs/en/project/IMPLEMENTATION_STATUS.md) for checks actually performed and remaining device/provider validation; consult the organizers for final rule interpretation.
-
-[Apache 2.0](LICENSE) · [Third parties](docs/en/project/THIRD_PARTY.md) · [Test checklist](docs/en/testing/IMPLEMENTATION_CHECKLIST.md)
+[Technical reference](docs/en/INDEX.md) · [Verified status](docs/en/project/IMPLEMENTATION_STATUS.md) · [Third-party licenses](docs/en/project/THIRD_PARTY.md) · [Apache 2.0](LICENSE)
