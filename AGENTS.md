@@ -297,3 +297,20 @@ Android splash mask cannot cut any visible part of the supplied logo.
 The internal app logo also uses `icon_app.png`, displayed with a fully circular
 crop through one shared component. Apply it to entry/account headers and the app
 drawer. Keep the separate splash logo and the existing screen/button colors.
+
+## Owner correction: publication filters and classification (2026-11-04)
+
+Publication filters apply immediately after each valid category, tag, author,
+date or text change. Keep the menu open; remove Apply and place the Clear text
+button in the title row. Clear resets the filters immediately. Invalid date
+intervals keep the last valid result and show an inline error. Discard obsolete
+responses and pagination when filters or the selected group change.
+
+Classify existing local Police publications by active arrest warrants, missing
+persons, records without orders or criminal history and public-space videos. Use tags for
+active proceedings, search orders and the relevant recorded details. Classify
+Meta introductions and videos separately, with tags reflecting their actual
+captions. Do not label every case with the same generic category/tag. Apply this
+through the shared versioned SQL initializer, preserving manual classifications,
+deletions, memberships and private references. This does not authorize changes
+to production data or biometric code.

@@ -24,21 +24,57 @@ The local retirement removes Sonoran/Memory access and exclusive content from ex
 
 Postman keeps Localhost requests and Server requests. Local examples are derived from the initialized database; Server requests stays disabled, without an active URL or credentials. Previous permission to publish test passwords does not apply to new exports.
 
-## Checks for this delivery
+## Publication filters and classification
 
-- The complete backend/gateway suite passed **660 tests** in 571.01 seconds, with no failures or skips. It includes API contracts, permissions, workspace isolation, schema installation, local retirement, additive data revisions, rollback and preservation of edits, deletions and consent.
-- Fresh local data has 25 publications, 28 base media assets, 16 records, 16 record attachments and 10 classification terms. Social initialization adds thirteen profiles, thirteen separate avatars and thirty-nine private references: 80 media assets and 19 users in total, with only six selector accounts. Police retains five arrest warrants, two active proceedings and four separate missing-person search orders.
+Filters apply every valid category, tag, author, date or text change without an
+Apply button. Clear shares the title row and leaves the menu open. Invalid date
+intervals preserve the last valid query; changing filters or groups discards
+outdated responses and cursors. Selecting the current group again preserves its
+results, and filtering does not reload the group list.
+
+The `shared-publication-classification-v1` SQL revision classifies the existing
+25 publications: Police has five active arrest warrants, four missing persons,
+seven cases without warrants or criminal history, and three videos; Meta has
+three introductions and three videos. Tags distinguish active proceedings,
+search orders, absence of arrest warrants and content topics. A fresh installation
+has 26 active terms and 10 archived legacy terms. The update preserves edits,
+deletions, permissions, unknown states and pending uploads; it does not change
+media or private references. Localhost applies it through the regular startup
+after updating the repository.
+
+**101 distinct tests passed**: 21 new classification regressions on isolated
+SQLite and PostgreSQL (119.33 seconds) and 80 existing local-data/API checks
+(226.88 seconds), with no failures or skips. They cover API filter queries,
+preservation of changes, permissions and rollback. `make lint`,
+`make architecture-check`, `make docs-check` and formatting of the modified
+Python files also passed. No production data or services were changed.
+
+## Verification baseline and earlier checks
+
+- The preceding architecture delivery passed the complete backend/gateway suite: **660 tests** in 571.01 seconds, with no failures or skips. It includes API contracts, permissions, workspace isolation, schema installation, local retirement, additive data revisions, rollback and preservation of edits, deletions and consent. This count does not claim a repeat of the complete suite for the filter revision.
+- Fresh local data has 25 publications, 28 base media assets, 16 records and 16 record attachments. Social initialization adds thirteen profiles, thirteen separate avatars and thirty-nine private references: 80 media assets and 19 users in total, with only six selector accounts. Police retains five arrest warrants, two active proceedings and four separate missing-person search orders.
 - The media inventory has 423 verified entries: 132 repository assets and 291 local-only resources. Thirty-four exclusive Memory files and their obsolete video-QA receipt were removed. Twelve new Meta images were checked with the cached local InsightFace model: one face per avatar/reference, with all nine private references meeting quality requirements. This is resource validation, not a claim of representative recognition accuracy or live Facebook integration.
 - `make lint`, `make architecture-check` and `make docs-check` passed. Documentation covers 74 Markdown files and 352 Postman requests, including 23 local scenario requests and 71 reference write guards. Newman verified 168 disabled writes, two login/refresh sequences, nine expected authentication errors and exact response codes using local HTTP mocks only.
 - The previous CI failure came from PostgreSQL Unix-socket paths exceeding Linux's limit in GitHub's longer checkout path. The test helper now creates short socket paths while keeping database files under `.runtime`; four PostgreSQL integration cases passed with that helper. No production database or service was used.
 
 ## Android validation
 
-The latest branding revision passed **31 existing focused tests** for entry, account forms and profile/navigation chrome, plus one temporary native splash-rendering check: 32 results, with zero failures, errors or skips. `ktlintCheck`, `assembleDebug`, `assembleRelease` and `compileDebugAndroidTestKotlin` passed. Full `lintDebug` reported zero errors, 100 warnings and 10 hints; two additional `VectorPath` warnings concern the outlined splash lettering. This focused run does not claim a repeat of the earlier 313-test Android suite.
+The filter revision passed **26 focused tests**: nine control/date tests, two
+gallery integration tests with delayed HTTP responses, seven paging tests and
+eight repository tests. There were no failures, errors or skips. ES/EN renders
+were reviewed at 320–480 dp, including 200% text. The panel retains the theme and
+shared controls. No physical-device or real-emulator validation was performed
+for this revision.
+
+The final filter build passed `ktlintCheck`, `lintDebug`, `assembleDebug`,
+`assembleRelease` and `compileDebugAndroidTestKotlin`. Lint retains zero errors,
+100 warnings and 10 hints, with no new warnings.
+
+The preceding branding revision passed **31 existing focused tests** for entry, account forms and profile/navigation chrome, plus one temporary native splash-rendering check: 32 results, with zero failures, errors or skips. `ktlintCheck`, `assembleDebug`, `assembleRelease` and `compileDebugAndroidTestKotlin` passed. Full `lintDebug` reported zero errors, 100 warnings and 10 hints; two additional `VectorPath` warnings concern the outlined splash lettering. These focused runs do not claim a repeat of the earlier 313-test Android suite.
 
 Reviewed native splash renders covered ES at 320 dp/200% text, EN at 390 dp and EN at 480 dp/200%. The supplied `splash_logo.png` remains unchanged and appears on the existing dark background, with `REALITYOS` and `BY JOSE MARIN` below it. Entry/account headers and the drawer share `AppBrandIcon`, which displays the existing `icon_app.png` with a fully circular crop. Reviewed Compose renders covered entry in EN at 390 dp, account login in ES at 320 dp/200%, and the drawer in ES at 320 dp/200%. Superseded logo resources and their obsolete checks were removed. Launcher artwork, internal screen/button colors and biometric code were preserved. No physical-device or real-emulator validation was performed for this revision.
 
-The canonical [Debug APK](../../../android/app/build/outputs/apk/debug/app-debug.apk), version `0.1.6-debug-20261104-1132`, has SHA-256 `78a82bc7cb72ea472cd0a9080a370bc3fcb34969ce385cb13bf4bd007170c393` and retains the existing signing certificate. Packaged splash and launcher image pixels match the supplied originals. The APK remains the repository delivery artifact.
+The canonical [Debug APK](../../../android/app/build/outputs/apk/debug/app-debug.apk), version `0.1.6-debug-20261104-1212`, has SHA-256 `94592ebc27bcbb354a38b917862048c789cee1621c5b9de9541050f32c348e73` and retains the existing signing certificate. Splash, icon and theme resources are unchanged from the branding revision. The APK remains the repository delivery artifact.
 
 <a id="next-steps"></a>
 

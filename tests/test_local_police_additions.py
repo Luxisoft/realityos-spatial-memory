@@ -43,6 +43,8 @@ def new_records(db):
 def earlier_installation(request, tmp_path, monkeypatch):
     from app.local import bootstrap
 
+    # Exercise revision 005 independently of later classification migrations.
+    monkeypatch.setattr(bootstrap, "DATA_UPDATES", bootstrap.DATA_UPDATES[:2])
     dialect = getattr(request, "param", "postgresql")
     url = (
         request.getfixturevalue("postgres_url")
@@ -81,7 +83,7 @@ def test_six_portraits_create_correct_scoped_records_and_publications(evaluation
         assert db.query(MediaAsset).count() == 28
         assert db.query(Record).count() == 16
         assert db.query(RecordMedia).count() == 16
-        assert db.query(PublicationTerm).count() == 10
+        assert db.query(PublicationTerm).count() == 36
         assert db.query(User).count() == 6
         assert db.query(WorkspaceMember).count() == 6
         assert db.query(Publication).filter_by(workspace_id=POLICE).count() == 19

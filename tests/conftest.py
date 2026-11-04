@@ -116,6 +116,7 @@ def evaluation(tmp_path, request, monkeypatch):
                     else {
                         "group-videos-v1": {"publications": 6},
                         "police-records-v2": {"publications": 6},
+                        "shared-publication-classification-v1": {"publications": 0},
                     },
                 }
                 db.commit()

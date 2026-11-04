@@ -29,6 +29,8 @@ import androidx.core.content.FileProvider
 import com.luxisoft.realityos.host.GalleryActions
 import java.io.File
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ensureActive
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.json.JSONObject
@@ -207,13 +209,15 @@ fun SocialGallery(
     }
     galleryBar?.let { bar ->
         bar.filters = filters
-        bar.onFilters = {
-            filters = it
-            cursor = null
-            endReached = false
-            pageLoaded = false
-            posts = emptyList()
-            revision++
+        bar.onFilters = { selection ->
+            if (selection.valid && selection != filters) {
+                filters = selection
+                cursor = null
+                nextCursor = null
+                endReached = false
+                pageLoaded = false
+                posts = emptyList()
+            }
         }
         bar.onCreate = {
             groupText = ""
@@ -236,13 +240,16 @@ fun SocialGallery(
         val iCanInvite = currentGroup != null && GroupAdminPolicy.canInvite(currentGroup.role, currentGroup.canInvite)
         bar.showInvite = groupId != null && iCanInvite
         bar.showAdmin = groupId != null && iCanInvite
-        bar.onSelect = {
-            groupId = it
-            SocialSession.workWorkspaceId = it
-            posts = emptyList()
-            pageLoaded = false
-            cursor = null
-            endReached = false
+        bar.onSelect = { selectedGroup ->
+            if (selectedGroup != groupId) {
+                groupId = selectedGroup
+                SocialSession.workWorkspaceId = selectedGroup
+                posts = emptyList()
+                pageLoaded = false
+                cursor = null
+                nextCursor = null
+                endReached = false
+            }
         }
         bar.onPublish = {
             if (groupId == null) {
@@ -368,22 +375,35 @@ fun SocialGallery(
     LaunchedEffect(authenticated, groupId, revision, cursor, filters) {
         if (!authenticated) return@LaunchedEffect
         if (cursor != null && endReached) return@LaunchedEffect
+        val requestedGroup = groupId
+        val requestedFilters = filters
+        val requestedCursor = cursor
+        val requestedRevision = revision
+        fun isCurrentRequest() = authenticated && groupId == requestedGroup &&
+            filters == requestedFilters && cursor == requestedCursor && revision == requestedRevision
         loading = true
         pageFailed = false
         error = ""
         try {
-            val page = repository.page(groupId, cursor, filters)
-            posts = if (cursor == null) page.publications else (posts + page.publications).distinctBy { it.id }
+            val page = repository.page(requestedGroup, requestedCursor, requestedFilters)
+            coroutineContext.ensureActive()
+            if (!isCurrentRequest()) return@LaunchedEffect
+            posts = if (requestedCursor == null) page.publications else (posts + page.publications).distinctBy { it.id }
             nextCursor = page.nextCursor
             endReached = nextCursor == null
             liked = posts.filter { it.liked }.map { it.id }.toSet()
         } catch (e: Exception) {
             if (e is kotlinx.coroutines.CancellationException) throw e
-            pageFailed = true
-            error = e.message.orEmpty()
+            coroutineContext.ensureActive()
+            if (isCurrentRequest()) {
+                pageFailed = true
+                error = e.message.orEmpty()
+            }
         } finally {
-            loading = false
-            pageLoaded = true
+            if (isActive && isCurrentRequest()) {
+                loading = false
+                pageLoaded = true
+            }
         }
     }
     LaunchedEffect(authenticated, revision) {

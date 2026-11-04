@@ -19,7 +19,7 @@ def test_all_prepared_display_fields_have_both_languages(evaluation):
             (Record, 16),
             (Publication, 25),
             (UserProfile, 6),
-            (PublicationTerm, 10),
+            (PublicationTerm, 36),
         ):
             rows = list(db.scalars(select(model)))
             assert len(rows) == expected

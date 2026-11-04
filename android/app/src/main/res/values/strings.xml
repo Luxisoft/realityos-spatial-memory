@@ -598,7 +598,6 @@
     <string name="gallery_description">Description text</string>
     <string name="gallery_dates_invalid">The end date must not precede the start date.</string>
     <string name="gallery_clear">Clear</string>
-    <string name="gallery_apply">Apply</string>
     <string name="gallery_any_date">Any date</string>
     <string name="gallery_no_results">No publications match these filters.</string>
     <string name="catalog_apply_all">Apply selection to all</string>

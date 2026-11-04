@@ -70,3 +70,11 @@ El visor muestra progreso de carga/buffering e información expandida y desplaza
 ## Galería única y navegación
 
 La galería es la vista principal y reúne las publicaciones de los grupos. Tocar el avatar inferior vuelve a esa misma vista sin cambiar el grupo ni aplicar un filtro personal; Editar sigue siendo una acción independiente. Crear grupo, selector, filtros, publicar y opciones conservan su orden superior dentro del contenido. Menú, avatar, edición, información desplegable, gafas y chat comparten una barra inferior fija. La información se despliega hacia arriba y el chat queda en el extremo derecho. Los controles de Meta se alinean a la derecha del título local; no existe cabecera global.
+
+Los filtros de publicaciones se aplican al cambiar categorías, etiquetas, autores,
+fechas o texto. El menú permanece abierto y el botón de texto Limpiar ocupa la
+misma fila que el título; no hay botón Aplicar. Limpiar restaura inmediatamente la
+consulta sin filtros. Un intervalo de fechas inválido muestra su error junto a
+los controles y conserva la última consulta válida hasta corregirlo. Los filtros
+reinician la paginación, descartan respuestas anteriores y se restablecen al
+cambiar de grupo. Volver a seleccionar el grupo actual conserva los resultados.

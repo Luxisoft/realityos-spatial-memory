@@ -68,3 +68,11 @@ Publication media shows load/buffer progress and expanded scrollable details abo
 ## Unified gallery and navigation
 
 The gallery is the main view and contains work-group publications. Tapping the bottom avatar returns to that same view without changing the group or applying a personal filter; Edit remains a separate action. Create group, group selector, filters, publish and options keep their existing order above the content. Menu, avatar, edit, expandable information, glasses and chat share a fixed bottom bar. Information expands upward and chat stays at the far right. Meta controls sit beside the local view title; there is no global top bar.
+
+Publication filters apply on every category, tag, author, date or text change.
+The menu stays open and the Clear text button shares the title row; there is no
+Apply button. Clear immediately restores the unfiltered query. An invalid date
+interval shows an inline error and preserves the last valid query until it is
+corrected. Filter changes reset pagination and discard outdated responses;
+selecting another group resets the filters. Selecting the current group again
+preserves its results.

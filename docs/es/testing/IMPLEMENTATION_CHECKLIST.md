@@ -31,7 +31,7 @@ El total es de 16 expedientes y 25 publicaciones. Los trece perfiles sintéticos
 - [ ] **R02** — Abre Samuel Ortega, Elena Duarte, Isabel Mora y Natalia Campos (PRP-0013–0016): deben aparecer su condición de personas desaparecidas y la orden de búsqueda vigente correspondiente, separadas de los campos de captura. Confirma ausencia de captura, antecedentes y procesos activos. Las otras siete fichas limpias conservan ausencia de antecedentes, órdenes y procesos.
 - [ ] **R03** — Comprueba que cada retrato abre su original únicamente para miembros autorizados. Consultar o compartir un expediente no debe conceder autorización biométrica ni crear enrolamientos.
 - [ ] **G01** — Comprueba las 25 publicaciones de los dos grupos, incluida la paginación. Revisa autores, categorías, tags, descripciones, notas y textos guardados ES/EN. Perfiles y galería deben permanecer coherentes tras las ediciones.
-- [ ] **G02** — Aplica filtros de categoría, tag, autor, fecha y texto; límpialos y cambia de grupo. Abre una publicación y regresa. Verifica ámbito, orden y conservación del filtro.
+- [ ] **G02** — Cambia categoría, tag, autor, fecha y texto; verifica que cada cambio válido filtre inmediatamente. Usa Limpiar junto al título y cambia de grupo, también con consultas pendientes. Abre una publicación y regresa. Verifica ámbito, orden, ausencia de resultados anteriores y conservación del filtro.
 - [ ] **G03** — En una instalación desechable, publica explícitamente en un grupo existente con clasificación válida. Comprueba duplicados, restricciones de autoría e interacciones independientes en copias autorizadas.
 
 ## Videos y evidencia de objetos

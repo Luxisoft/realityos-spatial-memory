@@ -16,7 +16,7 @@ The reviewed copy and classification associations live in the versioned SQL seed
 
 Thumbnails show the category and up to two tags, with `+N` for additional tags. The viewer shows the complete classification. Videos have a play icon. The former source badge “MEDIA/Archivo” is removed while internal provenance is retained.
 
-The filter button contains only an icon and an accessibility description. Its dropdown includes categories, tags, authors, From/Through dates and description or note text. Apply restarts pagination; Clear removes the criteria. Changing groups clears filters; opening and closing the viewer preserves them.
+The filter button contains only an icon and an accessibility description. Its dropdown includes categories, tags, authors, From/Through dates and description or note text. Each valid change applies the filter immediately and restarts pagination while keeping the menu open. Clear is a text button in the title row and removes the criteria. There is no Apply button. Changing groups clears filters; opening and closing the viewer preserves them.
 
 Different criteria use AND; multiple choices within one selector use OR. Dates cover complete days in the phone's timezone. Options and results come from all authorized content, including publications beyond the currently loaded thumbnails.
 
@@ -51,3 +51,25 @@ Retries and subsequent synchronization do not approve pending candidates. Owners
 The shared SQL seed installs the two group catalogs and classifies all 25 prepared publications in the same application tables used by normal uploads and queries. There is no separate classification manifest or publication database. Installation receipts prevent restart from recreating deleted rows or replacing owner edits.
 
 Subsequent corrections use the authenticated catalog and classification APIs above. They preserve original media and enforce group ownership, membership and author permissions. Server storage import and synchronization are available only in the server composition; local evaluation imports its organized fixture bytes directly into BYTEA.
+
+
+## Prepared Police and Meta classification
+
+Revision [008-shared-publication-classification.sql](../../../simulator/database/008-shared-publication-classification.sql) classifies publications using their content and explicit case states. Each group has its own bilingual terms.
+
+| Group | Category | Publications | Supporting tags |
+| --- | --- | --- | --- |
+| Police | Active arrest warrants | 5 | Portrait; Active judicial proceedings for 2, No active proceedings for 3. |
+| Police | Missing persons | 4 | Portrait; Active search order; No active arrest warrants; No active proceedings. |
+| Police | No warrants or criminal history | 7 | Portrait; No active arrest warrants; No active proceedings. |
+| Police | Public space videos | 3 | Park and Walking; Cycling, Overcast day or Spring according to the clip description. |
+| Meta Social Media | Introductions | 3 | Community; Elena: Photography and Projects; Mateo: Experiences; Sarah: Photography and Stories. |
+| Meta Social Media | Public space videos | 3 | Walking; Park and Cycling, City sidewalk, or Park and Winter according to the clip. |
+
+All 16 cases have no recorded convictions or criminal history. An arrest warrant does not imply a conviction. “No warrants or criminal history” groups the seven cases that also have no arrest warrant, search order or active proceedings. The four missing-person cases have search orders, separately from arrest warrants. No active arrest warrants returns 11 portraits; No active proceedings, 14; Active judicial proceedings, 2; Active search order, 4.
+
+Video tags describe only the existing clip text. They do not identify people or claim incidents, crimes or analysis results. Meta's 13 private profiles and their references remain outside publications.
+
+The shared SQL loader installs the revision once using its `shared-publication-classification-v1` receipt. It only changes prepared publications whose category, tags, text and relevant recorded facts remain intact, with an active author and current group membership. It preserves manual classification, renamed or archived vocabulary, hidden publications, deletions, removed groups and unknown states. It does not restore rows or change media. Equivalent terms already created by the owner are reused without overwriting them.
+
+A fresh installation has 26 active terms and 10 archived former terms. On edited installations, a former term stays active if another publication or pending upload still references it; owner-renamed terms are also retained. Restart does not reapply the revision.

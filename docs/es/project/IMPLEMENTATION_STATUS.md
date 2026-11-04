@@ -24,21 +24,57 @@ El retiro local elimina el acceso y contenido exclusivo de Sonoran/Memory de las
 
 Postman mantiene Localhost requests y Server requests. Los ejemplos locales se derivan de la BD inicializada; Server requests permanece deshabilitado y sin URL activa ni credenciales. Las antiguas autorizaciones para contraseñas de prueba no se aplican a nuevas exportaciones.
 
-## Comprobaciones de esta entrega
+## Filtros y clasificación de publicaciones
 
-- La suite completa de backend/gateway aprobó **660 pruebas** en 571,01 segundos, sin fallos ni omisiones. Incluye contratos API, permisos, aislamiento por grupo, instalación de esquema, retiro local, revisiones aditivas, rollback y conservación de ediciones, eliminaciones y consentimientos.
-- Una instalación local nueva tiene 25 publicaciones, 28 medios base, 16 expedientes, 16 adjuntos y 10 términos de clasificación. La inicialización social añade trece perfiles, trece avatares separados y treinta y nueve referencias privadas: 80 medios y 19 usuarios en total, con solo seis cuentas en el selector. Policía conserva cinco órdenes de captura, dos procesos activos y cuatro órdenes independientes de búsqueda por desaparición.
+Los filtros aplican cada cambio válido de categoría, etiqueta, autor, fecha o
+texto, sin botón Aplicar. Limpiar comparte la fila del título y mantiene abierto
+el menú. Los intervalos inválidos conservan la última consulta válida; cambiar
+filtros o grupo descarta respuestas y cursores anteriores. Seleccionar otra vez
+el grupo actual conserva sus resultados y filtrar no recarga la lista de grupos.
+
+La revisión SQL `shared-publication-classification-v1` clasifica las 25
+publicaciones existentes: Police tiene cinco órdenes de captura, cuatro personas
+desaparecidas, siete casos sin órdenes ni antecedentes y tres videos; Meta tiene
+tres presentaciones y tres videos. Las etiquetas distinguen procesos activos,
+búsqueda, ausencia de captura y temas del contenido. Son 26 términos activos y
+10 anteriores archivados en una instalación nueva. La actualización respeta
+ediciones, eliminaciones, permisos, estados desconocidos y cargas pendientes;
+no cambia medios ni referencias privadas. Se aplica en localhost mediante el
+inicio habitual después de actualizar el repositorio.
+
+Pasaron **101 pruebas distintas**: 21 regresiones nuevas de clasificación en
+SQLite y PostgreSQL aislado (119,33 segundos) y 80 comprobaciones anteriores de
+datos locales y API (226,88 segundos), sin fallos ni omisiones. Cubren los filtros
+por API, conservación de cambios, permisos y rollback. También pasaron
+`make lint`, `make architecture-check`, `make docs-check` y el formato de los
+archivos Python modificados. No se modificaron datos ni servicios productivos.
+
+## Base de validación y comprobaciones anteriores
+
+- La entrega anterior de arquitectura aprobó la suite completa de backend/gateway: **660 pruebas** en 571,01 segundos, sin fallos ni omisiones. Incluye contratos API, permisos, aislamiento por grupo, instalación de esquema, retiro local, revisiones aditivas, rollback y conservación de ediciones, eliminaciones y consentimientos. Esta cifra no representa una repetición de la suite completa en la revisión de filtros.
+- Una instalación local nueva tiene 25 publicaciones, 28 medios base, 16 expedientes y 16 adjuntos. La inicialización social añade trece perfiles, trece avatares separados y treinta y nueve referencias privadas: 80 medios y 19 usuarios en total, con solo seis cuentas en el selector. Policía conserva cinco órdenes de captura, dos procesos activos y cuatro órdenes independientes de búsqueda por desaparición.
 - El inventario de medios tiene 423 entradas verificadas: 132 recursos del repositorio y 291 solo locales. Se retiraron 34 archivos exclusivos de Memory y su recibo QA de video obsoleto. Doce imágenes Meta nuevas se comprobaron con InsightFace local ya disponible: una cara por avatar/referencia y las nueve referencias privadas dentro de los requisitos de calidad. Es validación de recursos, no una afirmación de precisión representativa ni de integración real con Facebook.
 - Pasaron `make lint`, `make architecture-check` y `make docs-check`. La documentación cubre 74 archivos Markdown y 352 peticiones Postman, incluidas 23 de escenarios locales y 71 guardas de escritura de referencia. Newman verificó 168 escrituras deshabilitadas, dos secuencias de login/refresh, nueve errores de autenticación previstos y códigos exactos, usando únicamente mocks HTTP locales.
 - El fallo del CI anterior se debía a rutas de sockets Unix de PostgreSQL que excedían el límite de Linux en el checkout largo de GitHub. El helper de pruebas ahora crea rutas cortas de sockets y mantiene los archivos de la base en `.runtime`; cuatro casos PostgreSQL pasaron con ese helper. No se utilizó ninguna base ni servicio productivo.
 
 ## Validación Android
 
-La última revisión de logos aprobó **31 pruebas existentes focalizadas** de acceso, formularios de cuenta y navegación/perfil, más una comprobación temporal del splash nativo: 32 resultados, sin fallos, errores ni omisiones. Pasaron `ktlintCheck`, `assembleDebug`, `assembleRelease` y `compileDebugAndroidTestKotlin`. `lintDebug` completo informó cero errores, 100 advertencias y 10 sugerencias; las dos advertencias adicionales `VectorPath` corresponden al texto vectorial del splash. Esta ejecución focalizada no supone repetir la suite Android anterior de 313 pruebas.
+La revisión de filtros aprobó **26 pruebas focalizadas**: nueve de controles y
+fechas, dos de integración de galería con respuestas HTTP retenidas, siete de
+paginación y ocho de repositorios. No hubo fallos, errores ni omisiones. Se
+revisaron renderizados ES/EN a 320–480 dp, incluido texto al 200 %. El panel
+conserva el tema y sus controles compartidos. No se realizó validación en
+teléfono físico ni emulador real para esta revisión.
+
+El build final de filtros pasó `ktlintCheck`, `lintDebug`, `assembleDebug`,
+`assembleRelease` y `compileDebugAndroidTestKotlin`. Lint mantiene cero errores,
+100 advertencias y 10 sugerencias, sin advertencias nuevas.
+
+La revisión anterior de logos aprobó **31 pruebas existentes focalizadas** de acceso, formularios de cuenta y navegación/perfil, más una comprobación temporal del splash nativo: 32 resultados, sin fallos, errores ni omisiones. Pasaron `ktlintCheck`, `assembleDebug`, `assembleRelease` y `compileDebugAndroidTestKotlin`. `lintDebug` completo informó cero errores, 100 advertencias y 10 sugerencias; las dos advertencias adicionales `VectorPath` corresponden al texto vectorial del splash. Estas ejecuciones focalizadas no suponen repetir la suite Android anterior de 313 pruebas.
 
 Se revisaron renderizados nativos del splash en ES a 320 dp/texto 200%, EN a 390 dp y EN a 480 dp/200%. El archivo proporcionado `splash_logo.png` permanece intacto sobre el fondo oscuro existente, con `REALITYOS` y `BY JOSE MARIN` debajo. Las cabeceras de acceso/cuenta y el menú lateral comparten `AppBrandIcon`, que muestra el archivo existente `icon_app.png` con recorte completamente circular. Los renderizados Compose revisados cubrieron acceso EN a 390 dp, inicio de sesión ES a 320 dp/200% y menú lateral ES a 320 dp/200%. Se retiraron los logos sustituidos y sus comprobaciones obsoletas. Se conservaron el icono del lanzador, los colores internos de vistas/botones y el código biométrico. No se realizó validación con teléfono físico ni emulador real para esta revisión.
 
-El [APK Debug canónico](../../../android/app/build/outputs/apk/debug/app-debug.apk), versión `0.1.6-debug-20261104-1132`, tiene SHA-256 `78a82bc7cb72ea472cd0a9080a370bc3fcb34969ce385cb13bf4bd007170c393` y conserva el certificado de firma existente. Los píxeles empaquetados del splash y del icono coinciden con los originales proporcionados. El APK se mantiene como artefacto de entrega del repositorio.
+El [APK Debug canónico](../../../android/app/build/outputs/apk/debug/app-debug.apk), versión `0.1.6-debug-20261104-1212`, tiene SHA-256 `94592ebc27bcbb354a38b917862048c789cee1621c5b9de9541050f32c348e73` y conserva el certificado de firma existente. Los recursos de splash, icono y tema permanecen iguales a la revisión de logos. El APK se mantiene como artefacto de entrega del repositorio.
 
 <a id="next-steps"></a>
 

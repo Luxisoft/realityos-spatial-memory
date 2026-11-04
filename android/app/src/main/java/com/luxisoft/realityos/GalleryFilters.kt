@@ -5,6 +5,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.testTag
@@ -13,6 +14,8 @@ import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneOffset
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.ensureActive
+import kotlinx.coroutines.isActive
 
 @Composable
 internal fun GalleryFilterButton(
@@ -20,25 +23,34 @@ internal fun GalleryFilterButton(
     fetchOptions: (suspend (String?) -> PublicationCatalog)? = null
 ) {
     val repository = remember(SocialSession.identity) { GalleryRepository() }
-    var open by remember { mutableStateOf(false) }
-    var draft by remember { mutableStateOf(bar.filters) }
-    var options by remember(bar.selectedId) { mutableStateOf<PublicationCatalog?>(null) }
-    var error by remember { mutableStateOf("") }
-    var loading by remember { mutableStateOf(false) }
-    var retry by remember { mutableIntStateOf(0) }
-    LaunchedEffect(open, bar.selectedId, retry) {
+    val identity = SocialSession.identity
+    var open by remember(bar, identity) { mutableStateOf(false) }
+    var draft by remember(bar, bar.selectedId, identity) { mutableStateOf(bar.filters) }
+    var options by remember(bar.selectedId, identity) { mutableStateOf<PublicationCatalog?>(null) }
+    var error by remember(bar.selectedId, identity) { mutableStateOf("") }
+    var loading by remember(bar.selectedId, identity) { mutableStateOf(false) }
+    var retry by remember(bar.selectedId, identity) { mutableIntStateOf(0) }
+    LaunchedEffect(bar.filters, bar.selectedId, identity) { draft = bar.filters }
+    fun updateFilters(value: GalleryFilterSelection) {
+        draft = value
+        if (value.valid && value != bar.filters) bar.onFilters(value)
+    }
+    LaunchedEffect(open, bar.selectedId, identity, retry) {
         if (!open) return@LaunchedEffect
         loading = true
         error = ""
         options = null
         try {
-            options = fetchOptions?.invoke(bar.selectedId) ?: repository.filterOptions(bar.selectedId)
+            val catalog = fetchOptions?.invoke(bar.selectedId) ?: repository.filterOptions(bar.selectedId)
+            coroutineContext.ensureActive()
+            options = catalog
         } catch (cancelled: CancellationException) {
             throw cancelled
         } catch (failure: Exception) {
+            coroutineContext.ensureActive()
             error = failure.message.orEmpty()
         } finally {
-            loading = false
+            if (coroutineContext.isActive) loading = false
         }
     }
     val config = LocalConfiguration.current
@@ -49,30 +61,27 @@ internal fun GalleryFilterButton(
         }, modifier = Modifier.testTag("gallery-filter")) {
             Icon(Icons.Default.FilterList, localizedText(R.string.gallery_filters), tint = if (bar.filters.active) MaterialTheme.colorScheme.primary else LocalContentColor.current)
         }
-        DropdownMenu(expanded = open, onDismissRequest = { open = false }, modifier = Modifier.widthIn(max = (config.screenWidthDp - 24).dp).heightIn(max = (config.screenHeightDp * .8f).dp)) {
-            Column(Modifier.widthIn(min = 240.dp, max = 360.dp).padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text(localizedText(R.string.gallery_filters), style = MaterialTheme.typography.titleMedium)
-                if (loading) LinearProgressIndicator(Modifier.fillMaxWidth())
-                CatalogSelect(localizedText(R.string.catalog_categories), options?.categories.orEmpty(), draft.categories, enabled = !loading, showWorkspace = bar.selectedId == null) { draft = draft.copy(categories = it) }
-                CatalogSelect(localizedText(R.string.catalog_tags), options?.tags.orEmpty(), draft.tags, enabled = !loading, showWorkspace = bar.selectedId == null) { draft = draft.copy(tags = it) }
-                CatalogSelect(localizedText(R.string.gallery_authors), options?.owners.orEmpty(), draft.owners, enabled = !loading, showWorkspace = bar.selectedId == null) { draft = draft.copy(owners = it) }
-                GalleryDateField(localizedText(R.string.gallery_from), draft.from) { draft = draft.copy(from = it) }
-                GalleryDateField(localizedText(R.string.gallery_through), draft.through) { draft = draft.copy(through = it) }
-                OutlinedTextField(draft.text, { draft = draft.copy(text = it.take(500)) }, label = { Text(localizedText(R.string.gallery_description)) }, modifier = Modifier.fillMaxWidth())
-                if (!draft.valid) Text(localizedText(R.string.gallery_dates_invalid), color = MaterialTheme.colorScheme.error)
-                if (error.isNotBlank()) {
-                    Text(error, color = MaterialTheme.colorScheme.error)
-                    TextButton(onClick = { retry++ }) { Text(localizedText(R.string.ui_retry)) }
-                }
-                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                    TextButton(onClick = {
-                        bar.onFilters(GalleryFilterSelection())
-                        open = false
-                    }) { Text(localizedText(R.string.gallery_clear)) }
-                    Button(enabled = draft.valid && !loading && error.isBlank(), onClick = {
-                        bar.onFilters(draft)
-                        open = false
-                    }) { Text(localizedText(R.string.gallery_apply)) }
+        key(bar.selectedId, identity) {
+            DropdownMenu(expanded = open, onDismissRequest = { open = false }, modifier = Modifier.widthIn(max = (config.screenWidthDp - 24).dp).heightIn(max = (config.screenHeightDp * .8f).dp)) {
+                Column(Modifier.widthIn(min = 240.dp, max = 360.dp).padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                        Text(localizedText(R.string.gallery_filters), style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f).testTag("gallery-filter-title"))
+                        TextButton(onClick = { updateFilters(GalleryFilterSelection()) }, modifier = Modifier.testTag("gallery-filter-clear")) {
+                            Text(localizedText(R.string.gallery_clear))
+                        }
+                    }
+                    if (loading) LinearProgressIndicator(Modifier.fillMaxWidth())
+                    CatalogSelect(localizedText(R.string.catalog_categories), options?.categories.orEmpty(), draft.categories, enabled = !loading && error.isBlank(), showWorkspace = bar.selectedId == null) { updateFilters(draft.copy(categories = it)) }
+                    CatalogSelect(localizedText(R.string.catalog_tags), options?.tags.orEmpty(), draft.tags, enabled = !loading && error.isBlank(), showWorkspace = bar.selectedId == null) { updateFilters(draft.copy(tags = it)) }
+                    CatalogSelect(localizedText(R.string.gallery_authors), options?.owners.orEmpty(), draft.owners, enabled = !loading && error.isBlank(), showWorkspace = bar.selectedId == null) { updateFilters(draft.copy(owners = it)) }
+                    GalleryDateField(localizedText(R.string.gallery_from), draft.from) { updateFilters(draft.copy(from = it)) }
+                    GalleryDateField(localizedText(R.string.gallery_through), draft.through) { updateFilters(draft.copy(through = it)) }
+                    OutlinedTextField(draft.text, { updateFilters(draft.copy(text = it.take(500))) }, label = { Text(localizedText(R.string.gallery_description)) }, modifier = Modifier.fillMaxWidth())
+                    if (!draft.valid) Text(localizedText(R.string.gallery_dates_invalid), color = MaterialTheme.colorScheme.error)
+                    if (error.isNotBlank()) {
+                        Text(error, color = MaterialTheme.colorScheme.error)
+                        TextButton(onClick = { retry++ }) { Text(localizedText(R.string.ui_retry)) }
+                    }
                 }
             }
         }

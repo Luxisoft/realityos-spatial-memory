@@ -31,7 +31,7 @@ The total is 16 records and 25 publications. The thirteen additional synthetic M
 - [ ] **R02** — Open Samuel Ortega, Elena Duarte, Isabel Mora and Natalia Campos (PRP-0013–0016): missing-person status and each active search order must be visible separately from arrest fields. Confirm no arrest warrant, criminal history or active proceedings. The other seven clear records retain no history, warrants or proceedings.
 - [ ] **R03** — Verify each portrait opens its original media only for an authorized member. Record lookup and sharing must not grant biometric authorization or create enrollments.
 - [ ] **G01** — Check all 25 publications across the two groups, including pagination. Verify authors, categories, tags, captions, notes and ES/EN stored display text. Profiles and gallery lists must stay consistent after edits.
-- [ ] **G02** — Apply category, tag, author, date and text filters; clear them and switch groups. Open a publication and return. Verify scope, result ordering and retained filter state.
+- [ ] **G02** — Change category, tag, author, date and text; verify every valid change filters immediately. Use Clear beside the title and switch groups, including while requests are pending. Open a publication and return. Verify scope, ordering, absence of stale results and retained filter state.
 - [ ] **G03** — On a disposable installation, publish explicitly into an existing group with valid classification. Check duplicate handling, ownership restrictions and independent comments/reactions on authorized group copies.
 
 ## Videos and object evidence

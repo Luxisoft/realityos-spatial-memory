@@ -598,7 +598,6 @@
     <string name="gallery_description">Texto en la descripción</string>
     <string name="gallery_dates_invalid">La fecha final no puede ser anterior a la inicial.</string>
     <string name="gallery_clear">Limpiar</string>
-    <string name="gallery_apply">Aplicar</string>
     <string name="gallery_any_date">Cualquier fecha</string>
     <string name="gallery_no_results">No hay publicaciones que coincidan con estos filtros.</string>
     <string name="catalog_apply_all">Aplicar selección a todo el lote</string>

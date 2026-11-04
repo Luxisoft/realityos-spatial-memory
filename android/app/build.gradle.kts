@@ -159,6 +159,7 @@ val refactoredKotlin = files(
     "src/debug/java/com/luxisoft/realityos/LocalAccountRepository.kt",
     "src/testDebug/java/com/luxisoft/realityos/FeatureRepositoriesTest.kt",
     "src/testDebug/java/com/luxisoft/realityos/GalleryFiltersTest.kt",
+    "src/testDebug/java/com/luxisoft/realityos/GalleryLiveFilteringTest.kt",
     "src/testDebug/java/com/luxisoft/realityos/LocalLogoutTest.kt",
     "src/main/java/com/luxisoft/realityos/RecognitionPhotoUpload.kt",
     "src/testDebug/java/com/luxisoft/realityos/RecognitionPhotoUploadTest.kt",
