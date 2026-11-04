@@ -127,6 +127,14 @@ Espera `Success` en la instalación. Los `&&` impiden ejecutar el siguiente coma
 
 Conecta el computador y el teléfono a la **misma red Wi-Fi**. Este recorrido no necesita cable; la app sigue requiriendo Android 12+. Mantén el backend iniciado.
 
+**Antes de vincular, comprueba la conexión existente:**
+
+```bash
+/c/platform-tools/adb.exe devices
+```
+
+Si tu teléfono ya aparece con estado `device`, **ve directamente al paso 4**. No repitas `pair`: la vinculación anterior sigue siendo válida. Si un nuevo intento muestra `protocol fault` pero el teléfono sigue listado como `device`, también puedes continuar al paso 4. Ese error por sí solo no permite identificar la causa del intento fallido.
+
 1. En el celular, abre **Opciones de desarrollador → Depuración inalámbrica**, actívala y selecciona **Vincular dispositivo con código de vinculación**. Mantén esa ventana abierta.
 2. En **Git Bash**, desde la raíz del proyecto, ejecuta lo siguiente. Introduce la **IP y puerto de esa ventana**, separados por `:`, y después el código cuando ADB lo pida:
 

@@ -129,6 +129,14 @@ Wait for installation to report `Success`. The `&&` operators prevent running th
 
 Connect the computer and phone to the **same Wi-Fi network**. This workflow needs no cable; the app still requires Android 12+. Keep the backend running.
 
+**Before pairing, check the existing connection:**
+
+```bash
+/c/platform-tools/adb.exe devices
+```
+
+If your phone already appears with status `device`, **go directly to step 4**. Do not repeat `pair`: the previous pairing is still valid. If a new attempt reports `protocol fault` but the phone remains listed as `device`, you can also continue to step 4. That error alone does not identify the cause of the failed attempt.
+
 1. On the phone, open **Developer options → Wireless debugging**, enable it and select **Pair device with pairing code**. Keep that dialog open.
 2. In **Git Bash**, from the project root, run the following. Enter the **IP address and port from that dialog**, separated by `:`, then enter the code when ADB prompts for it:
 
