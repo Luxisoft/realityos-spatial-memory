@@ -456,6 +456,8 @@ def select_generation(db, journal, generation):
 
 
 def require_acceptance(db, journal, receipt):
+    if journal.get("retired_media_deleted"):
+        raise ValueError("Retired media was deleted; this release is already final")
     expected = {r["id"]: r["item"]["sha256"] for r in journal["created"]}
     if receipt.get("release") != RELEASE or receipt.get("sources") != expected:
         raise ValueError("Acceptance receipt does not match the staged videos")
@@ -513,6 +515,8 @@ def activate(db, journal):
 
 
 def rollback(db, journal):
+    if journal.get("retired_media_deleted"):
+        raise ValueError("Retired media was deleted; media rollback is unavailable")
     for row in journal["previous"]:
         db.get(Publication, uuid.UUID(row["id"])).hidden = row["hidden"]
     for row in journal["created"]:
@@ -572,6 +576,12 @@ def verify_sync(db, journal, settings):
             raise ValueError("Synchronization changed the publication count")
         for row in journal["previous"] + journal["created"]:
             post = db.get(Publication, uuid.UUID(row["id"]), populate_existing=True)
+            if row["id"] in journal.get("deleted_publication_ids", []):
+                if post is not None:
+                    raise ValueError("Deleted evaluation media reappeared")
+                continue
+            if post is None:
+                raise ValueError("An accepted publication is missing")
             asset = db.get(MediaAsset, post.media_id)
             should_hide = (
                 row["item"]["kind"] == "video" or row["hidden"]

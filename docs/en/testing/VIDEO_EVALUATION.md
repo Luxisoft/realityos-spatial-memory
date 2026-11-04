@@ -66,8 +66,10 @@ python scripts/renew_evaluation_videos.py --phase index --journal .runtime/video
 python scripts/verify_evaluation_videos.py --journal .runtime/video-evaluation/journal.json --output .runtime/video-evaluation/acceptance.json --resume
 ```
 
-Activation requires 48 positive searches, six negatives, six isolation checks, 12 downloads with matching hashes and visual review of evidence frames. The HTTP receipt alone does not approve that visual review. `activate` also requires private `--receipt` and `--credentials-file` inputs; it reads back both bucket generations, binds their provenance and selects the new folder for synchronization every 15 minutes. It preserves all 36 photo identifiers and hides only the 12 replaced videos. `rollback`, with the same journal, restores their visibility and the verified previous folder. It does not delete external objects.
+Activation requires 48 positive searches, six negatives, six isolation checks, 12 downloads with matching hashes and visual review of evidence frames. The HTTP receipt alone does not approve that visual review. `activate` also requires private `--receipt` and `--credentials-file` inputs; it verifies bucket originals, binds their provenance and selects the new folder for synchronization every 15 minutes. It preserves all 36 photo identifiers.
+
+The preparation commands above document this release and must not be repeated against its final state. After accepting the replacement, the owner requested deletion of previous videos and unused copies. Cleanup checked exact references and hashes. The journal marks `retired_media_deleted=true`; `rollback` and reactivation of the same release are rejected to prevent recreating deleted media. The HTTP evaluation queries remain available.
 
 ## Execution status
 
-Candidates are staged and real analysis is running. Activation and the complete matrix have not yet passed. Physical Android and glasses testing is tracked separately.
+Activation completed: **12 videos, 48 ES/EN queries, six negatives, six cross-group checks and 12 verified originals**. Boxes were visually inspected on the actual returned evidence. The [public receipt](../../assets/storage/video-evaluation-verification.json) includes preservation auditing and two full scans of all nine sources. All 36 photos and existing records remain. The owner requested deletion of the 12 previous videos, the rejected candidate and obsolete copies; they are no longer retained for rollback. Physical Android and glasses testing was not performed for this renewal.

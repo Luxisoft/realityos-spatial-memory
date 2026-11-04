@@ -32,8 +32,8 @@ Mantén estable `STORAGE_ENCRYPTION_KEY` en el runtime privado y compartida por 
 
 La [matriz de videos](../testing/VIDEO_EVALUATION.md) contiene las consultas ES/EN y los intervalos esperados. `scripts/prepare_evaluation_videos.py` prepara únicamente los videos y reutiliza los bytes ya verificados. `scripts/renew_evaluation_videos.py` administra inventario, carga, análisis real, aceptación, activación y reversión con un diario privado. No vuelve a crear cuentas, grupos ni expedientes.
 
-La sincronización selecciona `demo/v2/{scenario}/{username}/evaluation-v3/` en las nueve conexiones existentes, cada 15 minutos. La carpeta hermana `evaluation-v2-rollback/` conserva la generación anterior verificada. Las fotos mantienen sus identificadores; se ocultan únicamente los videos sustituidos. Los objetos externos se conservan. QA permanece en `demo/v1/qa/`.
+La sincronización selecciona `demo/v2/{scenario}/{username}/evaluation-v3/` en las nueve conexiones existentes, cada 15 minutos. Las 36 fotos mantienen sus identificadores. Por petición expresa del propietario se eliminaron los videos sustituidos, el candidato descartado y 96 copias remotas obsoletas, incluida `evaluation-v2-rollback/`. La generación activa conserva sus 48 escenas. QA permanece en `demo/v1/qa/`.
 
-No vuelvas a configurar un barrido recursivo de la carpeta raíz con los importadores antiguos: incluiría ambas generaciones. Los preparadores anteriores rechazan la renovación versionada. `scripts/prepare_bucket_demo.py` respeta ahora la carpeta y el propietario explícitos del manifiesto. Las claves de escritura/lectura permanecen en archivos privados y no se incluyen en Postman.
+Mantén seleccionada únicamente la carpeta activa; los preparadores anteriores rechazan la renovación versionada. `scripts/prepare_bucket_demo.py` respeta ahora la carpeta y el propietario explícitos del manifiesto. Las claves de escritura/lectura permanecen en archivos privados y no se incluyen en Postman.
 
 Consulta las comprobaciones R2/API ejecutadas en el [estado de implementación](../project/IMPLEMENTATION_STATUS.md). La aceptación en teléfono y gafas requiere evidencia del dispositivo.

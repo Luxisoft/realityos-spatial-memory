@@ -521,3 +521,11 @@ def test_verify_sync_cli_keeps_active_release(client, tmp_path, renewal, monkeyp
     assert calls == ["active"]
     assert json.loads(journal_path.read_text()) == journal
     assert json.loads((tmp_path / "synchronization.json").read_text())["passed"]
+
+
+def test_owner_deleted_media_cannot_be_restored_or_uploaded_again(renewal):
+    journal = {"retired_media_deleted": True}
+    with pytest.raises(ValueError, match="media rollback is unavailable"):
+        renewal.rollback(None, journal)
+    with pytest.raises(ValueError, match="release is already final"):
+        renewal.require_acceptance(None, journal, {})

@@ -32,8 +32,8 @@ Keep `STORAGE_ENCRYPTION_KEY` stable in private runtime configuration, shared by
 
 The [video matrix](../testing/VIDEO_EVALUATION.md) contains ES/EN queries and expected intervals. `scripts/prepare_evaluation_videos.py` prepares only videos and reuses verified bytes. `scripts/renew_evaluation_videos.py` manages inventory, staging, real analysis, acceptance, activation and rollback with a private journal. It does not recreate accounts, groups or records.
 
-Synchronization selects `demo/v2/{scenario}/{username}/evaluation-v3/` within the nine existing connections, every 15 minutes. The sibling `evaluation-v2-rollback/` folder preserves the verified previous generation. Photos keep their identifiers; only replaced videos are hidden. External objects remain intact. QA stays under `demo/v1/qa/`.
+Synchronization selects `demo/v2/{scenario}/{username}/evaluation-v3/` within the nine existing connections, every 15 minutes. All 36 photos keep their identifiers. At the owner's explicit request, replaced videos, the rejected candidate and 96 obsolete remote copies were deleted, including `evaluation-v2-rollback/`. The active generation retains its 48 scenes. QA stays under `demo/v1/qa/`.
 
-Do not configure a recursive root scan through the older importers: it would include both generations. Legacy preparation tools reject the versioned renewal. `scripts/prepare_bucket_demo.py` now honors the manifest's explicit folder and owner. Read/write credentials stay in private files and are not included in Postman.
+Keep only the active folder selected; legacy preparation tools reject the versioned renewal. `scripts/prepare_bucket_demo.py` now honors the manifest's explicit folder and owner. Read/write credentials stay in private files and are not included in Postman.
 
 Check the dated [implementation status](../project/IMPLEMENTATION_STATUS.md) for executed R2/API checks. Phone and glasses acceptance require separate device evidence.
