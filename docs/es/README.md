@@ -108,7 +108,7 @@ Con el backend iniciado y el teléfono conectado, comprueba:
 /c/platform-tools/adb.exe devices
 ```
 
-Debe aparecer **un solo teléfono** con estado `device`. Si aparece `unauthorized`, desbloquéalo y acepta la autorización. Si no aparece, revisa la depuración, el cable y el [controlador USB de Windows](https://developer.android.com/studio/run/oem-usb). Desconecta otros dispositivos o emuladores antes de continuar.
+Debe aparecer **un solo teléfono** con estado `device`. Si aparece `unauthorized`, desbloquéalo y acepta la autorización. Si USB no detecta el teléfono, sigue [Depuración inalámbrica](#android-wifi). Desconecta otros dispositivos o emuladores antes de continuar por USB.
 
 Desde la raíz del proyecto:
 
@@ -119,6 +119,41 @@ Desde la raíz del proyecto:
 ```
 
 Espera `Success` en la instalación. Los `&&` impiden ejecutar el siguiente comando si falla el anterior. Repite el comando `reverse` al reconectar el USB; puedes abrir la app tocando su icono.
+
+<a id="android-wifi"></a>
+
+<details>
+<summary><strong>Si USB no funciona: depuración inalámbrica</strong></summary>
+
+Conecta el computador y el teléfono a la **misma red Wi-Fi**. Este recorrido no necesita cable; la app sigue requiriendo Android 12+. Mantén el backend iniciado.
+
+1. En el celular, abre **Opciones de desarrollador → Depuración inalámbrica**, actívala y selecciona **Vincular dispositivo con código de vinculación**. Mantén esa ventana abierta.
+2. En **Git Bash**, desde la raíz del proyecto, ejecuta lo siguiente. Introduce la **IP y puerto de esa ventana**, separados por `:`, y después el código cuando ADB lo pida:
+
+```bash
+read -r -p 'Pairing IP:port from phone: ' pairing_address
+/c/platform-tools/adb.exe pair "$pairing_address"
+```
+
+3. Tras `Successfully paired`, vuelve a la pantalla principal de **Depuración inalámbrica**. Usa su **Dirección IP y puerto** para conectar: el puerto de conexión es distinto del de vinculación.
+
+```bash
+read -r -p 'Connection IP:port from phone: ' phone_address
+/c/platform-tools/adb.exe connect "$phone_address" &&
+/c/platform-tools/adb.exe devices
+```
+
+4. Cuando aparezca con estado `device`, instala y abre la app:
+
+```bash
+/c/platform-tools/adb.exe -s "$phone_address" reverse tcp:8080 tcp:8080 &&
+/c/platform-tools/adb.exe -s "$phone_address" install -r android/app/build/outputs/apk/debug/app-debug.apk &&
+/c/platform-tools/adb.exe -s "$phone_address" shell am start -n com.luxisoft.realityos.local/com.luxisoft.realityos.MainActivity
+```
+
+Mantén la conexión inalámbrica activa para usar el backend. Si se desconecta o abres otra terminal, repite los pasos 3–4 con la dirección actual; no hace falta vincular de nuevo mientras el computador siga guardado. Si la conexión se agota, comprueba que la red permita comunicación entre dispositivos; las redes de invitados pueden bloquearla. [Referencia oficial de ADB](https://developer.android.com/tools/adb#connect-to-a-device-over-wi-fi).
+
+</details>
 
 <a id="android-build"></a>
 <a id="java-windows"></a>

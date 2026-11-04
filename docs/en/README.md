@@ -108,7 +108,7 @@ With the backend running and the phone connected, check:
 /c/platform-tools/adb.exe devices
 ```
 
-Exactly **one phone** must appear with status `device`. If it says `unauthorized`, unlock it and accept authorization. If it is missing, check debugging, the cable and the [Windows USB driver](https://developer.android.com/studio/run/oem-usb). Disconnect other devices or emulators before continuing.
+Exactly **one phone** must appear with status `device`. If it says `unauthorized`, unlock it and accept authorization. If USB does not detect the phone, follow [Wireless debugging](#android-wifi). Disconnect other devices or emulators before continuing over USB.
 
 From the project root:
 
@@ -119,6 +119,41 @@ From the project root:
 ```
 
 Wait for installation to report `Success`. The `&&` operators prevent running the next command if the previous one fails. Repeat `reverse` after reconnecting USB; you can open the app by tapping its icon.
+
+<a id="android-wifi"></a>
+
+<details>
+<summary><strong>If USB does not work: wireless debugging</strong></summary>
+
+Connect the computer and phone to the **same Wi-Fi network**. This workflow needs no cable; the app still requires Android 12+. Keep the backend running.
+
+1. On the phone, open **Developer options → Wireless debugging**, enable it and select **Pair device with pairing code**. Keep that dialog open.
+2. In **Git Bash**, from the project root, run the following. Enter the **IP address and port from that dialog**, separated by `:`, then enter the code when ADB prompts for it:
+
+```bash
+read -r -p 'Pairing IP:port from phone: ' pairing_address
+/c/platform-tools/adb.exe pair "$pairing_address"
+```
+
+3. After `Successfully paired`, return to the main **Wireless debugging** screen. Use its **IP address & port** to connect: the connection port differs from the pairing port.
+
+```bash
+read -r -p 'Connection IP:port from phone: ' phone_address
+/c/platform-tools/adb.exe connect "$phone_address" &&
+/c/platform-tools/adb.exe devices
+```
+
+4. Once it appears with status `device`, install and open the app:
+
+```bash
+/c/platform-tools/adb.exe -s "$phone_address" reverse tcp:8080 tcp:8080 &&
+/c/platform-tools/adb.exe -s "$phone_address" install -r android/app/build/outputs/apk/debug/app-debug.apk &&
+/c/platform-tools/adb.exe -s "$phone_address" shell am start -n com.luxisoft.realityos.local/com.luxisoft.realityos.MainActivity
+```
+
+Keep the wireless connection active to use the backend. If it disconnects or you open another terminal, repeat steps 3–4 with the current address; pairing is not needed again while the computer remains saved. If the connection times out, check that the network allows devices to communicate; guest networks may block this. [Official ADB reference](https://developer.android.com/tools/adb#connect-to-a-device-over-wi-fi).
+
+</details>
 
 <a id="android-build"></a>
 <a id="java-windows"></a>
