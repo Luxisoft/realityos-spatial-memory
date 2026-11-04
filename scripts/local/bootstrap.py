@@ -11,6 +11,7 @@ from app.local_seed import enqueue_initial_media, seed_evaluation
 from app.main import app
 from refresh_local_police import refresh_local_police
 from replace_local_hospital import replace_local_hospital
+from seed_local_social import seed_local_social
 
 
 def main():
@@ -29,6 +30,8 @@ def main():
         result = (
             enqueue_initial_media(db) if args.queue else seed_evaluation(db, settings)
         )
+        if not args.queue:
+            result["social_directory"] = seed_local_social(db, settings)
         db.commit()
     print(json.dumps(result))
 

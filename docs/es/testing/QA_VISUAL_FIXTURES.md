@@ -8,19 +8,24 @@ Abre esta página renderizada en GitHub en la computadora. Haz clic en una image
 <a id="clinical"></a>
 ## Meta Social Media
 
-Meta Social Media empieza vacío. Elena Marquez, Mateo Rios y Sarah Chen conservan sus perfiles; los expedientes y medios del antiguo hospital se eliminaron.
+Entra con Elena Marquez, Mateo Rios o Sarah Chen, selecciona Meta Social Media y acepta el consentimiento de búsqueda si la app lo solicita. Abre cualquiera de estos avatares en la computadora y usa la búsqueda de personas existente. Son diez perfiles adicionales, distintos de Policía y de las cuentas del selector.
 
-### Fotografías para consultar perfiles
+Cada perfil tiene tres fotos diferentes de referencia privadas y un avatar separado. Los avatares de esta tabla no se enrolan; las 30 referencias no se publican en la galería ni se muestran como miniaturas de resultados. La búsqueda conserva su motor, umbrales, permisos y lógica existentes.
 
-Estas tres fotos se generaron a partir de los avatares existentes. Cada una muestra una sola persona, con el rostro visible en un encuadre cercano. Abre una foto en la computadora y úsala como entrada de una búsqueda explícita. **Son archivos de consulta: no se publican, no se adjuntan a registros y no se cargan al iniciar el entorno local.**
+El registro y la importación Meta están representados por datos sintéticos locales; no se ha realizado OAuth ni una importación de Facebook. Los perfiles conservan procedencia interna y consentimiento de escenario. No se modifica el consentimiento de las tres cuentas de acceso.
 
-| Cuenta de referencia | Foto para buscar | Avatar original |
+| Perfil | Abrir avatar para consultar | Actividad |
 | --- | --- | --- |
-| Elena Marquez | [Exterior de cafetería](../../../simulator/search-cases/meta-social/elena-marquez.png) | [Avatar](../../../simulator/workspaces/assets/elena-marquez.png) |
-| Mateo Rios | [Paseo junto al río](../../../simulator/search-cases/meta-social/mateo-rios.png) | [Avatar](../../../simulator/workspaces/assets/mateo-rios.png) |
-| Sarah Chen | [Entrada de librería](../../../simulator/search-cases/meta-social/sarah-chen.png) | [Avatar](../../../simulator/workspaces/assets/sarah-chen.png) |
-
-La cuenta indicada es la referencia de generación, no una coincidencia verificada. Tener un avatar no crea un enrolamiento: la prueba facial requiere sus permisos, consentimiento y preparación explícita. Este material no habilita una búsqueda global de Facebook. No se ha ejecutado una búsqueda en dispositivo ni una validación de reconocimiento con estas imágenes.
+| Valentina Rojas | [Avatar](../../../simulator/social-directory/source/valentina-rojas.png) | Arquitecta sostenible |
+| Mateo Silva | [Avatar](../../../simulator/social-directory/source/mateo-silva.png) | Ingeniero de sonido |
+| Samira Haddad | [Avatar](../../../simulator/social-directory/source/samira-haddad.png) | Diseñadora de producto |
+| Thiago Costa | [Avatar](../../../simulator/social-directory/source/thiago-costa.png) | Chef y emprendedor |
+| Lucía Fernández | [Avatar](../../../simulator/social-directory/source/lucia-fernandez.png) | Médica rural |
+| Noah Williams | [Avatar](../../../simulator/social-directory/source/noah-williams.png) | Fotógrafo documental |
+| Camila Torres | [Avatar](../../../simulator/social-directory/source/camila-torres.png) | Bióloga marina |
+| Diego Mendoza | [Avatar](../../../simulator/social-directory/source/diego-mendoza.png) | Técnico en robótica |
+| Amina Diallo | [Avatar](../../../simulator/social-directory/source/amina-diallo.png) | Analista de datos |
+| Ren Ito | [Avatar](../../../simulator/social-directory/source/ren-ito.png) | Ilustrador editorial |
 
 <a id="search-cases"></a>
 ## Policía: escenas para probar búsquedas
