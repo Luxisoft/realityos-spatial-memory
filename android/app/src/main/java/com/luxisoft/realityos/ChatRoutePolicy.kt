@@ -44,13 +44,30 @@ internal object ChatRoutePolicy {
             else -> route
         }
 
+    enum class ImageRoute {
+        PEOPLE_TEXT,
+        FACE_PROBE,
+        OBJECT_QUERY,
+    }
+
     /**
-     * Image-plus-text fallback when probe classification fails: route by the
-     * user's own words. Null when there is nothing to route on.
+     * Image-plus-text routing: explicit words win over the detected faces, so
+     * "people with arrest warrants" searches group records instead of running
+     * a biometric probe. Null when there is nothing to route on.
      */
-    fun imageFallbackRoute(question: String, serverTarget: String?): ResolvedRoute? {
-        if (question.isBlank() || serverTarget == null) return null
-        return resolveAutoRoute(serverTarget)
+    fun imageRoute(question: String, serverTarget: String?, faceCount: Int?): ImageRoute? {
+        if (question.isNotBlank()) {
+            if (serverTarget == null) {
+                if (faceCount == null) return null
+                return if (faceCount > 0) ImageRoute.FACE_PROBE else ImageRoute.OBJECT_QUERY
+            }
+            return when (resolveRoute(serverTarget)) {
+                ResolvedRoute.PEOPLE_SEARCH -> ImageRoute.PEOPLE_TEXT
+                else -> ImageRoute.OBJECT_QUERY
+            }
+        }
+        if (faceCount == null) return null
+        return if (faceCount > 0) ImageRoute.FACE_PROBE else ImageRoute.OBJECT_QUERY
     }
 
     fun greeting(language: String): String = when (language.lowercase().take(2)) {

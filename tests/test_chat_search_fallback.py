@@ -4,7 +4,8 @@ Regression coverage for the finder-chat report: an image plus "Find people..."
 must not fail with "Could not analyze the image", and person questions scoped
 to the work group (for example people with an active arrest warrant) must
 return the linked group photos/videos with the found person framed, in both
-the thumbnail and the large viewer.
+the thumbnail and the large viewer. Free phrasing is interpreted by the model;
+deterministic keywords only back it up during outages and in tests.
 """
 
 from __future__ import annotations
@@ -233,6 +234,7 @@ def test_records_search_returns_boxed_warrant_portraits(client, auth_headers):
     )
     assert response.status_code == 200, response.text
     payload = response.json()
+    assert [record["title"] for record in payload["records"]] == ["Bruno Escobar"]
     gallery = payload["gallery_matches"]
     assert len(gallery) == 1
     item = GalleryMatch.model_validate(gallery[0]).model_dump(mode="json")
@@ -346,3 +348,147 @@ def test_records_search_gallery_needs_workspace_membership(client, auth_headers)
         json={"question": "Find people with arrest warrants", "language": "en"},
     )
     assert denied.status_code == 403, denied.text
+
+
+def test_records_search_offline_filter_covers_varied_warrant_phrasings(
+    client, auth_headers
+):
+    from app.providers.person_filters import interpret
+
+    assert interpret("muéstrame los requeridos por la justicia") == "warrant"
+    assert interpret("wanted people") == "warrant"
+    assert interpret("fugitives in the group") == "warrant"
+    assert interpret("people under arrest") == "warrant"
+    assert interpret("personas desaparecidas del grupo") == "missing"
+    assert interpret("people with no criminal history") == "clean"
+    assert interpret("maintenance cabinet Delta") == "none"
+    workspace_id = _workspace(client, auth_headers)
+    with client.app.state.database.session_factory() as db:
+        owner = db.query(User).filter_by(email="admin@example.test").one()
+        _person_case(
+            db,
+            owner.id,
+            uuid.UUID(workspace_id),
+            name="Bruno Escobar",
+            warrant=True,
+            portrait_color=(200, 40, 40),
+        )
+    response = client.post(
+        f"/v1/workspaces/{workspace_id}/records/search",
+        headers=auth_headers,
+        json={"question": "muéstrame los requeridos por la justicia", "language": "es"},
+    )
+    assert response.status_code == 200, response.text
+    payload = response.json()
+    assert [record["title"] for record in payload["records"]] == ["Bruno Escobar"]
+    assert [item["caption"] for item in payload["gallery_matches"]] == ["Bruno Escobar"]
+
+
+def test_records_search_non_person_question_returns_no_gallery(client, auth_headers):
+    workspace_id = _workspace(client, auth_headers)
+    with client.app.state.database.session_factory() as db:
+        owner = db.query(User).filter_by(email="admin@example.test").one()
+        _person_case(
+            db,
+            owner.id,
+            uuid.UUID(workspace_id),
+            name="Bruno Escobar",
+            warrant=True,
+            portrait_color=(200, 40, 40),
+        )
+    response = client.post(
+        f"/v1/workspaces/{workspace_id}/records/search",
+        headers=auth_headers,
+        json={"question": "maintenance cabinet Delta", "language": "en"},
+    )
+    assert response.status_code == 200, response.text
+    assert response.json()["gallery_matches"] == []
+
+
+def test_records_search_outage_still_returns_indexed_gallery(
+    client, auth_headers, monkeypatch
+):
+    def _raise(settings):
+        raise MetaProviderError(
+            "MODEL_API_KEY is required for a direct Meta connection."
+        )
+
+    monkeypatch.setattr("app.workspaces.search.build_meta_client", _raise)
+    workspace_id = _workspace(client, auth_headers)
+    with client.app.state.database.session_factory() as db:
+        owner = db.query(User).filter_by(email="admin@example.test").one()
+        _person_case(
+            db,
+            owner.id,
+            uuid.UUID(workspace_id),
+            name="Bruno Escobar",
+            warrant=True,
+            portrait_color=(200, 40, 40),
+        )
+    response = client.post(
+        f"/v1/workspaces/{workspace_id}/records/search",
+        headers=auth_headers,
+        json={"question": "Find people with arrest warrants", "language": "en"},
+    )
+    assert response.status_code == 200, response.text
+    payload = response.json()
+    assert [record["title"] for record in payload["records"]] == ["Bruno Escobar"]
+    assert [item["caption"] for item in payload["gallery_matches"]] == ["Bruno Escobar"]
+
+
+def test_live_person_filter_parses_model_output(monkeypatch):
+    import httpx
+    from app.config import Settings
+    from app.meta import LiveMetaModelClient
+
+    settings = Settings(
+        _env_file=None,
+        meta_mode="live",
+        meta_connection_mode="direct",
+        model_api_key="direct-test-key",
+        meta_gateway_fallback_enabled=False,
+        meta_api_base_url="https://meta.test/v1",
+        meta_max_retries=0,
+    )
+
+    def fake_request(method, url, **kwargs):
+        return httpx.Response(
+            200,
+            request=httpx.Request(method, str(url)),
+            json={"output_text": '{"filter": "missing"}'},
+        )
+
+    monkeypatch.setattr(httpx, "request", fake_request)
+    result = LiveMetaModelClient(settings).interpret_person_filter(
+        "¿A quiénes estamos buscando?"
+    )
+    assert result.filter == "missing"
+    assert result.simulated is False
+
+
+def test_live_person_filter_falls_back_to_keywords_on_invalid_output(monkeypatch):
+    import httpx
+    from app.config import Settings
+    from app.meta import LiveMetaModelClient
+
+    settings = Settings(
+        _env_file=None,
+        meta_mode="live",
+        meta_connection_mode="direct",
+        model_api_key="direct-test-key",
+        meta_gateway_fallback_enabled=False,
+        meta_api_base_url="https://meta.test/v1",
+        meta_max_retries=0,
+    )
+
+    def fake_request(method, url, **kwargs):
+        return httpx.Response(
+            200,
+            request=httpx.Request(method, str(url)),
+            json={"output_text": "not json"},
+        )
+
+    monkeypatch.setattr(httpx, "request", fake_request)
+    result = LiveMetaModelClient(settings).interpret_person_filter("wanted people")
+    assert result.filter == "warrant"
+    assert result.simulated is True

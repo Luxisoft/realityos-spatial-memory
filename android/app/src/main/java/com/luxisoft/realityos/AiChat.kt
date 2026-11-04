@@ -517,38 +517,44 @@ internal fun AiChat(
         scope.launch {
             busy = true
             try {
-                val response = withContext(Dispatchers.IO) {
-                    JSONObject(
-                        SocialSession.requestMultipart(
-                            "search/classify",
-                            mapOf("workspace_id" to workspaceId),
-                            probe.bytes,
-                            "busqueda.jpg",
-                            probe.mime,
-                            fieldName = "image"
+                // The user's words lead: image classification only assists.
+                val faces = try {
+                    val response = withContext(Dispatchers.IO) {
+                        JSONObject(
+                            SocialSession.requestMultipart(
+                                "search/classify",
+                                mapOf("workspace_id" to workspaceId),
+                                probe.bytes,
+                                "busqueda.jpg",
+                                probe.mime,
+                                fieldName = "image"
+                            )
                         )
-                    )
-                }
-                val faces = response.optInt("faces")
-                val labels = response.optJSONArray("object_labels")?.let { array ->
-                    (0 until array.length()).map { array.getString(it) }
-                } ?: emptyList()
-                when (SearchTargetPolicy.decide(faces, labels)) {
-                    SearchTargetPolicy.Target.PERSON -> runFaceSearch(probe, fromVoice)
-                    SearchTargetPolicy.Target.OBJECT -> runObjectQuery(question, probe, fromVoice)
-                }
-            } catch (failure: Exception) {
-                // Classification needs providers; honor the user's own words instead.
-                val fallbackTarget = try {
-                    if (question.isBlank()) null else repository.routeText(question)
+                    }
+                    if (response.has("faces")) response.optInt("faces") else null
                 } catch (_: Exception) {
                     null
                 }
-                when (ChatRoutePolicy.imageFallbackRoute(question, fallbackTarget)) {
-                    ChatRoutePolicy.ResolvedRoute.PEOPLE_SEARCH -> runFaceSearch(probe, fromVoice)
-                    ChatRoutePolicy.ResolvedRoute.OBJECT_QUERY,
-                    ChatRoutePolicy.ResolvedRoute.CHAT -> runObjectQuery(question, probe, fromVoice)
-                    ChatRoutePolicy.ResolvedRoute.ASK, null -> pushAi(chatText(R.string.chat_image_failed))
+                val target = if (question.isBlank()) {
+                    null
+                } else {
+                    try {
+                        repository.routeText(question)
+                    } catch (_: Exception) {
+                        null
+                    }
+                }
+                when (ChatRoutePolicy.imageRoute(question, target, faces)) {
+                    ChatRoutePolicy.ImageRoute.PEOPLE_TEXT -> {
+                        if (guestsBlocked) {
+                            pushAi(localizedText(R.string.ui_guests_cannot_search_for_meta_people))
+                        } else {
+                            runPeopleText(question, fromVoice)
+                        }
+                    }
+                    ChatRoutePolicy.ImageRoute.FACE_PROBE -> runFaceSearch(probe, fromVoice)
+                    ChatRoutePolicy.ImageRoute.OBJECT_QUERY -> runObjectQuery(question, probe, fromVoice)
+                    null -> pushAi(chatText(R.string.chat_image_failed))
                 }
             } finally {
                 busy = false

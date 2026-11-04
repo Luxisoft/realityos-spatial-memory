@@ -121,25 +121,49 @@ class ChatRoutePolicyTest {
     }
 
     @Test
-    fun imageFallbackHonorsPersonAndObjectRequests() {
+    fun imageRouteLetsWordsWinOverFaces() {
         assertEquals(
-            ChatRoutePolicy.ResolvedRoute.PEOPLE_SEARCH,
-            ChatRoutePolicy.imageFallbackRoute("Find people with arrest warrants", "person"),
+            ChatRoutePolicy.ImageRoute.PEOPLE_TEXT,
+            ChatRoutePolicy.imageRoute("Find people with arrest warrants", "person", 2),
         )
         assertEquals(
-            ChatRoutePolicy.ResolvedRoute.OBJECT_QUERY,
-            ChatRoutePolicy.imageFallbackRoute("Find the hammer", "object"),
+            ChatRoutePolicy.ImageRoute.OBJECT_QUERY,
+            ChatRoutePolicy.imageRoute("Find the hammer", "object", 1),
         )
         assertEquals(
-            ChatRoutePolicy.ResolvedRoute.OBJECT_QUERY,
-            ChatRoutePolicy.imageFallbackRoute("buscalo", "ask"),
+            ChatRoutePolicy.ImageRoute.OBJECT_QUERY,
+            ChatRoutePolicy.imageRoute("buscalo", "ask", 1),
         )
     }
 
     @Test
-    fun imageFallbackNeedsBothWordsAndARoute() {
-        assertNull(ChatRoutePolicy.imageFallbackRoute("", "person"))
-        assertNull(ChatRoutePolicy.imageFallbackRoute("   ", "object"))
-        assertNull(ChatRoutePolicy.imageFallbackRoute("Find people", null))
+    fun imageRouteWithoutWordsFollowsFaces() {
+        assertEquals(
+            ChatRoutePolicy.ImageRoute.FACE_PROBE,
+            ChatRoutePolicy.imageRoute("", null, 1),
+        )
+        assertEquals(
+            ChatRoutePolicy.ImageRoute.OBJECT_QUERY,
+            ChatRoutePolicy.imageRoute("   ", null, 0),
+        )
+    }
+
+    @Test
+    fun imageRouteFallsBackToFacesWithoutTarget() {
+        assertEquals(
+            ChatRoutePolicy.ImageRoute.FACE_PROBE,
+            ChatRoutePolicy.imageRoute("Find people", null, 1),
+        )
+        assertEquals(
+            ChatRoutePolicy.ImageRoute.OBJECT_QUERY,
+            ChatRoutePolicy.imageRoute("Find people", null, 0),
+        )
+    }
+
+    @Test
+    fun imageRouteNeedsWordsOrFaces() {
+        assertNull(ChatRoutePolicy.imageRoute("", null, null))
+        assertNull(ChatRoutePolicy.imageRoute("   ", "object", null))
+        assertNull(ChatRoutePolicy.imageRoute("Find people", null, null))
     }
 }

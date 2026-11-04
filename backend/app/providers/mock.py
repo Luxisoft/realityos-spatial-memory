@@ -18,6 +18,7 @@ from app.schemas import (
     ImageAnalysis,
     MetaDetection,
     MetaFact,
+    PersonFilter,
     QueryInterpretation,
     SearchIntent,
 )
@@ -375,6 +376,13 @@ class MockMetaModelClient(MetaModelClient):
         if tokens & greeting_markers and not (tokens & search_verbs):
             return SearchIntent(target="chat", simulated=True)
         return SearchIntent(target="object", simulated=True)
+
+    def interpret_person_filter(self, question: str) -> PersonFilter:
+        """Deterministic offline filter; it never calls a model or network."""
+
+        from app.providers.person_filters import interpret
+
+        return PersonFilter(filter=interpret(question), simulated=True)
 
     def extract_profile_context(self, cv_text: str) -> ProfileContext:
         normalized = " ".join(cv_text.split())[:12_000]

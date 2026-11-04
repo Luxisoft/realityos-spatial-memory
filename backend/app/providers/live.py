@@ -39,6 +39,7 @@ from app.schemas import (
     GalleryInterpretation,
     ImageAnalysis,
     MetaDetection,
+    PersonFilter,
     QueryInterpretation,
     SearchIntent,
 )
@@ -474,6 +475,42 @@ class LiveMetaModelClient(MetaModelClient):
             decoded = SearchIntent.model_validate(json.loads(self._output_text(payload)))
         except (TypeError, ValueError, json.JSONDecodeError):
             return SearchIntent(target="ask")
+        return decoded
+
+    def interpret_person_filter(self, question: str) -> PersonFilter:
+        """Map free phrasing in any language to one structured person filter."""
+
+        from app.providers.person_filters import PERSON_FILTERS, interpret
+
+        prompt = (
+            "You are a multilingual record-search interpreter. The user may write in any "
+            "language or transliteration, with greetings or filler around the real "
+            "request. Decide which group of people they want. "
+            'Return only JSON shaped as {"filter":"warrant"|"missing"|"proceedings"|'
+            '"no_proceedings"|"clean"|"person"|"none"}. '
+            'Use "warrant" for people with active arrest, capture or detention orders: '
+            "wanted people, fugitives, anyone required or sought by justice. "
+            'Use "missing" for missing people or active search and locator orders. '
+            'Use "proceedings" for people with active judicial proceedings or trials. '
+            'Use "no_proceedings" only when they explicitly exclude proceedings. '
+            'Use "clean" for people with no warrants, no orders and no criminal history. '
+            'Use "person" for people in general or a named person without any judicial '
+            'filter. Use "none" when this is not a person search at all. '
+            "Never answer the question itself.\n\n"
+            f"user_request={question}"
+        )
+        payload = self._request(
+            "POST",
+            "responses",
+            json={"model": "muse-spark-1.3", "store": False, "input": prompt},
+        ).json()
+        try:
+            decoded = PersonFilter.model_validate(json.loads(self._output_text(payload)))
+        except (TypeError, ValueError, json.JSONDecodeError):
+            fallback = interpret(question)
+            if fallback not in PERSON_FILTERS:
+                return PersonFilter(filter="none", simulated=True)
+            return PersonFilter(filter=fallback, simulated=True)
         return decoded
 
     def extract_profile_context(self, cv_text: str) -> ProfileContext:

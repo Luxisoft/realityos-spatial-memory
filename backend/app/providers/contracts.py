@@ -11,6 +11,7 @@ from pathlib import Path
 from app.schemas import (
     GalleryInterpretation,
     ImageAnalysis,
+    PersonFilter,
     QueryInterpretation,
     SearchIntent,
 )
@@ -147,6 +148,9 @@ class MetaModelClient(ABC):
 
     @abstractmethod
     def classify_intent(self, question: str) -> SearchIntent: ...
+
+    @abstractmethod
+    def interpret_person_filter(self, question: str) -> PersonFilter: ...
 
     def segment_gallery(self, image: bytes, width: int, height: int, detections: list) -> list:
         return [

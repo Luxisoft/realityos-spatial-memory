@@ -391,5 +391,14 @@ class SearchIntent(BaseModel):
     simulated: bool = False
 
 
+class PersonFilter(BaseModel):
+    """Ephemeral judicial/person filter for a record search request."""
+
+    filter: Literal[
+        "warrant", "missing", "proceedings", "no_proceedings", "clean", "person", "none"
+    ] = "none"
+    simulated: bool = False
+
+
 class SearchRouteRequest(BaseModel):
     text: str = Field(min_length=2, max_length=2000)
