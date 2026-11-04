@@ -172,6 +172,46 @@ Mantén la conexión inalámbrica activa para usar el backend. Si se desconecta 
 
 </details>
 
+<a id="android-hotspot"></a>
+
+### Prueba puntual con el hotspot del celular
+
+Conecta el PC al Wi-Fi compartido por el celular. Este script separado conserva
+el APK y localhost:8080 mediante ADB por red; no cambia `.env.local`, Docker ni
+el firewall. No configura acceso HTTP directo a la IP del PC.
+
+Inicia el backend normalmente, instala el APK local y conecta inicialmente un solo
+celular por USB con depuración autorizada. Desde **CMD**, en la raíz del repositorio:
+
+```bat
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts\local\Connect-Hotspot.ps1 -PcIp 10.108.140.109
+```
+
+Usa la puerta de enlace de esa interfaz (en este caso `10.108.140.192`) como IP del
+celular, con puerto ADB 5555. No usa la IP WSL `172.28.128.1`. Tras `[SUCCESS]`,
+puedes retirar USB. Si ADB está en otra carpeta, añade `-Adb "C:\ruta\adb.exe"`.
+Para un puerto del backend distinto, añade `-ApiPort`.
+
+Para reconectar sin USB mientras ADB siga activo en el celular:
+
+```bat
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts\local\Connect-Hotspot.ps1 -PcIp 10.108.140.109 -Reconnect
+```
+
+Para terminar y volver al modo USB:
+
+```bat
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts\local\Connect-Hotspot.ps1 -PcIp 10.108.140.109 -Stop
+```
+
+Reconecta USB y ejecuta `C:\platform-tools\adb.exe -d reverse tcp:8080 tcp:8080`.
+Si cambia la IP, consulta `ipconfig` y actualiza `-PcIp`. Algunos celulares bloquean
+ADB desde su propio hotspot; conserva USB y usa ese último comando si ocurre.
+Sin USB ni una sesión ADB ya habilitada, este método no puede iniciar la conexión.
+Usa tu hotspot de confianza y termina con `-Stop`; si perdiste la conexión,
+desactiva depuración USB o reinicia el celular para cerrar ADB por red.
+[Procedimiento oficial de ADB](https://developer.android.com/tools/adb#wireless).
+
 <a id="android-build"></a>
 <a id="java-windows"></a>
 

@@ -1,4 +1,5 @@
 $ErrorActionPreference = 'Stop'
+& (Join-Path $PSScriptRoot 'hotspot.tests.ps1')
 & (Join-Path $PSScriptRoot 'docker-startup.tests.ps1')
 & (Join-Path $PSScriptRoot 'console.tests.ps1')
 . (Join-Path $PSScriptRoot '../../scripts/local/Common.ps1')

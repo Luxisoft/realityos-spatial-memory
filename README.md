@@ -174,6 +174,45 @@ Keep the wireless connection active to use the backend. If it disconnects or you
 
 </details>
 
+<a id="android-hotspot"></a>
+
+### Temporary phone hotspot test
+
+Connect the PC to the phone's Wi-Fi hotspot. This separate script keeps the APK
+and localhost:8080 through network ADB; it does not change `.env.local`, Docker
+or the firewall. It does not provide direct HTTP access to the PC IP.
+
+Start the backend normally, install the local APK and initially connect exactly
+one USB phone with debugging authorized. From **CMD** at the repository root:
+
+```bat
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts\local\Connect-Hotspot.ps1 -PcIp 10.108.140.109
+```
+
+The script uses this interface's gateway (`10.108.140.192` here) as the phone
+address on ADB port 5555, not WSL's `172.28.128.1`. Unplug USB after `[SUCCESS]`.
+Override `-Adb "C:\path\adb.exe"` if needed, or `-ApiPort` for another backend port.
+
+Reconnect without USB while network ADB remains enabled:
+
+```bat
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts\local\Connect-Hotspot.ps1 -PcIp 10.108.140.109 -Reconnect
+```
+
+Finish and return to USB mode:
+
+```bat
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts\local\Connect-Hotspot.ps1 -PcIp 10.108.140.109 -Stop
+```
+
+Reconnect USB and run `C:\platform-tools\adb.exe -d reverse tcp:8080 tcp:8080`.
+If the IP changes, check `ipconfig` and update `-PcIp`. Some phones block ADB on
+their own hotspot; keep USB and use that last command in that case. Without USB
+or an already enabled ADB session, this method cannot establish the connection.
+Use your trusted hotspot and finish with `-Stop`; if already disconnected, disable
+USB debugging or restart the phone to close network ADB.
+[Official ADB procedure](https://developer.android.com/tools/adb#wireless).
+
 <a id="android-build"></a>
 <a id="java-windows"></a>
 
