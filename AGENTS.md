@@ -179,3 +179,13 @@ Medical Center is retired locally, including its publications, records and exclu
 media. Meta Social Media replaces it as an empty group with the same Elena Marquez,
 Mateo Rios and Sarah Chen accounts, profile fields and avatars. Do not recreate
 the hospital or seed content into Meta Social Media. Keep Police and Memory intact.
+
+Later owner correction (2026-11-04): replace Police's previous publications,
+records and exclusive media with ten fictional person records and one supplied
+portrait each. Three have judicial arrest warrants; two of those three also have
+active proceedings; the other seven have no criminal history, warrants or
+proceedings. The owner confirmed the portraits depict fictional characters.
+Preserve Police's three access accounts and their avatars. Source portraits and
+their provenance/hash manifest are in `simulator/workspaces/police-people/`.
+Keep this as record data, with internal simulation metadata and no automatic
+biometric authorization/enrollment. Do not restore the former Police scenes.

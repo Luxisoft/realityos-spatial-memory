@@ -13,12 +13,13 @@
         "display_name": "Alex Rivera",
         "user_id": "6b70a3aa-0e7b-5234-8245-a923d31bd2ec",
         "workspace_id": "09f6bc06-8d36-5e69-a050-6f690fe1168b",
-        "record_id": "86042ca2-a420-508c-bc92-8e15d9bf78e8",
-        "post_id": "9723cbb1-23db-58cd-87bd-a8a925624cc0",
-        "query": "Find the keys collected from the ground.",
-        "record_question": "Summarize the first police case and its related evidence.",
+        "record_id": "e0b2f6bd-b184-5457-b6e5-3791a42ec1f2",
+        "post_id": "",
+        "query": "",
+        "record_question": "Which people have an active arrest warrant, which of them have active judicial proceedings, and which have no registered history?",
         "auth_mode": "local-select"
-      }
+      },
+      "records_only": true
     },
     {
       "prefix": "meta_social",

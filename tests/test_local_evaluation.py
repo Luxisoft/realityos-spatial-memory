@@ -91,7 +91,7 @@ def test_replacement_preserves_profiles_and_is_one_time(
         assert db.get(Publication, removed_post) is None
         assert db.get(MediaAsset, removed_media) is None
         assert db.get(Record, removed_record) is None
-        assert db.query(Publication).count() == 31
+        assert db.query(Publication).count() == 15
         for user_id, snapshot in profiles.items():
             profile = db.get(UserProfile, user_id)
             assert (
@@ -124,9 +124,9 @@ def evaluation(tmp_path):
             "initialized": True,
             "groups": 3,
             "users": 9,
-            "records": 27,
-            "attachments": 17,
-            "publications": 32,
+            "records": 28,
+            "attachments": 20,
+            "publications": 16,
         }
         db.commit()
     return APIClient(app)
@@ -149,7 +149,7 @@ def test_seed_restart_preserves_edits_and_deletions(evaluation):
         assert db.get(Publication, post.id).hidden
         assert db.get(Record, record.id).title == "Edited record"
         assert db.query(Workspace).count() == 3
-        assert db.query(RecordMedia).count() == 17
+        assert db.query(RecordMedia).count() == 20
 
 
 def test_selector_issues_session_and_cannot_cross_groups(evaluation):
@@ -302,7 +302,7 @@ def test_queue_dispatch_resumes_without_repeating_successful_jobs(
             enqueue_initial_media(db)
         assert len(calls) == 3
         monkeypatch.setattr("app.tasks.index_gallery_media.delay", calls.append)
-        assert enqueue_initial_media(db) == {"dispatched": 32}
-        assert len(set(calls)) == len(calls) == 32
-        assert enqueue_initial_media(db) == {"dispatched": 32}
-        assert len(calls) == 32
+        assert enqueue_initial_media(db) == {"dispatched": 16}
+        assert len(set(calls)) == len(calls) == 16
+        assert enqueue_initial_media(db) == {"dispatched": 16}
+        assert len(calls) == 16

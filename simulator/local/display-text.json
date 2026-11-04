@@ -11,766 +11,658 @@
         },
         "description": {
           "source": "Local evaluation · fictional scenario",
-          "en": "Incident review, evidence documentation and coordination between shifts.",
-          "es": "Revisión de incidentes, documentación de evidencias y coordinación entre turnos."
+          "en": "Person records, judicial warrants and procedural status.",
+          "es": "Expedientes de personas, órdenes judiciales y estado procesal."
         }
       },
-      "terms": [
-        {
-          "kind": "category",
-          "name": "Equipos y accesorios",
-          "fields": {
-            "name": {
-              "source": "Equipos y accesorios",
-              "en": "Equipment and accessories",
-              "es": "Equipos y accesorios"
-            }
-          }
-        },
-        {
-          "kind": "tag",
-          "name": "Cámara",
-          "fields": {
-            "name": {
-              "source": "Cámara",
-              "en": "Camera",
-              "es": "Cámara"
-            }
-          }
-        },
-        {
-          "kind": "tag",
-          "name": "Llaves",
-          "fields": {
-            "name": {
-              "source": "Llaves",
-              "en": "Keys",
-              "es": "Llaves"
-            }
-          }
-        },
-        {
-          "kind": "tag",
-          "name": "Reloj",
-          "fields": {
-            "name": {
-              "source": "Reloj",
-              "en": "Watch",
-              "es": "Reloj"
-            }
-          }
-        },
-        {
-          "kind": "category",
-          "name": "Videovigilancia",
-          "fields": {
-            "name": {
-              "source": "Videovigilancia",
-              "en": "Video surveillance",
-              "es": "Videovigilancia"
-            }
-          }
-        },
-        {
-          "kind": "tag",
-          "name": "Cámara de seguridad",
-          "fields": {
-            "name": {
-              "source": "Cámara de seguridad",
-              "en": "Security camera",
-              "es": "Cámara de seguridad"
-            }
-          }
-        },
-        {
-          "kind": "tag",
-          "name": "Exterior",
-          "fields": {
-            "name": {
-              "source": "Exterior",
-              "en": "Outdoors",
-              "es": "Exterior"
-            }
-          }
-        },
-        {
-          "kind": "category",
-          "name": "Documentación",
-          "fields": {
-            "name": {
-              "source": "Documentación",
-              "en": "Documentation",
-              "es": "Documentación"
-            }
-          }
-        },
-        {
-          "kind": "tag",
-          "name": "Portapapeles",
-          "fields": {
-            "name": {
-              "source": "Portapapeles",
-              "en": "Clipboard",
-              "es": "Portapapeles"
-            }
-          }
-        },
-        {
-          "kind": "tag",
-          "name": "Periódico",
-          "fields": {
-            "name": {
-              "source": "Periódico",
-              "en": "Newspaper",
-              "es": "Periódico"
-            }
-          }
-        },
-        {
-          "kind": "tag",
-          "name": "Escritorio",
-          "fields": {
-            "name": {
-              "source": "Escritorio",
-              "en": "Desk",
-              "es": "Escritorio"
-            }
-          }
-        },
-        {
-          "kind": "tag",
-          "name": "Cuadernos",
-          "fields": {
-            "name": {
-              "source": "Cuadernos",
-              "en": "Notebooks",
-              "es": "Cuadernos"
-            }
-          }
-        },
-        {
-          "kind": "tag",
-          "name": "Documentos",
-          "fields": {
-            "name": {
-              "source": "Documentos",
-              "en": "Documents",
-              "es": "Documentos"
-            }
-          }
-        },
-        {
-          "kind": "tag",
-          "name": "Bolígrafo",
-          "fields": {
-            "name": {
-              "source": "Bolígrafo",
-              "en": "Pen",
-              "es": "Bolígrafo"
-            }
-          }
-        },
-        {
-          "kind": "tag",
-          "name": "Notas adhesivas",
-          "fields": {
-            "name": {
-              "source": "Notas adhesivas",
-              "en": "Sticky notes",
-              "es": "Notas adhesivas"
-            }
-          }
-        },
-        {
-          "kind": "category",
-          "name": "Equipos de seguridad",
-          "fields": {
-            "name": {
-              "source": "Equipos de seguridad",
-              "en": "Security equipment",
-              "es": "Equipos de seguridad"
-            }
-          }
-        },
-        {
-          "kind": "tag",
-          "name": "Chalecos",
-          "fields": {
-            "name": {
-              "source": "Chalecos",
-              "en": "Vests",
-              "es": "Chalecos"
-            }
-          }
-        },
-        {
-          "kind": "tag",
-          "name": "Cascos",
-          "fields": {
-            "name": {
-              "source": "Cascos",
-              "en": "Helmets",
-              "es": "Cascos"
-            }
-          }
-        },
-        {
-          "kind": "tag",
-          "name": "Soporte de cámara",
-          "fields": {
-            "name": {
-              "source": "Soporte de cámara",
-              "en": "Camera mount",
-              "es": "Soporte de cámara"
-            }
-          }
-        },
-        {
-          "kind": "category",
-          "name": "Objetos personales",
-          "fields": {
-            "name": {
-              "source": "Objetos personales",
-              "en": "Personal belongings",
-              "es": "Objetos personales"
-            }
-          }
-        },
-        {
-          "kind": "tag",
-          "name": "Billetera",
-          "fields": {
-            "name": {
-              "source": "Billetera",
-              "en": "Wallet",
-              "es": "Billetera"
-            }
-          }
-        },
-        {
-          "kind": "tag",
-          "name": "Teléfono",
-          "fields": {
-            "name": {
-              "source": "Teléfono",
-              "en": "Phone",
-              "es": "Teléfono"
-            }
-          }
-        },
-        {
-          "kind": "tag",
-          "name": "Taza",
-          "fields": {
-            "name": {
-              "source": "Taza",
-              "en": "Mug",
-              "es": "Taza"
-            }
-          }
-        },
-        {
-          "kind": "tag",
-          "name": "Casco",
-          "fields": {
-            "name": {
-              "source": "Casco",
-              "en": "Helmet",
-              "es": "Casco"
-            }
-          }
-        },
-        {
-          "kind": "tag",
-          "name": "Chaleco",
-          "fields": {
-            "name": {
-              "source": "Chaleco",
-              "en": "Vest",
-              "es": "Chaleco"
-            }
-          }
-        },
-        {
-          "kind": "tag",
-          "name": "Interior",
-          "fields": {
-            "name": {
-              "source": "Interior",
-              "en": "Indoors",
-              "es": "Interior"
-            }
-          }
-        },
-        {
-          "kind": "tag",
-          "name": "Fotografías",
-          "fields": {
-            "name": {
-              "source": "Fotografías",
-              "en": "Photographs",
-              "es": "Fotografías"
-            }
-          }
-        },
-        {
-          "kind": "tag",
-          "name": "Radio portátil",
-          "fields": {
-            "name": {
-              "source": "Radio portátil",
-              "en": "Handheld radio",
-              "es": "Radio portátil"
-            }
-          }
-        },
-        {
-          "kind": "tag",
-          "name": "Protección auditiva",
-          "fields": {
-            "name": {
-              "source": "Protección auditiva",
-              "en": "Hearing protection",
-              "es": "Protección auditiva"
-            }
-          }
-        },
-        {
-          "kind": "category",
-          "name": "Registro de evidencias",
-          "fields": {
-            "name": {
-              "source": "Registro de evidencias",
-              "en": "Evidence documentation",
-              "es": "Registro de evidencias"
-            }
-          }
-        },
-        {
-          "kind": "tag",
-          "name": "Pinzas",
-          "fields": {
-            "name": {
-              "source": "Pinzas",
-              "en": "Forceps",
-              "es": "Pinzas"
-            }
-          }
-        },
-        {
-          "kind": "tag",
-          "name": "Bolsa de evidencias",
-          "fields": {
-            "name": {
-              "source": "Bolsa de evidencias",
-              "en": "Evidence bag",
-              "es": "Bolsa de evidencias"
-            }
-          }
-        },
-        {
-          "kind": "tag",
-          "name": "Cinta delimitadora",
-          "fields": {
-            "name": {
-              "source": "Cinta delimitadora",
-              "en": "Barrier tape",
-              "es": "Cinta delimitadora"
-            }
-          }
-        },
-        {
-          "kind": "tag",
-          "name": "Protección personal",
-          "fields": {
-            "name": {
-              "source": "Protección personal",
-              "en": "Personal protection",
-              "es": "Protección personal"
-            }
-          }
-        }
-      ],
+      "terms": [],
       "records": [
         {
-          "id": "86042ca2-a420-508c-bc92-8e15d9bf78e8",
+          "id": "e0b2f6bd-b184-5457-b6e5-3791a42ec1f2",
           "fields": {
             "title": {
-              "source": "Pacific Ridge Police Department — Caso 1",
-              "en": "Pacific Ridge Police Department — Case 1",
-              "es": "Pacific Ridge Police Department — Caso 1"
+              "source": "Adrián Salcedo",
+              "en": "Adrián Salcedo",
+              "es": "Adrián Salcedo"
             },
             "data": {
               "source": {
-                "description": "Expediente de seguimiento con observaciones y registros relacionados.",
-                "reference": "security-case-1",
-                "status": "open"
+                "identifier": "PRP-0001",
+                "full_name": "Adrián Salcedo",
+                "birth_date": "1989-04-17",
+                "occupation": "Coordinador de logística",
+                "residence": "17 Calle del Puerto, Pacific Ridge",
+                "phone": "+1-202-555-0101",
+                "email": "adrian.salcedo@example.com",
+                "criminal_history": "Sin condenas ni antecedentes penales registrados",
+                "has_active_warrant": true,
+                "warrant_reference": "PR-OC-2026-001",
+                "warrant_issued_at": "2026-10-27",
+                "issuing_judge": "Camila Torres",
+                "issuing_court": "Juzgado 1 de Control de Garantías de Pacific Ridge",
+                "warrant_purpose": "Comparecencia por investigación de hurto de mercancía",
+                "has_active_proceedings": true,
+                "case_number": "PR-PJ-2026-0141",
+                "procedural_status": "Audiencia preliminar pendiente; sin sentencia",
+                "last_reviewed_at": "2026-11-03T15:30:00-05:00",
+                "notes": "Una orden de captura o un proceso abierto no constituye una condena."
               },
               "en": {
-                "description": "Follow-up case file with observations and related records.",
-                "reference": "security-case-1",
-                "status": "Open"
+                "Identifier": "PRP-0001",
+                "Full name": "Adrián Salcedo",
+                "Date of birth": "1989-04-17",
+                "Occupation": "Logistics coordinator",
+                "Address": "17 Calle del Puerto, Pacific Ridge",
+                "Phone": "+1-202-555-0101",
+                "Email": "adrian.salcedo@example.com",
+                "Criminal history": "No convictions or criminal record registered",
+                "Arrest warrant": "Active",
+                "Judicial proceedings": "Preliminary hearing pending; no judgment",
+                "Last reviewed": "November 3, 2026, 15:30 (UTC−05:00)",
+                "Notes": "An arrest warrant or an open proceeding does not constitute a conviction.",
+                "Warrant number": "PR-OC-2026-001",
+                "Issue date": "2026-10-27",
+                "Issuing judge": "Camila Torres",
+                "Issuing court": "Pacific Ridge Judicial Oversight Court 1",
+                "Purpose of warrant": "Appearance in an investigation of merchandise theft",
+                "Case number": "PR-PJ-2026-0141"
               },
               "es": {
-                "description": "Expediente de seguimiento con observaciones y registros relacionados.",
-                "reference": "security-case-1",
-                "status": "Abierto"
+                "Identificador": "PRP-0001",
+                "Nombre completo": "Adrián Salcedo",
+                "Fecha de nacimiento": "1989-04-17",
+                "Ocupación": "Coordinador de logística",
+                "Domicilio": "17 Calle del Puerto, Pacific Ridge",
+                "Teléfono": "+1-202-555-0101",
+                "Correo": "adrian.salcedo@example.com",
+                "Antecedentes penales": "Sin condenas ni antecedentes penales registrados",
+                "Orden de captura": "Vigente",
+                "Proceso judicial": "Audiencia preliminar pendiente; sin sentencia",
+                "Última revisión": "3 de noviembre de 2026, 15:30 (UTC−05:00)",
+                "Observaciones": "Una orden de captura o un proceso abierto no constituye una condena.",
+                "Número de orden": "PR-OC-2026-001",
+                "Fecha de expedición": "2026-10-27",
+                "Juez que ordena": "Camila Torres",
+                "Despacho judicial": "Juzgado 1 de Control de Garantías de Pacific Ridge",
+                "Objeto de la orden": "Comparecencia por investigación de hurto de mercancía",
+                "Número de proceso": "PR-PJ-2026-0141"
               }
             }
           }
         },
         {
-          "id": "0a44c61e-2f62-55b4-9371-5a573a6e7b71",
+          "id": "909d1a6d-a908-55ac-abca-10a4269ff2a1",
           "fields": {
             "title": {
-              "source": "Observación de turno 1",
-              "en": "Shift observation 1",
-              "es": "Observación de turno 1"
+              "source": "Esteban Pardo",
+              "en": "Esteban Pardo",
+              "es": "Esteban Pardo"
             },
             "data": {
               "source": {
-                "note": "Linterna amarilla y destornillador rojo vistos en mesa de evidencias.",
-                "last_seen_location": "evidence-desk"
+                "identifier": "PRP-0002",
+                "full_name": "Esteban Pardo",
+                "birth_date": "1968-09-23",
+                "occupation": "Comerciante",
+                "residence": "82 Avenida Central, Pacific Ridge",
+                "phone": "+1-202-555-0102",
+                "email": "esteban.pardo@example.com",
+                "criminal_history": "Sin condenas ni antecedentes penales registrados",
+                "has_active_warrant": true,
+                "warrant_reference": "PR-OC-2026-002",
+                "warrant_issued_at": "2026-10-28",
+                "issuing_judge": "Javier Cortés",
+                "issuing_court": "Juzgado 2 de Control de Garantías de Pacific Ridge",
+                "warrant_purpose": "Comparecencia por investigación de fraude comercial",
+                "has_active_proceedings": true,
+                "case_number": "PR-PJ-2026-0142",
+                "procedural_status": "Etapa de investigación; sin sentencia",
+                "last_reviewed_at": "2026-11-03T15:30:00-05:00",
+                "notes": "Una orden de captura o un proceso abierto no constituye una condena."
               },
               "en": {
-                "note": "Yellow flashlight and red screwdriver last seen on the evidence desk.",
-                "last_seen_location": "Evidence desk"
+                "Identifier": "PRP-0002",
+                "Full name": "Esteban Pardo",
+                "Date of birth": "1968-09-23",
+                "Occupation": "Shopkeeper",
+                "Address": "82 Avenida Central, Pacific Ridge",
+                "Phone": "+1-202-555-0102",
+                "Email": "esteban.pardo@example.com",
+                "Criminal history": "No convictions or criminal record registered",
+                "Arrest warrant": "Active",
+                "Judicial proceedings": "Investigation stage; no judgment",
+                "Last reviewed": "November 3, 2026, 15:30 (UTC−05:00)",
+                "Notes": "An arrest warrant or an open proceeding does not constitute a conviction.",
+                "Warrant number": "PR-OC-2026-002",
+                "Issue date": "2026-10-28",
+                "Issuing judge": "Javier Cortés",
+                "Issuing court": "Pacific Ridge Judicial Oversight Court 2",
+                "Purpose of warrant": "Appearance in an investigation of commercial fraud",
+                "Case number": "PR-PJ-2026-0142"
               },
               "es": {
-                "note": "Linterna amarilla y destornillador rojo vistos en mesa de evidencias.",
-                "last_seen_location": "Mesa de evidencias"
+                "Identificador": "PRP-0002",
+                "Nombre completo": "Esteban Pardo",
+                "Fecha de nacimiento": "1968-09-23",
+                "Ocupación": "Comerciante",
+                "Domicilio": "82 Avenida Central, Pacific Ridge",
+                "Teléfono": "+1-202-555-0102",
+                "Correo": "esteban.pardo@example.com",
+                "Antecedentes penales": "Sin condenas ni antecedentes penales registrados",
+                "Orden de captura": "Vigente",
+                "Proceso judicial": "Etapa de investigación; sin sentencia",
+                "Última revisión": "3 de noviembre de 2026, 15:30 (UTC−05:00)",
+                "Observaciones": "Una orden de captura o un proceso abierto no constituye una condena.",
+                "Número de orden": "PR-OC-2026-002",
+                "Fecha de expedición": "2026-10-28",
+                "Juez que ordena": "Javier Cortés",
+                "Despacho judicial": "Juzgado 2 de Control de Garantías de Pacific Ridge",
+                "Objeto de la orden": "Comparecencia por investigación de fraude comercial",
+                "Número de proceso": "PR-PJ-2026-0142"
               }
             }
           }
         },
         {
-          "id": "546ddc2a-3681-5353-8bea-ddd08ad88585",
+          "id": "11aeb713-25b2-58d8-93fb-649de535e9a4",
           "fields": {
             "title": {
-              "source": "Linterna amarilla",
-              "en": "Yellow flashlight",
-              "es": "Linterna amarilla"
+              "source": "Valeria Navarro",
+              "en": "Valeria Navarro",
+              "es": "Valeria Navarro"
             },
             "data": {
               "source": {
-                "last_seen_location": "evidence-desk"
+                "identifier": "PRP-0003",
+                "full_name": "Valeria Navarro",
+                "birth_date": "1992-12-08",
+                "occupation": "Contadora",
+                "residence": "31 Calle de los Olmos, Pacific Ridge",
+                "phone": "+1-202-555-0103",
+                "email": "valeria.navarro@example.com",
+                "criminal_history": "Sin condenas ni antecedentes penales registrados",
+                "has_active_warrant": true,
+                "warrant_reference": "PR-OC-2026-003",
+                "warrant_issued_at": "2026-10-29",
+                "issuing_judge": "Julia Rivas",
+                "issuing_court": "Juzgado 3 de Control de Garantías de Pacific Ridge",
+                "warrant_purpose": "Comparecencia requerida por orden judicial",
+                "has_active_proceedings": false,
+                "case_number": null,
+                "procedural_status": "Sin procesos judiciales activos registrados",
+                "last_reviewed_at": "2026-11-03T15:30:00-05:00",
+                "notes": "Una orden de captura o un proceso abierto no constituye una condena."
               },
               "en": {
-                "last_seen_location": "Evidence desk"
+                "Identifier": "PRP-0003",
+                "Full name": "Valeria Navarro",
+                "Date of birth": "1992-12-08",
+                "Occupation": "Accountant",
+                "Address": "31 Calle de los Olmos, Pacific Ridge",
+                "Phone": "+1-202-555-0103",
+                "Email": "valeria.navarro@example.com",
+                "Criminal history": "No convictions or criminal record registered",
+                "Arrest warrant": "Active",
+                "Judicial proceedings": "No active judicial proceedings registered",
+                "Last reviewed": "November 3, 2026, 15:30 (UTC−05:00)",
+                "Notes": "An arrest warrant or an open proceeding does not constitute a conviction.",
+                "Warrant number": "PR-OC-2026-003",
+                "Issue date": "2026-10-29",
+                "Issuing judge": "Julia Rivas",
+                "Issuing court": "Pacific Ridge Judicial Oversight Court 3",
+                "Purpose of warrant": "Appearance required by judicial order"
               },
               "es": {
-                "last_seen_location": "Mesa de evidencias"
+                "Identificador": "PRP-0003",
+                "Nombre completo": "Valeria Navarro",
+                "Fecha de nacimiento": "1992-12-08",
+                "Ocupación": "Contadora",
+                "Domicilio": "31 Calle de los Olmos, Pacific Ridge",
+                "Teléfono": "+1-202-555-0103",
+                "Correo": "valeria.navarro@example.com",
+                "Antecedentes penales": "Sin condenas ni antecedentes penales registrados",
+                "Orden de captura": "Vigente",
+                "Proceso judicial": "Sin procesos judiciales activos registrados",
+                "Última revisión": "3 de noviembre de 2026, 15:30 (UTC−05:00)",
+                "Observaciones": "Una orden de captura o un proceso abierto no constituye una condena.",
+                "Número de orden": "PR-OC-2026-003",
+                "Fecha de expedición": "2026-10-29",
+                "Juez que ordena": "Julia Rivas",
+                "Despacho judicial": "Juzgado 3 de Control de Garantías de Pacific Ridge",
+                "Objeto de la orden": "Comparecencia requerida por orden judicial"
               }
             }
           }
         },
         {
-          "id": "99a5fbdc-6159-5646-94f7-b3a3082ecfb6",
+          "id": "f2482f95-e067-5eb2-b476-8e7ff99d1d2a",
           "fields": {
             "title": {
-              "source": "Pacific Ridge Police Department — Caso 2",
-              "en": "Pacific Ridge Police Department — Case 2",
-              "es": "Pacific Ridge Police Department — Caso 2"
+              "source": "Lucía Cárdenas",
+              "en": "Lucía Cárdenas",
+              "es": "Lucía Cárdenas"
             },
             "data": {
               "source": {
-                "description": "Expediente de seguimiento con observaciones y registros relacionados.",
-                "reference": "security-case-2",
-                "status": "open"
+                "identifier": "PRP-0004",
+                "full_name": "Lucía Cárdenas",
+                "birth_date": "1995-06-12",
+                "occupation": "Diseñadora gráfica",
+                "residence": "46 Paseo del Parque, Pacific Ridge",
+                "phone": "+1-202-555-0104",
+                "email": "lucia.cardenas@example.com",
+                "criminal_history": "Sin condenas ni antecedentes penales registrados",
+                "has_active_warrant": false,
+                "warrant_reference": null,
+                "warrant_issued_at": null,
+                "issuing_judge": null,
+                "issuing_court": null,
+                "warrant_purpose": null,
+                "has_active_proceedings": false,
+                "case_number": null,
+                "procedural_status": "Sin procesos judiciales activos registrados",
+                "last_reviewed_at": "2026-11-03T15:30:00-05:00",
+                "notes": "Sin antecedentes, órdenes de captura ni procesos judiciales registrados."
               },
               "en": {
-                "description": "Follow-up case file with observations and related records.",
-                "reference": "security-case-2",
-                "status": "Open"
+                "Identifier": "PRP-0004",
+                "Full name": "Lucía Cárdenas",
+                "Date of birth": "1995-06-12",
+                "Occupation": "Graphic designer",
+                "Address": "46 Paseo del Parque, Pacific Ridge",
+                "Phone": "+1-202-555-0104",
+                "Email": "lucia.cardenas@example.com",
+                "Criminal history": "No convictions or criminal record registered",
+                "Arrest warrant": "No warrants registered",
+                "Judicial proceedings": "No active judicial proceedings registered",
+                "Last reviewed": "November 3, 2026, 15:30 (UTC−05:00)",
+                "Notes": "No criminal record, arrest warrants or judicial proceedings registered."
               },
               "es": {
-                "description": "Expediente de seguimiento con observaciones y registros relacionados.",
-                "reference": "security-case-2",
-                "status": "Abierto"
+                "Identificador": "PRP-0004",
+                "Nombre completo": "Lucía Cárdenas",
+                "Fecha de nacimiento": "1995-06-12",
+                "Ocupación": "Diseñadora gráfica",
+                "Domicilio": "46 Paseo del Parque, Pacific Ridge",
+                "Teléfono": "+1-202-555-0104",
+                "Correo": "lucia.cardenas@example.com",
+                "Antecedentes penales": "Sin condenas ni antecedentes penales registrados",
+                "Orden de captura": "Sin órdenes registradas",
+                "Proceso judicial": "Sin procesos judiciales activos registrados",
+                "Última revisión": "3 de noviembre de 2026, 15:30 (UTC−05:00)",
+                "Observaciones": "Sin antecedentes, órdenes de captura ni procesos judiciales registrados."
               }
             }
           }
         },
         {
-          "id": "983cc117-bc78-57b9-87e1-c2cc56affab3",
+          "id": "b325103f-5915-5714-afb0-e24f9c97ca82",
           "fields": {
             "title": {
-              "source": "Observación de turno 2",
-              "en": "Shift observation 2",
-              "es": "Observación de turno 2"
+              "source": "Tomás Beltrán",
+              "en": "Tomás Beltrán",
+              "es": "Tomás Beltrán"
             },
             "data": {
               "source": {
-                "note": "Linterna amarilla y destornillador rojo vistos en mesa de evidencias.",
-                "last_seen_location": "evidence-desk"
+                "identifier": "PRP-0005",
+                "full_name": "Tomás Beltrán",
+                "birth_date": "1987-02-20",
+                "occupation": "Electricista",
+                "residence": "109 Calle del Roble, Pacific Ridge",
+                "phone": "+1-202-555-0105",
+                "email": "tomas.beltran@example.com",
+                "criminal_history": "Sin condenas ni antecedentes penales registrados",
+                "has_active_warrant": false,
+                "warrant_reference": null,
+                "warrant_issued_at": null,
+                "issuing_judge": null,
+                "issuing_court": null,
+                "warrant_purpose": null,
+                "has_active_proceedings": false,
+                "case_number": null,
+                "procedural_status": "Sin procesos judiciales activos registrados",
+                "last_reviewed_at": "2026-11-03T15:30:00-05:00",
+                "notes": "Sin antecedentes, órdenes de captura ni procesos judiciales registrados."
               },
               "en": {
-                "note": "Yellow flashlight and red screwdriver last seen on the evidence desk.",
-                "last_seen_location": "Evidence desk"
+                "Identifier": "PRP-0005",
+                "Full name": "Tomás Beltrán",
+                "Date of birth": "1987-02-20",
+                "Occupation": "Electrician",
+                "Address": "109 Calle del Roble, Pacific Ridge",
+                "Phone": "+1-202-555-0105",
+                "Email": "tomas.beltran@example.com",
+                "Criminal history": "No convictions or criminal record registered",
+                "Arrest warrant": "No warrants registered",
+                "Judicial proceedings": "No active judicial proceedings registered",
+                "Last reviewed": "November 3, 2026, 15:30 (UTC−05:00)",
+                "Notes": "No criminal record, arrest warrants or judicial proceedings registered."
               },
               "es": {
-                "note": "Linterna amarilla y destornillador rojo vistos en mesa de evidencias.",
-                "last_seen_location": "Mesa de evidencias"
+                "Identificador": "PRP-0005",
+                "Nombre completo": "Tomás Beltrán",
+                "Fecha de nacimiento": "1987-02-20",
+                "Ocupación": "Electricista",
+                "Domicilio": "109 Calle del Roble, Pacific Ridge",
+                "Teléfono": "+1-202-555-0105",
+                "Correo": "tomas.beltran@example.com",
+                "Antecedentes penales": "Sin condenas ni antecedentes penales registrados",
+                "Orden de captura": "Sin órdenes registradas",
+                "Proceso judicial": "Sin procesos judiciales activos registrados",
+                "Última revisión": "3 de noviembre de 2026, 15:30 (UTC−05:00)",
+                "Observaciones": "Sin antecedentes, órdenes de captura ni procesos judiciales registrados."
               }
             }
           }
         },
         {
-          "id": "0e8116b0-dc4f-530c-8d48-befa2b08e0f2",
+          "id": "65050ead-0c4f-56c4-b669-5032f55b7f46",
           "fields": {
             "title": {
-              "source": "Destornillador rojo",
-              "en": "Red screwdriver",
-              "es": "Destornillador rojo"
+              "source": "Nicolás Acosta",
+              "en": "Nicolás Acosta",
+              "es": "Nicolás Acosta"
             },
             "data": {
               "source": {
-                "last_seen_location": "evidence-desk"
+                "identifier": "PRP-0006",
+                "full_name": "Nicolás Acosta",
+                "birth_date": "1991-08-30",
+                "occupation": "Mecánico automotriz",
+                "residence": "24 Avenida del Taller, Pacific Ridge",
+                "phone": "+1-202-555-0106",
+                "email": "nicolas.acosta@example.com",
+                "criminal_history": "Sin condenas ni antecedentes penales registrados",
+                "has_active_warrant": false,
+                "warrant_reference": null,
+                "warrant_issued_at": null,
+                "issuing_judge": null,
+                "issuing_court": null,
+                "warrant_purpose": null,
+                "has_active_proceedings": false,
+                "case_number": null,
+                "procedural_status": "Sin procesos judiciales activos registrados",
+                "last_reviewed_at": "2026-11-03T15:30:00-05:00",
+                "notes": "Sin antecedentes, órdenes de captura ni procesos judiciales registrados."
               },
               "en": {
-                "last_seen_location": "Evidence desk"
+                "Identifier": "PRP-0006",
+                "Full name": "Nicolás Acosta",
+                "Date of birth": "1991-08-30",
+                "Occupation": "Automotive mechanic",
+                "Address": "24 Avenida del Taller, Pacific Ridge",
+                "Phone": "+1-202-555-0106",
+                "Email": "nicolas.acosta@example.com",
+                "Criminal history": "No convictions or criminal record registered",
+                "Arrest warrant": "No warrants registered",
+                "Judicial proceedings": "No active judicial proceedings registered",
+                "Last reviewed": "November 3, 2026, 15:30 (UTC−05:00)",
+                "Notes": "No criminal record, arrest warrants or judicial proceedings registered."
               },
               "es": {
-                "last_seen_location": "Mesa de evidencias"
+                "Identificador": "PRP-0006",
+                "Nombre completo": "Nicolás Acosta",
+                "Fecha de nacimiento": "1991-08-30",
+                "Ocupación": "Mecánico automotriz",
+                "Domicilio": "24 Avenida del Taller, Pacific Ridge",
+                "Teléfono": "+1-202-555-0106",
+                "Correo": "nicolas.acosta@example.com",
+                "Antecedentes penales": "Sin condenas ni antecedentes penales registrados",
+                "Orden de captura": "Sin órdenes registradas",
+                "Proceso judicial": "Sin procesos judiciales activos registrados",
+                "Última revisión": "3 de noviembre de 2026, 15:30 (UTC−05:00)",
+                "Observaciones": "Sin antecedentes, órdenes de captura ni procesos judiciales registrados."
               }
             }
           }
         },
         {
-          "id": "5aa2d7d7-cce8-5a82-a903-5f4ab5513aef",
+          "id": "b0ea039f-7490-5cae-a440-43cbdcaad329",
           "fields": {
             "title": {
-              "source": "Pacific Ridge Police Department — Caso 3",
-              "en": "Pacific Ridge Police Department — Case 3",
-              "es": "Pacific Ridge Police Department — Caso 3"
+              "source": "Mariana Solano",
+              "en": "Mariana Solano",
+              "es": "Mariana Solano"
             },
             "data": {
               "source": {
-                "description": "Expediente de seguimiento con observaciones y registros relacionados.",
-                "reference": "security-case-3",
-                "status": "open"
+                "identifier": "PRP-0007",
+                "full_name": "Mariana Solano",
+                "birth_date": "1994-11-02",
+                "occupation": "Docente de primaria",
+                "residence": "63 Calle de la Escuela, Pacific Ridge",
+                "phone": "+1-202-555-0107",
+                "email": "mariana.solano@example.com",
+                "criminal_history": "Sin condenas ni antecedentes penales registrados",
+                "has_active_warrant": false,
+                "warrant_reference": null,
+                "warrant_issued_at": null,
+                "issuing_judge": null,
+                "issuing_court": null,
+                "warrant_purpose": null,
+                "has_active_proceedings": false,
+                "case_number": null,
+                "procedural_status": "Sin procesos judiciales activos registrados",
+                "last_reviewed_at": "2026-11-03T15:30:00-05:00",
+                "notes": "Sin antecedentes, órdenes de captura ni procesos judiciales registrados."
               },
               "en": {
-                "description": "Follow-up case file with observations and related records.",
-                "reference": "security-case-3",
-                "status": "Open"
+                "Identifier": "PRP-0007",
+                "Full name": "Mariana Solano",
+                "Date of birth": "1994-11-02",
+                "Occupation": "Primary school teacher",
+                "Address": "63 Calle de la Escuela, Pacific Ridge",
+                "Phone": "+1-202-555-0107",
+                "Email": "mariana.solano@example.com",
+                "Criminal history": "No convictions or criminal record registered",
+                "Arrest warrant": "No warrants registered",
+                "Judicial proceedings": "No active judicial proceedings registered",
+                "Last reviewed": "November 3, 2026, 15:30 (UTC−05:00)",
+                "Notes": "No criminal record, arrest warrants or judicial proceedings registered."
               },
               "es": {
-                "description": "Expediente de seguimiento con observaciones y registros relacionados.",
-                "reference": "security-case-3",
-                "status": "Abierto"
+                "Identificador": "PRP-0007",
+                "Nombre completo": "Mariana Solano",
+                "Fecha de nacimiento": "1994-11-02",
+                "Ocupación": "Docente de primaria",
+                "Domicilio": "63 Calle de la Escuela, Pacific Ridge",
+                "Teléfono": "+1-202-555-0107",
+                "Correo": "mariana.solano@example.com",
+                "Antecedentes penales": "Sin condenas ni antecedentes penales registrados",
+                "Orden de captura": "Sin órdenes registradas",
+                "Proceso judicial": "Sin procesos judiciales activos registrados",
+                "Última revisión": "3 de noviembre de 2026, 15:30 (UTC−05:00)",
+                "Observaciones": "Sin antecedentes, órdenes de captura ni procesos judiciales registrados."
               }
             }
           }
         },
         {
-          "id": "ca91dafc-2e63-51d1-a524-65dcfe3152a1",
+          "id": "1597fbae-f5da-5a23-8212-76ca14f81e81",
           "fields": {
             "title": {
-              "source": "Observación de turno 3",
-              "en": "Shift observation 3",
-              "es": "Observación de turno 3"
+              "source": "Rafael Méndez",
+              "en": "Rafael Méndez",
+              "es": "Rafael Méndez"
             },
             "data": {
               "source": {
-                "note": "Linterna amarilla y destornillador rojo vistos en mesa de evidencias.",
-                "last_seen_location": "evidence-desk"
+                "identifier": "PRP-0008",
+                "full_name": "Rafael Méndez",
+                "birth_date": "1985-01-09",
+                "occupation": "Analista de inventarios",
+                "residence": "55 Calle del Mercado, Pacific Ridge",
+                "phone": "+1-202-555-0108",
+                "email": "rafael.mendez@example.com",
+                "criminal_history": "Sin condenas ni antecedentes penales registrados",
+                "has_active_warrant": false,
+                "warrant_reference": null,
+                "warrant_issued_at": null,
+                "issuing_judge": null,
+                "issuing_court": null,
+                "warrant_purpose": null,
+                "has_active_proceedings": false,
+                "case_number": null,
+                "procedural_status": "Sin procesos judiciales activos registrados",
+                "last_reviewed_at": "2026-11-03T15:30:00-05:00",
+                "notes": "Sin antecedentes, órdenes de captura ni procesos judiciales registrados."
               },
               "en": {
-                "note": "Yellow flashlight and red screwdriver last seen on the evidence desk.",
-                "last_seen_location": "Evidence desk"
+                "Identifier": "PRP-0008",
+                "Full name": "Rafael Méndez",
+                "Date of birth": "1985-01-09",
+                "Occupation": "Inventory analyst",
+                "Address": "55 Calle del Mercado, Pacific Ridge",
+                "Phone": "+1-202-555-0108",
+                "Email": "rafael.mendez@example.com",
+                "Criminal history": "No convictions or criminal record registered",
+                "Arrest warrant": "No warrants registered",
+                "Judicial proceedings": "No active judicial proceedings registered",
+                "Last reviewed": "November 3, 2026, 15:30 (UTC−05:00)",
+                "Notes": "No criminal record, arrest warrants or judicial proceedings registered."
               },
               "es": {
-                "note": "Linterna amarilla y destornillador rojo vistos en mesa de evidencias.",
-                "last_seen_location": "Mesa de evidencias"
+                "Identificador": "PRP-0008",
+                "Nombre completo": "Rafael Méndez",
+                "Fecha de nacimiento": "1985-01-09",
+                "Ocupación": "Analista de inventarios",
+                "Domicilio": "55 Calle del Mercado, Pacific Ridge",
+                "Teléfono": "+1-202-555-0108",
+                "Correo": "rafael.mendez@example.com",
+                "Antecedentes penales": "Sin condenas ni antecedentes penales registrados",
+                "Orden de captura": "Sin órdenes registradas",
+                "Proceso judicial": "Sin procesos judiciales activos registrados",
+                "Última revisión": "3 de noviembre de 2026, 15:30 (UTC−05:00)",
+                "Observaciones": "Sin antecedentes, órdenes de captura ni procesos judiciales registrados."
               }
             }
           }
         },
         {
-          "id": "86ae3e7d-5691-5f4e-b435-903a6ff98cd9",
+          "id": "ba595358-1365-5989-a487-18c54f48e066",
           "fields": {
             "title": {
-              "source": "Carpeta negra",
-              "en": "Black folder",
-              "es": "Carpeta negra"
+              "source": "Camila Fuentes",
+              "en": "Camila Fuentes",
+              "es": "Camila Fuentes"
             },
             "data": {
               "source": {
-                "last_seen_location": "evidence-desk"
+                "identifier": "PRP-0009",
+                "full_name": "Camila Fuentes",
+                "birth_date": "1998-03-26",
+                "occupation": "Bibliotecaria",
+                "residence": "12 Paseo de los Cedros, Pacific Ridge",
+                "phone": "+1-202-555-0109",
+                "email": "camila.fuentes@example.com",
+                "criminal_history": "Sin condenas ni antecedentes penales registrados",
+                "has_active_warrant": false,
+                "warrant_reference": null,
+                "warrant_issued_at": null,
+                "issuing_judge": null,
+                "issuing_court": null,
+                "warrant_purpose": null,
+                "has_active_proceedings": false,
+                "case_number": null,
+                "procedural_status": "Sin procesos judiciales activos registrados",
+                "last_reviewed_at": "2026-11-03T15:30:00-05:00",
+                "notes": "Sin antecedentes, órdenes de captura ni procesos judiciales registrados."
               },
               "en": {
-                "last_seen_location": "Evidence desk"
+                "Identifier": "PRP-0009",
+                "Full name": "Camila Fuentes",
+                "Date of birth": "1998-03-26",
+                "Occupation": "Librarian",
+                "Address": "12 Paseo de los Cedros, Pacific Ridge",
+                "Phone": "+1-202-555-0109",
+                "Email": "camila.fuentes@example.com",
+                "Criminal history": "No convictions or criminal record registered",
+                "Arrest warrant": "No warrants registered",
+                "Judicial proceedings": "No active judicial proceedings registered",
+                "Last reviewed": "November 3, 2026, 15:30 (UTC−05:00)",
+                "Notes": "No criminal record, arrest warrants or judicial proceedings registered."
               },
               "es": {
-                "last_seen_location": "Mesa de evidencias"
+                "Identificador": "PRP-0009",
+                "Nombre completo": "Camila Fuentes",
+                "Fecha de nacimiento": "1998-03-26",
+                "Ocupación": "Bibliotecaria",
+                "Domicilio": "12 Paseo de los Cedros, Pacific Ridge",
+                "Teléfono": "+1-202-555-0109",
+                "Correo": "camila.fuentes@example.com",
+                "Antecedentes penales": "Sin condenas ni antecedentes penales registrados",
+                "Orden de captura": "Sin órdenes registradas",
+                "Proceso judicial": "Sin procesos judiciales activos registrados",
+                "Última revisión": "3 de noviembre de 2026, 15:30 (UTC−05:00)",
+                "Observaciones": "Sin antecedentes, órdenes de captura ni procesos judiciales registrados."
+              }
+            }
+          }
+        },
+        {
+          "id": "cde43426-901a-5c93-8601-2f78935464d2",
+          "fields": {
+            "title": {
+              "source": "Asha Mehta",
+              "en": "Asha Mehta",
+              "es": "Asha Mehta"
+            },
+            "data": {
+              "source": {
+                "identifier": "PRP-0010",
+                "full_name": "Asha Mehta",
+                "birth_date": "1967-07-19",
+                "occupation": "Traductora",
+                "residence": "90 Avenida del Lago, Pacific Ridge",
+                "phone": "+1-202-555-0110",
+                "email": "asha.mehta@example.com",
+                "criminal_history": "Sin condenas ni antecedentes penales registrados",
+                "has_active_warrant": false,
+                "warrant_reference": null,
+                "warrant_issued_at": null,
+                "issuing_judge": null,
+                "issuing_court": null,
+                "warrant_purpose": null,
+                "has_active_proceedings": false,
+                "case_number": null,
+                "procedural_status": "Sin procesos judiciales activos registrados",
+                "last_reviewed_at": "2026-11-03T15:30:00-05:00",
+                "notes": "Sin antecedentes, órdenes de captura ni procesos judiciales registrados."
+              },
+              "en": {
+                "Identifier": "PRP-0010",
+                "Full name": "Asha Mehta",
+                "Date of birth": "1967-07-19",
+                "Occupation": "Translator",
+                "Address": "90 Avenida del Lago, Pacific Ridge",
+                "Phone": "+1-202-555-0110",
+                "Email": "asha.mehta@example.com",
+                "Criminal history": "No convictions or criminal record registered",
+                "Arrest warrant": "No warrants registered",
+                "Judicial proceedings": "No active judicial proceedings registered",
+                "Last reviewed": "November 3, 2026, 15:30 (UTC−05:00)",
+                "Notes": "No criminal record, arrest warrants or judicial proceedings registered."
+              },
+              "es": {
+                "Identificador": "PRP-0010",
+                "Nombre completo": "Asha Mehta",
+                "Fecha de nacimiento": "1967-07-19",
+                "Ocupación": "Traductora",
+                "Domicilio": "90 Avenida del Lago, Pacific Ridge",
+                "Teléfono": "+1-202-555-0110",
+                "Correo": "asha.mehta@example.com",
+                "Antecedentes penales": "Sin condenas ni antecedentes penales registrados",
+                "Orden de captura": "Sin órdenes registradas",
+                "Proceso judicial": "Sin procesos judiciales activos registrados",
+                "Última revisión": "3 de noviembre de 2026, 15:30 (UTC−05:00)",
+                "Observaciones": "Sin antecedentes, órdenes de captura ni procesos judiciales registrados."
               }
             }
           }
         }
       ],
-      "publications": [
-        {
-          "id": "9723cbb1-23db-58cd-87bd-a8a925624cc0",
-          "fields": {
-            "caption": {
-              "source": "black and gray camera near brass colored keys",
-              "en": "black and gray camera near brass colored keys",
-              "es": "Cámara negra y gris junto a llaves de color latón"
-            }
-          }
-        },
-        {
-          "id": "7fed9e64-0e13-58f2-8163-c1a8f969d8ff",
-          "fields": {
-            "caption": {
-              "source": "a security camera installed on the outside wall",
-              "en": "a security camera installed on the outside wall",
-              "es": "Cámara de seguridad instalada en una pared exterior"
-            }
-          }
-        },
-        {
-          "id": "faad69ee-e9c0-5928-a3a7-96824cf00c95",
-          "fields": {
-            "caption": {
-              "source": "clipboard and newspaper on white table",
-              "en": "clipboard and newspaper on white table",
-              "es": "Portapapeles y periódico sobre una mesa blanca"
-            }
-          }
-        },
-        {
-          "id": "ebef78bd-749c-5bac-a204-a23ac7d5476a",
-          "fields": {
-            "caption": {
-              "source": "black notebook and paper on the clipboard",
-              "en": "black notebook and paper on the clipboard",
-              "es": "Cuaderno negro y papel en un portapapeles"
-            }
-          }
-        },
-        {
-          "id": "5e03d5ee-9e7a-5c14-a114-099a99c9c89a",
-          "fields": {
-            "caption": {
-              "source": "clipboard with paper beside a black pen",
-              "en": "clipboard with paper beside a black pen",
-              "es": "Portapapeles con papel junto a un bolígrafo negro"
-            }
-          }
-        },
-        {
-          "id": "9b29f9a2-d68e-5bc2-a7ec-519d3b838ddc",
-          "fields": {
-            "caption": {
-              "source": "a clipboard with paper",
-              "en": "a clipboard with paper",
-              "es": "Portapapeles con papel"
-            }
-          }
-        },
-        {
-          "id": "85a415d5-5324-58a7-933d-20a2f0039000",
-          "fields": {
-            "caption": {
-              "source": "yellow safety vests and helmets",
-              "en": "yellow safety vests and helmets",
-              "es": "Chalecos de seguridad amarillos y cascos"
-            }
-          }
-        },
-        {
-          "id": "1d4cd6f0-f215-5e52-b8a2-a423a9a3ab2f",
-          "fields": {
-            "caption": {
-              "source": "a close up shot of a security camera",
-              "en": "a close up shot of a security camera",
-              "es": "Primer plano de una cámara de seguridad"
-            }
-          }
-        },
-        {
-          "id": "173b1bc4-f268-5183-a3cc-86abc76c88ba",
-          "fields": {
-            "caption": {
-              "source": "coffee wallet keys and accessories",
-              "en": "coffee wallet keys and accessories",
-              "es": "Café, billetera, llaves y accesorios"
-            }
-          }
-        },
-        {
-          "id": "93b60eee-4b66-5397-a376-9e8ac47613c8",
-          "fields": {
-            "caption": {
-              "source": "security camera on a building",
-              "en": "security camera on a building",
-              "es": "Cámara de seguridad en un edificio"
-            }
-          }
-        },
-        {
-          "id": "410958f8-b950-516a-b405-7b0469ffd751",
-          "fields": {
-            "caption": {
-              "source": "worker in helmet and vest with documents in hand",
-              "en": "worker in helmet and vest with documents in hand",
-              "es": "Trabajador con casco y chaleco y documentos en la mano"
-            }
-          }
-        },
-        {
-          "id": "587910cc-d30e-5cd0-8e50-b39b833543ed",
-          "fields": {
-            "caption": {
-              "source": "ceiling mounted security camera in indoor setting",
-              "en": "ceiling mounted security camera in indoor setting",
-              "es": "Cámara de seguridad montada en el techo de un interior"
-            }
-          }
-        },
-        {
-          "id": "4512b140-7aa5-539f-8497-bf50b039a4f2",
-          "fields": {
-            "caption": {
-              "source": "Reviewing materials on an investigation desk",
-              "en": "Reviewing materials on an investigation desk",
-              "es": "Revisión de materiales sobre una mesa de investigación"
-            }
-          }
-        },
-        {
-          "id": "e0ec120a-a5f5-5426-9af1-e35238910b4c",
-          "fields": {
-            "caption": {
-              "source": "Close-up communication with a handheld radio",
-              "en": "Close-up communication with a handheld radio",
-              "es": "Comunicación de cerca con una radio portátil"
-            }
-          }
-        },
-        {
-          "id": "f9bad34e-60ba-5559-9928-ac3cf65ff925",
-          "fields": {
-            "caption": {
-              "source": "Collecting a key with tweezers",
-              "en": "Collecting a key with tweezers",
-              "es": "Recogida de una llave con pinzas"
-            }
-          }
-        },
-        {
-          "id": "67778e50-bfe0-5fcb-981e-40f35139119c",
-          "fields": {
-            "caption": {
-              "source": "Photographing a staged evidence scene",
-              "en": "Photographing a staged evidence scene",
-              "es": "Fotografía de una escena de evidencias preparada"
-            }
-          }
-        }
-      ],
+      "publications": [],
       "profiles": [
         {
           "id": "6b70a3aa-0e7b-5234-8245-a923d31bd2ec",

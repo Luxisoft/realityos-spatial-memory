@@ -36,7 +36,16 @@ def condition(table, keys):
     return tuple_(*columns).in_(list(keys))
 
 
-def purge(db, workspace_ids, apply=False, *, commit=True, strict_scope=False):
+def purge(
+    db,
+    workspace_ids,
+    apply=False,
+    *,
+    commit=True,
+    strict_scope=False,
+    preserve_workspace=False,
+    preserve_rows=None,
+):
     targets = {uuid.UUID(str(value)) for value in workspace_ids}
     spaces = list(db.scalars(select(Workspace).where(Workspace.id.in_(targets))))
     if len(spaces) != len(targets) or any(s.name.startswith("home:") for s in spaces):
@@ -74,6 +83,18 @@ def purge(db, workspace_ids, apply=False, *, commit=True, strict_scope=False):
     reflected_targets = (
         targets if db.bind.dialect.name == "postgresql" else {v.hex for v in targets}
     )
+    preserved_keys = {
+        name: {
+            tuple(
+                value.hex
+                if isinstance(value, uuid.UUID) and db.bind.dialect.name != "postgresql"
+                else value
+                for value in key
+            )
+            for key in keys
+        }
+        for name, keys in (preserve_rows or {}).items()
+    }
     selected = {"workspaces": {(value,) for value in reflected_targets}}
     changed = True
     while changed:
@@ -94,6 +115,7 @@ def purge(db, workspace_ids, apply=False, *, commit=True, strict_scope=False):
                     select(*table.primary_key.columns).where(or_(*clauses))
                 ).all()
             )
+            keys.difference_update(preserved_keys.get(table.name, set()))
             if keys and table.name in PROTECTED:
                 raise RuntimeError(
                     f"Purge would affect protected identity table {table.name}; aborting."
@@ -115,6 +137,8 @@ def purge(db, workspace_ids, apply=False, *, commit=True, strict_scope=False):
             if new:
                 selected.setdefault(table.name, set()).update(new)
                 changed = True
+    if preserve_workspace:
+        selected.pop("workspaces")
     report = {
         "workspaces": [{"id": str(s.id), "name": s.name} for s in spaces],
         "preserved_media": [str(i) for i in preserved],

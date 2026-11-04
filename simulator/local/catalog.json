@@ -31,36 +31,21 @@
         }
       ],
       "records": {
-        "security-case-1": "86042ca2-a420-508c-bc92-8e15d9bf78e8",
-        "security-event-1": "0a44c61e-2f62-55b4-9371-5a573a6e7b71",
-        "security-object-1": "546ddc2a-3681-5353-8bea-ddd08ad88585",
-        "security-case-2": "99a5fbdc-6159-5646-94f7-b3a3082ecfb6",
-        "security-event-2": "983cc117-bc78-57b9-87e1-c2cc56affab3",
-        "security-object-2": "0e8116b0-dc4f-530c-8d48-befa2b08e0f2",
-        "security-case-3": "5aa2d7d7-cce8-5a82-a903-5f4ab5513aef",
-        "security-event-3": "ca91dafc-2e63-51d1-a524-65dcfe3152a1",
-        "security-object-3": "86ae3e7d-5691-5f4e-b435-903a6ff98cd9"
+        "security-person-01": "e0b2f6bd-b184-5457-b6e5-3791a42ec1f2",
+        "security-person-02": "909d1a6d-a908-55ac-abca-10a4269ff2a1",
+        "security-person-03": "11aeb713-25b2-58d8-93fb-649de535e9a4",
+        "security-person-04": "f2482f95-e067-5eb2-b476-8e7ff99d1d2a",
+        "security-person-05": "b325103f-5915-5714-afb0-e24f9c97ca82",
+        "security-person-06": "65050ead-0c4f-56c4-b669-5032f55b7f46",
+        "security-person-07": "b0ea039f-7490-5cae-a440-43cbdcaad329",
+        "security-person-08": "1597fbae-f5da-5a23-8212-76ca14f81e81",
+        "security-person-09": "ba595358-1365-5989-a487-18c54f48e066",
+        "security-person-10": "cde43426-901a-5c93-8601-2f78935464d2"
       },
-      "publications": {
-        "1416857": "9723cbb1-23db-58cd-87bd-a8a925624cc0",
-        "2885868": "7fed9e64-0e13-58f2-8163-c1a8f969d8ff",
-        "3944386": "faad69ee-e9c0-5928-a3a7-96824cf00c95",
-        "6929031": "ebef78bd-749c-5bac-a204-a23ac7d5476a",
-        "7706978": "5e03d5ee-9e7a-5c14-a114-099a99c9c89a",
-        "8489919": "9b29f9a2-d68e-5bc2-a7ec-519d3b838ddc",
-        "9065475": "85a415d5-5324-58a7-933d-20a2f0039000",
-        "9942069": "1d4cd6f0-f215-5e52-b8a2-a423a9a3ab2f",
-        "11447663": "173b1bc4-f268-5183-a3cc-86abc76c88ba",
-        "17440970": "93b60eee-4b66-5397-a376-9e8ac47613c8",
-        "18504013": "410958f8-b950-516a-b405-7b0469ffd751",
-        "29148355": "587910cc-d30e-5cd0-8e50-b39b833543ed",
-        "8382402": "4512b140-7aa5-539f-8497-bf50b039a4f2",
-        "8963860": "e0ec120a-a5f5-5426-9af1-e35238910b4c",
-        "10482314": "f9bad34e-60ba-5559-9928-ac3cf65ff925",
-        "10482446": "67778e50-bfe0-5fcb-981e-40f35139119c"
-      },
-      "query": "Find the keys collected from the ground.",
-      "record_question": "Summarize the first police case and its related evidence."
+      "publications": {},
+      "query": "",
+      "record_question": "Which people have an active arrest warrant, which of them have active judicial proceedings, and which have no registered history?",
+      "content_revision": "police-people-v1"
     },
     {
       "slug": "meta-social",

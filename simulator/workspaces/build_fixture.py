@@ -7,12 +7,6 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent
 GROUPS = [
     (
-        "security",
-        "Pacific Ridge Police Department",
-        ["alex-rivera", "maya-johnson", "daniel-kim"],
-        "evidence-desk",
-    ),
-    (
         "memory",
         "Sonoran Neurological Institute",
         ["noah-brooks", "lucia-vega", "owen-patel"],

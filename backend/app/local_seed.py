@@ -58,7 +58,9 @@ def preflight(root):
         if any(set(r.related_ids) - ids for r in batch.records):
             raise ValueError("Unresolved fixture record relationships.")
         for attachment in group["fixture"]["attachments"]:
-            fixture_file(root, "workspaces/" + attachment["path"]).read_bytes()
+            raw = fixture_file(root, "workspaces/" + attachment["path"]).read_bytes()
+            if attachment.get("sha256") and hashlib.sha256(raw).hexdigest() != attachment["sha256"]:
+                raise ValueError("Attachment fixture integrity failed.")
             if attachment["record"] not in ids:
                 raise ValueError("Unresolved fixture attachment.")
         for user in group["users"]:
@@ -84,6 +86,67 @@ def add_media(db, workspace_id, path, key, metadata):
     db.add(asset)
     db.flush()
     return asset
+
+
+def seed_records(db, root, group, workspace_id, owner_id, counts):
+    """Install one group's reviewed records and original attachment bytes."""
+    previous_counts = dict(counts)
+    # Required provenance FK in the existing record schema, never an external connection.
+    connection = Connection(
+        id=local_id("provenance", group["slug"]),
+        workspace_id=workspace_id,
+        created_by_id=owner_id,
+        name="Local fixture provenance",
+        active=False,
+        token_hash=hashlib.sha256(secrets.token_bytes(32)).hexdigest(),
+    )
+    db.add(connection)
+    db.flush()
+    for entry in ImportBatch.model_validate(group["fixture"]["batch"]).records:
+        record = Record(
+            id=uuid.UUID(group["records"][entry.external_id]),
+            workspace_id=workspace_id,
+            connection_id=connection.id,
+            updated_at=entry.occurred_at,
+            **entry.model_dump(exclude={"authorized", "biometric_authorized", "biometric_basis"}),
+        )
+        db.add(record)
+        db.flush()
+        db.add(
+            RecordRevision(
+                record_id=record.id, version=record.version, snapshot=record_json(record)
+            )
+        )
+        counts["records"] += 1
+    for index, entry in enumerate(group["fixture"]["attachments"]):
+        asset = add_media(
+            db,
+            workspace_id,
+            fixture_file(root, "workspaces/" + entry["path"]),
+            f"attachment:{group['slug']}:{index}",
+            {"origin": "local-evaluation", "simulated": True},
+        )
+        db.add(
+            RecordMedia(
+                record_id=uuid.UUID(group["records"][entry["record"]]),
+                external_id=entry["external_id"],
+                media_id=asset.id,
+            )
+        )
+        counts["attachments"] += 1
+    if group.get("content_revision"):
+        db.add(
+            LocalEvaluationState(
+                name=group["content_revision"],
+                manifest_hash=hashlib.sha256(
+                    json.dumps(group["fixture"], sort_keys=True).encode()
+                ).hexdigest(),
+                counts={
+                    key: counts[key] - previous_counts[key] for key in ("records", "attachments")
+                },
+            )
+        )
+        db.flush()
 
 
 def seed_evaluation(db, settings, root=FIXTURES):
@@ -164,51 +227,7 @@ def seed_evaluation(db, settings, root=FIXTURES):
             db.add(UserProfile(user_id=user.id, avatar_media_id=media.id, **fields))
         if not group["records"] and not group["publications"]:
             continue
-        # Required provenance FK in the existing record schema, never an external connection.
-        connection = Connection(
-            id=local_id("provenance", group["slug"]),
-            workspace_id=workspace_id,
-            created_by_id=owner.id,
-            name="Local fixture provenance",
-            active=False,
-            token_hash=hashlib.sha256(secrets.token_bytes(32)).hexdigest(),
-        )
-        db.add(connection)
-        db.flush()
-        for entry in ImportBatch.model_validate(group["fixture"]["batch"]).records:
-            record = Record(
-                id=uuid.UUID(group["records"][entry.external_id]),
-                workspace_id=workspace_id,
-                connection_id=connection.id,
-                updated_at=entry.occurred_at,
-                **entry.model_dump(
-                    exclude={"authorized", "biometric_authorized", "biometric_basis"}
-                ),
-            )
-            db.add(record)
-            db.flush()
-            db.add(
-                RecordRevision(
-                    record_id=record.id, version=record.version, snapshot=record_json(record)
-                )
-            )
-            counts["records"] += 1
-        for index, entry in enumerate(group["fixture"]["attachments"]):
-            asset = add_media(
-                db,
-                workspace_id,
-                fixture_file(root, "workspaces/" + entry["path"]),
-                f"attachment:{group['slug']}:{index}",
-                {"origin": "local-evaluation", "simulated": True},
-            )
-            db.add(
-                RecordMedia(
-                    record_id=uuid.UUID(group["records"][entry["record"]]),
-                    external_id=entry["external_id"],
-                    media_id=asset.id,
-                )
-            )
-            counts["attachments"] += 1
+        seed_records(db, root, group, workspace_id, owner.id, counts)
         terms = {}
         for entry in [s for s in scenes if s["group"] == group["media_group"]]:
             key = f"{entry['group']}:{entry['id']}"

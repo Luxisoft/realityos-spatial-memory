@@ -16,7 +16,6 @@
 | **Tipos** | `person`, `case`, `encounter`, `event`, `object`, `prescription`, `allergy`, `administration`. Registros draft/deleted no aparecen en consultas. |
 | **Biometría** | Importar una persona no crea usuario ni enrolamiento. Requiere autorización trazable y enrolamiento explícito del retrato. |
 | **Comparación clínica** | Compara campos explícitos, vigencia, alergias y antecedentes relacionados. No calcula dosis, convierte unidades, prescribe ni registra administración. |
-| **Pruebas** | 47 registros, 27 adjuntos y seis retratos ficticios. Videos de escenas estáticas rotuladas; no prueban seguimiento temporal. Windows comienza vacío. |
 
 ```mermaid
 flowchart LR

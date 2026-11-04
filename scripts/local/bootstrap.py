@@ -9,6 +9,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from app.local_seed import enqueue_initial_media, seed_evaluation
 from app.main import app
+from refresh_local_police import refresh_local_police
 from replace_local_hospital import replace_local_hospital
 
 
@@ -24,6 +25,7 @@ def main():
     with app.state.database.session_factory() as db:
         if not args.queue:
             replace_local_hospital(db, settings)
+            refresh_local_police(db, settings)
         result = (
             enqueue_initial_media(db) if args.queue else seed_evaluation(db, settings)
         )

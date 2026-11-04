@@ -47,10 +47,22 @@ The organizer prepares two explicit enrollments. The member portrait represents 
 <a id="objects"></a>
 ## Object scenes and no-face negative
 
-### alex-rivera → Pacific Ridge Police Department
-Linterna amarilla / yellow flashlight; destornillador rojo / red screwdriver
+### Pacific Ridge Police Department
 
-<a href="../../../simulator/workspaces/assets/evidence-desk.png"><img src="../../../simulator/workspaces/assets/evidence-desk.png" alt="Pacific Ridge Police Department — synthetic objects" width="1000"></a>
+Ten fictional person records replace the previous scene content. One owner-provided portrait per record. The three login accounts remain unchanged.
+
+| Person / Persona | Portrait / Retrato | Status / Estado |
+| --- | --- | --- |
+| Adrián Salcedo | [PRP-0001](../../../simulator/workspaces/police-people/person-01.png) | Active warrant and judicial proceedings |
+| Esteban Pardo | [PRP-0002](../../../simulator/workspaces/police-people/person-02.png) | Active warrant and judicial proceedings |
+| Valeria Navarro | [PRP-0003](../../../simulator/workspaces/police-people/person-03.png) | Active warrant; no active proceedings registered |
+| Lucía Cárdenas | [PRP-0004](../../../simulator/workspaces/police-people/person-04.png) | No criminal record, warrants or proceedings |
+| Tomás Beltrán | [PRP-0005](../../../simulator/workspaces/police-people/person-05.png) | No criminal record, warrants or proceedings |
+| Nicolás Acosta | [PRP-0006](../../../simulator/workspaces/police-people/person-06.png) | No criminal record, warrants or proceedings |
+| Mariana Solano | [PRP-0007](../../../simulator/workspaces/police-people/person-07.png) | No criminal record, warrants or proceedings |
+| Rafael Méndez | [PRP-0008](../../../simulator/workspaces/police-people/person-08.png) | No criminal record, warrants or proceedings |
+| Camila Fuentes | [PRP-0009](../../../simulator/workspaces/police-people/person-09.png) | No criminal record, warrants or proceedings |
+| Asha Mehta | [PRP-0010](../../../simulator/workspaces/police-people/person-10.png) | No criminal record, warrants or proceedings |
 
 ### noah-brooks → Sonoran Neurological Institute
 Carpeta roja / red folder; llaves de latón / brass keys; cuaderno azul / blue notebook

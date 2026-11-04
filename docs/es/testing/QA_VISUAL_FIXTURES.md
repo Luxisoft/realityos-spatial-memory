@@ -47,10 +47,22 @@ El responsable prepara dos enrolamientos explícitos. La foto del miembro repres
 <a id="objects"></a>
 ## Escenas de objetos y negativo sin rostro
 
-### alex-rivera → Pacific Ridge Police Department
-Linterna amarilla / yellow flashlight; destornillador rojo / red screwdriver
+### Pacific Ridge Police Department
 
-<a href="../../../simulator/workspaces/assets/evidence-desk.png"><img src="../../../simulator/workspaces/assets/evidence-desk.png" alt="Pacific Ridge Police Department — synthetic objects" width="1000"></a>
+Diez expedientes de personajes ficticios reemplazan las escenas anteriores. Un retrato proporcionado por el propietario por expediente. Las tres cuentas de acceso se conservan.
+
+| Person / Persona | Portrait / Retrato | Status / Estado |
+| --- | --- | --- |
+| Adrián Salcedo | [PRP-0001](../../../simulator/workspaces/police-people/person-01.png) | Orden vigente y proceso judicial |
+| Esteban Pardo | [PRP-0002](../../../simulator/workspaces/police-people/person-02.png) | Orden vigente y proceso judicial |
+| Valeria Navarro | [PRP-0003](../../../simulator/workspaces/police-people/person-03.png) | Orden vigente; sin proceso activo registrado |
+| Lucía Cárdenas | [PRP-0004](../../../simulator/workspaces/police-people/person-04.png) | Sin antecedentes, órdenes ni procesos |
+| Tomás Beltrán | [PRP-0005](../../../simulator/workspaces/police-people/person-05.png) | Sin antecedentes, órdenes ni procesos |
+| Nicolás Acosta | [PRP-0006](../../../simulator/workspaces/police-people/person-06.png) | Sin antecedentes, órdenes ni procesos |
+| Mariana Solano | [PRP-0007](../../../simulator/workspaces/police-people/person-07.png) | Sin antecedentes, órdenes ni procesos |
+| Rafael Méndez | [PRP-0008](../../../simulator/workspaces/police-people/person-08.png) | Sin antecedentes, órdenes ni procesos |
+| Camila Fuentes | [PRP-0009](../../../simulator/workspaces/police-people/person-09.png) | Sin antecedentes, órdenes ni procesos |
+| Asha Mehta | [PRP-0010](../../../simulator/workspaces/police-people/person-10.png) | Sin antecedentes, órdenes ni procesos |
 
 ### noah-brooks → Sonoran Neurological Institute
 Carpeta roja / red folder; llaves de latón / brass keys; cuaderno azul / blue notebook

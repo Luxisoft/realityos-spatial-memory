@@ -16,7 +16,6 @@
 | **Kinds** | `person`, `case`, `encounter`, `event`, `object`, `prescription`, `allergy`, `administration`. Draft/deleted records are excluded from queries. |
 | **Biometrics** | Importing a person creates neither a user nor an enrollment. Traceable authorization and explicit portrait enrollment are required. |
 | **Clinical comparison** | Compares explicit fields, validity, allergies and related history. Does not calculate doses, convert units, prescribe or record administration. |
-| **Fixtures** | 47 records, 27 attachments and six fictional portraits. Labelled static-scene videos do not prove temporal tracking. Windows starts empty. |
 
 ```mermaid
 flowchart LR

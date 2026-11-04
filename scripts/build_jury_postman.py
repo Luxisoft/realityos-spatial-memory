@@ -54,6 +54,11 @@ def publish(folders, root, write, namespace, describe, check, reference):
         )
         items = []
         for name in REQUESTS:
+            if scenario.get("records_only") and name in {
+                "POST /v1/queries",
+                "GET /v1/gallery/{post_id}/media",
+            }:
+                continue
             if scenario.get("empty") and name not in {
                 "GET /v1/auth/me",
                 "POST /v1/auth/local-select",
@@ -107,7 +112,7 @@ def publish(folders, root, write, namespace, describe, check, reference):
             elif name == "GET /v1/gallery/page":
                 tests += [
                     'pm.test("Empty workspace gallery", () => pm.expect(pm.response.json().items).to.have.length(0));'
-                    if scenario.get("empty")
+                    if scenario.get("empty") or scenario.get("records_only")
                     else 'pm.test("Existing publication is listed", () => pm.expect(pm.response.json().items.some(p => p.id === pm.variables.get("post_id"))).to.eql(true));',
                     'pm.test("Gallery stays in the selected workspace", () => pm.expect(pm.response.json().items.every(p => p.workspace_id === pm.variables.get("workspace_id"))).to.eql(true));',
                 ]

@@ -6,206 +6,410 @@
     "daniel-kim"
   ],
   "batch": {
-    "request_key": "jury-security-v1",
+    "request_key": "police-people-v1",
     "records": [
       {
-        "external_id": "security-case-1",
-        "kind": "case",
-        "title": "Pacific Ridge Police Department — Caso 1",
+        "external_id": "security-person-01",
+        "kind": "person",
+        "title": "Adrián Salcedo",
         "data": {
-          "description": "Expediente de seguimiento con observaciones y registros relacionados.",
-          "reference": "security-case-1",
-          "status": "open"
+          "identifier": "PRP-0001",
+          "full_name": "Adrián Salcedo",
+          "birth_date": "1989-04-17",
+          "occupation": "Coordinador de logística",
+          "residence": "17 Calle del Puerto, Pacific Ridge",
+          "phone": "+1-202-555-0101",
+          "email": "adrian.salcedo@example.com",
+          "criminal_history": "Sin condenas ni antecedentes penales registrados",
+          "has_active_warrant": true,
+          "warrant_reference": "PR-OC-2026-001",
+          "warrant_issued_at": "2026-10-27",
+          "issuing_judge": "Camila Torres",
+          "issuing_court": "Juzgado 1 de Control de Garantías de Pacific Ridge",
+          "warrant_purpose": "Comparecencia por investigación de hurto de mercancía",
+          "has_active_proceedings": true,
+          "case_number": "PR-PJ-2026-0141",
+          "procedural_status": "Audiencia preliminar pendiente; sin sentencia",
+          "last_reviewed_at": "2026-11-03T15:30:00-05:00",
+          "notes": "Una orden de captura o un proceso abierto no constituye una condena."
         },
         "related_ids": [],
         "version": 1,
         "status": "active",
         "authorized": true,
         "simulated": true,
-        "occurred_at": "2026-11-02T09:00:00-05:00"
+        "occurred_at": "2026-11-03T15:30:00-05:00"
       },
       {
-        "external_id": "security-event-1",
-        "kind": "event",
-        "title": "Observación de turno 1",
+        "external_id": "security-person-02",
+        "kind": "person",
+        "title": "Esteban Pardo",
         "data": {
-          "note": "Linterna amarilla y destornillador rojo vistos en mesa de evidencias.",
-          "last_seen_location": "evidence-desk"
-        },
-        "related_ids": [
-          "security-case-1"
-        ],
-        "version": 1,
-        "status": "active",
-        "authorized": true,
-        "simulated": true,
-        "occurred_at": "2026-11-02T09:00:00-05:00"
-      },
-      {
-        "external_id": "security-object-1",
-        "kind": "object",
-        "title": "Linterna amarilla",
-        "data": {
-          "last_seen_location": "evidence-desk"
-        },
-        "related_ids": [
-          "security-event-1"
-        ],
-        "version": 1,
-        "status": "active",
-        "authorized": true,
-        "simulated": true,
-        "occurred_at": "2026-11-02T09:00:00-05:00"
-      },
-      {
-        "external_id": "security-case-2",
-        "kind": "case",
-        "title": "Pacific Ridge Police Department — Caso 2",
-        "data": {
-          "description": "Expediente de seguimiento con observaciones y registros relacionados.",
-          "reference": "security-case-2",
-          "status": "open"
+          "identifier": "PRP-0002",
+          "full_name": "Esteban Pardo",
+          "birth_date": "1968-09-23",
+          "occupation": "Comerciante",
+          "residence": "82 Avenida Central, Pacific Ridge",
+          "phone": "+1-202-555-0102",
+          "email": "esteban.pardo@example.com",
+          "criminal_history": "Sin condenas ni antecedentes penales registrados",
+          "has_active_warrant": true,
+          "warrant_reference": "PR-OC-2026-002",
+          "warrant_issued_at": "2026-10-28",
+          "issuing_judge": "Javier Cortés",
+          "issuing_court": "Juzgado 2 de Control de Garantías de Pacific Ridge",
+          "warrant_purpose": "Comparecencia por investigación de fraude comercial",
+          "has_active_proceedings": true,
+          "case_number": "PR-PJ-2026-0142",
+          "procedural_status": "Etapa de investigación; sin sentencia",
+          "last_reviewed_at": "2026-11-03T15:30:00-05:00",
+          "notes": "Una orden de captura o un proceso abierto no constituye una condena."
         },
         "related_ids": [],
         "version": 1,
         "status": "active",
         "authorized": true,
         "simulated": true,
-        "occurred_at": "2026-11-02T09:00:00-05:00"
+        "occurred_at": "2026-11-03T15:30:00-05:00"
       },
       {
-        "external_id": "security-event-2",
-        "kind": "event",
-        "title": "Observación de turno 2",
+        "external_id": "security-person-03",
+        "kind": "person",
+        "title": "Valeria Navarro",
         "data": {
-          "note": "Linterna amarilla y destornillador rojo vistos en mesa de evidencias.",
-          "last_seen_location": "evidence-desk"
-        },
-        "related_ids": [
-          "security-case-2"
-        ],
-        "version": 1,
-        "status": "active",
-        "authorized": true,
-        "simulated": true,
-        "occurred_at": "2026-11-02T10:00:00-05:00"
-      },
-      {
-        "external_id": "security-object-2",
-        "kind": "object",
-        "title": "Destornillador rojo",
-        "data": {
-          "last_seen_location": "evidence-desk"
-        },
-        "related_ids": [
-          "security-event-2"
-        ],
-        "version": 1,
-        "status": "active",
-        "authorized": true,
-        "simulated": true,
-        "occurred_at": "2026-11-02T10:00:00-05:00"
-      },
-      {
-        "external_id": "security-case-3",
-        "kind": "case",
-        "title": "Pacific Ridge Police Department — Caso 3",
-        "data": {
-          "description": "Expediente de seguimiento con observaciones y registros relacionados.",
-          "reference": "security-case-3",
-          "status": "open"
+          "identifier": "PRP-0003",
+          "full_name": "Valeria Navarro",
+          "birth_date": "1992-12-08",
+          "occupation": "Contadora",
+          "residence": "31 Calle de los Olmos, Pacific Ridge",
+          "phone": "+1-202-555-0103",
+          "email": "valeria.navarro@example.com",
+          "criminal_history": "Sin condenas ni antecedentes penales registrados",
+          "has_active_warrant": true,
+          "warrant_reference": "PR-OC-2026-003",
+          "warrant_issued_at": "2026-10-29",
+          "issuing_judge": "Julia Rivas",
+          "issuing_court": "Juzgado 3 de Control de Garantías de Pacific Ridge",
+          "warrant_purpose": "Comparecencia requerida por orden judicial",
+          "has_active_proceedings": false,
+          "case_number": null,
+          "procedural_status": "Sin procesos judiciales activos registrados",
+          "last_reviewed_at": "2026-11-03T15:30:00-05:00",
+          "notes": "Una orden de captura o un proceso abierto no constituye una condena."
         },
         "related_ids": [],
         "version": 1,
         "status": "active",
         "authorized": true,
         "simulated": true,
-        "occurred_at": "2026-11-02T09:00:00-05:00"
+        "occurred_at": "2026-11-03T15:30:00-05:00"
       },
       {
-        "external_id": "security-event-3",
-        "kind": "event",
-        "title": "Observación de turno 3",
+        "external_id": "security-person-04",
+        "kind": "person",
+        "title": "Lucía Cárdenas",
         "data": {
-          "note": "Linterna amarilla y destornillador rojo vistos en mesa de evidencias.",
-          "last_seen_location": "evidence-desk"
+          "identifier": "PRP-0004",
+          "full_name": "Lucía Cárdenas",
+          "birth_date": "1995-06-12",
+          "occupation": "Diseñadora gráfica",
+          "residence": "46 Paseo del Parque, Pacific Ridge",
+          "phone": "+1-202-555-0104",
+          "email": "lucia.cardenas@example.com",
+          "criminal_history": "Sin condenas ni antecedentes penales registrados",
+          "has_active_warrant": false,
+          "warrant_reference": null,
+          "warrant_issued_at": null,
+          "issuing_judge": null,
+          "issuing_court": null,
+          "warrant_purpose": null,
+          "has_active_proceedings": false,
+          "case_number": null,
+          "procedural_status": "Sin procesos judiciales activos registrados",
+          "last_reviewed_at": "2026-11-03T15:30:00-05:00",
+          "notes": "Sin antecedentes, órdenes de captura ni procesos judiciales registrados."
         },
-        "related_ids": [
-          "security-case-3"
-        ],
+        "related_ids": [],
         "version": 1,
         "status": "active",
         "authorized": true,
         "simulated": true,
-        "occurred_at": "2026-11-02T11:00:00-05:00"
+        "occurred_at": "2026-11-03T15:30:00-05:00"
       },
       {
-        "external_id": "security-object-3",
-        "kind": "object",
-        "title": "Carpeta negra",
+        "external_id": "security-person-05",
+        "kind": "person",
+        "title": "Tomás Beltrán",
         "data": {
-          "last_seen_location": "evidence-desk"
+          "identifier": "PRP-0005",
+          "full_name": "Tomás Beltrán",
+          "birth_date": "1987-02-20",
+          "occupation": "Electricista",
+          "residence": "109 Calle del Roble, Pacific Ridge",
+          "phone": "+1-202-555-0105",
+          "email": "tomas.beltran@example.com",
+          "criminal_history": "Sin condenas ni antecedentes penales registrados",
+          "has_active_warrant": false,
+          "warrant_reference": null,
+          "warrant_issued_at": null,
+          "issuing_judge": null,
+          "issuing_court": null,
+          "warrant_purpose": null,
+          "has_active_proceedings": false,
+          "case_number": null,
+          "procedural_status": "Sin procesos judiciales activos registrados",
+          "last_reviewed_at": "2026-11-03T15:30:00-05:00",
+          "notes": "Sin antecedentes, órdenes de captura ni procesos judiciales registrados."
         },
-        "related_ids": [
-          "security-event-3"
-        ],
+        "related_ids": [],
         "version": 1,
         "status": "active",
         "authorized": true,
         "simulated": true,
-        "occurred_at": "2026-11-02T11:00:00-05:00"
+        "occurred_at": "2026-11-03T15:30:00-05:00"
+      },
+      {
+        "external_id": "security-person-06",
+        "kind": "person",
+        "title": "Nicolás Acosta",
+        "data": {
+          "identifier": "PRP-0006",
+          "full_name": "Nicolás Acosta",
+          "birth_date": "1991-08-30",
+          "occupation": "Mecánico automotriz",
+          "residence": "24 Avenida del Taller, Pacific Ridge",
+          "phone": "+1-202-555-0106",
+          "email": "nicolas.acosta@example.com",
+          "criminal_history": "Sin condenas ni antecedentes penales registrados",
+          "has_active_warrant": false,
+          "warrant_reference": null,
+          "warrant_issued_at": null,
+          "issuing_judge": null,
+          "issuing_court": null,
+          "warrant_purpose": null,
+          "has_active_proceedings": false,
+          "case_number": null,
+          "procedural_status": "Sin procesos judiciales activos registrados",
+          "last_reviewed_at": "2026-11-03T15:30:00-05:00",
+          "notes": "Sin antecedentes, órdenes de captura ni procesos judiciales registrados."
+        },
+        "related_ids": [],
+        "version": 1,
+        "status": "active",
+        "authorized": true,
+        "simulated": true,
+        "occurred_at": "2026-11-03T15:30:00-05:00"
+      },
+      {
+        "external_id": "security-person-07",
+        "kind": "person",
+        "title": "Mariana Solano",
+        "data": {
+          "identifier": "PRP-0007",
+          "full_name": "Mariana Solano",
+          "birth_date": "1994-11-02",
+          "occupation": "Docente de primaria",
+          "residence": "63 Calle de la Escuela, Pacific Ridge",
+          "phone": "+1-202-555-0107",
+          "email": "mariana.solano@example.com",
+          "criminal_history": "Sin condenas ni antecedentes penales registrados",
+          "has_active_warrant": false,
+          "warrant_reference": null,
+          "warrant_issued_at": null,
+          "issuing_judge": null,
+          "issuing_court": null,
+          "warrant_purpose": null,
+          "has_active_proceedings": false,
+          "case_number": null,
+          "procedural_status": "Sin procesos judiciales activos registrados",
+          "last_reviewed_at": "2026-11-03T15:30:00-05:00",
+          "notes": "Sin antecedentes, órdenes de captura ni procesos judiciales registrados."
+        },
+        "related_ids": [],
+        "version": 1,
+        "status": "active",
+        "authorized": true,
+        "simulated": true,
+        "occurred_at": "2026-11-03T15:30:00-05:00"
+      },
+      {
+        "external_id": "security-person-08",
+        "kind": "person",
+        "title": "Rafael Méndez",
+        "data": {
+          "identifier": "PRP-0008",
+          "full_name": "Rafael Méndez",
+          "birth_date": "1985-01-09",
+          "occupation": "Analista de inventarios",
+          "residence": "55 Calle del Mercado, Pacific Ridge",
+          "phone": "+1-202-555-0108",
+          "email": "rafael.mendez@example.com",
+          "criminal_history": "Sin condenas ni antecedentes penales registrados",
+          "has_active_warrant": false,
+          "warrant_reference": null,
+          "warrant_issued_at": null,
+          "issuing_judge": null,
+          "issuing_court": null,
+          "warrant_purpose": null,
+          "has_active_proceedings": false,
+          "case_number": null,
+          "procedural_status": "Sin procesos judiciales activos registrados",
+          "last_reviewed_at": "2026-11-03T15:30:00-05:00",
+          "notes": "Sin antecedentes, órdenes de captura ni procesos judiciales registrados."
+        },
+        "related_ids": [],
+        "version": 1,
+        "status": "active",
+        "authorized": true,
+        "simulated": true,
+        "occurred_at": "2026-11-03T15:30:00-05:00"
+      },
+      {
+        "external_id": "security-person-09",
+        "kind": "person",
+        "title": "Camila Fuentes",
+        "data": {
+          "identifier": "PRP-0009",
+          "full_name": "Camila Fuentes",
+          "birth_date": "1998-03-26",
+          "occupation": "Bibliotecaria",
+          "residence": "12 Paseo de los Cedros, Pacific Ridge",
+          "phone": "+1-202-555-0109",
+          "email": "camila.fuentes@example.com",
+          "criminal_history": "Sin condenas ni antecedentes penales registrados",
+          "has_active_warrant": false,
+          "warrant_reference": null,
+          "warrant_issued_at": null,
+          "issuing_judge": null,
+          "issuing_court": null,
+          "warrant_purpose": null,
+          "has_active_proceedings": false,
+          "case_number": null,
+          "procedural_status": "Sin procesos judiciales activos registrados",
+          "last_reviewed_at": "2026-11-03T15:30:00-05:00",
+          "notes": "Sin antecedentes, órdenes de captura ni procesos judiciales registrados."
+        },
+        "related_ids": [],
+        "version": 1,
+        "status": "active",
+        "authorized": true,
+        "simulated": true,
+        "occurred_at": "2026-11-03T15:30:00-05:00"
+      },
+      {
+        "external_id": "security-person-10",
+        "kind": "person",
+        "title": "Asha Mehta",
+        "data": {
+          "identifier": "PRP-0010",
+          "full_name": "Asha Mehta",
+          "birth_date": "1967-07-19",
+          "occupation": "Traductora",
+          "residence": "90 Avenida del Lago, Pacific Ridge",
+          "phone": "+1-202-555-0110",
+          "email": "asha.mehta@example.com",
+          "criminal_history": "Sin condenas ni antecedentes penales registrados",
+          "has_active_warrant": false,
+          "warrant_reference": null,
+          "warrant_issued_at": null,
+          "issuing_judge": null,
+          "issuing_court": null,
+          "warrant_purpose": null,
+          "has_active_proceedings": false,
+          "case_number": null,
+          "procedural_status": "Sin procesos judiciales activos registrados",
+          "last_reviewed_at": "2026-11-03T15:30:00-05:00",
+          "notes": "Sin antecedentes, órdenes de captura ni procesos judiciales registrados."
+        },
+        "related_ids": [],
+        "version": 1,
+        "status": "active",
+        "authorized": true,
+        "simulated": true,
+        "occurred_at": "2026-11-03T15:30:00-05:00"
       }
     ]
   },
   "attachments": [
     {
-      "record": "security-event-1",
-      "path": "assets/evidence-desk.png",
-      "external_id": "photo-1",
-      "publish": true,
-      "author": "alex-rivera"
+      "record": "security-person-01",
+      "path": "police-people/person-01.png",
+      "external_id": "portrait",
+      "publish": false,
+      "author": "alex-rivera",
+      "sha256": "e8496f623ccf9b5e916496403bc4bedce65dc907eb18384679b9af5cf8da9c02"
     },
     {
-      "record": "security-event-2",
-      "path": "assets/evidence-desk.png",
-      "external_id": "photo-2",
-      "publish": true,
-      "author": "maya-johnson"
+      "record": "security-person-02",
+      "path": "police-people/person-02.png",
+      "external_id": "portrait",
+      "publish": false,
+      "author": "maya-johnson",
+      "sha256": "bbdda34ae568de22cf8bb6b0dbf24c3cc6acef6842eb26eb4326516c85c8ed68"
     },
     {
-      "record": "security-event-3",
-      "path": "assets/evidence-desk.png",
-      "external_id": "photo-3",
-      "publish": true,
-      "author": "daniel-kim"
+      "record": "security-person-03",
+      "path": "police-people/person-03.png",
+      "external_id": "portrait",
+      "publish": false,
+      "author": "daniel-kim",
+      "sha256": "52d401bdd3a549799907d1a1c0c9397fa85c47de392a8c876b22c5d871b78c1c"
     },
     {
-      "record": "security-event-2",
-      "path": "assets/evidence-desk-view-2.png",
-      "external_id": "photo-view-2",
-      "publish": true,
-      "author": "maya-johnson"
+      "record": "security-person-04",
+      "path": "police-people/person-04.png",
+      "external_id": "portrait",
+      "publish": false,
+      "author": "alex-rivera",
+      "sha256": "ba2414f3cf26baff8a1a6e17065c38c3c6ba01c82b41c39b9055796cf5ba2f7c"
     },
     {
-      "record": "security-event-3",
-      "path": "assets/evidence-desk-view-3.png",
-      "external_id": "photo-view-3",
-      "publish": true,
-      "author": "daniel-kim"
+      "record": "security-person-05",
+      "path": "police-people/person-05.png",
+      "external_id": "portrait",
+      "publish": false,
+      "author": "maya-johnson",
+      "sha256": "d4629ff9bc4f5613799574c7f66b9b006774fdac0df8efcb186a5597411892cd"
     },
     {
-      "record": "security-event-1",
-      "path": "assets/evidence-desk-1.mp4",
-      "external_id": "video-1",
-      "publish": true,
-      "author": "alex-rivera"
+      "record": "security-person-06",
+      "path": "police-people/person-06.png",
+      "external_id": "portrait",
+      "publish": false,
+      "author": "daniel-kim",
+      "sha256": "cf1badb91b8561e29112aa1a6a4d7c8208e30e0475bc8b4f667c141cd3124585"
     },
     {
-      "record": "security-event-2",
-      "path": "assets/evidence-desk-2.mp4",
-      "external_id": "video-2",
-      "publish": true,
-      "author": "maya-johnson"
+      "record": "security-person-07",
+      "path": "police-people/person-07.png",
+      "external_id": "portrait",
+      "publish": false,
+      "author": "alex-rivera",
+      "sha256": "0c5bdbc278182da188b9a9ca1a5505d56b7e3a32f72ec2e30ca4837dc1344133"
+    },
+    {
+      "record": "security-person-08",
+      "path": "police-people/person-08.png",
+      "external_id": "portrait",
+      "publish": false,
+      "author": "maya-johnson",
+      "sha256": "07d631d4b49822b7b436fed2175f7338abda9752251025e0f6b798797549f5c0"
+    },
+    {
+      "record": "security-person-09",
+      "path": "police-people/person-09.png",
+      "external_id": "portrait",
+      "publish": false,
+      "author": "daniel-kim",
+      "sha256": "4dba6a37e67508de942b2bd3a583a0e39c1db9146ff0b65fd8fe33ee7481e37e"
+    },
+    {
+      "record": "security-person-10",
+      "path": "police-people/person-10.png",
+      "external_id": "portrait",
+      "publish": false,
+      "author": "alex-rivera",
+      "sha256": "65395583ad5cf60873952fcb2d7a76db34dfb16dfc4cbb1247df5f4134fe556f"
     }
   ]
 }
