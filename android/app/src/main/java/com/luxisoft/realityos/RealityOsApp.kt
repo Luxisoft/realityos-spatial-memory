@@ -300,12 +300,15 @@ private fun RealityHostShell(
                 },
                 onLogout = {
                     viewModel.cancelPhoneCapture()
+                    val identity = SocialSession.identity
                     scope.launch {
                         withContext(Dispatchers.IO) {
-                            runCatching { SocialSession.request("auth/logout", org.json.JSONObject()) }
+                            runCatching { SocialSession.request("auth/logout", org.json.JSONObject(), identity) }
                         }
-                        SocialSession.clear()
-                        LoginManager.getInstance().logOut()
+                        if (SocialSession.isCurrent(identity)) {
+                            SocialSession.clearIfCurrent(identity)
+                            LoginManager.getInstance().logOut()
+                        }
                         drawerState.close()
                     }
                 }

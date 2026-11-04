@@ -224,6 +224,8 @@ val refactoredKotlin = files(
     "src/main/java/com/luxisoft/realityos/StorageConnectionsScreen.kt",
     "src/test/java/com/luxisoft/realityos/StorageDownloadTest.kt",
     "src/test/java/com/luxisoft/realityos/SessionRefreshTest.kt",
+    "src/main/java/com/luxisoft/realityos/RestoredAccountSession.kt",
+    "src/testDebug/java/com/luxisoft/realityos/RestoredAccountSessionTest.kt",
     "src/testDebug/java/com/luxisoft/realityos/StorageConnectionsNavigationTest.kt",
     "src/testDebug/java/com/luxisoft/realityos/StorageResultsTest.kt",
     "src/main/java/com/luxisoft/realityos/ChatModels.kt",

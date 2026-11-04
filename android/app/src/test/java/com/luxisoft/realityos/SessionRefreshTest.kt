@@ -108,6 +108,7 @@ class SessionRefreshTest {
         assertThrows(IllegalStateException::class.java) { SocialSession.requestJson(STORAGE_BASE, "GET") }
         assertNull(SocialSession.token)
         assertFalse(SocialSession.active)
+        assertFalse(SocialSession.loginNotice.isNullOrBlank())
     }
 
     @Test fun previousAccountResponseCannotClearOrQueryTheNewAccount() {
@@ -166,6 +167,116 @@ class SessionRefreshTest {
         server.enqueue(MockResponse().setBody("""{"access_token":"renewed","refresh_token":"refresh-next"}"""))
         server.enqueue(MockResponse().setBody("[]"))
         assertEquals("[]", SocialSession.requestJson(STORAGE_BASE, "GET"))
+        assertTrue(SocialSession.active)
+    }
+
+    @Test fun allSectionsKeepSessionForPermissionValidationAndServerErrors() {
+        val paths = listOf("me/profile", "gallery?audience=work", "groups", "workspaces/work/records", "chat/history", "queries", STORAGE_BASE, "me/publication-uploads/one")
+        for (path in paths) {
+            for (status in listOf(403, 404, 409, 422, 429, 500, 503)) {
+                server.enqueue(MockResponse().setResponseCode(status))
+                assertThrows(IllegalStateException::class.java) { SocialSession.request(path) }
+                assertTrue("$path / $status", SocialSession.active)
+                assertEquals("expired", SocialSession.token)
+            }
+        }
+    }
+
+    @Test fun privateAuthRoutesRenewBeforeRestoringAccount() {
+        for (path in listOf("auth/me", "auth/local-session", "auth/account-session", "auth/account-capture-profile")) {
+            signIn("expired", "refresh-first")
+            server.enqueue(MockResponse().setResponseCode(401))
+            server.enqueue(MockResponse().setBody("""{"access_token":"renewed","refresh_token":"refresh-next"}"""))
+            server.enqueue(MockResponse().setBody("{}"))
+            assertEquals("{}", SocialSession.request(path))
+            assertEquals("renewed", SocialSession.token)
+            assertTrue(SocialSession.active)
+        }
+    }
+
+    @Test fun resourceRejectionAfterValidRenewalDoesNotRevokeWholeSession() {
+        val actions = listOf<() -> Any>(
+            { SocialSession.request("me/profile") },
+            { SocialSession.requestMultipart("me/publication-uploads", emptyMap(), byteArrayOf(1), "a.png", "image/png") },
+            { storageDownload("$STORAGE_BASE/one/content", SocialSession.identity) }
+        )
+        for (action in actions) {
+            signIn("expired", "refresh-first")
+            server.enqueue(MockResponse().setResponseCode(401))
+            server.enqueue(MockResponse().setBody("""{"access_token":"renewed","refresh_token":"refresh-next"}"""))
+            server.enqueue(MockResponse().setResponseCode(401))
+            assertThrows(IllegalStateException::class.java) { action() }
+            assertEquals("renewed", SocialSession.token)
+            assertTrue(SocialSession.active)
+            server.enqueue(MockResponse().setBody("{}"))
+            assertEquals("{}", SocialSession.request("me/profile"))
+        }
+    }
+
+    @Test fun downloadRefreshesWithinSameAccountAndRejectsPreviousAccount() {
+        val identity = SocialSession.identity
+        server.enqueue(MockResponse().setResponseCode(401))
+        server.enqueue(MockResponse().setBody("""{"access_token":"renewed","refresh_token":"refresh-next"}"""))
+        server.enqueue(MockResponse().setBody("image bytes"))
+        assertEquals("image bytes", storageDownload("$STORAGE_BASE/one/content", identity).decodeToString())
+        assertTrue(SocialSession.isCurrent(identity))
+        assertEquals("renewed", SocialSession.token)
+        signIn("other-account", "other-refresh")
+        assertThrows(IllegalStateException::class.java) { storageDownload("$STORAGE_BASE/one/content", identity) }
+        SocialSession.clearIfCurrent(identity)
+        assertEquals("other-account", SocialSession.token)
+        assertEquals(3, server.requestCount)
+    }
+
+    @Test fun slowSectionDoesNotBlockAnotherSectionOrResendUnderAnotherAccount() {
+        val arrived = CountDownLatch(2)
+        server.dispatcher = object : Dispatcher() {
+            override fun dispatch(request: RecordedRequest): MockResponse {
+                arrived.countDown()
+                check(arrived.await(5, TimeUnit.SECONDS))
+                return MockResponse().setBody("{}")
+            }
+        }
+        val first = executor.submit<String> { SocialSession.request("me/profile") }
+        val second = executor.submit<String> { SocialSession.request("groups") }
+        assertEquals("{}", first.get(10, TimeUnit.SECONDS))
+        assertEquals("{}", second.get(10, TimeUnit.SECONDS))
+        assertTrue(SocialSession.active)
+    }
+
+    @Test fun networkTimeoutsDoNotEraseSessionAcrossTransportTypes() {
+        val previous = SocialSession.openJsonConnection
+        SocialSession.openJsonConnection = {
+            object : HttpURLConnection(java.net.URL("https://example.test/v1/resource")) {
+                override fun connect() = Unit
+                override fun disconnect() = Unit
+                override fun usingProxy() = false
+                override fun getOutputStream() = java.io.ByteArrayOutputStream()
+                override fun getResponseCode(): Int = throw java.net.SocketTimeoutException("offline")
+            }
+        }
+        try {
+            val actions = listOf<() -> Any>(
+                { SocialSession.request("groups") },
+                { SocialSession.requestMultipart("me/publication-uploads", emptyMap(), byteArrayOf(1), "a.png", "image/png") },
+                { storageDownload("$STORAGE_BASE/one/content", SocialSession.identity) }
+            )
+            for (action in actions) {
+                assertThrows(java.net.SocketTimeoutException::class.java) { action() }
+                assertTrue(SocialSession.active)
+                assertEquals("expired", SocialSession.token)
+            }
+        } finally {
+            SocialSession.openJsonConnection = previous
+        }
+    }
+
+    @Test fun queuedLogoutCannotRevokeTheNextAccountOnTheServer() {
+        val identity = SocialSession.identity
+        signIn("other-account", "other-refresh")
+        assertThrows(IllegalStateException::class.java) { SocialSession.request("auth/logout", JSONObject(), identity) }
+        assertEquals(0, server.requestCount)
+        assertEquals("other-account", SocialSession.token)
         assertTrue(SocialSession.active)
     }
 }

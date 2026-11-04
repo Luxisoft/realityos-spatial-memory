@@ -48,10 +48,11 @@ internal class AgentSpeechPlayer(
         stop()
         val revision = generation
         val token = SocialSession.token
+        val identity = SocialSession.identity
         val device = if (token == null) provisioning() else null
         fun current() = generation == revision &&
             request.matches(RealityExperienceStore(context).selectedLanguage().languageTag) &&
-            token == SocialSession.token
+            SocialSession.isCurrent(identity)
         if (!current() || request.text.isBlank()) {
             done()
             return
@@ -77,47 +78,53 @@ internal class AgentSpeechPlayer(
         job = scope.launch {
             try {
                 val status = withContext(Dispatchers.IO) {
-                    val base = device?.apiBaseUrl ?: BuildConfig.DEFAULT_REALITYOS_API_BASE_URL
-                    val http = openConnection("${base.trimEnd('/')}/tts")
-                    connection = http
-                    try {
-                        http.requestMethod = "POST"
-                        http.connectTimeout = 5000
-                        http.readTimeout = 33000
-                        http.instanceFollowRedirects = false
-                        http.doOutput = true
-                        http.setRequestProperty("Content-Type", "application/json")
-                        if (token != null) {
-                            http.setRequestProperty("Authorization", "Bearer $token")
-                        } else if (device != null) {
-                            http.setRequestProperty("X-RealityOS-Device-ID", device.deviceId)
-                            http.setRequestProperty("X-RealityOS-Device-Key", device.deviceKey)
-                        }
-                        val payload = JSONObject().put("text", request.text).put("language", request.language)
-                        http.outputStream.bufferedWriter().use { it.write(payload.toString()) }
-                        val code = http.responseCode
-                        if (code == 200) {
-                            check(http.contentType?.startsWith("audio/wav") == true)
-                            http.inputStream.use { input ->
-                                file.outputStream().use { output ->
-                                    val buffer = ByteArray(16384)
-                                    var size = 0
-                                    while (true) {
-                                        val count = input.read(buffer)
-                                        if (count < 0) break
-                                        size += count
-                                        check(size <= 16 * 1024 * 1024)
-                                        output.write(buffer, 0, count)
+                    fun download(access: String?): Int {
+                        if (!current()) throw CancellationException("Speech request replaced")
+                        SocialSession.requireCurrent(identity)
+                        val base = device?.apiBaseUrl ?: BuildConfig.DEFAULT_REALITYOS_API_BASE_URL
+                        val http = openConnection("${base.trimEnd('/')}/tts")
+                        connection = http
+                        return try {
+                            http.requestMethod = "POST"
+                            http.connectTimeout = 5000
+                            http.readTimeout = 33000
+                            http.instanceFollowRedirects = false
+                            http.doOutput = true
+                            http.setRequestProperty("Content-Type", "application/json")
+                            if (access != null) {
+                                http.setRequestProperty("Authorization", "Bearer $access")
+                            } else if (device != null) {
+                                http.setRequestProperty("X-RealityOS-Device-ID", device.deviceId)
+                                http.setRequestProperty("X-RealityOS-Device-Key", device.deviceKey)
+                            }
+                            val payload = JSONObject().put("text", request.text).put("language", request.language)
+                            http.outputStream.bufferedWriter().use { it.write(payload.toString()) }
+                            val code = http.responseCode
+                            if (code == 200) {
+                                check(http.contentType?.startsWith("audio/wav") == true)
+                                http.inputStream.use { input ->
+                                    file.outputStream().use { output ->
+                                        val buffer = ByteArray(16384)
+                                        var size = 0
+                                        while (true) {
+                                            val count = input.read(buffer)
+                                            if (count < 0) break
+                                            size += count
+                                            check(size <= 16 * 1024 * 1024)
+                                            output.write(buffer, 0, count)
+                                        }
+                                        check(size > 44)
                                     }
-                                    check(size > 44)
                                 }
                             }
+                            code
+                        } finally {
+                            http.disconnect()
+                            if (connection === http) connection = null
                         }
-                        code
-                    } finally {
-                        http.disconnect()
-                        if (connection === http) connection = null
                     }
+                    val result = download(token)
+                    if (result == 401 && token != null) download(SocialSession.refreshAccess(identity, token)) else result
                 }
                 if (!current()) {
                     file.delete()
@@ -157,7 +164,11 @@ internal class AgentSpeechPlayer(
                 file.delete()
                 throw error
             } catch (_: Exception) {
-                useDeviceVoice()
+                if (!SocialSession.isCurrent(identity)) {
+                    if (generation == revision) done()
+                } else {
+                    useDeviceVoice()
+                }
             }
         }
     }

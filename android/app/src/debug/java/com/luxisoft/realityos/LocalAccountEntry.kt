@@ -54,14 +54,17 @@ internal fun LocalAccountEntry(viewModel: RealityViewModel, onSuccess: () -> Uni
                     busy = true
                     failed = false
                     scope.launch {
+                        var identity = SocialSession.identity
                         try {
                             val result = withContext(Dispatchers.IO) {
                                 JSONObject(SocialSession.request("auth/local-login", JSONObject().put("email", email.trim()).put("password", password)))
                             }
+                            SocialSession.requireCurrent(identity)
                             check(result.optBoolean("local_access"))
                             val profile = result.getJSONObject("capture_profile")
                             SocialSession.workspaceId = profile.getString("workspace_id")
                             SocialSession.remember(result)
+                            identity = SocialSession.identity
                             check(SocialSession.localEntryAllowed)
                             viewModel.useFacebookCaptureProfile(
                                 DeviceProvisioning(
@@ -79,7 +82,7 @@ internal fun LocalAccountEntry(viewModel: RealityViewModel, onSuccess: () -> Uni
                         } catch (cancelled: CancellationException) {
                             throw cancelled
                         } catch (_: Exception) {
-                            SocialSession.clear()
+                            SocialSession.clearIfCurrent(identity)
                             failed = true
                         } finally {
                             busy = false

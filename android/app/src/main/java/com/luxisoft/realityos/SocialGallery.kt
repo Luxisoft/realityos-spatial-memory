@@ -37,7 +37,7 @@ internal object SocialSession {
     private var preferences: android.content.SharedPreferences? = null
     private val sessionLock = Any()
     private val refreshLock = Any()
-    private var sessionGeneration = 0L
+    private var sessionGeneration by mutableStateOf(0L)
     private var refreshToken: String? = null
     @Volatile
     var token: String? = null
@@ -129,6 +129,16 @@ internal object SocialSession {
         loginNotice = null
         preferences?.edit()?.clear()?.apply()
     }
+    val identity: Long get() = synchronized(sessionLock) { sessionGeneration }
+    fun isCurrent(identity: Long): Boolean = synchronized(sessionLock) { identity == sessionGeneration }
+    fun requireCurrent(identity: Long) { sessionSnapshot(identity) }
+    fun clearIfCurrent(identity: Long): Unit = synchronized(sessionLock) {
+        if (identity == sessionGeneration) clear()
+    }
+    fun refreshAccess(identity: Long, rejectedAccess: String): String {
+        val session = sessionSnapshot(identity)
+        return requireNotNull(refreshSession(session.copy(access = rejectedAccess)).access)
+    }
     private data class RequestSession(val generation: Long, val access: String?, val refresh: String?)
     private fun sessionSnapshot(generation: Long? = null): RequestSession = synchronized(sessionLock) {
         check(generation == null || generation == sessionGeneration) { localizedText(R.string.storage_session_changed) }
@@ -139,8 +149,10 @@ internal object SocialSession {
         // A late rejection must not erase credentials renewed by another request.
         check(token == session.access && refreshToken == session.refresh) { localizedText(R.string.storage_session_changed) }
         val wasGuest = isGuest || passwordAccount
+        val message = if (wasGuest) localizedText(R.string.ui_your_session_expired_sign_in_again) else localizedText(R.string.ui_your_session_expired_continue_with_facebook_again)
         clear()
-        error(if (wasGuest) localizedText(R.string.ui_your_session_expired_sign_in_again) else localizedText(R.string.ui_your_session_expired_continue_with_facebook_again))
+        loginNotice = message
+        error(message)
     }
     private fun refreshSession(session: RequestSession, timeoutMillis: Int = 30000): RequestSession = synchronized(refreshLock) {
         val current = sessionSnapshot(session.generation)
@@ -155,9 +167,8 @@ internal object SocialSession {
             sessionSnapshot(session.generation)
         }
     }
-    @Synchronized
-    fun request(path: String, payload: JSONObject? = null): String {
-        return requestJson(path, if (payload == null) "GET" else "POST", payload)
+    fun request(path: String, payload: JSONObject? = null, identity: Long = this.identity): String {
+        return requestJson(path, if (payload == null) "GET" else "POST", payload, identity)
     }
     fun searchWorkspaceRecords(workspaceId: String, payload: JSONObject): String = requestOnce(
         "workspaces/$workspaceId/records/search", "POST", payload, true, 180000,
@@ -173,8 +184,8 @@ internal object SocialSession {
         "POST", payload, true, if (prepare) 60000 else 4000
     )
 
-    fun requestJson(path: String, method: String, payload: JSONObject? = null): String {
-        return requestOnce(path, method, payload, true)
+    fun requestJson(path: String, method: String, payload: JSONObject? = null, identity: Long = this.identity): String {
+        return requestOnce(path, method, payload, true, session = sessionSnapshot(identity))
     }
     internal var openJsonConnection: (String) -> HttpURLConnection = { path ->
         URL("${BuildConfig.DEFAULT_REALITYOS_API_BASE_URL}/$path").openConnection() as HttpURLConnection
@@ -196,7 +207,7 @@ internal object SocialSession {
             }
             val status = connection.responseCode
             sessionSnapshot(session.generation)
-            val authenticatedAccountRoute = path in setOf("auth/account-session", "auth/account-capture-profile")
+            val authenticatedAccountRoute = path in setOf("auth/me", "auth/local-session", "auth/account-session", "auth/account-capture-profile", "auth/logout")
             if (connection.responseCode == 409 && path in setOf("auth/register", "auth/change-pending-email")) {
                 val body = connection.errorStream?.bufferedReader()?.use { it.readText() }.orEmpty()
                 accountConflict(path, 409, body)?.let { throw it }
@@ -208,7 +219,7 @@ internal object SocialSession {
                 val renewed = refreshSession(session, timeoutMillis)
                 return requestOnce(path, method, payload, false, timeoutMillis, renewed)
             }
-            if (status == 401 && !path.startsWith("auth/facebook")) {
+            if (status == 401 && (path == "auth/refresh" || session.refresh == null && (!path.startsWith("auth/") || authenticatedAccountRoute))) {
                 expireSession(session)
             }
             if (connection.responseCode !in 200..299) error(localizedText(R.string.ui_could_not_complete_the_request_1_d, connection.responseCode))
@@ -216,7 +227,6 @@ internal object SocialSession {
         } finally { connection.disconnect() }
     }
     /** Stream captured clips from private storage; retries reuse the caller's request key. */
-    @Synchronized
     fun requestMultipartFile(path: String, fields: Map<String, String>, file: File, mime: String): String =
         multipartFileOnce(path, fields, file, mime, true)
 
@@ -247,14 +257,13 @@ internal object SocialSession {
                 val renewed = refreshSession(session)
                 multipartFileOnce(path, fields, file, mime, false, renewed)
             } else {
-                if (status == 401) expireSession(session)
+                if (status == 401 && session.refresh == null) expireSession(session)
                 check(connection.responseCode in 200..299) { localizedText(R.string.ui_upload_failed_1_d, connection.responseCode) }
                 connection.inputStream.bufferedReader().use { it.readText() }.also { sessionSnapshot(session.generation) }
             }
         } finally { connection.disconnect() }
     }
 
-    @Synchronized
     fun requestMultipart(path: String, fields: Map<String, String>, fileBytes: ByteArray, filename: String, mimeType: String, fieldName: String? = null): String {
         return requestMultipartOnce(path, fields, fileBytes, filename, mimeType, fieldName, true)
     }
@@ -289,7 +298,7 @@ internal object SocialSession {
                 val renewed = refreshSession(session)
                 return requestMultipartOnce(path, fields, fileBytes, filename, mimeType, requestedFieldName, false, renewed)
             }
-            if (status == 401) expireSession(session)
+            if (status == 401 && session.refresh == null) expireSession(session)
             if (connection.responseCode == 403 && path.startsWith("faces/")) error(localizedText(R.string.ui_face_search_requires_your_biometric_consent))
             if (connection.responseCode !in 200..299) {
                 val detail = connection.errorStream?.bufferedReader()?.use { it.readText() }.orEmpty()
@@ -298,6 +307,39 @@ internal object SocialSession {
                 error(localizedHttpError(connection.responseCode))
             }
             connection.inputStream.bufferedReader().use { it.readText() }.also { sessionSnapshot(session.generation) }
+        } finally { connection.disconnect() }
+    }
+
+    fun download(path: String, identity: Long, maximum: Int): ByteArray = downloadOnce(path, maximum, sessionSnapshot(identity), true)
+
+    private fun downloadOnce(path: String, maximum: Int, session: RequestSession, mayRefresh: Boolean): ByteArray {
+        sessionSnapshot(session.generation)
+        val connection = openJsonConnection(path)
+        connection.instanceFollowRedirects = false
+        connection.connectTimeout = 15000
+        connection.readTimeout = 90000
+        session.access?.let { connection.setRequestProperty("Authorization", "Bearer $it") }
+        return try {
+            val status = connection.responseCode
+            sessionSnapshot(session.generation)
+            if (status == 401 && mayRefresh && session.refresh != null) {
+                return downloadOnce(path, maximum, refreshSession(session), false)
+            }
+            if (status == 401 && session.refresh == null) expireSession(session)
+            check(status == 200) { localizedHttpError(status) }
+            check(connection.contentLengthLong <= maximum) { "Resource exceeds download limit" }
+            connection.inputStream.use { input ->
+                val output = java.io.ByteArrayOutputStream()
+                val buffer = ByteArray(32768)
+                while (true) {
+                    val count = input.read(buffer)
+                    if (count < 0) break
+                    sessionSnapshot(session.generation)
+                    check(output.size() + count <= maximum) { "Resource exceeds download limit" }
+                    output.write(buffer, 0, count)
+                }
+                output.toByteArray().also { sessionSnapshot(session.generation) }
+            }
         } finally { connection.disconnect() }
     }
 }
@@ -444,7 +486,7 @@ fun SocialGallery(
         SocialSession.loginNotice = context.getString(R.string.face_login_required)
     }
     fun runRequest(action: suspend () -> Unit) {
-        scope.launch { try { action() } catch (e: Exception) {
+        scope.launch { try { action() } catch (cancelled: kotlinx.coroutines.CancellationException) { throw cancelled } catch (e: Exception) {
             error = e.message ?: localizedText(R.string.ui_connection_error)
             if (SocialSession.token == null && SocialSession.loginNotice == null) SocialSession.loginNotice = error
         } }
@@ -513,32 +555,11 @@ fun SocialGallery(
         return
     }
     if (SocialSession.passwordAccount && !SocialSession.passwordAccountConfirmed) {
-        LaunchedEffect(Unit) {
-            try {
-                val confirmed = withContext(Dispatchers.IO) { JSONObject(SocialSession.request("auth/account-session")).optBoolean("password_account") }
-                check(confirmed)
-                SocialSession.passwordAccountConfirmed = true
-            } catch (_: Exception) { SocialSession.clear(); authenticated = false }
-        }
-        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { CircularProgressIndicator() }
+        RestoredAccountSession(local = false, onConfirmed = { SocialSession.passwordAccountConfirmed = true })
         return
     }
     if (BuildConfig.LOCAL_DEVELOPMENT && SocialSession.localAccount && !SocialSession.localAccountConfirmed) {
-        LaunchedEffect(Unit) {
-            try {
-                val confirmed = withContext(Dispatchers.IO) {
-                    // Refresh an expired access token first, then verify the server realm.
-                    SocialSession.request("me/profile")
-                    JSONObject(SocialSession.request("auth/local-session")).optBoolean("local_access")
-                }
-                check(confirmed) { "Local account unavailable" }
-                SocialSession.localAccountConfirmed = true
-            } catch (_: Exception) {
-                SocialSession.clear()
-                authenticated = false
-            }
-        }
-        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { CircularProgressIndicator() }
+        RestoredAccountSession(local = true, onConfirmed = { SocialSession.localAccountConfirmed = true })
         return
     }
     LaunchedEffect(authenticated) {

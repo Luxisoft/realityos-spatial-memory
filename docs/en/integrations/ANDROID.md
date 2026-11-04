@@ -49,6 +49,10 @@ Receive the APK, username, password and group in one [access card](../guides/DEM
 
 When opening **My connections**, profile requests, resources and uploads share a single session refresh. Temporary errors and permission failures preserve sign-in; a refresh rejected because credentials expired or were revoked requires signing in again. Pending responses from a previous account are discarded when switching accounts or signing out.
 
+Restoring a saved account now offers **Try again** when verification is unavailable, without admitting an unverified account or discarding its credentials. Leaving the screen cancels verification without signing out. Downloads and response audio also share session renewal. A resource that still rejects access after a successful renewal shows an error without erasing the whole session. Delayed sign-in/sign-out callbacks cannot clear a newer account.
+
+Android regression coverage includes simultaneous requests, expired and revoked access, permission errors, server failures, account switching, cancelled restoration, downloads, uploads and audio. `RestoredAccountSessionTest` checks recovery controls in EN/ES, at 320 dp and 200% text; the complete unit suite runs with `./gradlew :app:testDebugUnitTest` from `android/`. These checks do not replace physical phone or glasses acceptance.
+
 <a id="build"></a>
 
 ## Build and install

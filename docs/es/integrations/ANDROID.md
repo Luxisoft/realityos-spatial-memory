@@ -49,6 +49,10 @@ Recibe el APK, usuario, contraseña y grupo en una sola [ficha de acceso](../gui
 
 Al abrir **Mis conexiones**, las consultas del perfil, los recursos y las subidas comparten una sola renovación de sesión. Un error temporal o de permisos conserva el acceso; una renovación rechazada por credenciales vencidas o revocadas exige iniciar sesión de nuevo. Las respuestas pendientes de una cuenta anterior se descartan al cambiar de cuenta o cerrar sesión.
 
+Al restaurar una cuenta guardada, la app ofrece **Reintentar** si la verificación no está disponible, sin admitir una cuenta sin verificar ni borrar sus credenciales. Salir de la pantalla cancela la verificación sin cerrar sesión. Las descargas y el audio de respuesta también comparten la renovación. Si un recurso sigue rechazando el acceso tras una renovación correcta, muestra un error sin borrar toda la sesión. Las respuestas atrasadas del inicio o cierre de sesión no pueden borrar una cuenta nueva.
+
+Las regresiones Android cubren consultas simultáneas, acceso vencido y revocado, errores de permisos y servidor, cambio de cuenta, cancelación de la restauración, descargas, subidas y audio. `RestoredAccountSessionTest` comprueba los controles de recuperación en ES/EN, a 320 dp y con texto al 200 %; la batería completa se ejecuta con `./gradlew :app:testDebugUnitTest` desde `android/`. Estas pruebas no sustituyen la aceptación en teléfono o gafas físicas.
+
 <a id="build"></a>
 
 ## Compilar e instalar

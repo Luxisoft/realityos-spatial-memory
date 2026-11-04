@@ -152,19 +152,20 @@ internal fun StorageConnectionsScreen(onClose: () -> Unit) {
         val key = picked.single()
         val item = storageRows(page.optJSONArray("items") ?: JSONArray()).first { it.getString("key") == key }
         val target = workspace.ifBlank { SocialSession.workspaceId.orEmpty() }
-        val token = SocialSession.token ?: return
+        if (SocialSession.token == null) return
+        val session = SocialSession.identity
         operation {
             if (person && !JSONObject(request("faces/consent")).optBoolean("consented")) {
                 consentAsk = true
                 return@operation
             }
-            val bytes = withContext(Dispatchers.IO) { storageDownload("${base()}/content?key=${Uri.encode(key)}", token) }
-            check(SocialSession.token == token) { localizedText(R.string.storage_session_changed) }
+            val bytes = withContext(Dispatchers.IO) { storageDownload("${base()}/content?key=${Uri.encode(key)}", session) }
+            SocialSession.requireCurrent(session)
             val language = RealityExperienceStore(context).selectedLanguage().languageTag
             val response = withContext(Dispatchers.IO) {
                 SocialSession.requestMultipart(if (person) "faces/search" else "queries/image", mapOf("workspace_id" to target, "language" to language), bytes, key.substringAfterLast('/'), item.getString("mime_type"), if (person) "probe" else "image")
             }
-            check(SocialSession.token == token) { localizedText(R.string.storage_session_changed) }
+            SocialSession.requireCurrent(session)
             resultWorkspace = target
             result = JSONObject(response)
         }

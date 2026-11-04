@@ -10,10 +10,14 @@ import java.util.concurrent.TimeUnit
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeout
+import okhttp3.mockwebserver.MockResponse
+import okhttp3.mockwebserver.MockWebServer
+import org.json.JSONObject
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
+import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
@@ -23,6 +27,11 @@ import org.robolectric.annotation.Config
 @Config(application = android.app.Application::class)
 class AgentSpeechPlayerTest {
     private val context: Context = ApplicationProvider.getApplicationContext()
+
+    @Before fun initialize() {
+        LocalizedText.initialize(context)
+        SocialSession.clear()
+    }
 
     private class Connection(private val code: Int) : HttpURLConnection(URL("https://example.test/v1/tts")) {
         val sent = ByteArrayOutputStream()
@@ -38,7 +47,7 @@ class AgentSpeechPlayerTest {
 
     @After
     fun clearSession() {
-        SocialSession.token = null
+        SocialSession.clear()
     }
 
     @Test
@@ -121,5 +130,37 @@ class AgentSpeechPlayerTest {
         delay(50)
         assertFalse(fallback)
         assertEquals(0L, released.count)
+    }
+
+    @Test fun expiredSpeechAccessRenewsOnceAndPermissionDenialKeepsSession() = runBlocking {
+        val server = MockWebServer().apply { start() }
+        val original = SocialSession.openJsonConnection
+        val requests = mutableListOf<Connection>()
+        var done = false
+        var fallback = false
+        var player: AgentSpeechPlayer? = null
+        try {
+            SocialSession.remember(JSONObject().put("access_token", "expired").put("refresh_token", "refresh"))
+            SocialSession.active = true
+            val identity = SocialSession.identity
+            SocialSession.openJsonConnection = { path -> server.url("/$path").toUrl().openConnection() as HttpURLConnection }
+            server.enqueue(MockResponse().setBody("""{"access_token":"renewed","refresh_token":"next-refresh"}"""))
+            player = AgentSpeechPlayer(context, this, { null }, {}, { done = true }, { fallback = true }, {}, {
+                Connection(if (requests.isEmpty()) 401 else 403).also { requests += it }
+            })
+            player.speak(LocalizedSpeech("Private response", RealityExperienceStore(context).selectedLanguage().languageTag))
+            withTimeout(5000) { while (!done) delay(10) }
+            assertFalse(fallback)
+            assertTrue(SocialSession.active)
+            assertTrue(SocialSession.isCurrent(identity))
+            assertEquals(2, requests.size)
+            assertEquals("Bearer expired", requests[0].getRequestProperty("Authorization"))
+            assertEquals("Bearer renewed", requests[1].getRequestProperty("Authorization"))
+            assertEquals("/auth/refresh", server.takeRequest().path)
+        } finally {
+            player?.stop()
+            SocialSession.openJsonConnection = original
+            server.shutdown()
+        }
     }
 }

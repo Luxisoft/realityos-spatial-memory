@@ -25,6 +25,7 @@ internal fun startFacebookAccess(context: Context, scope: CoroutineScope, viewMo
         onError(context.getString(R.string.facebook_access_unavailable)); return
     }
     onError(""); onBusy(true)
+    val startingIdentity = SocialSession.identity
     val manager = LoginManager.getInstance()
     if (com.facebook.AccessToken.getCurrentAccessToken()?.applicationId?.let { it != BuildConfig.FACEBOOK_APP_ID } == true) {
         manager.logOut()
@@ -32,22 +33,28 @@ internal fun startFacebookAccess(context: Context, scope: CoroutineScope, viewMo
     manager.registerCallback(activity.facebookCallbacks, object : FacebookCallback<LoginResult> {
         override fun onSuccess(result: LoginResult) {
             scope.launch {
+                var identity = startingIdentity
                 try {
                     val response = withContext(Dispatchers.IO) {
                         JSONObject(SocialSession.request("auth/facebook", JSONObject().put("access_token", result.accessToken.token).put("device_id", androidDeviceId(context))))
                     }
+                    SocialSession.requireCurrent(identity)
                     SocialSession.token = response.getString("access_token")
                     val profile = withContext(Dispatchers.IO) { JSONObject(SocialSession.request("me/capture-profile", JSONObject())) }
+                    SocialSession.requireCurrent(identity)
                     SocialSession.workspaceId = profile.getString("workspace_id")
                     viewModel.useFacebookCaptureProfile(DeviceProvisioning(BuildConfig.DEFAULT_REALITYOS_API_BASE_URL,
                         profile.getString("workspace_id"), profile.getString("device_id"), profile.getString("device_key"), "Casa"))
                     SocialSession.remember(response)
+                    identity = SocialSession.identity
                     onSuccess()
                     SocialSession.active = true
                 } catch (cancelled: kotlinx.coroutines.CancellationException) { throw cancelled }
                 catch (error: Exception) {
-                    SocialSession.clear()
-                    onError(context.getString(R.string.facebook_access_failed))
+                    if (SocialSession.isCurrent(identity)) {
+                        SocialSession.clearIfCurrent(identity)
+                        onError(context.getString(R.string.facebook_access_failed))
+                    }
                 } finally { onBusy(false) }
             }
         }
