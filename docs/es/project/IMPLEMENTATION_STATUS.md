@@ -8,7 +8,7 @@ Actualizado el **3 de noviembre de 2026**. Un build o una comprobación HTTP no 
 
 Los catálogos de grupo, la clasificación manual obligatoria, etiquetas en miniaturas, iconos de video y filtros autorizados están incluidos en la revisión `20261103_0038`. Los archivos de bucket sin clasificar siguen privados para revisión del propietario. La [guía de clasificación](../guides/PUBLICATION_CLASSIFICATION.md) documenta este flujo.
 
-El manifiesto revisado cubre 48 publicaciones existentes y coincide con los hashes de sus originales. Las pruebas de asignación/reversión aprobaron; la asignación opcional de clasificación aún no se ha aplicado a producción. Las publicaciones existentes siguen disponibles en sus grupos.
+El manifiesto revisado cubre las 48 publicaciones de evaluación con licencia. Se aplicó la clasificación a esas y a una publicación visible adicional revisada por separado: **49 publicaciones visibles de cuatro grupos existentes** ya tienen categoría y tags. Se comprobaron los hashes originales antes y después; repetir la asignación produjo cero cambios. El diario privado de reversión es `.runtime/publication-classification-journal.json` y su comprobación sin escritura aprobó. Las tres cuentas del jurado verificaron clasificación y filtros combinados en la API real; filtrar otro grupo devolvió `403`. No se clasificaron publicaciones ocultas ni medios privados.
 
 ## Implementado
 
@@ -26,7 +26,7 @@ El manifiesto revisado cubre 48 publicaciones existentes y coincide con los hash
 - Desplegada `realityos-backend:unified-groups-20261103-verified`, Alembic **`20261103_0038`**. Salud y comparación exacta de OpenAPI público aprobadas. Las tres cuentas del jurado consultaron sus 16 publicaciones de grupo y abrieron Mis conexiones conservando la sesión.
 - Eliminadas **234** publicaciones antiguas sin grupo; conservadas **70** publicaciones de grupos y sus originales sin cambios. Las huellas de tablas confirmaron perfiles, enrolamientos/consentimientos biométricos, 47 expedientes y 27 adjuntos intactos. La migración también conserva los hashes de 25 solicitudes de importación. Actualización/reversión/actualización de PostgreSQL aprobadas sobre una base restaurada aislada.
 - Backend/gateway: **588 pruebas aprobadas**, más **14 comprobaciones específicas** tras la limpieza final. Formato, lint, arquitectura, documentación y runtime Newman aprobados.
-- Android: **287 pruebas aprobadas**, `ktlintCheck`, `lintDebug` y builds Debug/Release aprobados. Revisión visual ES/EN con 320 dp y texto al 200 %. No hubo dispositivo físico conectado. APK Debug vigente: `android/app/build/outputs/apk/debug/app-debug.apk`; SHA-256 `5701aff08d835882c728b4690789898d2187987dc9bc0c667508ebae1b08f823`.
+- Android: **287 pruebas aprobadas**, `ktlintCheck`, `lintDebug` y builds Debug/Release aprobados. Revisión visual ES/EN con 320 dp y texto al 200 %. No hubo dispositivo físico conectado. APK Debug vigente: `android/app/build/outputs/apk/debug/app-debug.apk`; SHA-256 `5bc5984115419477bd516652c370d463872ae1fdfc806766aa26010d0765e3f1`.
 - Instrucciones privadas de reversión: `.runtime/unified-groups-20261103-rollback.md`, con overlay de imagen/runtime `.runtime/unified-groups-20261103-rollback.json`. La reversión de datos necesita el snapshot técnico `pre-unified-publications.dump`, que caduca a las 24 horas (una hora con presión de disco). Las imágenes anteriores requieren revertir primero esquema/datos.
 
 ## Verificación anterior

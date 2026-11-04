@@ -8,7 +8,7 @@ Updated **November 3, 2026**. A build or HTTP check does not approve physical-de
 
 Group catalogs, required manual classification, thumbnail labels, video icons and authorized gallery filters are included in revision `20261103_0038`. Unclassified bucket files stay private for their owner to review. The [classification guide](../guides/PUBLICATION_CLASSIFICATION.md) documents this workflow.
 
-The reviewed manifest covers 48 existing publications and matches their original hashes. Backfill/rollback tests passed; the optional classification backfill has not been applied to production. Existing publications remain available in their groups.
+The reviewed manifest covers the 48 licensed evaluation publications. Classification was applied to those and one additional visible publication reviewed separately: **49 visible publications across four existing groups** now have a category and tags. Original hashes were checked before and after; an idempotent repeat made zero changes. The private rollback journal is `.runtime/publication-classification-journal.json`, and its dry-run passed. The three jury accounts verified classifications and combined filters through the live API; cross-group filter requests returned `403`. Hidden publications and private media were not classified.
 
 ## Implemented
 
@@ -26,7 +26,7 @@ The reviewed manifest covers 48 existing publications and matches their original
 - Deployed `realityos-backend:unified-groups-20261103-verified`, Alembic **`20261103_0038`**. Readiness and exact public OpenAPI comparison passed. All three jury accounts browsed their 16 group publications and opened Connections while retaining their session.
 - Deleted **234** legacy unassigned publications; retained **70** group publications and their original bytes unchanged. Table fingerprints confirmed unchanged profiles, biometric enrollments/consents, 47 records and 27 record attachments. The migration also preserves 25 existing import request hashes. PostgreSQL upgrade/downgrade/upgrade passed on an isolated restored database.
 - Backend/gateway: **588 passed**, plus **14 focused checks** after the final cleanup. Formatting, lint, architecture, documentation and Newman runtime checks passed.
-- Android: **287 tests passed**, `ktlintCheck`, `lintDebug`, Debug and Release builds passed. ES/EN rendered checks include 320 dp and 200% text. No physical device was connected. Current Debug APK: `android/app/build/outputs/apk/debug/app-debug.apk`; SHA-256 `5701aff08d835882c728b4690789898d2187987dc9bc0c667508ebae1b08f823`.
+- Android: **287 tests passed**, `ktlintCheck`, `lintDebug`, Debug and Release builds passed. ES/EN rendered checks include 320 dp and 200% text. No physical device was connected. Current Debug APK: `android/app/build/outputs/apk/debug/app-debug.apk`; SHA-256 `5bc5984115419477bd516652c370d463872ae1fdfc806766aa26010d0765e3f1`.
 - Private rollback instructions: `.runtime/unified-groups-20261103-rollback.md`, with image/runtime overlay `.runtime/unified-groups-20261103-rollback.json`. Data reversal requires the technical `pre-unified-publications.dump`, which expires after 24 hours (one hour under disk pressure). Old images require schema/data reversal first.
 
 ## Earlier verification
