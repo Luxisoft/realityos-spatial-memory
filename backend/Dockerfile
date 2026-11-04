@@ -20,6 +20,10 @@ RUN apt-get update \
 # Bake InsightFace weights so api/worker start fast without a model download.
 RUN python -c "from insightface.app import FaceAnalysis; app = FaceAnalysis(name='buffalo_l', providers=['CPUExecutionProvider']); app.prepare(ctx_id=0)"
 COPY simulator/social-directory/source /simulator/social-directory/source
+COPY simulator/local /simulator/local
+COPY simulator/profiles /simulator/profiles
+COPY simulator/workspaces /simulator/workspaces
+COPY simulator/real-scenes /simulator/real-scenes
 
 EXPOSE 8000
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]

@@ -1,3 +1,5 @@
+> **Corrección vigente: localhost principal.** Windows/Linux x64 ejecutan PostgreSQL, Redis, API y worker. Meta usa la clave propia del jurado; voz de salida instalada en Android. Gateway, buckets, Facebook, SMTP, scheduler y ElevenLabs están fuera del recorrido local. La configuración remota que aparece en esta guía es histórica. [Instalación vigente](../deployment/DEPLOYMENT_LOCALHOST.md).
+
 <p align="center">
   <a href="../../en/deployment/DEPLOYMENT_GATEWAY.md"><img src="../../assets/readme/language-en.svg" alt="Read in English" height="32"></a>
   <a href="DEPLOYMENT_GATEWAY.md"><img src="../../assets/readme/language-es-active.svg" alt="Español — seleccionado" height="32"></a>

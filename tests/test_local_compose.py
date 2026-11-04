@@ -62,6 +62,7 @@ def test_standalone_compose_isolated_and_real(tmp_path):
         text=True,
     )
     config = json.loads(output)
+    assert set(config["services"]) == {"postgres", "redis", "api", "worker"}
     assert config["name"] == "realityos-local"
     assert "unrelated-server-key-must-not-appear" not in output
     for name in ("api", "worker"):
@@ -73,12 +74,12 @@ def test_standalone_compose_isolated_and_real(tmp_path):
         assert service["environment"]["META_GATEWAY_FALLBACK_ENABLED"] == "false"
     assert (
         config["services"]["api"]["environment"]["ELEVENLABS_API_KEY"]
-        == secrets["ELEVENLABS_API_KEY"]
+        == ""
     )
-    assert config["services"]["proxy"]["ports"][0]["host_ip"] == "127.0.0.1"
+    assert config["services"]["api"]["ports"][0]["host_ip"] == "127.0.0.1"
     assert all(
         not config["services"][name].get("ports")
-        for name in ("postgres", "redis", "api", "worker")
+        for name in ("postgres", "redis", "worker")
     )
     assert all(
         volume["name"].startswith("realityos-local_")

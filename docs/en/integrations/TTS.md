@@ -1,3 +1,5 @@
+> **Current direction: localhost is primary.** Windows/Linux x64 run PostgreSQL, Redis, API and worker. Meta uses the judge’s own key; speech output uses installed Android voices. Gateway, buckets, Facebook, SMTP, scheduler and ElevenLabs are outside the local walkthrough. Remote configuration in this guide is historical. [Current installation](../deployment/DEPLOYMENT_LOCALHOST.md).
+
 <p align="center"><a href="TTS.md"><img src="../../assets/readme/language-en-active.svg" alt="English" height="32"></a> <a href="../../es/integrations/TTS.md"><img src="../../assets/readme/language-es.svg" alt="Español" height="32"></a></p>
 
 # Speech and transcription

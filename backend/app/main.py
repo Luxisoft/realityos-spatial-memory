@@ -4,6 +4,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import text
 
+from app import local_models  # noqa: F401
 from app.config import Settings, get_settings
 from app.db import Database
 from app.routes import router
@@ -55,6 +56,15 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     from app.face_setup import router as face_setup_router
 
     app.include_router(face_setup_router, prefix=runtime_settings.api_prefix)
+
+    if runtime_settings.environment == "local":
+        from app.local_runtime import local_route_available
+
+        app.router.routes[:] = [
+            route
+            for route in app.router.routes
+            if local_route_available(getattr(route, "path", ""))
+        ]
 
     @app.get("/health/live", tags=["system"])
     async def live() -> dict[str, str]:

@@ -26,13 +26,14 @@ READ_POSTS = {
     "/v1/profiles/search",
     "/v1/gallery/evidence/information",
 }
-AUTH_POSTS = {"/v1/auth/login", "/v1/auth/refresh", "/v1/auth/local-login"}
+AUTH_POSTS = {"/v1/auth/login", "/v1/auth/refresh", "/v1/auth/local-login", "/v1/auth/local-select"}
 TARGETS = [
-    ("public", "server", "Server requests", "https://realityos.luxisoft.com"),
+    ("public", "server", "Server requests", ""),
     ("local", "localhost", "Localhost requests", "http://localhost:8080"),
 ]
 DEFAULT_VARIABLES = {
-    "base_url": "https://realityos.luxisoft.com",
+    "base_url": "http://localhost:8080",
+    "auth_mode": "local-select",
     "email": "",
     "username": "",
     "display_name": "",
@@ -53,10 +54,10 @@ DEFAULT_VARIABLES = {
 }
 VARIABLE_DESCRIPTIONS = {
     "base_url": "API origin, without /v1.",
-    "email": "Account email prefilled. Replace locally to use your own account.",
+    "email": "Unused in the local account selector.",
     "username": "Account username prefilled; use an existing username or email for correction.",
     "display_name": "Account display name prefilled.",
-    "password": "Account password prefilled. Replace locally to use your own account.",
+    "password": "No password is published or required for the local selector.",
     "new_email": "Replacement email for a pending account.",
     "new_password": "New password for recovery, at least 12 characters.",
     "access_token": "Saved automatically after login/refresh.",
@@ -251,42 +252,9 @@ def generate(spec, check=False):
     auto_auth = (ROOT / "scripts/postman/auto_auth.js").read_text().splitlines()
     # Local routes are intentionally absent from the production contract.
     local = copy.deepcopy(spec)
-    login = copy.deepcopy(spec["paths"]["/v1/auth/login"]["post"])
-    login["summary"] = "Local login (local realm only)"
-    local_response = copy.deepcopy(local["components"]["schemas"]["TokenResponse"])
-    local_response["title"] = "LocalLoginResponse"
-    local_response["properties"].update(
-        local_access={"type": "boolean", "const": True},
-        capture_profile={"type": "object", "additionalProperties": {"type": "string"}},
-    )
-    local_response["required"] += ["local_access", "capture_profile"]
-    local["components"]["schemas"]["LocalLoginResponse"] = local_response
-    login["responses"]["200"]["content"]["application/json"]["schema"] = {
-        "$ref": "#/components/schemas/LocalLoginResponse"
-    }
-    local["paths"]["/v1/auth/local-login"] = {"post": login}
-    local["paths"]["/v1/auth/local-session"] = {
-        "get": {
-            "summary": "Check local realm",
-            "security": [{"HTTPBearer": []}],
-            "responses": {"200": {"description": "Local realm confirmed"}},
-        }
-    }
-    local["paths"]["/v1/auth/local-capture-profile"] = {
-        "post": {
-            "summary": "Local capture profile",
-            "security": [{"HTTPBearer": []}],
-            "responses": {"200": {"description": "Device capture profile"}},
-        }
-    }
-    # Only include local operations that actually exist in the isolated router.
-    source = (ROOT / "backend/app/http/local_access.py").read_text()
-    for path in list(local["paths"]):
-        if (
-            "/auth/local-" in path
-            and '"' + path.removeprefix("/v1") + '"' not in source
-        ):
-            del local["paths"][path]
+    local_contract = json.loads((ROOT / "tests/contracts/openapi.local.json").read_text())
+    local["paths"].update(local_contract["paths"])
+    local["components"]["schemas"].update(local_contract["components"]["schemas"])
     folders = {key: [] for key, _ in GROUPS}
     rows = {key: [] for key, _ in GROUPS}
     details = {key: [] for key, _ in GROUPS}
@@ -459,7 +427,7 @@ def generate(spec, check=False):
                     "  if (validTokens) {",
                     '    pm.collectionVariables.set("access_token", b.access_token);',
                     '    pm.collectionVariables.set("refresh_token", b.refresh_token);',
-                    '    const identity = JSON.stringify([String(pm.variables.get("base_url")).replace(/\\/$/, ""), pm.variables.get("email")]);',
+                    '    const identity = JSON.stringify([String(pm.variables.get("base_url")).replace(/\\/$/, ""), (pm.variables.get("auth_mode") === "local-select" ? pm.variables.get("user_id") : pm.variables.get("email"))]);',
                     '    pm.collectionVariables.set("session_identity", identity);',
                     '    pm.variables.set("access_token", b.access_token);',
                     '    pm.variables.set("refresh_token", b.refresh_token);',
@@ -576,7 +544,7 @@ def generate(spec, check=False):
     quick = []
     for name in [
         "GET /health/live",
-        "POST /v1/auth/login",
+        "POST /v1/auth/local-select",
         "GET /v1/auth/me",
         "GET /v1/workspaces",
         "POST /v1/queries",
@@ -594,7 +562,7 @@ def generate(spec, check=False):
         "info": {
             "name": "RealityOS API",
             "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-            "description": "Two independent folders: Server requests (https://realityos.luxisoft.com) and Localhost requests (http://localhost:8080). All variables, preconfigured credentials and workspace IDs are included; environments are optional. Click Send on a protected request: sign-in and token renewal run automatically. Run 00 Quick start to check the full access sequence. The included role is query-only in an empty test workspace; use your own authorized account for writes and real data. Enable the local account once with scripts/local/Enable-PostmanDemo.ps1. Session tokens are never included in the published file.",
+            "description": "Localhost is the primary destination. Start Docker and select an account. Server requests is a disabled historical catalog without credentials. Session tokens are obtained at runtime.",
         },
         "item": [],
         "variable": [],
@@ -609,7 +577,7 @@ def generate(spec, check=False):
             }
         ]
         target_folders += [
-            {"name": f"{n:02} {label.split(' / ')[0]}", "item": folders[key]}
+            {"name": f"{n:02} {label.split(' / ')[0]}", "item": [item for item in folders[key] if item["name"].split(" ", 1)[1] in (local_contract if realm == "local" else spec)["paths"]]}
             for n, (key, label) in enumerate(GROUPS, 1)
             if folders[key] and (realm == "local" or key != "local")
         ]
@@ -621,7 +589,9 @@ def generate(spec, check=False):
                 "item": target_item(target_folders, prefix, all_vars),
             }
         )
-        variables = dict(all_vars, base_url=url)
+        if realm == "public":
+            collection["item"][-1]["event"] = [{"listen": "prerequest", "script": {"type": "text/javascript", "exec": ['console.warn("Historical server destination is disabled."); pm.execution.skipRequest();']}}]
+        variables = dict(all_vars, base_url=url, auth_mode="local-select" if realm == "local" else "disabled")
         for key in (
             "email",
             "username",
@@ -679,9 +649,9 @@ def generate(spec, check=False):
                 else "Generated from the contract. Operation and field names preserve API identifiers. ✓ = required. Examples need your own identifiers and files; they are not captured production responses."
             ),
             (
-                "Los ejemplos de referencia usan variables sin prefijo. La colección descargable incluye las carpetas Server requests y Localhost requests y añade respectivamente `server_` o `localhost_` a cada variable, con cuenta y espacio demo preconfigurados."
+                "Los ejemplos de referencia usan variables sin prefijo. La colección descargable incluye las carpetas Server requests y Localhost requests y añade respectivamente `server_` o `localhost_` a cada variable, con selector de cuentas local; Server requests está desactivado."
                 if es
-                else "Reference examples use unprefixed variables. The downloadable collection includes Server requests and Localhost requests folders and prefixes each variable with `server_` or `localhost_`, with demo credentials and workspace IDs preconfigured."
+                else "Reference examples use unprefixed variables. The downloadable collection includes Server requests and Localhost requests folders and prefixes each variable with `server_` or `localhost_`, with local account selection; Server requests is disabled."
             ),
             "Bearer = "
             + (

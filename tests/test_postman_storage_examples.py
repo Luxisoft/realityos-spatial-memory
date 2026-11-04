@@ -15,7 +15,7 @@ ROOT = Path(__file__).resolve().parents[1]
 BASE = "/v1/me/storage-connections"
 
 
-@pytest.mark.parametrize("index,prefix", [(0, "server"), (1, "localhost")])
+@pytest.mark.parametrize("index,prefix", [(1, "server")])
 def test_storage_templates_supply_credentials_and_explicit_destination(
     client, auth_headers, monkeypatch, index, prefix
 ):
@@ -104,7 +104,7 @@ def test_storage_templates_supply_credentials_and_explicit_destination(
 
 
 def test_storage_credentials_are_empty_and_marked_secret_in_both_environments():
-    for name, prefix in [("public", "server"), ("local", "localhost")]:
+    for name, prefix in [("reference", "server"), ("local", "localhost")]:
         environment = json.loads(
             (
                 ROOT / f"docs/postman/RealityOS.{name}.postman_environment.json"

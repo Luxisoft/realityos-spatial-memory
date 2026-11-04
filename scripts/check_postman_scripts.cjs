@@ -43,8 +43,15 @@ function execute(item, listen, values = {}, environment = {}, code = 200, body =
 }
 let guards = 0;
 for (const [index, target] of c.item.entries()) {
-  const prefix = index ? 'localhost_' : 'server_';
-  const other = index ? 'server_' : 'localhost_';
+  if (target.name === 'Server requests') {
+    assert(execute(target, 'prerequest').skipped);
+    assert.equal(defaults.server_base_url, '');
+    assert.equal(defaults.server_password, '');
+    for (const item of walk(target.item)) for (const event of item.event || []) new vm.Script(event.script.exec.join('\n'));
+    continue;
+  }
+  const prefix = 'localhost_';
+  const other = 'server_';
   const all = walk(target.item);
   for (const i of all) {
     for (const e of i.event || []) new vm.Script(e.script.exec.join('\n'));
@@ -66,7 +73,7 @@ for (const [index, target] of c.item.entries()) {
       assert(execute(i, 'prerequest', { [other + 'enable_write_requests']: 'true' }, { enable_write_requests: 'true' }).skipped);
       guards++;
     }
-    if (/POST \/v1\/auth\/(login|refresh|local-login|facebook|guest)$/.test(i.name)) {
+    if (/POST \/v1\/auth\/(login|refresh|local-login|local-select|facebook|guest)$/.test(i.name)) {
       const tokens = { access_token: 'test-access', refresh_token: 'test-refresh' };
       for (const env of [{}, { [prefix + 'access_token']: '', [prefix + 'refresh_token']: '' }, { [other + 'access_token']: 'other-access', access_token: 'legacy-access' }]) {
         const result = execute(i, 'test', { [other + 'access_token']: 'other-access' }, env, 200, tokens);
@@ -99,7 +106,7 @@ for (const [index, target] of c.item.entries()) {
   assert.equal(resolve(me.url.raw), (index ? 'http://localhost:8080' : 'https://realityos.luxisoft.com') + '/v1/auth/me');
 
   const origin = defaults[prefix + 'base_url'];
-  const identity = JSON.stringify([origin, defaults[prefix + 'email']]);
+  const identity = JSON.stringify([origin, defaults[prefix + 'user_id']]);
   const cached = {
     [prefix + 'access_token']: 'old-access',
     [prefix + 'refresh_token']: 'old-refresh',
@@ -109,9 +116,9 @@ for (const [index, target] of c.item.entries()) {
   for (const env of [{}, { [prefix + 'access_token']: '', [prefix + 'refresh_token']: '', [prefix + 'session_identity']: '' }]) {
     const automatic = execute(query, 'prerequest', { [other + 'access_token']: 'other-access' }, env);
     assert.equal(automatic.calls.length, 1);
-    assert.equal(automatic.calls[0].url, origin + '/v1/auth/login');
+    assert.equal(automatic.calls[0].url, origin + '/v1/auth/local-select');
     assert.deepEqual(JSON.parse(automatic.calls[0].body.raw), {
-      email: defaults[prefix + 'email'], password: defaults[prefix + 'password']
+      user_id: defaults[prefix + 'user_id']
     });
     assert.equal(automatic.collection[prefix + 'access_token'], 'auto-access');
     assert.equal(automatic.local[prefix + 'access_token'], 'auto-access');
@@ -146,19 +153,19 @@ for (const [index, target] of c.item.entries()) {
     assert.equal(local[prefix + 'session_identity'], identity);
   }
   const revoked = execute(query, 'prerequest', cached, {}, 200, {}, [{ code: 401 }, { code: 401 }]);
-  assert.deepEqual(revoked.calls.map(r => r.url), [origin + '/v1/auth/me', origin + '/v1/auth/refresh', origin + '/v1/auth/login']);
-  for (const changes of [{ [prefix + 'email']: 'own@example.test' }, { [prefix + 'base_url']: 'https://own.example.test' }]) {
+  assert.deepEqual(revoked.calls.map(r => r.url), [origin + '/v1/auth/me', origin + '/v1/auth/refresh', origin + '/v1/auth/local-select']);
+  for (const changes of [{ [prefix + 'user_id']: 'other-local-id' }, { [prefix + 'base_url']: 'https://own.example.test' }]) {
     const changed = execute(query, 'prerequest', { ...cached, ...changes });
     assert.equal(changed.calls.length, 1);
-    assert(changed.calls[0].url.endsWith('/v1/auth/login'));
+    assert(changed.calls[0].url.endsWith('/v1/auth/local-select'));
   }
   for (const reply of [{ code: 401 }, { code: 429 }, { code: 503 }, { error: 'network failure' }, { code: 200, body: {} }, { code: 200, body: null }, { code: 200, invalidJson: true }]) {
     assert.throws(() => execute(query, 'prerequest', {}, {}, 200, {}, [reply]), error => /login|Authentication/.test(error.message) && error.recordedFailures.includes('Authentication ready'));
   }
   assert.throws(() => execute(query, 'prerequest', cached, {}, 200, {}, [{ code: 503 }]), /Session validation failed/);
 }
-const scenarios = jury.item[0].item.find(folder => folder.name === '00 Live scenarios').item;
-assert.deepEqual(jury.item.map(folder => folder.name), ['Server requests', 'Localhost requests']);
+const scenarios = jury.item[0].item.find(folder => folder.name === '00 Local scenarios').item;
+assert.deepEqual(jury.item.map(folder => folder.name), ['Localhost requests', 'Server requests']);
 for (const [index, target] of scenarios.entries()) {
   const prefix = ['security_', 'hospital_', 'memory_'][index];
   for (const item of target.item) {
@@ -171,16 +178,23 @@ for (const [index, target] of scenarios.entries()) {
       return values[key];
     });
     const request = JSON.parse(resolve(JSON.stringify(item.request)));
-    assert(request.url.raw.startsWith('https://realityos.luxisoft.com/'));
+    assert(request.url.raw.startsWith('http://localhost:8080/'));
     if (request.auth.type === 'bearer') assert.equal(request.auth.bearer[0].value, 'auto-access');
     if (request.body?.mode === 'raw') JSON.parse(request.body.raw);
     assert(!request.body?.formdata, 'Jury request requires a file selection');
-    for (const call of result.calls) assert.equal(call.url, 'https://realityos.luxisoft.com/v1/auth/login');
+    for (const call of result.calls) assert.equal(call.url, 'http://localhost:8080/v1/auth/local-select');
   }
 }
 for (const [index, target] of jury.item.entries()) {
-  const prefix = index ? 'localhost_' : 'server_';
-  const origin = index ? 'http://localhost:8080' : 'https://realityos.luxisoft.com';
+  if (target.name === 'Server requests') {
+    assert(execute(target, 'prerequest').skipped);
+    assert.equal(defaults.server_base_url, '');
+    assert.equal(defaults.server_password, '');
+    for (const item of walk(target.item)) for (const event of item.event || []) new vm.Script(event.script.exec.join('\n'));
+    continue;
+  }
+  const prefix = 'localhost_';
+  const origin = 'http://localhost:8080';
   const quick = target.item.find(folder => folder.name === '00 Quick start').item;
   for (const item of quick) {
     const result = execute(item, 'prerequest');
@@ -193,8 +207,8 @@ for (const [index, target] of jury.item.entries()) {
     }));
     assert(request.url.raw.startsWith(origin + '/'));
     for (const call of result.calls) {
-      assert.equal(call.url, origin + '/v1/auth/login');
-      assert.equal(JSON.parse(call.body.raw).email, defaults[prefix + 'email']);
+      assert.equal(call.url, origin + '/v1/auth/local-select');
+      assert.equal(JSON.parse(call.body.raw).user_id, defaults[prefix + 'user_id']);
     }
   }
   for (const item of walk(target.item)) {

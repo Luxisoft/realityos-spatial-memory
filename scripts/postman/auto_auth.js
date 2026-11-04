@@ -3,7 +3,8 @@
 (function () {
   const origin = String(pm.variables.get("base_url") || "").replace(/\/$/, "");
   const email = pm.variables.get("email");
-  const identity = JSON.stringify([origin, email]);
+  const local = pm.variables.get("auth_mode") === "local-select";
+  const identity = JSON.stringify([origin, local ? pm.variables.get("user_id") : email]);
   const sameAccount = pm.variables.get("session_identity") === identity;
   const access = sameAccount ? pm.variables.get("access_token") : "";
   const refresh = sameAccount ? pm.variables.get("refresh_token") : "";
@@ -44,7 +45,7 @@
   }
 
   function login() {
-    post("/v1/auth/login", { email, password: pm.variables.get("password") }, (error, response) => {
+    post(local ? "/v1/auth/local-select" : "/v1/auth/login", local ? { user_id: pm.variables.get("user_id") } : { email, password: pm.variables.get("password") }, (error, response) => {
       if (error || !response) fail("Automatic login could not reach the configured API.");
       if (response.code !== 200) fail("Automatic login failed (HTTP " + response.code + ").");
       save(response);

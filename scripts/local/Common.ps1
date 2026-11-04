@@ -134,7 +134,7 @@ function Assert-LocalConfiguration([hashtable]$Values) {
         if ($key -match '^(DOCKER|COMPOSE)_') { throw 'No definas DOCKER_* ni COMPOSE_* en .env.local.' }
     }
     if ($Values.ENVIRONMENT -ne 'local' -or $Values.LOCAL_LOGIN_ENABLED -ne 'true' -or
-        $Values.META_MODE -ne 'live' -or $Values.FACE_ENGINE -ne 'insightface') {
+        $Values.LOCAL_EVALUATION_ENABLED -ne 'true' -or $Values.META_MODE -ne 'live' -or $Values.FACE_ENGINE -ne 'insightface') {
         throw 'Este arranque exige entorno local, cuenta local e IA real (live / insightface).'
     }
     foreach ($key in @('META_API_BASE_URL', 'META_GATEWAY_BASE_URL')) {

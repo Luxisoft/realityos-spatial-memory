@@ -24,8 +24,7 @@ migrate:
 seed:
 	.venv/bin/python scripts/seed_demo.py
 
-compose-up:
-	docker compose --env-file .env -f infrastructure/docker-compose.yml up --build
+compose-up: local-start
 
 gateway-api:
 	.venv/bin/uvicorn realityos_meta_gateway.main:app_factory --app-dir meta-gateway --factory --host 127.0.0.1 --port 9088
@@ -53,8 +52,19 @@ android-check:
 
 .PHONY: docs-check postman-runtime-check architecture-check format-check android-check
 
-# Windows PowerShell launchers use an independent .env.local and Docker project.
+# Primary localhost installation; Windows uses the PowerShell launcher.
 local-help:
 	@printf '%s\n' 'See docs/en/deployment/DEPLOYMENT_LOCALHOST.md. Windows: powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\local\Start-RealityOS.ps1'
 
 .PHONY: local-help
+
+local-start:
+	bash scripts/local/start.sh
+
+local-stop:
+	bash scripts/local/stop.sh
+
+local-test:
+	bash scripts/local/test.sh
+
+.PHONY: local-start local-stop local-test compose-up

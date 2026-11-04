@@ -1,16 +1,13 @@
 name: Deploy production
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - backend/**
-      - meta-gateway/**
-      - infrastructure/**
-      - scripts/**
-      - .github/workflows/deploy-production.yml
   workflow_dispatch:
     inputs:
+      enable_remote_deploy:
+        description: Historical server deployment is disabled. Explicitly opt in only to restore it.
+        type: boolean
+        default: false
+        required: true
       release_tag:
         description: Existing immutable GHCR tag to deploy for rollback; leave blank to build this commit.
         required: false
@@ -32,6 +29,7 @@ env:
 
 jobs:
   verify:
+    if: ${{ inputs.enable_remote_deploy }}
     runs-on: ubuntu-latest
     container: python:3.13-slim-trixie
     steps:

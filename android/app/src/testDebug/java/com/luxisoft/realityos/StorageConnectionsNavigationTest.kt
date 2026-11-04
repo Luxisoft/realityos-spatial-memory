@@ -79,7 +79,7 @@ class StorageConnectionsNavigationTest {
                                 StorageConnectionsScreen { showConnections = false }
                             }
                         } else {
-                            RealityDrawer(RealityExperienceStore(RuntimeEnvironment.getApplication()), onAbout = {}, onConnections = { showConnections = true }, onLogout = { error("Connections must not log out") })
+                            RealityDrawer(RealityExperienceStore(RuntimeEnvironment.getApplication()), onAbout = {}, onConnections = { showConnections = true }, connectionsEnabled = true, onLogout = { error("Connections must not log out") })
                         }
                     }
                 }

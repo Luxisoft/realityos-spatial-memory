@@ -1,3 +1,5 @@
+> **Corrección vigente: localhost principal.** Windows/Linux x64 ejecutan PostgreSQL, Redis, API y worker. Meta usa la clave propia del jurado; voz de salida instalada en Android. Gateway, buckets, Facebook, SMTP, scheduler y ElevenLabs están fuera del recorrido local. La configuración remota que aparece en esta guía es histórica. [Instalación vigente](../deployment/DEPLOYMENT_LOCALHOST.md).
+
 <p align="center"><a href="../../en/integrations/TTS.md"><img src="../../assets/readme/language-en.svg" alt="English" height="32"></a> <a href="TTS.md"><img src="../../assets/readme/language-es-active.svg" alt="Español" height="32"></a></p>
 
 # Voz y transcripción

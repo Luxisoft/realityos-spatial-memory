@@ -203,7 +203,9 @@ def test_local_profile_does_not_join_another_owners_matching_workspace(local_cli
     [
         {"meta_mode": "mock"},
         {"face_engine": "mock"},
-        {"elevenlabs_api_key": None},
+        {"meta_connection_mode": "gateway"},
+        {"database_url": "postgresql://example.invalid/db"},
+        {"redis_url": "redis://example.invalid:6379"},
         {"model_api_key": None},
     ],
 )

@@ -1,21 +1,20 @@
-"""Create only the operator's local account and empty workspace; never seed media."""
-
+"""Prepare public local scenarios transactionally, without importing server data."""
+import argparse
 import json
-import os
 
-from app.local_runtime import create_local_account
+from app.local_seed import enqueue_initial_media, seed_evaluation
 from app.main import app
 
 
 def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--queue", action="store_true")
+    args = parser.parse_args()
+    settings = app.state.settings
+    if settings.environment != "local" or not settings.local_evaluation_enabled:
+        raise SystemExit("This command requires the isolated local evaluation environment.")
     with app.state.database.session_factory() as db:
-        result = create_local_account(
-            db,
-            app.state.settings,
-            os.environ.get("LOCAL_ACCOUNT_EMAIL", ""),
-            os.environ.get("LOCAL_ACCOUNT_PASSWORD", ""),
-            os.environ.get("LOCAL_ACCOUNT_NAME", "Cuenta local"),
-        )
+        result = enqueue_initial_media(db) if args.queue else seed_evaluation(db, settings)
         db.commit()
     print(json.dumps(result))
 

@@ -1,0 +1,39 @@
+{
+  "accounts": 9,
+  "groups": 3,
+  "records": 47,
+  "publication_hashes": 48,
+  "avatars": 9,
+  "workspace_isolation": "passed",
+  "profile_edit": "passed",
+  "group_create_delete": "passed",
+  "openapi": "exact",
+  "providers": "not called; isolated placeholder key",
+  "restart_persistence": "passed",
+  "date": "2026-11-03",
+  "environment": "isolated Linux Docker / PostgreSQL 16",
+  "schema": "20261104_0039",
+  "services": [
+    "postgres",
+    "redis",
+    "api",
+    "worker"
+  ],
+  "worker_ping": "passed",
+  "backend_gateway_tests": 591,
+  "android_unit_tests": 290,
+  "physical_device": "not executed",
+  "windows_installation": "not executed",
+  "live_meta": "not executed with judge credentials; existing model logic retained",
+  "android_checks": [
+    "ktlintCheck",
+    "testDebugUnitTest",
+    "lintDebug",
+    "assembleDebug",
+    "assembleRelease",
+    "compileDebugAndroidTestKotlin"
+  ],
+  "apk_application_id": "com.luxisoft.realityos.local",
+  "apk_sha256": "f9a2b8bbecb2c484ef239f23b52595c065ab788a1b2a95006c725b1c2d9151fb",
+  "queue_resume_regression": "passed"
+}

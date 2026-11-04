@@ -45,24 +45,29 @@ def test_reference_and_collection_are_reproducible():
 
 def test_all_contract_operations_have_one_reference_request():
     spec = json.loads(CONTRACT.read_text())
-    expected = {
-        f"{m.upper()} {path}"
-        for path, methods in spec["paths"].items()
-        for m in methods
-        if m in {"get", "post", "put", "patch", "delete"}
-    }
     targets = collection()["item"]
     assert [t["name"] for t in targets] == ["Server requests", "Localhost requests"]
-    for index, target in enumerate(targets):
-        names = [i["name"] for i in items(target)]
-        assert len(names) == len(set(names))
-        assert expected == {name for name in names if "/auth/local-" not in name}
-        local = {name for name in names if "/auth/local-" in name}
-        assert local == (
-            {"GET /v1/auth/local-session", "POST /v1/auth/local-login"}
-            if index
-            else set()
+    for target in targets:
+        spec = json.loads(
+            (
+                ROOT
+                / "tests/contracts"
+                / (
+                    "openapi.local.json"
+                    if target["name"] == "Localhost requests"
+                    else "openapi.json"
+                )
+            ).read_text()
         )
+        expected = {
+            f"{method.upper()} {path}"
+            for path, methods in spec["paths"].items()
+            for method in methods
+            if method in {"get", "post", "put", "patch", "delete"}
+        }
+        names = [item["name"] for item in items(target)]
+        assert len(names) == len(set(names))
+        assert expected == set(names)
 
 
 def test_primary_catalog_request_fields_match_current_contract():
@@ -71,10 +76,21 @@ def test_primary_catalog_request_fields_match_current_contract():
         (ROOT / "docs/postman/RealityOS.postman_collection.json").read_text()
     )
     for target in public["item"]:
+        spec = json.loads(
+            (
+                ROOT
+                / "tests/contracts"
+                / (
+                    "openapi.local.json"
+                    if target["name"] == "Localhost requests"
+                    else "openapi.json"
+                )
+            ).read_text()
+        )
         catalog = {
             item["name"]: item["request"]
             for folder in target["item"]
-            if folder["name"] not in {"00 Quick start", "00 Live scenarios"}
+            if not folder["name"].startswith("00 ")
             for item in folder["item"]
         }
         for path, methods in spec["paths"].items():
@@ -130,7 +146,7 @@ def test_all_variables_are_declared_and_isolated_with_only_public_demo_credentia
         c["item"],
         ["server", "localhost"],
         ["reference", "local"],
-        ["https://realityos.luxisoft.com", "http://localhost:8080"],
+        ["", "http://localhost:8080"],
         strict=True,
     ):
         keys = {k for k in variables if k.startswith(prefix + "_")}
@@ -172,7 +188,13 @@ def test_all_variables_are_declared_and_isolated_with_only_public_demo_credentia
             name = key.removeprefix(prefix + "_")
             if name in published:
                 assert value == demo[prefix][name]
-            elif name not in {"base_url", "enable_write_requests", "language", "query"}:
+            elif name not in {
+                "base_url",
+                "enable_write_requests",
+                "language",
+                "query",
+                "auth_mode",
+            }:
                 assert value == "", key
         secret_types = {v["key"]: v["type"] for v in env["values"]}
         assert secret_types[prefix + "_password"] == "secret"
@@ -198,6 +220,9 @@ def test_transport_auth_and_uploads_match_their_realm():
     for target, prefix in zip(
         collection()["item"], ["server", "localhost"], strict=True
     ):
+        if prefix == "localhost":
+            assert not any("facebook" in item["name"] for item in items(target))
+            continue
         facebook = next(
             i for i in items(target) if i["name"] == "POST /v1/auth/facebook"
         )
@@ -227,7 +252,7 @@ def test_quick_start_uses_the_explicit_demo_workspace_without_enrolling_or_captu
         quick = target["item"][0]["item"]
         assert [i["name"] for i in quick] == [
             "GET /health/live",
-            "POST /v1/auth/login",
+            "POST /v1/auth/local-select",
             "GET /v1/auth/me",
             "GET /v1/workspaces",
             "POST /v1/queries",
@@ -244,6 +269,9 @@ def test_auth_bodies_keep_existing_and_replacement_credentials_separate():
         collection()["item"], ["server", "localhost"], strict=True
     ):
         requests = {i["name"]: i["request"] for i in items(target)}
+        if prefix == "localhost":
+            assert "POST /v1/auth/change-pending-email" not in requests
+            continue
         change = json.loads(
             requests["POST /v1/auth/change-pending-email"]["body"]["raw"]
         )
@@ -266,18 +294,16 @@ def test_jury_download_has_all_inputs_for_existing_server_scenarios():
         (ROOT / "docs/postman/RealityOS.public.postman_environment.json").read_text()
     )
     assert {v["key"]: v["value"] for v in environment["values"]} == {
-        key: value
-        for key, value in variables.items()
-        if not key.startswith("localhost_")
+        key: value for key, value in variables.items() if not key.startswith("server_")
     }
     assert [folder["name"] for folder in public["item"]] == [
-        "Server requests",
         "Localhost requests",
+        "Server requests",
     ]
     scenarios = next(
         folder["item"]
         for folder in public["item"][0]["item"]
-        if folder["name"] == "00 Live scenarios"
+        if folder["name"] == "00 Local scenarios"
     )
     assert len(scenarios) == 3
     for target, scenario in zip(scenarios, fixture["scenarios"], strict=True):
@@ -293,6 +319,7 @@ def test_jury_download_has_all_inputs_for_existing_server_scenarios():
             "post_id",
             "query",
             "record_question",
+            "auth_mode",
         }
         assert target["name"] == scenario["name"]
         core = [
@@ -300,10 +327,10 @@ def test_jury_download_has_all_inputs_for_existing_server_scenarios():
         ]
         assert len(core) == 13
         assert len({item["name"] for item in core}) == 13
-        assert variables[prefix + "base_url"] == "https://realityos.luxisoft.com"
+        assert variables[prefix + "base_url"] == "http://localhost:8080"
         for key, value in scenario["values"].items():
             assert variables[prefix + key] == value
-            assert value
+            assert value or key in {"email", "password"}
         for key in ("access_token", "refresh_token", "session_identity"):
             assert variables[prefix + key] == ""
         for item in target["item"]:
@@ -315,7 +342,7 @@ def test_jury_download_has_all_inputs_for_existing_server_scenarios():
                 request["method"] == "GET"
                 or item["name"]
                 in {
-                    "POST /v1/auth/login",
+                    "POST /v1/auth/local-select",
                     "POST /v1/auth/refresh",
                     "POST /v1/workspaces/{workspace_id}/records/search",
                     "POST /v1/queries",
@@ -343,14 +370,18 @@ def test_primary_collection_preserves_both_catalogs_and_local_defaults():
     )
     reference = collection()
     values = {v["key"]: v["value"] for v in public["variable"]}
-    for target, expected in zip(public["item"], reference["item"], strict=True):
+    for target in public["item"]:
+        expected = next(t for t in reference["item"] if t["name"] == target["name"])
         assert [
-            f for f in target["item"] if f["name"] != "00 Live scenarios"
+            f for f in target["item"] if f["name"] != "00 Local scenarios"
         ] == expected["item"]
         refs = set(re.findall(r"{{([^}]+)}}", json.dumps(target)))
         assert refs <= values.keys()
         if target["name"] == "Localhost requests":
-            assert all(key.startswith("localhost_") for key in refs)
+            assert all(
+                key.startswith(("localhost_", "security_", "hospital_", "memory_"))
+                for key in refs
+            )
         else:
             assert not any(key.startswith("localhost_") for key in refs)
     local_env = json.loads(
@@ -361,8 +392,8 @@ def test_primary_collection_preserves_both_catalogs_and_local_defaults():
     }
     fixture = json.loads((ROOT / "simulator/postman/jury.json").read_text())
     memory = next(s["values"] for s in fixture["scenarios"] if s["prefix"] == "memory")
-    for key in ("email", "password", "workspace_id", "record_id", "post_id"):
-        assert values["server_" + key] == memory[key]
-    assert values["server_base_url"] == "https://realityos.luxisoft.com"
+    for key in ("email", "password", "workspace_id", "user_id"):
+        assert values["localhost_" + key] == memory[key]
+    assert values["server_base_url"] == ""
     assert values["localhost_base_url"] == "http://localhost:8080"
-    assert values["localhost_password"] != values["server_password"]
+    assert values["localhost_password"] == values["server_password"] == ""

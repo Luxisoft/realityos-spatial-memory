@@ -1,0 +1,29 @@
+#!/usr/bin/env bash
+# Shell helpers deliberately never source an environment file as executable code.
+set -euo pipefail
+local_root="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/../.." && pwd)"
+local_env="$local_root/.env.local"
+local_docker() (
+  if [[ -f "$local_env" ]]; then
+    while IFS= read -r line; do
+      if [[ "$line" =~ ^([A-Z][A-Z0-9_]*)= ]]; then
+        key="${BASH_REMATCH[1]}"
+        [[ "$key" != DOCKER_* && "$key" != COMPOSE_* ]] || { echo 'DOCKER_* / COMPOSE_* are forbidden in .env.local.' >&2; exit 1; }
+        unset "$key"
+      fi
+    done < "$local_env"
+  fi
+  docker "$@"
+)
+local_compose() {
+  local_docker compose --project-name realityos-local --env-file "$local_env" --file "$local_root/infrastructure/docker-compose.local.yml" "$@"
+}
+assert_local_docker() {
+  [[ "$(uname -s)" == Linux && "$(uname -m)" == x86_64 ]] || { echo 'Linux x64 required; Windows uses Start-RealityOS.ps1.' >&2; exit 1; }
+  command -v docker >/dev/null || { echo 'Install Docker Engine and the Compose plugin first.' >&2; exit 1; }
+  local endpoint
+  endpoint="${DOCKER_HOST:-$(docker context inspect --format '{{.Endpoints.docker.Host}}')}"
+  case "$endpoint" in unix://*|tcp://localhost:*|tcp://127.0.0.1:*|tcp://\[::1\]:*) ;; *) echo 'Select a local Docker context. Remote endpoints are refused.' >&2; exit 1;; esac
+  [[ "$(local_docker info --format '{{.OSType}}/{{.Architecture}}')" =~ ^linux/(x86_64|amd64)$ ]] || { echo 'Docker must run Linux x64 containers.' >&2; exit 1; }
+  local_docker compose version >/dev/null
+}

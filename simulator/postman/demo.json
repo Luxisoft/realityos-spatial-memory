@@ -1,21 +1,26 @@
 {
-  "description": "Public Postman demonstration accounts. These credentials are intentionally published, never production operator credentials.",
+  "description": "Local account selector defaults. Historical server destination is disabled.",
   "server": {
-    "user_id": "183cdf56-5dbd-582c-9dba-f93c3636e2c5",
-    "workspace_id": "4c9d6093-ba49-57b6-8043-381d9a519f0f",
-    "email": "postman-demo@realityos.example.test",
-    "username": "postman_demo",
-    "password": "RealityOS-Postman-Demo-2026!",
-    "display_name": "Postman",
-    "workspace_name": "Postman"
+    "user_id": "",
+    "workspace_id": "",
+    "email": "",
+    "username": "",
+    "password": "",
+    "display_name": "",
+    "workspace_name": ""
   },
   "localhost": {
-    "user_id": "77195af3-fe47-5a89-8475-23ffc3c05d3c",
-    "workspace_id": "14c0ecd6-14d0-5c0b-9095-1de45e926543",
-    "email": "postman-local@realityos.example.test",
-    "username": "postman_local",
-    "password": "RealityOS-Postman-Local-2026!",
-    "display_name": "Postman Local (test account)",
-    "workspace_name": "Postman Demo - localhost test workspace"
+    "email": "",
+    "username": "noah-brooks",
+    "password": "",
+    "display_name": "Noah Brooks",
+    "user_id": "e2547625-1c50-5379-8e4c-f7d8221074ee",
+    "workspace_id": "8fd12f4c-0152-5300-874d-a162e05b0830",
+    "record_id": "72545ffc-3213-5f6f-9da9-ccbeeec2e1f0",
+    "post_id": "ed6bb82e-ef8a-50e2-b346-e93f51390c0b",
+    "query": "Find the keys on the wooden table.",
+    "record_question": "Summarize Luis Moreno and his reminders.",
+    "auth_mode": "local-select",
+    "workspace_name": "Sonoran Neurological Institute"
   }
 }

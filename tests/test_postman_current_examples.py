@@ -21,11 +21,16 @@ def requests(request):
     collection = json.loads(
         (ROOT / "docs/postman/RealityOS.postman_collection.json").read_text()
     )
-    target = collection["item"][0 if request.param == "server" else 1]
+    target = next(
+        f
+        for f in collection["item"]
+        if f["name"]
+        == ("Server requests" if request.param == "server" else "Localhost requests")
+    )
     return {
         item["name"]: item["request"]
         for folder in target["item"]
-        if folder["name"] not in {"00 Quick start", "00 Live scenarios"}
+        if not folder["name"].startswith("00 ")
         for item in folder["item"]
     }
 
@@ -48,7 +53,11 @@ def test_publication_examples_use_authorized_work_group(client, auth_headers, re
     assert created.status_code == 200, created.text
     workspace_id = created.json()["id"]
     selection = classification_for(client, workspace_id)
-    variables = {"workspace_id": workspace_id, "category_id": selection["category_id"], "tag_id": selection["tag_ids"][0]}
+    variables = {
+        "workspace_id": workspace_id,
+        "category_id": selection["category_id"],
+        "tag_id": selection["tag_ids"][0],
+    }
     upload = requests["POST /v1/me/publication-uploads"]
     data = {
         field["key"]: resolve(field["value"], **variables)
@@ -87,24 +96,21 @@ def test_publication_examples_use_authorized_work_group(client, auth_headers, re
     published = client.post(
         "/v1/gallery",
         headers=auth_headers,
-        json=body(
-            requests, "POST /v1/gallery", media_id=media_id, **variables
-        ),
+        json=body(requests, "POST /v1/gallery", media_id=media_id, **variables),
     )
     assert published.status_code == 200, published.text
     for route, payload in (
         (
             f"/v1/gallery/{post_id}/share",
-            body(
-                requests, "POST /v1/gallery/{post_id}/share", **variables
-            ),
+            body(requests, "POST /v1/gallery/{post_id}/share", **variables),
         ),
         (
             f"/v1/groups/{workspace_id}/publications/import",
             body(
                 requests,
                 "POST /v1/groups/{workspace_id}/publications/import",
-                post_id=post_id, **variables,
+                post_id=post_id,
+                **variables,
             ),
         ),
     ):
@@ -152,6 +158,9 @@ def test_group_invitation_example_uses_returned_code(client, auth_headers, reque
 def test_registration_and_mail_examples_do_not_reuse_login_credentials(requests):
     from app.accounts.routes import Registration
 
+    if "POST /v1/auth/register" not in requests:
+        assert "POST /v1/auth/forgot-password" not in requests
+        return
     own = {
         "registration_username": "new-account",
         "registration_email": "new.account@example.test",

@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="local_account_title">Cuenta local</string>
-    <string name="local_account_body">Entra con la cuenta creada en tu computadora.</string>
+    <string name="local_account_title">Elige una cuenta</string>
+    <string name="local_account_body">Explora los tres escenarios con las cuentas de tu computadora. Los cambios se guardan localmente.</string>
+    <string name="local_account_failed">No se pudo conectar con la instalación local. Revisa que esté iniciada y que el teléfono esté conectado.</string>
+    <string name="local_account_retry">Reintentar</string>
     <string name="local_account_email">Correo</string>
     <string name="local_account_password">Contraseña</string>
-    <string name="local_account_failed">Revisa tu cuenta local y que el servidor local esté funcionando.</string>
-    <string name="local_account_enter">Entrar</string>
 </resources>

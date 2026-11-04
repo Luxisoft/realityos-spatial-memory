@@ -1,6 +1,9 @@
-"""Local setup uses real engines and its own empty account database."""
+"""Local installation constraints; the processing providers remain real."""
+
+from urllib.parse import urlsplit
 
 from sqlalchemy import select
+from sqlalchemy.engine import make_url
 
 from app.models import Role, User, Workspace, WorkspaceMember, Zone
 from app.security import hash_password, verify_password
@@ -11,14 +14,45 @@ def validate_local_settings(settings):
         return
     if settings.meta_mode != "live" or settings.face_engine != "insightface":
         raise ValueError("Local installations require META_MODE=live and FACE_ENGINE=insightface.")
-    if (
-        not settings.elevenlabs_api_key
-        or not settings.elevenlabs_api_key.get_secret_value().strip()
-    ):
-        raise ValueError("Local installations require their own ElevenLabs API key.")
+    if settings.meta_connection_mode != "direct" or settings.meta_gateway_fallback_enabled:
+        raise ValueError("Local installations connect directly to Meta; gateways are disabled.")
+    if urlsplit(str(settings.meta_api_base_url)).hostname != "api.meta.ai":
+        raise ValueError("Local installations require the official Meta API endpoint.")
+    if make_url(settings.database_url).host not in {
+        None,
+        "postgres",
+        "localhost",
+        "127.0.0.1",
+        "::1",
+    }:
+        raise ValueError("Local installations require their own local database.")
+    if urlsplit(settings.redis_url).hostname not in {"redis", "localhost", "127.0.0.1", "::1"}:
+        raise ValueError("Local installations require a local task queue.")
     from app.providers.connections import provider_routes
 
     provider_routes(settings)
+
+
+def local_route_available(path: str) -> bool:
+    """Exclude external integrations at route registration, before any handler runs."""
+    return not (
+        "/storage-connections" in path
+        or "/connections" in path
+        or "/integrations/" in path
+        or "/facebook" in path
+        or path.endswith("/tts")
+        or path.endswith("/virtual-devices/bootstrap")
+        or path
+        in {
+            "/v1/auth/register",
+            "/v1/auth/resend-confirmation",
+            "/v1/auth/confirm-email",
+            "/v1/auth/forgot-password",
+            "/v1/auth/reset-password",
+            "/v1/auth/change-pending-email",
+            "/v1/auth/guest",
+        }
+    )
 
 
 def create_local_account(db, settings, email, password, display_name):

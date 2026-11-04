@@ -488,7 +488,7 @@ fun SocialGallery(
     }
 
     fun requireFreshLogin() {
-        SocialSession.clear(); com.facebook.login.LoginManager.getInstance().logOut()
+        SocialSession.clear(); if (!BuildConfig.LOCAL_DEVELOPMENT) com.facebook.login.LoginManager.getInstance().logOut()
         authenticated = false; posts = emptyList(); faceCaptureDone = null; identityVerified = null
         deniedLastTime = false
         SocialSession.loginNotice = context.getString(R.string.face_login_required)
@@ -588,7 +588,7 @@ fun SocialGallery(
         else FaceCaptureScreen(hasCapture = faceCaptureDone == true && !deniedLastTime,
             onDone = { faceCaptureDone = true; identityVerified = true; deniedLastTime = false; SocialSession.freshLogin = false },
             onDenied = { message ->
-                SocialSession.clear(); com.facebook.login.LoginManager.getInstance().logOut()
+                SocialSession.clear(); if (!BuildConfig.LOCAL_DEVELOPMENT) com.facebook.login.LoginManager.getInstance().logOut()
                 authenticated = false; posts = emptyList(); faceCaptureDone = null; identityVerified = null
                 deniedLastTime = true; SocialSession.loginNotice = message
             },

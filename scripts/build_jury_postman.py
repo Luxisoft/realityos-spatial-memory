@@ -7,7 +7,7 @@ from build_video_postman import video_requests
 
 REQUESTS = [
     "GET /v1/auth/me",
-    "POST /v1/auth/login",
+    "POST /v1/auth/local-select",
     "POST /v1/auth/refresh",
     "GET /v1/workspaces",
     "GET /v1/workspaces/{workspace_id}/records",
@@ -27,6 +27,10 @@ def publish(folders, root, write, namespace, describe, check, reference):
     evaluation = json.loads(
         (root / "simulator/real-scenes/video-evaluation.json").read_text()
     )
+    local_catalog = json.loads((root / "simulator/local/catalog.json").read_text())
+    for video in evaluation["videos"]:
+        group = next(g for g in local_catalog["groups"] if g["media_group"] == video["group"])
+        video["post_id"] = group["publications"][str(video["id"])]
     templates = {item["name"]: item for items in folders.values() for item in items}
     collection = {
         "info": {
@@ -121,33 +125,18 @@ def publish(folders, root, write, namespace, describe, check, reference):
     scenarios = collection
     collection = copy.deepcopy(reference)
     collection["info"].update(
-        name="RealityOS API · Server and localhost",
-        description="Two destinations: Server requests and Localhost requests. Both include account, workspace and query defaults, automatic login and token renewal, and the complete API catalog. Server requests also contains 00 Live scenarios with 87 ready requests, including 48 bilingual video evidence checks, against existing Police, Nursing and Memory data. Open a destination, then 00 Quick start or a live scenario, and click Send. No environment import is required. Localhost uses its own account at http://localhost:8080 and requires the local backend to be running; prepare that account once with scripts/local/Enable-PostmanDemo.ps1 if needed. The three published server evaluation passwords are owner-authorized. Provider credentials and session tokens are not exported. Advanced file, device and integration operations retain their own prerequisites.",
+        name="RealityOS API · Local evaluation",
+        description="Start the four local Docker services, select No environment and open Localhost requests. Nine accounts and three scenarios are prepared locally. Authentication uses the local selector; no passwords or provider keys are published. Historical Server requests is disabled. AI requests use your Meta key from the private .env.local file; allow indexing to finish before running video checks.",
     )
     server, localhost = collection["item"]
-    server["description"] = (
-        fixture["base_url"]
-        + ". Quick start uses the existing Memory account and workspace. "
-        "Live scenarios includes all three preconfigured evaluation accounts."
-    )
-    server["item"].insert(
-        1,
-        {
-            "name": "00 Live scenarios",
-            "description": "Existing server data, with all inputs included. Choose Police, Nursing or Memory and click Send.",
-            "item": scenarios["item"],
-        },
-    )
-    localhost["description"] = (
-        "http://localhost:8080. Independent local account, workspace, tokens and write controls. "
-        "Use the running local backend; enable its included account once with scripts/local/Enable-PostmanDemo.ps1 if needed."
-    )
-    memory = next(s for s in fixture["scenarios"] if s["prefix"] == "memory")
-    for variable in collection["variable"]:
-        if variable["key"].startswith("server_"):
-            key = variable["key"].removeprefix("server_")
-            if key in memory["values"]:
-                variable["value"] = memory["values"][key]
+    server["description"] = "Disabled historical catalog. No server URL, account or password is supplied."
+    localhost["description"] = "Primary destination: http://localhost:8080. Local selector, independent sessions, existing scenarios and normal processing."
+    localhost["item"].insert(1, {
+        "name": "00 Local scenarios",
+        "description": "Locally prepared Police, Nursing and Memory fixtures. Indexing uses real Meta models.",
+        "item": scenarios["item"],
+    })
+    collection["item"] = [localhost, server]
     collection["variable"].extend(scenarios["variable"])
     write(
         "docs/postman/RealityOS.postman_collection.json",
@@ -155,7 +144,7 @@ def publish(folders, root, write, namespace, describe, check, reference):
         check,
     )
     environment = {
-        "name": "RealityOS · Server requests (optional)",
+        "name": "RealityOS · Local evaluation (optional)",
         "values": [
             dict(
                 v,
@@ -175,7 +164,7 @@ def publish(folders, root, write, namespace, describe, check, reference):
                 else "default",
             )
             for v in collection["variable"]
-            if not v["key"].startswith("localhost_")
+            if not v["key"].startswith("server_")
         ],
         "_postman_variable_scope": "environment",
     }

@@ -284,6 +284,7 @@ internal fun RealityDrawer(
     experienceStore: RealityExperienceStore,
     onAbout: () -> Unit,
     onConnections: () -> Unit = {},
+    connectionsEnabled: Boolean = !com.luxisoft.realityos.BuildConfig.LOCAL_DEVELOPMENT,
     onLogout: () -> Unit
 ) {
     ModalDrawerSheet(
@@ -313,14 +314,16 @@ internal fun RealityDrawer(
             }
             HorizontalDivider(color = MaterialTheme.colorScheme.secondaryContainer)
             Spacer(Modifier.height(8.dp))
-            NavigationDrawerItem(
-                label = { Text(localizedText(R.string.storage_title)) },
-                icon = { Icon(Icons.Filled.Storage, null, Modifier.size(24.dp).testTag("drawer-connections-icon")) },
-                selected = false,
-                onClick = onConnections,
-                colors = flatDrawerItemColors(),
-                modifier = Modifier.fillMaxWidth().testTag("drawer-connections")
-            )
+            if (connectionsEnabled) {
+                NavigationDrawerItem(
+                    label = { Text(localizedText(R.string.storage_title)) },
+                    icon = { Icon(Icons.Filled.Storage, null, Modifier.size(24.dp).testTag("drawer-connections-icon")) },
+                    selected = false,
+                    onClick = onConnections,
+                    colors = flatDrawerItemColors(),
+                    modifier = Modifier.fillMaxWidth().testTag("drawer-connections")
+                )
+            }
             NavigationDrawerItem(
                 label = { Text(stringResource(R.string.nav_about)) },
                 icon = { Icon(Icons.Outlined.Memory, null, Modifier.size(24.dp).testTag("drawer-about-icon")) },

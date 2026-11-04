@@ -56,42 +56,40 @@ configuration and non-code files, or when the graph is unavailable.
 - Mock outputs are deterministic and visibly labelled simulated.
 - Confirm current official Meta endpoint/SDK signatures before coding Live.
 
-## Windows local alternative
+## Local evaluation is primary (owner correction, 2026-11-03)
 
-Owner request (2026-11-01): Windows + Docker is an additional installation,
-never a replacement for the current server. Use `.env.local` and the standalone
-`realityos-local` Docker project/images/volumes. Runtime providers must be real.
-The owner explicitly requested local test-account entry without facial
-recognition at login. That exception requires both the local backend realm and
-the isolated local Debug build; it must not affect production entry or the
-permission/consent requirements of face-search features. Never seed sample media
-or reuse production credentials automatically for this setup.
+The approved local plan supersedes earlier server-first and empty-Windows rules.
+Windows and Linux x64 use four isolated Docker services: PostgreSQL, Redis, the
+existing API and worker. No scheduler, proxy, gateway, buckets, remote imports,
+Facebook login or ElevenLabs in the local runtime. Meta model calls remain real
+and direct, using the judge's private `MODEL_API_KEY`. Android uses installed
+offline device voices. Do not add a synthesis model server.
+
+Initialize only the existing three scenarios from public simulator fixtures,
+once, preserving edits and deletions on restart. Do not create retired groups,
+new media, biometric enrollments or consent. Local Debug uses the nine-account
+selector, independently restricted by the backend's local realm. Protected
+biometric search retains its permission and consent requirements.
+
+The primary Postman download retains Localhost requests and Server requests.
+Localhost contains the prepared scenarios and uses account selection without
+passwords; Server requests is disabled and contains no active URL or credentials.
+Earlier authorization to publish test passwords no longer applies to new exports.
+Do not reuse production credentials, download production data or alter remote
+hosts during local preparation. Automatic production deployment is disabled.
 
 ## Git delivery
 
-Owner authorization (2026-11-03): publish the three existing jury evaluation
-accounts listed in `simulator/postman/jury.json`, including their passwords,
-in the public Postman collection so judges can click Send against the existing
-server data. This is an explicit exception for those three test accounts only.
-Do not replace their preconfigured access with an empty workspace or require a
-private credential handoff. Provider, integration, database, JWT and other account
-credentials remain private; session tokens are obtained at request time.
-
-Owner correction (2026-11-03): the primary Postman download must keep exactly
-two top-level folders, `Server requests` and `Localhost requests`, with their
-full request catalogs and independent preconfigured credentials and variables.
-Nest the live jury scenarios inside the server folder; do not replace these two
-destinations with scenario folders or move localhost out to a separate collection.
-
 Owner preference (2026-11-01): commit and push project changes directly to
 `main`. Do not create feature branches or draft PRs unless the owner explicitly
-requests them. Run the relevant checks before pushing; `main` triggers CI and
-the production deployment workflow. Keep credentials, runtime files, build
+requests them. Run the relevant checks before pushing; `main` triggers CI; remote deployment requires a separate explicit opt-in. Keep credentials, runtime files, build
 outputs and private media out of Git.
 
 ## Deploy standing rule
 
-This checkout is the production RealityOS host. Always deploy server-side
+This checkout is the production RealityOS host. The local evaluation work does
+not authorize deploying or stopping its production services. For separately
+authorized production work only, deploy server-side
 changes without being asked: build a local `realityos-backend:<name>` image,
 apply migrations, restart api/worker with a
 `.runtime/<name>-release.json` overlay (keeping a rollback JSON to the previous

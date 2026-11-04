@@ -1,3 +1,5 @@
+> **Current direction: localhost is primary.** Windows/Linux x64 run PostgreSQL, Redis, API and worker. Meta uses the judge’s own key; speech output uses installed Android voices. Gateway, buckets, Facebook, SMTP, scheduler and ElevenLabs are outside the local walkthrough. Remote configuration in this guide is historical. [Current installation](../deployment/DEPLOYMENT_LOCALHOST.md).
+
 # Connect a bucket and use its resources
 
 [Español](../../es/guides/STORAGE_CONNECTIONS.md) · [Project](../README.md) · [API](../api/API.md)

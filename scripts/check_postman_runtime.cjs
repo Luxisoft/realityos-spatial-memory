@@ -11,7 +11,7 @@ const source = JSON.parse(fs.readFileSync(path.join(root, 'docs/postman/RealityO
 const walk = items => items.flatMap(item => item.item ? walk(item.item) : [item]);
 const requests = walk(source.item);
 
-async function run(items, handler, { prefix = 'server', environment = false } = {}) {
+async function run(items, handler, { prefix = 'localhost', environment = false } = {}) {
   let calls = 0;
   const server = http.createServer((request, response) => {
     let raw = '';
@@ -57,6 +57,9 @@ function targetRequests(index) {
 }
 
 async function main() {
+  const historical = source.item.find(item => item.name === 'Server requests');
+  const disabled = await run([historical], (_request, response) => json(response, 500, {}));
+  assert.equal(disabled.calls, 0, 'Historical server must never reach HTTP');
   const writes = requests.filter(item => JSON.stringify(item.event).includes('enable_write_requests'));
   assert(writes.length > 0);
   const skipped = await run(writes, (_request, response) => json(response, 500, {}));
@@ -65,12 +68,12 @@ async function main() {
 
   let rotations = 0;
   let failedAuthChecks = 0;
-  for (const [index, prefix] of ['server', 'localhost'].entries()) {
+  for (const [index, prefix] of ['localhost'].entries()) {
     const items = targetRequests(index);
     for (const environment of [false, true]) {
       let token = 0;
       let refresh = '';
-      const sequence = [items['GET /v1/auth/me'], items['POST /v1/auth/login'], items['POST /v1/auth/refresh'], items['POST /v1/auth/refresh'], items['GET /v1/auth/me']];
+      const sequence = [items['GET /v1/auth/me'], items['POST /v1/auth/local-select'], items['POST /v1/auth/refresh'], items['POST /v1/auth/refresh'], items['GET /v1/auth/me']];
       const result = await run(sequence, (request, response, raw) => {
         if (request.url === '/v1/auth/me') {
           return json(response, request.headers.authorization === 'Bearer access-' + token ? 200 : 401, { id: 'runtime-user' });
@@ -89,7 +92,7 @@ async function main() {
     }
     for (const failure of [401, 429, 503, 'invalid-json', 'missing-tokens', 'network']) {
       const result = await run([items['GET /v1/auth/me']], (request, response) => {
-        assert.equal(request.url, '/v1/auth/login', 'Protected request escaped failed authentication');
+        assert.equal(request.url, '/v1/auth/local-select', 'Protected request escaped failed authentication');
         if (failure === 'network') return request.socket.destroy();
         if (failure === 'invalid-json') {
           response.writeHead(200, { 'Content-Type': 'application/json' });
@@ -102,7 +105,7 @@ async function main() {
       failedAuthChecks++;
     }
     for (const body of [{}, null, { access_token: 'incomplete' }]) {
-      const result = await run([items['POST /v1/auth/login']], (_request, response) => json(response, 200, body), { prefix });
+      const result = await run([items['POST /v1/auth/local-select']], (_request, response) => json(response, 200, body), { prefix });
       assert.equal(result.calls, 1);
       assert(result.summary.run.failures.some(f => f.error?.test === 'Session tokens returned'), 'Incomplete explicit login passed');
       failedAuthChecks++;

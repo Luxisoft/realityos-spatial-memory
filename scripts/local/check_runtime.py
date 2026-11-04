@@ -1,20 +1,16 @@
 """Check real local providers without capturing or publishing sample evidence."""
 
 import argparse
-import asyncio
 import json
 
 from app.config import Settings
 from app.local_runtime import validate_local_settings
 from app.meta import LiveMetaModelClient
-from app.providers.tts import synthesize
-from app.tts_contracts import SpeechRequest, validate_wav
 
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--providers", action="store_true")
-    parser.add_argument("--speech", action="store_true")
     args = parser.parse_args()
     settings = Settings()
     if settings.environment != "local":
@@ -35,17 +31,7 @@ def main():
         if engine.simulated:
             raise SystemExit("A real face engine is required.")
         report["face_engine"] = engine.name
-    report["speech_provider"] = "elevenlabs"
-    if args.speech:
-        for language, text in {
-            "es": "La voz local está lista.",
-            "en": "The local voice is ready.",
-        }.items():
-            raw = asyncio.run(
-                synthesize(SpeechRequest(text=text, language=language), settings)
-            )
-            validate_wav(raw)
-            report["speech_" + language] = "real WAV verified"
+    report["speech_provider"] = "Android installed offline voice (verify on device)"
     print(json.dumps(report))
 
 

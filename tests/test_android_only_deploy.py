@@ -11,6 +11,10 @@ def test_compose_has_api_ingress_without_browser_services():
     for name in ("docker-compose.yml", "docker-compose.local.yml"):
         config = yaml.safe_load((ROOT / "infrastructure" / name).read_text())
         services = config["services"]
+        if name == "docker-compose.local.yml":
+            assert set(services) == {"api", "worker", "postgres", "redis"}
+            assert services["api"]["ports"][0].startswith("127.0.0.1:")
+            continue
         assert set(services) == {
             "api",
             "worker",

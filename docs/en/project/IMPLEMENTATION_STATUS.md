@@ -4,6 +4,16 @@
 
 Updated **November 3, 2026**. A build or HTTP check does not approve physical-device testing. Earlier releases remain in Git.
 
+## Local evaluation — current delivery
+
+The primary installation is now Windows/Linux x64 localhost: PostgreSQL, Redis, the existing API and worker. There is no local gateway/proxy/scheduler, external storage connection, Facebook login or ElevenLabs requirement. Nine-account selection is local Debug only. Meta processing and search retain their real provider paths; Android speech uses installed offline voices.
+
+Verified in an isolated Linux Docker project: empty PostgreSQL 16 bootstrap at `20261104_0039`, 9 accounts, 3 groups, 47 records, 27 attachments, 48 licensed publication hashes and 9 avatar downloads, membership isolation, profile editing, group creation/deletion, exact local OpenAPI, worker/Redis ping and persistence after restart. No production credentials or data were used. The 48 existing licensed scene files are now included in Git; their source/license/hash manifest remains authoritative.
+
+Backend/gateway: **591 tests passed**, followed by the additional local queue-resume regression. Android: **290 unit tests passed**; rendered selector states reviewed in EN and ES, including 320 dp and 200% text. Postman script checks and Newman authentication/refresh/failure checks passed. `ktlintCheck`, `lintDebug`, Debug/Release builds and Android test compilation passed. [Sanitized verification receipt](../../assets/local/verification.json).
+
+Pending external validation: complete Windows installation, physical phone/USB/audio voices, glasses and live requests using the judge's own Meta key. These are not claimed by the Linux/container tests. Historical server release details below are retained for traceability and are not prerequisites for this installation. Automatic remote deployments are disabled; the local installer does not stop or modify historical servers.
+
 ## Publication classification
 
 Group catalogs, required manual classification, thumbnail labels, video icons and authorized gallery filters are included in revision `20261103_0038`. Unclassified bucket files stay private for their owner to review. The [classification guide](../guides/PUBLICATION_CLASSIFICATION.md) documents this workflow.

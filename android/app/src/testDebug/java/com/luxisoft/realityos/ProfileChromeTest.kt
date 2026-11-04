@@ -116,6 +116,7 @@ class ProfileChromeTest {
                         RealityExperienceStore(RuntimeEnvironment.getApplication()),
                         onAbout = { actions += "about" },
                         onConnections = { actions += "connections" },
+                        connectionsEnabled = true,
                         onLogout = { actions += "logout" }
                     )
                 }

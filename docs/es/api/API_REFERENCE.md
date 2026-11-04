@@ -6,7 +6,7 @@
 
 Generada del contrato. Los nombres de operaciones y campos conservan los identificadores del API. ✓ = obligatorio. Los ejemplos requieren tus identificadores y archivos; no son respuestas capturadas de producción.
 
-Los ejemplos de referencia usan variables sin prefijo. La colección descargable incluye las carpetas Server requests y Localhost requests y añade respectivamente `server_` o `localhost_` a cada variable, con cuenta y espacio demo preconfigurados.
+Los ejemplos de referencia usan variables sin prefijo. La colección descargable incluye las carpetas Server requests y Localhost requests y añade respectivamente `server_` o `localhost_` a cada variable, con selector de cuentas local; Server requests está desactivado.
 
 Bearer = sesión de usuario; device = credenciales de dispositivo; integration = clave de integración; signed = enlace temporal; none = sin credenciales de transporte.
 
@@ -3147,8 +3147,54 @@ Respuestas declaradas: `200`.
 
 | Operación | Identificador descriptivo | Acceso | Campos obligatorios | Manual |
 | --- | --- | --- | --- | --- |
-| `POST /v1/auth/local-login` | Acceder a instalación local | none | `email`, `password` | — |
-| `GET /v1/auth/local-session` | Comprobar entorno local | bearer | — | — |
+| `GET /v1/auth/local-session` | Local Session | bearer | — | — |
+| `GET /v1/auth/local-accounts` | Local Accounts | none | — | — |
+| `POST /v1/auth/local-select` | Local Select | none | `user_id` | — |
+| `POST /v1/auth/local-login` | Local Login | none | `email`, `password` | — |
+
+<details>
+
+<summary>GET /v1/auth/local-session</summary>
+
+| Campo | Ubicación | Obligatorio | Tipo | Restricciones |
+| --- | --- | --- | --- | --- |
+| — | — | — | — | — |
+
+Respuestas declaradas: `200`.
+
+</details>
+
+<details>
+
+<summary>GET /v1/auth/local-accounts</summary>
+
+| Campo | Ubicación | Obligatorio | Tipo | Restricciones |
+| --- | --- | --- | --- | --- |
+| — | — | — | — | — |
+
+Respuestas declaradas: `200`.
+
+</details>
+
+<details>
+
+<summary>POST /v1/auth/local-select</summary>
+
+| Campo | Ubicación | Obligatorio | Tipo | Restricciones |
+| --- | --- | --- | --- | --- |
+| `user_id` | body | ✓ | `string` | `{}` |
+
+```json
+
+{
+  "user_id": "{{user_id}}"
+}
+
+```
+
+Respuestas declaradas: `200`, `422`.
+
+</details>
 
 <details>
 
@@ -3169,18 +3215,6 @@ Respuestas declaradas: `200`.
 ```
 
 Respuestas declaradas: `200`, `422`.
-
-</details>
-
-<details>
-
-<summary>GET /v1/auth/local-session</summary>
-
-| Campo | Ubicación | Obligatorio | Tipo | Restricciones |
-| --- | --- | --- | --- | --- |
-| — | — | — | — | — |
-
-Respuestas declaradas: `200`.
 
 </details>
 

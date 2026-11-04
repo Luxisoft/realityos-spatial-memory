@@ -6,7 +6,7 @@
 
 Generated from the contract. Operation and field names preserve API identifiers. ✓ = required. Examples need your own identifiers and files; they are not captured production responses.
 
-Reference examples use unprefixed variables. The downloadable collection includes Server requests and Localhost requests folders and prefixes each variable with `server_` or `localhost_`, with demo credentials and workspace IDs preconfigured.
+Reference examples use unprefixed variables. The downloadable collection includes Server requests and Localhost requests folders and prefixes each variable with `server_` or `localhost_`, with local account selection; Server requests is disabled.
 
 Bearer = user session; device = device credentials; integration = integration key; signed = temporary link; none = no transport credentials.
 
@@ -3147,8 +3147,54 @@ Declared responses: `200`.
 
 | Operation | Summary | Access | Required fields | Manual |
 | --- | --- | --- | --- | --- |
-| `POST /v1/auth/local-login` | Local login (local realm only) | none | `email`, `password` | — |
-| `GET /v1/auth/local-session` | Check local realm | bearer | — | — |
+| `GET /v1/auth/local-session` | Local Session | bearer | — | — |
+| `GET /v1/auth/local-accounts` | Local Accounts | none | — | — |
+| `POST /v1/auth/local-select` | Local Select | none | `user_id` | — |
+| `POST /v1/auth/local-login` | Local Login | none | `email`, `password` | — |
+
+<details>
+
+<summary>GET /v1/auth/local-session</summary>
+
+| Field | Location | Required | Type | Constraints |
+| --- | --- | --- | --- | --- |
+| — | — | — | — | — |
+
+Declared responses: `200`.
+
+</details>
+
+<details>
+
+<summary>GET /v1/auth/local-accounts</summary>
+
+| Field | Location | Required | Type | Constraints |
+| --- | --- | --- | --- | --- |
+| — | — | — | — | — |
+
+Declared responses: `200`.
+
+</details>
+
+<details>
+
+<summary>POST /v1/auth/local-select</summary>
+
+| Field | Location | Required | Type | Constraints |
+| --- | --- | --- | --- | --- |
+| `user_id` | body | ✓ | `string` | `{}` |
+
+```json
+
+{
+  "user_id": "{{user_id}}"
+}
+
+```
+
+Declared responses: `200`, `422`.
+
+</details>
 
 <details>
 
@@ -3169,18 +3215,6 @@ Declared responses: `200`.
 ```
 
 Declared responses: `200`, `422`.
-
-</details>
-
-<details>
-
-<summary>GET /v1/auth/local-session</summary>
-
-| Field | Location | Required | Type | Constraints |
-| --- | --- | --- | --- | --- |
-| — | — | — | — | — |
-
-Declared responses: `200`.
 
 </details>
 

@@ -3,7 +3,7 @@ from __future__ import annotations
 from functools import lru_cache
 from typing import Literal
 
-from pydantic import AnyHttpUrl, Field, SecretStr
+from pydantic import AnyHttpUrl, Field, SecretStr, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -18,6 +18,7 @@ class Settings(BaseSettings):
 
     environment: str = "development"
     local_login_enabled: bool = False
+    local_evaluation_enabled: bool = False
     test_worker_provisioning_enabled: bool = False
     storage_encryption_key: SecretStr = SecretStr("")
     storage_max_download_bytes: int = Field(default=64 * 1024 * 1024, ge=1024)
@@ -103,6 +104,11 @@ class Settings(BaseSettings):
     face_spoof_max_risk: float = Field(default=0.85, ge=0.0, le=1.0)
     face_max_attempts: int = Field(default=5, ge=1)
     face_lockout_minutes: int = Field(default=30, ge=1)
+
+    @field_validator("meta_gateway_base_url", mode="before")
+    @classmethod
+    def empty_optional_gateway(cls, value):
+        return value or None
 
     @property
     def cors_origin_list(self) -> list[str]:

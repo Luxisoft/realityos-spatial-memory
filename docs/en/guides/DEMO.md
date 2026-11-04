@@ -5,6 +5,9 @@
 
 # Evaluation walkthroughs
 
+> Localhost is the current walkthrough. Historical results below describe the server and do not validate the new local installation.
+
+
 **[Operational acceptance checklist](../testing/IMPLEMENTATION_CHECKLIST.md)** · [Camera-ready visual cards](../testing/QA_VISUAL_FIXTURES.md). Record manual tests and technical evidence per release before closing the submission.
 
 These walkthroughs are independent examples of RealityOS capabilities. They are not a sequence across organizations or an exhaustive list of uses. Each test uses its own workspace's data and permissions.
@@ -13,47 +16,18 @@ These walkthroughs are independent examples of RealityOS capabilities. They are 
 
 The new object tests use [12 complete videos with ES/EN queries and evidence intervals](../testing/VIDEO_EVALUATION.md). The matrix states what to search for and what result to verify.
 
+<a id="handoff"></a>
 <a id="access"></a>
 
-## Sign in and see the prepared data
+## Local access
 
-**All nine accounts have a profile photo, posts and an assigned work group.** Ana's, Luis's and the other people's portraits are part of their records. Records and groups are ready. Email entry now asks for consent, a profile image and 3–25 private reference photos if setup is incomplete.
+Start Docker using the [local guide](../deployment/DEPLOYMENT_LOCALHOST.md), install the local APK and connect the phone with `adb reverse tcp:8080 tcp:8080`. Choose one of the nine accounts. No password, Facebook or bucket is needed. Starting data is fictional and public; Meta models use your own key. Consent and enrollment must be performed explicitly to test face search.
 
-1. Download **app-debug.apk** and use one of the three [included public accounts](../api/API.md#quick-start). For Postman, import the collection and click **Send**.
-2. Install the regular server APK ([download and installation](../README.md#evaluate)). Open **Continue with email → Sign in**. Enter the username in **Username or email** and its password from the public table. These accounts are already confirmed.
-3. In the main **Gallery**, select your assigned group and open a publication. Your avatar appears in the bottom bar.
-4. In the gallery group menu, tap **Workspace records**. Open the first record to see its content and attachments inside the app.
 
-| Scenario / group | Prepared accounts | First content |
-| --- | --- | --- |
-| Nursing / California Valley Medical Center | `elena-marquez`, `mateo-rios`, `sarah-chen` | Ana Solis: record, portrait and related records. |
-| Police / Pacific Ridge Police Department | `alex-rivera`, `maya-johnson`, `daniel-kim` | Case 1, notes and shift evidence. |
-| Memory / Sonoran Neurological Institute | `noah-brooks`, `lucia-vega`, `owen-patel` | Luis Moreno: record, portrait and reminder. |
+## Local jury access
 
-Each account belongs to its work group and has a personal workspace. The server contains **47 records, 27 attachments and six enrolled portraits**. The three primary accounts and their passwords are [published for judges](../api/API.md#quick-start), with the owner's authorization. Postman uses these accounts automatically against the same existing data.
+The three scenarios now use local account selection without passwords. The server catalog is disabled. Follow the [API guide](../api/API.md#quick-start).
 
-Current renewal: each of the three existing groups has 12 licensed photos and four moving videos. Records and biometric portraits are preserved; no discarded groups were recreated. The three jury accounts passed HTTP avatar/media/record and cross-group permission checks. Physical Android and glasses acceptance remains separate.
-
-### If something is missing
-
-| Situation | What to do |
-| --- | --- |
-| I do not know where to sign in | Use the Android app and **Continue with email → Sign in**. Opening the server address in a browser does not launch a web app. |
-| Sign-in fails | Use the username and password from the same row of the public table. These accounts are already confirmed; their `example.test` addresses cannot receive recovery email. |
-| I only see Postman Demo or an empty workspace | Import the current public collection and open Server requests → 00 Live scenarios → Police, Nursing or Memory; all three accounts and workspaces are already configured. |
-| My photo, posts or group are missing | The organizer must complete the account before the test; evaluators do not prepare the data. |
-
-<a id="handoff"></a>
-
-## Public jury access
-
-The [three accounts and passwords](../api/API.md#quick-start) are included in the public collection. The owner authorized their release on November 3, 2026. They retain their current roles and workspaces; the existing server and data are used directly.
-
-For Postman, import the collection and click Send. For Android, install the APK and use one of these accounts. The other six worker accounts and provider, integration and infrastructure keys are not published in this release.
-
-All nine account profiles include role-specific biographies, professional titles, birth dates, locations, phone numbers and links from the [profile fixture](../../../simulator/profiles/accounts.json). These are fictional identities; contact numbers and domains are reserved examples. Maintenance uses `scripts/complete_scenario_profiles.py`: preview by default, `--apply --journal <private-path>` to update existing accounts, or `--rollback <private-path>` to restore unchanged fields. It preserves credentials, avatars, private CVs, facial references and work-group memberships.
-
-The [police](../../../simulator/workspaces/security.json), [nursing](../../../simulator/workspaces/hospital.json) and [memory](../../../simulator/workspaces/memory.json) manifests are maintenance material. Server scenarios are already imported. To prepare another installation, the organizer follows [data imports](WORKSPACE_DATA.md).
 
 ## 1. Police: case, person and evidence
 

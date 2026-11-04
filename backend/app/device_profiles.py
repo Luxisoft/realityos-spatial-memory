@@ -8,9 +8,27 @@ from app.models import Device, Role, Workspace, WorkspaceMember, Zone
 from app.security import create_device_credential, hash_device_credential
 
 
-def issue_capture_profile(db, settings, user, *, local=False, account=False):
-    workspace = db.scalar(select(Workspace).where(Workspace.name == f"home:{user.id}"))
-    if workspace is not None and workspace.created_by_id != user.id:
+def issue_capture_profile(db, settings, user, *, local=False, account=False, local_workspace=None):
+    if local_workspace is not None:
+        from fastapi import HTTPException
+
+        member = db.scalar(
+            select(WorkspaceMember).where(
+                WorkspaceMember.workspace_id == local_workspace.id,
+                WorkspaceMember.user_id == user.id,
+            )
+        )
+        if (
+            not local
+            or settings.environment != "local"
+            or member is None
+            or member.role == Role.QUERY
+        ):
+            raise HTTPException(403, "Local capture requires a writable group membership.")
+    workspace = local_workspace or db.scalar(
+        select(Workspace).where(Workspace.name == f"home:{user.id}")
+    )
+    if local_workspace is None and workspace is not None and workspace.created_by_id != user.id:
         from fastapi import HTTPException
 
         raise HTTPException(
@@ -40,7 +58,7 @@ def issue_capture_profile(db, settings, user, *, local=False, account=False):
     db.flush()
     return {
         "workspace_id": str(workspace.id),
-        "workspace_name": "Casa",
+        "workspace_name": workspace.name if local_workspace is not None else "Casa",
         "device_id": device.device_identifier,
         "device_key": secret,
     }

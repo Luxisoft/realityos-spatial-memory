@@ -1,0 +1,206 @@
+{
+  "version": 1,
+  "namespace": "6fa0d288-5ca3-45cd-8d01-3e098092b192",
+  "groups": [
+    {
+      "slug": "security",
+      "media_group": "security",
+      "id": "09f6bc06-8d36-5e69-a050-6f690fe1168b",
+      "name": "Pacific Ridge Police Department",
+      "users": [
+        {
+          "id": "6b70a3aa-0e7b-5234-8245-a923d31bd2ec",
+          "username": "alex-rivera",
+          "display_name": "Alex Rivera",
+          "avatar": "workspaces/profile-photos/alex-rivera/00-profile.png",
+          "avatar_sha256": "b74a21729feca2c011b4ce33f771c17e25d293284e0ff5409079ba240f4b1de6"
+        },
+        {
+          "id": "002698d6-5b51-5f23-a6b7-8f9ac69767a8",
+          "username": "maya-johnson",
+          "display_name": "Maya Johnson",
+          "avatar": "workspaces/assets/maya-johnson.png",
+          "avatar_sha256": "78005d2614e54069b78a4ca65774e25e6e81cb0f975b31071b969d72622589f0"
+        },
+        {
+          "id": "9e1da782-88e0-5d07-b552-c5303c08721c",
+          "username": "daniel-kim",
+          "display_name": "Daniel Kim",
+          "avatar": "workspaces/assets/daniel-kim.png",
+          "avatar_sha256": "b55db63a13e5faaeb5d200dc545d8577688a7174af6230834e0d1b9b925b6a02"
+        }
+      ],
+      "records": {
+        "security-case-1": "86042ca2-a420-508c-bc92-8e15d9bf78e8",
+        "security-event-1": "0a44c61e-2f62-55b4-9371-5a573a6e7b71",
+        "security-object-1": "546ddc2a-3681-5353-8bea-ddd08ad88585",
+        "security-case-2": "99a5fbdc-6159-5646-94f7-b3a3082ecfb6",
+        "security-event-2": "983cc117-bc78-57b9-87e1-c2cc56affab3",
+        "security-object-2": "0e8116b0-dc4f-530c-8d48-befa2b08e0f2",
+        "security-case-3": "5aa2d7d7-cce8-5a82-a903-5f4ab5513aef",
+        "security-event-3": "ca91dafc-2e63-51d1-a524-65dcfe3152a1",
+        "security-object-3": "86ae3e7d-5691-5f4e-b435-903a6ff98cd9"
+      },
+      "publications": {
+        "1416857": "9723cbb1-23db-58cd-87bd-a8a925624cc0",
+        "2885868": "7fed9e64-0e13-58f2-8163-c1a8f969d8ff",
+        "3944386": "faad69ee-e9c0-5928-a3a7-96824cf00c95",
+        "6929031": "ebef78bd-749c-5bac-a204-a23ac7d5476a",
+        "7706978": "5e03d5ee-9e7a-5c14-a114-099a99c9c89a",
+        "8489919": "9b29f9a2-d68e-5bc2-a7ec-519d3b838ddc",
+        "9065475": "85a415d5-5324-58a7-933d-20a2f0039000",
+        "9942069": "1d4cd6f0-f215-5e52-b8a2-a423a9a3ab2f",
+        "11447663": "173b1bc4-f268-5183-a3cc-86abc76c88ba",
+        "17440970": "93b60eee-4b66-5397-a376-9e8ac47613c8",
+        "18504013": "410958f8-b950-516a-b405-7b0469ffd751",
+        "29148355": "587910cc-d30e-5cd0-8e50-b39b833543ed",
+        "8382402": "4512b140-7aa5-539f-8497-bf50b039a4f2",
+        "8963860": "e0ec120a-a5f5-5426-9af1-e35238910b4c",
+        "10482314": "f9bad34e-60ba-5559-9928-ac3cf65ff925",
+        "10482446": "67778e50-bfe0-5fcb-981e-40f35139119c"
+      },
+      "query": "Find the keys collected from the ground.",
+      "record_question": "Summarize the first police case and its related evidence."
+    },
+    {
+      "slug": "hospital",
+      "media_group": "nursing",
+      "id": "749f3aad-1543-55d1-9633-03f0cf443a1a",
+      "name": "California Valley Medical Center",
+      "users": [
+        {
+          "id": "484b7800-2745-5aa4-aa0f-3d3ed603acf6",
+          "username": "elena-marquez",
+          "display_name": "Elena Marquez",
+          "avatar": "workspaces/assets/elena-marquez.png",
+          "avatar_sha256": "d8e3a49a4bb4a75a0f37d02e85f727defa7effb715391cbf6acfd0b2a213624f"
+        },
+        {
+          "id": "9467affe-fe04-5ed8-ae5c-4d4bb7c5ac23",
+          "username": "mateo-rios",
+          "display_name": "Mateo Rios",
+          "avatar": "workspaces/assets/mateo-rios.png",
+          "avatar_sha256": "a8dae1068161975e0527c566d80059bfeef5d92b2d0eeafd74471399ee5de899"
+        },
+        {
+          "id": "63297a1b-bc7f-52df-9b76-cf3c33739bb7",
+          "username": "sarah-chen",
+          "display_name": "Sarah Chen",
+          "avatar": "workspaces/assets/sarah-chen.png",
+          "avatar_sha256": "a15344dbdc6f7e4190e21a143d30bd11e7bf909c6883d86be812e73a09146b94"
+        }
+      ],
+      "records": {
+        "hospital-case-1": "688b9e79-c447-5e40-be26-34e52519da46",
+        "hospital-event-1": "f1bd850d-d6e4-5639-bc10-028947ed7706",
+        "hospital-object-1": "14aac29c-8dc0-5e7a-aa66-8a23efe3f6e1",
+        "hospital-case-2": "88e6f12c-f0ba-5571-9c03-ead740cea457",
+        "hospital-event-2": "334e983a-5092-516c-9889-a1be49b2cb9a",
+        "hospital-object-2": "ffc178d1-e849-5797-a4c7-03eaf02e1822",
+        "hospital-case-3": "c414e440-7711-578a-adb9-019eaea0310f",
+        "hospital-event-3": "b345c77a-f9b6-5118-bc92-ff3455631a9d",
+        "hospital-object-3": "5a9cb47b-aa3a-5dba-835e-b0daccaba2d0",
+        "hospital-person-1": "4f248758-9347-50f6-9f62-0cc8c9cdb1a3",
+        "hospital-encounter-1": "621a97f8-c37a-5638-8ad0-79f92dd82b89",
+        "hospital-rx-1": "d048be67-95c3-55b4-9110-a99747794bba",
+        "hospital-person-2": "e9946400-f2bc-5033-bfee-6fa29aa338e9",
+        "hospital-encounter-2": "65ec15fd-4973-51ce-ae50-0fe219982985",
+        "hospital-rx-2": "69d6a127-0b63-5380-b7ce-fb7bdb46964c",
+        "hospital-allergy-2": "7d64b769-6908-53c4-8a7f-0f9fe9de6217",
+        "hospital-person-3": "b1505b95-5528-5850-ad35-a0cce93c6340",
+        "hospital-encounter-3": "52fb65f3-08cf-5b5b-81a8-eb1c26487dc9",
+        "hospital-rx-3": "8711530b-7ee5-5433-a48e-a14450e60a23",
+        "hospital-admin-3": "7549bc37-8270-58e2-839f-dca54d120c41"
+      },
+      "publications": {
+        "4421490": "ddb2f22e-be3e-53c3-9856-8b6c33f0c618",
+        "6129899": "5b2d8ccd-1473-55f8-80b8-c8e9d7ec45ea",
+        "7089016": "b6bfb2e9-7d7d-5bcf-a76e-3977b2a82ffd",
+        "7108117": "7ad7979a-f2dc-50d1-b850-b093a35b5325",
+        "8670190": "aa328da6-72c1-5c97-a716-8d42ea83ac62",
+        "11782003": "0787c13b-240a-5dea-88c6-bf74fb22efd0",
+        "13083355": "9b16b6fb-5358-5f64-b071-45e5f801a1b4",
+        "13697729": "033f86b3-fbab-57b0-a222-bc3422de9d55",
+        "17112252": "a3999644-600e-55e6-9ccd-d202def3feb4",
+        "17112256": "2ed20376-7167-5c90-9bfb-6c48d63cb8ad",
+        "24022653": "22bd86bf-3d5b-5761-84d8-f8c33d92b67e",
+        "28727573": "25cfd729-2e51-594a-bca0-2ba3e8b41f64",
+        "6036527": "5fe6823a-e69f-5b77-9d4c-fe619a274978",
+        "7585003": "1fa396f5-e86e-5bfa-b1e6-9b6fffed47fa",
+        "8381611": "f66cbb9f-4c13-5fc1-9d44-7911f765cc7d",
+        "8413544": "56a6f690-c7c7-50f3-9297-4404341f26ef"
+      },
+      "query": "Find the syringes on the tray.",
+      "record_question": "Summarize Ana Solis and her related records."
+    },
+    {
+      "slug": "memory",
+      "media_group": "memory",
+      "id": "8fd12f4c-0152-5300-874d-a162e05b0830",
+      "name": "Sonoran Neurological Institute",
+      "users": [
+        {
+          "id": "e2547625-1c50-5379-8e4c-f7d8221074ee",
+          "username": "noah-brooks",
+          "display_name": "Noah Brooks",
+          "avatar": "workspaces/profile-photos/noah-brooks/00-profile.png",
+          "avatar_sha256": "0455512f8e7f2ae7e73937719b5535d277d94258fa786db3f8509fc2e6e2ecf2"
+        },
+        {
+          "id": "6330f2dc-676c-5832-88dc-47d55549a5f3",
+          "username": "lucia-vega",
+          "display_name": "Lucia Vega",
+          "avatar": "workspaces/assets/lucia-vega.png",
+          "avatar_sha256": "b23160c7cce605b37d5fb9441bc0926d38728d9609d8239b6e0565bc9045f6e1"
+        },
+        {
+          "id": "c5f99273-0b59-5322-a730-7587d63e2d87",
+          "username": "owen-patel",
+          "display_name": "Owen Patel",
+          "avatar": "workspaces/assets/owen-patel.png",
+          "avatar_sha256": "2861c92403b9344d0e9b8fd20455361351710e03fdac6c84eafa23998d595013"
+        }
+      ],
+      "records": {
+        "memory-case-1": "72545ffc-3213-5f6f-9da9-ccbeeec2e1f0",
+        "memory-event-1": "7691d3c7-d04e-5005-ab8b-6434d7426f52",
+        "memory-object-1": "057e3ead-3e38-5b76-89ba-06816595d2a9",
+        "memory-case-2": "87a58a12-ea0a-5f05-b491-8979aea353f6",
+        "memory-event-2": "eaf1d8a1-4a40-5f56-b936-45bfac7fb1d0",
+        "memory-object-2": "b02c2c11-3bc6-58df-b4d9-789bb855328c",
+        "memory-case-3": "f2e365aa-4ab6-5034-9b6a-6a50449d3199",
+        "memory-event-3": "56dd429b-0746-5f0c-a86e-a104fd24a6ba",
+        "memory-object-3": "0d0c9674-b9f2-5d36-a4c8-6e0baef8d1bc",
+        "memory-person-1": "fe9df370-e695-594b-a70b-cfeff6cc12fe",
+        "memory-encounter-1": "e4e5d0da-e64b-5af2-b566-86dbaac2b0e5",
+        "memory-recall-1": "70fa8b6f-116f-5284-8640-c7f1ee5f7425",
+        "memory-person-2": "832a5033-a416-5cdb-8ad3-e90de23ee1b1",
+        "memory-encounter-2": "d9999c86-5eb9-5994-8b42-2280f0c8822e",
+        "memory-recall-2": "1e57ff38-9a87-5708-8ed6-48e55d74ac88",
+        "memory-person-3": "876313fb-fa6a-5328-b927-5cb372d42095",
+        "memory-encounter-3": "bcda9359-df99-5530-aecd-e2adb0a60395",
+        "memory-recall-3": "8910fbe2-bb0a-5ad0-8739-3d1ecdd3859a"
+      },
+      "publications": {
+        "3704614": "ed6bb82e-ef8a-50e2-b346-e93f51390c0b",
+        "5226070": "16844f87-15e3-5f8f-b511-ebe3c2e4e4ea",
+        "5447066": "00bdf7c0-0d45-508d-bca4-11c3b77bfeda",
+        "5717455": "f3d67a52-037e-5553-a50b-3188c379f5ef",
+        "6927343": "11a5b4e6-b37e-58d1-b8b2-56fcd9eb13cb",
+        "9283595": "be1f0429-a83a-5c19-9387-ae68dc5062b7",
+        "10009676": "ffc8f4e0-f194-5024-ad16-f8ae9c7cb907",
+        "10024615": "e6c3d823-2325-5ca6-90e4-561302192d3e",
+        "12181751": "32e0ed83-14a9-5ced-b38c-91e29601e593",
+        "12673170": "594d75d5-08ca-5276-a6bf-6998ed225d82",
+        "15440419": "26b12ba8-2a28-5c39-8fa6-5b47fb04b96c",
+        "31221014": "69fd262f-8857-5f36-8cda-105686d9645e",
+        "5615158": "a25d5c9e-6877-535b-b2ea-3d9583ead9d5",
+        "5828599": "65677e64-96fc-5ec8-bc77-4549727ad18c",
+        "7986194": "0ddce542-a416-573c-9641-b2513ead631e",
+        "8034068": "4ff28d86-2d80-5d59-beb6-b12e501b8598"
+      },
+      "query": "Find the keys on the wooden table.",
+      "record_question": "Summarize Luis Moreno and his reminders."
+    }
+  ]
+}

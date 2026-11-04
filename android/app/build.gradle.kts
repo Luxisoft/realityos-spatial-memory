@@ -20,7 +20,7 @@ fun androidClientSetting(property: String, variable: String): String =
 val facebookAppId = androidClientSetting("facebook_app_id", "ANDROID_FACEBOOK_APP_ID")
 val facebookClientToken = androidClientSetting("facebook_client_token", "ANDROID_FACEBOOK_CLIENT_TOKEN")
 
-val localDevelopment = providers.gradleProperty("localDevelopment").orElse("false").get().toBooleanStrict()
+val localDevelopment = providers.gradleProperty("localDevelopment").orElse("true").get().toBooleanStrict()
 val configuredApiUrl = providers.environmentVariable("REALITYOS_API_BASE_URL")
   .orElse(providers.gradleProperty("realityosApiBaseUrl"))
 val productionApiUrl = "https://realityos.luxisoft.com/v1"
@@ -36,6 +36,7 @@ android {
   compileSdk = 36
 
   defaultConfig {
+    manifestPlaceholders["facebook_auto_init"] = "true"
     manifestPlaceholders["facebook_app_id"] = facebookAppId
     manifestPlaceholders["facebook_client_token"] = facebookClientToken
     buildConfigField("String", "FACEBOOK_APP_ID", "\"${facebookAppId}\"")
@@ -68,7 +69,13 @@ android {
       buildConfigField("String", "DEFAULT_REALITYOS_API_BASE_URL", "\"$debugApiUrl\"")
       manifestPlaceholders["local_cleartext_allowed"] = localDevelopment.toString()
       manifestPlaceholders["debug_network_security_config"] = if (localDevelopment) "@xml/network_security_local" else "@xml/network_security_secure"
-      if (localDevelopment) applicationIdSuffix = ".local"
+      if (localDevelopment) {
+        applicationIdSuffix = ".local"
+        manifestPlaceholders["facebook_app_id"] = "0"
+        manifestPlaceholders["facebook_client_token"] = "0"
+        manifestPlaceholders["facebook_auto_init"] = "false"
+        buildConfigField("String", "FACEBOOK_APP_ID", "\"0\"")
+      }
       // Timestamped debug builds: the exact APK under test is visible in
       // Settings -> Apps, so stale installs are easy to spot.
       versionNameSuffix = "-debug-" + LocalDateTime.now()
@@ -226,6 +233,7 @@ val refactoredKotlin = files(
     "src/test/java/com/luxisoft/realityos/SessionRefreshTest.kt",
     "src/main/java/com/luxisoft/realityos/RestoredAccountSession.kt",
     "src/testDebug/java/com/luxisoft/realityos/RestoredAccountSessionTest.kt",
+    "src/testDebug/java/com/luxisoft/realityos/LocalAccountChooserTest.kt",
     "src/testDebug/java/com/luxisoft/realityos/StorageConnectionsNavigationTest.kt",
     "src/testDebug/java/com/luxisoft/realityos/StorageResultsTest.kt",
     "src/main/java/com/luxisoft/realityos/ChatModels.kt",

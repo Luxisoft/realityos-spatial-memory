@@ -5,6 +5,9 @@
 
 # Recorridos de evaluación
 
+> El recorrido vigente es localhost. Los resultados históricos descritos más abajo corresponden al servidor; no prueban la nueva instalación local.
+
+
 **[Checklist operativo de aceptación](../testing/IMPLEMENTATION_CHECKLIST.md)** · [Láminas listas para cámara](../testing/QA_VISUAL_FIXTURES.md). Registra pruebas manuales y evidencia técnica por versión antes de cerrar la entrega.
 
 Estos recorridos son ejemplos independientes de las capacidades de RealityOS. No forman una secuencia entre organizaciones ni agotan sus usos posibles. Cada prueba usa los datos y permisos de su propio espacio.
@@ -13,47 +16,18 @@ Estos recorridos son ejemplos independientes de las capacidades de RealityOS. No
 
 Las nuevas pruebas de objetos usan [12 videos completos con consultas ES/EN e intervalos de evidencia](../testing/VIDEO_EVALUATION.md). La matriz indica qué buscar y qué resultado verificar.
 
+<a id="handoff"></a>
 <a id="access"></a>
 
-## Entrar y ver los datos preparados
+## Acceso local
 
-**Las nueve cuentas tienen foto de perfil, publicaciones y un grupo de trabajo asignado.** Los retratos de Ana, Luis y las demás personas forman parte de sus expedientes. El evaluador no tiene que descargar imágenes, importar JSON, subir fotos ni crear grupos para empezar.
+Inicia Docker siguiendo la [guía local](../deployment/DEPLOYMENT_LOCALHOST.md), instala el APK local y conecta el teléfono con `adb reverse tcp:8080 tcp:8080`. Elige una de las nueve cuentas. No necesitas contraseña, Facebook ni bucket. Los datos iniciales son ficticios y públicos; los modelos Meta usan tu clave. Los consentimientos y enrolamientos se realizan expresamente si quieres probar búsqueda facial.
 
-1. Descarga **app-debug.apk** y usa una de las tres [cuentas públicas incluidas](../api/API.md#quick-start). Para Postman basta con importar la colección y pulsar **Send**.
-2. Instala el APK habitual del servidor ([descarga e instalación](../README.md#evaluate)). Abre **Continuar con correo → Iniciar sesión**. Escribe el usuario en **Usuario o correo** y su contraseña de la tabla pública. Estas cuentas ya están confirmadas.
-3. En la **Galería** principal, selecciona tu grupo y abre una publicación. Tu avatar aparece en la barra inferior.
-4. En el menú del grupo de la galería, pulsa **Registros del espacio**. Abre el expediente inicial para ver su contenido y adjuntos dentro de la app.
 
-| Escenario / grupo | Cuentas ya preparadas | Primer contenido |
-| --- | --- | --- |
-| Enfermería / California Valley Medical Center | `elena-marquez`, `mateo-rios`, `sarah-chen` | Ana Solis: expediente, retrato y registros relacionados. |
-| Policial / Pacific Ridge Police Department | `alex-rivera`, `maya-johnson`, `daniel-kim` | Caso 1, notas y evidencia del turno. |
-| Memoria / Sonoran Neurological Institute | `noah-brooks`, `lucia-vega`, `owen-patel` | Luis Moreno: expediente, retrato y recordatorio. |
+## Acceso local del jurado
 
-Cada cuenta pertenece a su grupo de trabajo y tiene su espacio personal. El servidor contiene **47 registros, 27 adjuntos y seis retratos enrolados**. Las tres cuentas principales y sus contraseñas están [publicadas para el jurado](../api/API.md#quick-start), por autorización del propietario. Postman las utiliza automáticamente sobre estos mismos datos.
+Los tres escenarios usan el selector local sin contraseñas. El catálogo del servidor está desactivado. Consulta la [guía API](../api/API.md#quick-start).
 
-Renovación vigente: cada uno de los tres grupos existentes tiene 12 fotos con licencia y cuatro videos con movimiento. Se conservan expedientes y retratos biométricos; no se recrearon grupos descartados. Las tres cuentas del jurado aprobaron comprobaciones HTTP de avatar/media/expedientes y aislamiento entre grupos. La aceptación física Android/gafas sigue siendo independiente.
-
-### Si no ves lo esperado
-
-| Situación | Qué hacer |
-| --- | --- |
-| No sé dónde entrar | Usa la app Android y **Continuar con correo → Iniciar sesión**. La dirección del servidor en el navegador no abre una app web. |
-| El acceso no funciona | Usa usuario y contraseña de la misma fila de la tabla pública. Estas cuentas ya están confirmadas y sus direcciones `example.test` no reciben correos de recuperación. |
-| Solo veo Postman o un espacio vacío | Importa la colección pública actual y abre Server requests → 00 Live scenarios → Police, Nursing o Memory; las tres cuentas y espacios ya están configurados. |
-| No aparece mi foto, publicaciones o grupo | El responsable debe completar la cuenta antes de la prueba; el evaluador no tiene que preparar los datos. |
-
-<a id="handoff"></a>
-
-## Acceso público del jurado
-
-Las [tres cuentas y contraseñas](../api/API.md#quick-start) están incluidas en la colección pública. El propietario autorizó su publicación el 3 de noviembre de 2026. Se conservan sus roles y espacios actuales; no se crea otro servidor ni se duplican los datos.
-
-Para Postman, importa la colección y pulsa Send. Para Android, instala el APK y usa una de esas cuentas. Las otras seis cuentas de trabajadores y las claves de proveedores, integraciones e infraestructura no se publican con esta entrega.
-
-Los nueve perfiles incluyen biografías y cargos acordes a su trabajo, fechas de nacimiento, ubicaciones, teléfonos y enlaces del [manifiesto de perfiles](../../../simulator/profiles/accounts.json). Son identidades ficticias; los teléfonos y dominios son ejemplos reservados. El mantenimiento usa `scripts/complete_scenario_profiles.py`: vista previa por defecto, `--apply --journal <ruta-privada>` para actualizar cuentas existentes o `--rollback <ruta-privada>` para restaurar campos sin cambios posteriores. Conserva credenciales, avatares, CV privados, referencias faciales y pertenencia a los grupos.
-
-Los manifiestos [policial](../../../simulator/workspaces/security.json), [enfermería](../../../simulator/workspaces/hospital.json) y [memoria](../../../simulator/workspaces/memory.json) son material de mantenimiento. Los escenarios del servidor ya están importados. Para preparar otra instalación, el responsable sigue [datos e importaciones](WORKSPACE_DATA.md).
 
 ## 1. Policial: caso, persona y evidencia
 

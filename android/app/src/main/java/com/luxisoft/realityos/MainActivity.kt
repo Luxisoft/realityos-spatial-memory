@@ -208,7 +208,7 @@ class MainActivity : AppCompatActivity() {
     private fun speakOnActiveAudioRoute(request: LocalizedSpeech) {
         speechRevision++
         speech.stop()
-        agentSpeech.speak(request)
+        if (BuildConfig.LOCAL_DEVELOPMENT) speakWithDeviceVoice(request) else agentSpeech.speak(request)
     }
 
     private fun speakWithDeviceVoice(request: LocalizedSpeech) {
@@ -225,6 +225,16 @@ class MainActivity : AppCompatActivity() {
             return
         }
         speech.language = locale
+        if (BuildConfig.LOCAL_DEVELOPMENT) {
+            val offlineVoice = speech.voices?.filter {
+                !it.isNetworkConnectionRequired && it.locale.language == locale.language
+            }?.sortedByDescending { it.locale == locale }?.firstOrNull()
+            if (offlineVoice == null || speech.setVoice(offlineVoice) == TextToSpeech.ERROR) {
+                AppNotices.show(localizedText(R.string.voice_language_unavailable), NoticeKind.WARNING)
+                viewModel.onSpeechDone()
+                return
+            }
+        }
         speech.setOnUtteranceProgressListener(object : android.speech.tts.UtteranceProgressListener() {
             override fun onStart(utteranceId: String?) {
                 if (revision == speechRevision) viewModel.onSpeechStarted()

@@ -4,6 +4,16 @@
 
 Actualizado el **3 de noviembre de 2026**. Un build o una comprobación HTTP no aprueba pruebas físicas. Las entregas anteriores permanecen en Git.
 
+## Evaluación local — entrega vigente
+
+La instalación principal es localhost Windows/Linux x64: PostgreSQL, Redis, la API existente y el worker. No requiere gateway/proxy/scheduler local, almacenamiento externo, login Facebook ni ElevenLabs. El selector de nueve cuentas solo está en Debug local. El procesamiento y la búsqueda Meta mantienen sus rutas reales; la salida de voz usa voces instaladas sin conexión en Android.
+
+Verificado en Docker Linux aislado: PostgreSQL 16 desde cero en `20261104_0039`, 9 cuentas, 3 grupos, 47 expedientes, 27 adjuntos, hashes de 48 publicaciones y descarga de 9 avatares; aislamiento por membresía, edición de perfil, crear/borrar grupos, OpenAPI local exacto, comunicación worker/Redis y persistencia al reiniciar. No se usaron datos ni credenciales de producción. Las 48 escenas existentes con licencia se incluyen ahora en Git, junto con su manifiesto de fuente/licencia/hash.
+
+Backend/gateway: **591 pruebas aprobadas**, más la regresión adicional de reanudación de la cola local. Android: **290 pruebas unitarias aprobadas**; selector renderizado revisado en ES/EN, incluyendo 320 dp y texto al 200 %. Pasaron los scripts Postman y las pruebas Newman de acceso, renovación y errores. Pasaron `ktlintCheck`, `lintDebug`, compilaciones Debug/Release y compilación de pruebas Android. [Comprobante sin secretos](../../assets/local/verification.json).
+
+Pendiente de validación externa: instalación Windows completa, teléfono físico/USB/voces, gafas y llamadas reales con la clave Meta del jurado. Las pruebas Linux/Docker no certifican estos recorridos. Los resultados históricos del servidor que siguen se conservan como referencia y no son requisitos de localhost. El despliegue remoto automático está desactivado; el instalador local no detiene ni modifica servidores históricos.
+
 ## Clasificación de publicaciones
 
 Los catálogos de grupo, la clasificación manual obligatoria, etiquetas en miniaturas, iconos de video y filtros autorizados están incluidos en la revisión `20261103_0038`. Los archivos de bucket sin clasificar siguen privados para revisión del propietario. La [guía de clasificación](../guides/PUBLICATION_CLASSIFICATION.md) documenta este flujo.

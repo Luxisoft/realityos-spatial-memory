@@ -26,8 +26,12 @@ def test_classification_review_covers_existing_originals_exactly():
 
 def test_review_uses_only_existing_jury_groups():
     jury = json.loads((ROOT / "simulator/postman/jury.json").read_text())
-    groups = {scenario["values"]["workspace_id"] for scenario in jury["scenarios"]}
+    catalog = json.loads((ROOT / "simulator/local/catalog.json").read_text())
+    assert {s["values"]["workspace_id"] for s in jury["scenarios"]} == {g["id"] for g in catalog["groups"]}
+    manifest = json.loads((ROOT / "simulator/real-scenes/manifest.json").read_text())["items"]
+    groups = {item["group"] for item in manifest}
     review = json.loads(
         (ROOT / "simulator/real-scenes/publication-classification.json").read_text()
     )["items"]
-    assert {row["workspace_id"] for row in review} == groups
+    assert len({row["workspace_id"] for row in review}) == len(groups) == 3
+    assert {row["post_id"] for row in review} == {item["post_id"] for item in manifest}

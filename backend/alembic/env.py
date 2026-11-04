@@ -10,7 +10,10 @@ from alembic import context
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
-from app import models  # noqa: F401
+from app import (
+    local_models,  # noqa: F401
+    models,  # noqa: F401
+)
 from app.accounts import models as account_models  # noqa: F401
 from app.db import Base
 from app.storage import models as storage_models  # noqa: F401

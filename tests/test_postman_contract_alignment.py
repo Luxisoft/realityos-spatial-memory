@@ -53,7 +53,20 @@ def catalog(client, request):
     collection = json.loads(
         (ROOT / "docs/postman/RealityOS.postman_collection.json").read_text()
     )
-    target = collection["item"][0 if request.param == "server" else 1]
+    if request.param == "localhost":
+        from app.local_runtime import local_route_available
+
+        routes = {
+            key: route
+            for key, route in routes.items()
+            if local_route_available(route.path)
+        }
+    target = next(
+        item
+        for item in collection["item"]
+        if item["name"]
+        == ("Server requests" if request.param == "server" else "Localhost requests")
+    )
     items = {
         item["name"]: item
         for folder in target["item"]
@@ -84,7 +97,9 @@ def test_catalog_auth_and_parameter_samples_match_runtime(catalog):
         headers = [header["key"].lower() for header in request["header"]]
         assert len(headers) == len(set(headers)), item["name"]
         samples = {q["key"]: q for q in request["url"].get("query", [])}
-        assert samples.keys() == {field.alias for field in query_fields(route.dependant)}
+        assert samples.keys() == {
+            field.alias for field in query_fields(route.dependant)
+        }
         for field in query_fields(route.dependant):
             sample = samples[field.alias]
             if field.required:
