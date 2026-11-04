@@ -25,7 +25,7 @@ Las operaciones avanzadas con archivos, dispositivos e integraciones conservan s
 
 Para **crear otra cuenta**, completa las variables `registration_email`, `registration_username`, `registration_password` y `registration_display_name` con el prefijo del destino (`server_` o `localhost_`). Son independientes del acceso del jurado. Reenviar la confirmación usa `registration_email`; recuperar la contraseña usa `account_email`, siempre un correo real. Los endpoints de correo no aceptan el nombre de usuario como dirección de entrega.
 
-Login y renovación actualizan los tokens en todos los ámbitos de Postman, incluidas las variables locales de una ejecución. Si tienes una colección anterior, vuelve a importarla para incorporar esta corrección; una segunda renovación debe utilizar el token nuevo.
+Login y renovación actualizan los tokens en todos los ámbitos de Postman, incluidas las variables locales de una ejecución. Una respuesta HTTP 200 sin ambos tokens se marca como fallida. Si tienes una colección anterior, vuelve a importarla para incorporar esta corrección; una segunda renovación debe utilizar el token nuevo.
 
 ## Fotos de perfil y referencias
 
@@ -41,6 +41,21 @@ En el catálogo del destino elegido, usa **Facial recognition** y **Profiles and
 
 Los ejemplos de publicar, compartir y preparar una carga incluyen `workspace_id`, que debe identificar un grupo existente al que pertenezca la cuenta. Para cargar imágenes o videos usa `POST /v1/me/publication-uploads`; selecciona `file`, conserva el grupo y utiliza un `request_key` distinto para cada nueva carga. Un 202 requiere consultar el estado de esa carga. Para importar publicaciones propias en otro grupo usa `POST /v1/groups/{workspace_id}/publications/import` con sus IDs.
 
+## Conexiones R2/S3
+
+Crear o editar una conexión incluye `storage_endpoint`, `storage_bucket`, `storage_prefix`, `storage_access_key`, `storage_secret_key` y `workspace_id`, con el prefijo del destino. El endpoint debe ser HTTPS público; para R2 usa el endpoint S3 de la cuenta. Para S3 cambia también `provider` y `region`. Las credenciales empiezan vacías y se marcan como secretas en los entornos; completa tus valores localmente y no publiques el entorno rellenado.
+
+Las importaciones usan `storage_object_key`, obtenido del listado autorizado, y un `storage_request_key` nuevo por intento. Las sincronizaciones incluyen grupo, carpeta, intervalo y `enabled`: `false` pausa la regla coincidente; cambia a `true` para programarla.
+
 ## Comprobar vigencia
 
-El catálogo se genera desde `tests/contracts/openapi.json`. Ejecuta `make docs-check` y las pruebas `tests/test_api_documentation.py` y `tests/test_postman_current_examples.py`; verifican rutas, campos, autenticación, separación de destinos y ejemplos de publicación. El contrato se compara también con la aplicación en `tests/test_architecture_contract.py`. [OpenAPI del servidor](https://realityos.luxisoft.com/v1/openapi.json).
+El catálogo se genera desde `tests/contracts/openapi.json`. Ejecuta `make docs-check` y las pruebas `tests/test_api_documentation.py`, `tests/test_postman_current_examples.py`, `tests/test_postman_contract_alignment.py` y `tests/test_postman_storage_examples.py`; verifican todos los catálogos contra los modelos FastAPI, campos, autenticación, separación de destinos, publicación y almacenamiento. Los scripts exigen los códigos de éxito declarados por cada endpoint; una redirección no cuenta como aprobación. El contrato se compara también con la aplicación en `tests/test_architecture_contract.py`. [OpenAPI del servidor](https://realityos.luxisoft.com/v1/openapi.json).
+
+CI ejecuta además los scripts en el sandbox real de Newman contra un servidor simulado local. Comprueba la renovación repetida con y sin entorno, los fallos de autenticación, los códigos de respuesta y el bloqueo de escrituras. Un login fallido registra una prueba fallida antes de omitir la petición protegida. Para repetirlo:
+
+```bash
+npm install --prefix .runtime/postman-tools --ignore-scripts --no-audit --no-fund newman@6.2.3
+NODE_PATH="$PWD/.runtime/postman-tools/node_modules" make postman-runtime-check
+```
+
+Esta comprobación no llama a producción ni a los proveedores. Los archivos, las credenciales de integraciones y el acceso físico a dispositivos siguen siendo requisitos de sus pruebas reales.

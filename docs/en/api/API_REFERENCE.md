@@ -1542,9 +1542,15 @@ Declared responses: `200`.
 ```json
 
 {
-  "name": "example-name",
-  "endpoint": "example-endpoint",
-  "bucket": "example-bucket"
+  "name": "Account media",
+  "provider": "r2",
+  "endpoint": "{{storage_endpoint}}",
+  "bucket": "{{storage_bucket}}",
+  "region": "auto",
+  "prefix": "{{storage_prefix}}",
+  "access_key": "{{storage_access_key}}",
+  "secret_key": "{{storage_secret_key}}",
+  "workspace_id": "{{workspace_id}}"
 }
 
 ```
@@ -1573,9 +1579,15 @@ Declared responses: `201`, `422`.
 ```json
 
 {
-  "name": "example-name",
-  "endpoint": "example-endpoint",
-  "bucket": "example-bucket"
+  "name": "Account media",
+  "provider": "r2",
+  "endpoint": "{{storage_endpoint}}",
+  "bucket": "{{storage_bucket}}",
+  "region": "auto",
+  "prefix": "{{storage_prefix}}",
+  "access_key": "{{storage_access_key}}",
+  "secret_key": "{{storage_secret_key}}",
+  "workspace_id": "{{workspace_id}}"
 }
 
 ```
@@ -1658,10 +1670,12 @@ Declared responses: `200`, `422`.
 ```json
 
 {
-  "request_key": "example-request_key",
+  "request_key": "{{storage_request_key}}",
   "keys": [
-    "example-keys"
-  ]
+    "{{storage_object_key}}"
+  ],
+  "audience": "work",
+  "workspace_id": "{{workspace_id}}"
 }
 
 ```
@@ -1722,7 +1736,13 @@ Declared responses: `200`, `422`.
 
 ```json
 
-{}
+{
+  "prefix": "{{storage_prefix}}",
+  "audience": "work",
+  "workspace_id": "{{workspace_id}}",
+  "interval_minutes": 15,
+  "enabled": false
+}
 
 ```
 

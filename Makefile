@@ -41,6 +41,9 @@ docs-check:
 	python3 scripts/build_api_docs.py --check
 	node scripts/check_postman_scripts.cjs
 
+postman-runtime-check:
+	node scripts/check_postman_runtime.cjs
+
 format-check:
 	.venv/bin/ruff format --check backend/app/http backend/app/providers backend/app/processing backend/app/social_features backend/app/routes.py backend/app/meta.py backend/app/services.py backend/app/social.py tests/social tests/test_architecture_contract.py tests/conftest.py scripts/check_structure.py
 	cd android && ./gradlew :app:ktlintCheck
@@ -48,7 +51,7 @@ format-check:
 android-check:
 	cd android && ./gradlew :app:ktlintCheck :app:testDebugUnitTest :app:lintDebug :app:assembleDebug :app:assembleRelease
 
-.PHONY: docs-check architecture-check format-check android-check
+.PHONY: docs-check postman-runtime-check architecture-check format-check android-check
 
 # Windows PowerShell launchers use an independent .env.local and Docker project.
 local-help:

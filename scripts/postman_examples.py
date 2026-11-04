@@ -2,7 +2,34 @@
 
 import json
 
+STORAGE_CONNECTION = {
+    "name": "Account media",
+    "provider": "r2",
+    "endpoint": "{{storage_endpoint}}",
+    "bucket": "{{storage_bucket}}",
+    "region": "auto",
+    "prefix": "{{storage_prefix}}",
+    "access_key": "{{storage_access_key}}",
+    "secret_key": "{{storage_secret_key}}",
+    "workspace_id": "{{workspace_id}}",
+}
+
 JSON_EXAMPLES = {
+    "POST /v1/me/storage-connections": STORAGE_CONNECTION,
+    "PUT /v1/me/storage-connections/{connection_id}": STORAGE_CONNECTION,
+    "POST /v1/me/storage-connections/{connection_id}/imports": {
+        "request_key": "{{storage_request_key}}",
+        "keys": ["{{storage_object_key}}"],
+        "audience": "work",
+        "workspace_id": "{{workspace_id}}",
+    },
+    "POST /v1/me/storage-connections/{connection_id}/syncs": {
+        "prefix": "{{storage_prefix}}",
+        "audience": "work",
+        "workspace_id": "{{workspace_id}}",
+        "interval_minutes": 15,
+        "enabled": False,
+    },
     "POST /v1/auth/register": {
         "username": "{{registration_username}}",
         "email": "{{registration_email}}",
@@ -37,6 +64,27 @@ GROUP_DESTINATION = (
 )
 
 REQUEST_NOTES = {
+    "POST /v1/me/storage-connections": (
+        "Fill storage_endpoint with the public HTTPS S3 API endpoint, storage_bucket, "
+        "storage_prefix and both private storage credentials. Choose an existing workspace_id. "
+        "For S3 instead of R2, change provider and region. A successful connection enables "
+        "synchronization of the selected folder every 15 minutes."
+    ),
+    "PUT /v1/me/storage-connections/{connection_id}": (
+        "Use the same complete fields as connection creation. To keep credentials, omit both "
+        "access_key and secret_key. Changing the source or destination retires its imported "
+        "copies after validating the new source; remote bucket objects are retained."
+    ),
+    "POST /v1/me/storage-connections/{connection_id}/imports": (
+        "Set storage_object_key from the authorized object listing, within storage_prefix. "
+        "Set a new storage_request_key for a new attempt, reusing it only for the same retry. "
+        "workspace_id is an existing group you belong to. Poll the import after 202."
+    ),
+    "POST /v1/me/storage-connections/{connection_id}/syncs": (
+        "Use a folder within the connection's prefix and an authorized workspace_id. "
+        "Set enabled=true to schedule synchronization; false pauses the matching rule. "
+        "interval_minutes accepts 15, 60 or 1440."
+    ),
     "POST /v1/auth/register": (
         "Supply your new account's registration_* variables. Existing evaluation login "
         "credentials are separate. Registration requires a real email address, a unique "

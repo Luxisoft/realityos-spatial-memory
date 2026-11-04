@@ -5,6 +5,7 @@ const assert = require('node:assert/strict');
 const c = JSON.parse(fs.readFileSync('docs/postman/RealityOS.reference.postman_collection.json'));
 const jury = JSON.parse(fs.readFileSync('docs/postman/RealityOS.postman_collection.json'));
 const defaults = Object.fromEntries([...c.variable, ...jury.variable].map(v => [v.key, v.value]));
+const contract = JSON.parse(fs.readFileSync('tests/contracts/openapi.json'));
 const walk = items => items.flatMap(i => i.item ? walk(i.item) : [i]);
 function execute(item, listen, values = {}, environment = {}, code = 200, body = {}, replies = [], local = {}) {
   let skipped = false;
@@ -33,7 +34,10 @@ function execute(item, listen, values = {}, environment = {}, code = 200, body =
     expect: v => ({ to: { be: { below: n => assert(v < n) }, eql: n => assert.equal(v, n) } })
   };
   for (const e of item.event || []) {
-    if (e.listen === listen) vm.runInNewContext(e.script.exec.join('\n'), { pm, console: { warn: () => {} } });
+    if (e.listen === listen) {
+      try { vm.runInNewContext(e.script.exec.join('\n'), { pm, console: { warn: () => {} } }); }
+      catch (error) { error.recordedFailures = failures; throw error; }
+    }
   }
   return { collection, environment, local, calls, skipped, failures };
 }
@@ -44,6 +48,16 @@ for (const [index, target] of c.item.entries()) {
   const all = walk(target.item);
   for (const i of all) {
     for (const e of i.event || []) new vm.Script(e.script.exec.join('\n'));
+    const [method, path] = i.name.split(' ');
+    const operation = contract.paths[path]?.[method.toLowerCase()];
+    if (operation) {
+      const expected = Object.keys(operation.responses).filter(code => /^2\d\d$/.test(code)).map(Number);
+      const assertion = { event: [{ listen: 'test', script: { exec: [i.event.find(e => e.listen === 'test').script.exec[0]] } }] };
+      for (const code of expected) assert.equal(execute(assertion, 'test', {}, {}, code).failures.length, 0, i.name);
+      for (const code of [199, 200, 201, 202, 204, 206, 301, 302, 304, 400, 401, 403, 404, 422, 429, 500]) {
+        if (!expected.includes(code)) assert.equal(execute(assertion, 'test', {}, {}, code).failures.length, 1, i.name + ' accepted ' + code);
+      }
+    }
     if (JSON.stringify(i.event).includes('enable_write_requests')) {
       assert(execute(i, 'prerequest').skipped);
       assert.equal(execute(i, 'prerequest').calls.length, 0);
@@ -65,10 +79,11 @@ for (const [index, target] of c.item.entries()) {
         assert.deepEqual(Object.keys(result.environment), Object.keys(env));
         assert.equal(result.failures.length, 0);
       }
-      for (const [code, body] of [[401, {}], [200, {}], [200, { access_token: 'incomplete' }]]) {
+      for (const [code, body] of [[401, {}], [200, {}], [200, null], [200, { access_token: 'incomplete' }], [200, { access_token: '', refresh_token: 'incomplete' }]]) {
         const result = execute(i, 'test', { [prefix + 'access_token']: 'previous' }, {}, code, body);
         assert.equal(result.collection[prefix + 'access_token'], 'previous');
-        if (code === 401) assert(result.failures.length);
+        assert(result.failures.length);
+        if (code === 200) assert(result.failures.includes('Session tokens returned'));
       }
     }
   }
@@ -138,7 +153,7 @@ for (const [index, target] of c.item.entries()) {
     assert(changed.calls[0].url.endsWith('/v1/auth/login'));
   }
   for (const reply of [{ code: 401 }, { code: 429 }, { code: 503 }, { error: 'network failure' }, { code: 200, body: {} }, { code: 200, body: null }, { code: 200, invalidJson: true }]) {
-    assert.throws(() => execute(query, 'prerequest', {}, {}, 200, {}, [reply]), /login|Authentication/);
+    assert.throws(() => execute(query, 'prerequest', {}, {}, 200, {}, [reply]), error => /login|Authentication/.test(error.message) && error.recordedFailures.includes('Authentication ready'));
   }
   assert.throws(() => execute(query, 'prerequest', cached, {}, 200, {}, [{ code: 503 }]), /Session validation failed/);
 }

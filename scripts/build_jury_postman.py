@@ -163,7 +163,17 @@ def publish(folders, root, write, namespace, describe, check, reference):
                 v,
                 enabled=True,
                 type="secret"
-                if any(p in v["key"] for p in ("password", "token"))
+                if any(
+                    p in v["key"]
+                    for p in (
+                        "password",
+                        "token",
+                        "access_key",
+                        "secret_key",
+                        "device_key",
+                        "integration_key",
+                    )
+                )
                 else "default",
             )
             for v in collection["variable"]

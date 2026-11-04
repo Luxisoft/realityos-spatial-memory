@@ -9,6 +9,9 @@
   const refresh = sameAccount ? pm.variables.get("refresh_token") : "";
 
   function fail(message) {
+    // skipRequest aborts the sandbox immediately; record the failure first so
+    // a rejected login cannot turn a collection run into a false success.
+    pm.test("Authentication ready", () => { throw new Error(message); });
     pm.execution.skipRequest();
     throw new Error(message);
   }

@@ -77,6 +77,13 @@ VARIABLE_DESCRIPTIONS = {
     "registration_password": "New account's own password, at least 12 characters.",
     "registration_display_name": "Display name for the new account.",
     "account_email": "Real email address for password recovery; login may use a username instead.",
+    "storage_endpoint": "Public HTTPS S3 API endpoint, e.g. https://<account>.r2.cloudflarestorage.com.",
+    "storage_bucket": "Existing bucket name for the selected storage connection.",
+    "storage_prefix": "Folder prefix inside the bucket; empty selects the bucket root.",
+    "storage_access_key": "Your private storage access key; keep it only in your local environment.",
+    "storage_secret_key": "Your private storage secret key; never publish a filled environment.",
+    "storage_object_key": "Object key returned by this connection's authorized object listing.",
+    "storage_request_key": "Unique import attempt ID; reuse only to retry the identical import.",
 }
 GROUPS = [
     ("auth", "Access / Acceso"),
@@ -429,15 +436,24 @@ def generate(spec, check=False):
                 request["url"]["raw"] += "?" + "&".join(
                     q["key"] + "=" + q["value"] for q in enabled_query
                 )
+            success_codes = [
+                int(code)
+                for code in op.get("responses", {})
+                if code.isdigit() and 200 <= int(code) < 300
+            ]
             tests = [
-                'pm.test("Successful response", () => pm.expect(pm.response.code).to.be.below(400));'
+                'pm.test("Successful response", () => pm.expect('
+                + json.dumps(success_codes)
+                + ".includes(pm.response.code)).to.eql(true));"
             ]
             if path in AUTH_POSTS | {"/v1/auth/facebook", "/v1/auth/guest"}:
                 tests += [
                     'pm.test("Login succeeds", () => pm.expect(pm.response.code).to.eql(200));',
                     "if (pm.response.code === 200) {",
                     "  const b = pm.response.json();",
-                    '  if (typeof b.access_token === "string" && b.access_token && typeof b.refresh_token === "string" && b.refresh_token) {',
+                    '  const validTokens = Boolean(b && typeof b.access_token === "string" && b.access_token && typeof b.refresh_token === "string" && b.refresh_token);',
+                    '  pm.test("Session tokens returned", () => pm.expect(validTokens).to.eql(true));',
+                    "  if (validTokens) {",
                     '    pm.collectionVariables.set("access_token", b.access_token);',
                     '    pm.collectionVariables.set("refresh_token", b.refresh_token);',
                     '    const identity = JSON.stringify([String(pm.variables.get("base_url")).replace(/\\/$/, ""), pm.variables.get("email")]);',
