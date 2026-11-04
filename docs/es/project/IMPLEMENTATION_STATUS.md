@@ -2,9 +2,11 @@
 
 # Estado vigente de implementación
 
-Actualizado el **3 de noviembre de 2026**. Un build o una comprobación HTTP no aprueba pruebas físicas. Las entregas anteriores permanecen en Git.
+Actualizado el **4 de noviembre de 2026**. Un build o una comprobación HTTP no aprueba pruebas físicas. Las entregas anteriores permanecen en Git.
 
 ## Evaluación local — entrega vigente
+
+El inicio Android ahora aplica inglés antes de la primera actividad en Android 13+ mediante `LocaleManager`; Android 12 conserva la ruta AppCompat. Se respeta el idioma elegido previamente. Pasaron **296 pruebas unitarias**, incluidos seis casos de inicio/persistencia en API 32 y 35, el formato Kotlin de los archivos modificados, `lintDebug` y la compilación Debug local. Se revisaron las capturas de bienvenida ES/EN, incluyendo 320 dp y texto al 200 %. El APK se compiló en un checkout aislado del servidor con el certificado original, se instaló por ADB inalámbrico y se abrió en un Moto G54 5G (Android 15): el sistema permaneció en `es-ES`, el idioma de la app fue `en` y el selector mostró “Choose an account”. No se borraron cuentas ni datos de la app. SHA-256 del APK canónico: `a5f49bff5edb3e97ae9459f0e34c0c733fe04da8bcaf5b061fc1bfe046ed0a9b`. Esta verificación cubre el arranque; audio, gafas e IA real requieren sus propias comprobaciones.
 
 La instalación principal es localhost Windows/Linux x64: PostgreSQL, Redis, la API existente y el worker. No requiere gateway/proxy/scheduler local, almacenamiento externo, login Facebook ni ElevenLabs. El selector de nueve cuentas solo está en Debug local. El procesamiento y la búsqueda Meta mantienen sus rutas reales; la salida de voz usa voces instaladas sin conexión en Android.
 

@@ -1,6 +1,9 @@
 package com.luxisoft.realityos
 
+import android.app.LocaleManager
 import android.content.Context
+import android.os.Build
+import android.os.LocaleList
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.os.LocaleListCompat
 import kotlinx.coroutines.Dispatchers
@@ -25,7 +28,8 @@ enum class RealityLanguage(val languageTag: String) {
 }
 
 class RealityExperienceStore(context: Context) {
-    private val preferences = context.applicationContext.getSharedPreferences(
+    private val applicationContext = context.applicationContext
+    private val preferences = applicationContext.getSharedPreferences(
         "realityos-experience",
         Context.MODE_PRIVATE
     )
@@ -79,13 +83,19 @@ class RealityExperienceStore(context: Context) {
     fun setLanguage(language: RealityLanguage) {
         preferences.edit().putString(KEY_LANGUAGE, language.languageTag).apply()
         languageState.value = language
-        AppCompatDelegate.setApplicationLocales(LocaleListCompat.forLanguageTags(language.languageTag))
+        applySelectedLanguage()
     }
 
     fun applySelectedLanguage() {
-        AppCompatDelegate.setApplicationLocales(
-            LocaleListCompat.forLanguageTags(selectedLanguage().languageTag)
-        )
+        val tag = selectedLanguage().languageTag
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            // Application.onCreate runs before an AppCompat activity exists.
+            // On Android 13+, use its context directly to apply the startup locale.
+            applicationContext.getSystemService(LocaleManager::class.java).applicationLocales =
+                LocaleList.forLanguageTags(tag)
+        } else {
+            AppCompatDelegate.setApplicationLocales(LocaleListCompat.forLanguageTags(tag))
+        }
     }
 
     fun hasCompletedWelcome(): Boolean = preferences.getBoolean(KEY_WELCOME_COMPLETED, false)

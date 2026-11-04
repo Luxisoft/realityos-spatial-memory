@@ -2,9 +2,11 @@
 
 # Current implementation status
 
-Updated **November 3, 2026**. A build or HTTP check does not approve physical-device testing. Earlier releases remain in Git.
+Updated **November 4, 2026**. A build or HTTP check does not approve physical-device testing. Earlier releases remain in Git.
 
 ## Local evaluation — current delivery
+
+Android startup now applies English before the first activity on Android 13+, using `LocaleManager`; Android 12 retains the AppCompat path. A saved language choice is preserved. **296 unit tests passed**, including six startup/persistence cases across API 32 and 35; targeted Kotlin formatting, `lintDebug` and the local Debug build passed. EN/ES welcome renders were reviewed, including 320 dp and 200% text. The APK was built in an isolated server checkout with the original signing certificate, installed over wireless ADB and opened on a Moto G54 5G (Android 15): the system remained `es-ES`, the app locale was `en`, and the account selector displayed “Choose an account”. No accounts or app data were cleared. Canonical APK SHA-256: `a5f49bff5edb3e97ae9459f0e34c0c733fe04da8bcaf5b061fc1bfe046ed0a9b`. This verifies startup only; audio, glasses and live AI checks remain separate.
 
 The primary installation is now Windows/Linux x64 localhost: PostgreSQL, Redis, the existing API and worker. There is no local gateway/proxy/scheduler, external storage connection, Facebook login or ElevenLabs requirement. Nine-account selection is local Debug only. Meta processing and search retain their real provider paths; Android speech uses installed offline voices.
 
