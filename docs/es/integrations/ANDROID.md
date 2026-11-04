@@ -75,6 +75,25 @@ En Git Bash, usa los [comandos de instalación del README](../README.md#android)
 
 <a id="java-windows"></a>
 
+### Entrega del APK por Git LFS (mantenimiento)
+
+Para la entrega oficial, compila en un directorio aislado del servidor con su firma existente; consulta `.runtime/apk-build-connection.json` en el PC que inicia el build. No cambies servicios ni datos del servidor. Desde Windows, sube un script Bash con `scp` y ejecútalo con `ssh … 'bash /ruta/script.sh'`; evita anidar comandos Bash y comillas dentro de PowerShell.
+
+Si se interrumpe la publicación, reutiliza el APK terminado cuando las fuentes Android coincidan con `origin/main`, las pruebas hayan pasado, la configuración sea local y `apksigner verify --print-certs` confirme la firma anterior. No hace falta recompilar por un error de comillas. Descarga el APK al checkout de entrega actualizado en `main`, en su única ruta canónica. No cambies de rama dentro del build con fuentes modificadas.
+
+La ruta ya está configurada en `.gitattributes`; no repitas `git lfs track`. Desde Git Bash en el checkout de entrega:
+
+```bash
+git lfs install
+git add android/app/build/outputs/apk/debug/app-debug.apk
+git diff --cached --stat
+git show :android/app/build/outputs/apk/debug/app-debug.apk
+git commit -m "build(android): refresh canonical Debug APK"
+git push origin main
+```
+
+Antes del commit, `git show` debe mostrar un puntero LFS con `oid sha256` y `size`, no bytes del APK. Comprueba que ese OID coincida con `sha256sum` del APK validado. El hook de LFS sube el archivo durante `git push`; verifica después el puntero remoto y la descarga LFS. Los usuarios ejecutan `git pull --ff-only` y `git lfs pull` antes de instalar.
+
 ### Java y Android SDK — solo para compilar
 
 Para [compilar desde código](#android-build), usa **JDK 21 LTS** y **Android SDK 36**. Si instalas el APK publicado, puedes omitir esta sección. En Windows:
