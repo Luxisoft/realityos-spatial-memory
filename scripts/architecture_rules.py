@@ -13,6 +13,7 @@ INSTALLATION_MODULES = {
     "app.local.retirement",
     "app.local.sql_data",
     "app.local.social_bootstrap",
+    "app.local.police_biometrics",
     "app.local.state",
     "app.local.upgrades",
     "app.runtime.schema",

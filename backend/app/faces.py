@@ -1582,6 +1582,7 @@ async def search_faces(
     media_id: str | None = Form(default=None),
     probe: UploadFile | None = File(default=None),
     include_records: bool = Form(default=True),
+    person_query: str = Form(default=""),
     user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
@@ -1803,6 +1804,24 @@ async def search_faces(
                 ):
                     continue
                 authorized[row.id] = row
+        if person_query.strip():
+            from app.meta import MetaProviderError, build_meta_client
+            from app.providers.person_filters import JUDICIAL_FILTERS
+            from app.providers.person_filters import interpret as keyword_person_filter
+            from app.workspaces.record_gallery import qualifier_matches
+
+            try:
+                person_filter = build_meta_client(settings).interpret_person_filter(
+                    person_query
+                ).filter
+            except MetaProviderError:
+                person_filter = keyword_person_filter(person_query)
+            if person_filter in JUDICIAL_FILTERS:
+                authorized = {
+                    record_id: row
+                    for record_id, row in authorized.items()
+                    if qualifier_matches(row, person_filter)
+                }
         searchable = [item for item in usable_records if item.record_id in authorized]
         record_skipped += len(usable_records) - len(searchable)
         ranked_records = _rank_record_stage(

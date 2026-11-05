@@ -160,7 +160,12 @@ def _person_detections(post: Publication, evidence: GalleryEvidence) -> list[dic
     current = post.ai_detections or []
     matches = []
     for detection in evidence.detections:
-        if not usable_detection(detection) or not _is_person_label(detection.get("label")):
+        label = detection.get("label")
+        if (
+            not usable_detection(detection)
+            or not _is_person_label(label)
+            or "," in str(label)
+        ):
             continue
         if (
             detection in current

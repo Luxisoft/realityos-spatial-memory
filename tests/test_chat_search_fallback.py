@@ -44,7 +44,7 @@ def _workspace(client, headers) -> str:
     return response.json()["id"]
 
 
-def _person_case(db, owner_id, workspace_id, *, name, warrant, portrait_color):
+def _person_case(db, owner_id, workspace_id, *, name, warrant, portrait_color, label="person"):
     """One person record with a linked portrait publication and person evidence."""
     raw = _png_bytes(portrait_color)
     asset = MediaAsset(
@@ -60,7 +60,7 @@ def _person_case(db, owner_id, workspace_id, *, name, warrant, portrait_color):
     db.add(asset)
     db.flush()
     detection = {
-        "label": "person",
+        "label": label,
         "box": {"x": 0.1, "y": 0.1, "width": 0.8, "height": 0.8},
         "confidence": 0.94,
         "localization_confidence": 0.9,
@@ -74,7 +74,7 @@ def _person_case(db, owner_id, workspace_id, *, name, warrant, portrait_color):
         caption=name,
         note_text=f"Arrest warrant: {'Active' if warrant else 'No warrants registered'}",
         search_text=f"{name} person",
-        ai_labels=["person"],
+        ai_labels=[label],
         ai_detections=[{**detection, "frame_timestamp_ms": None}],
         evidence_version=2,
         face_count=1,
@@ -492,3 +492,43 @@ def test_live_person_filter_falls_back_to_keywords_on_invalid_output(monkeypatch
     result = LiveMetaModelClient(settings).interpret_person_filter("wanted people")
     assert result.filter == "warrant"
     assert result.simulated is True
+def test_records_search_gallery_skips_comma_labels_instead_of_404_urls(
+    client, auth_headers
+):
+    """Comma labels cannot round-trip the evidence endpoint, so they are skipped."""
+    workspace_id = _workspace(client, auth_headers)
+    with client.app.state.database.session_factory() as db:
+        owner = db.query(User).filter_by(email="admin@example.test").one()
+        _person_case(
+            db,
+            owner.id,
+            uuid.UUID(workspace_id),
+            name="Bruno Escobar",
+            warrant=True,
+            portrait_color=(200, 40, 40),
+        )
+        _person_case(
+            db,
+            owner.id,
+            uuid.UUID(workspace_id),
+            name="Esteban Pardo",
+            warrant=True,
+            portrait_color=(40, 200, 40),
+            label="older man with receding gray hair, blue eyes and gray mustache",
+        )
+    response = client.post(
+        f"/v1/workspaces/{workspace_id}/records/search",
+        headers=auth_headers,
+        json={"question": "Find people with arrest warrants", "language": "en"},
+    )
+    assert response.status_code == 200, response.text
+    payload = response.json()
+    assert [record["title"] for record in payload["records"]] == [
+        "Esteban Pardo",
+        "Bruno Escobar",
+    ]
+    gallery = payload["gallery_matches"]
+    assert [item["caption"] for item in gallery] == ["Bruno Escobar"]
+    for item in gallery:
+        fetched = client.get(item["thumbnail_url"], headers=auth_headers)
+        assert fetched.status_code == 200, item["thumbnail_url"]

@@ -377,14 +377,15 @@ internal fun AiChat(
         }
     }
 
-    fun runPeopleText(text: String, fromVoice: Boolean) {
+    fun runPeopleText(text: String, fromVoice: Boolean, fallbackNote: String = "") {
         scope.launch {
             busy = true
             try {
                 val requestLanguage = experienceStore.syncAccountLanguage().languageTag
                 val response = repository.answerRecords(workspaceId, text, requestLanguage)
                 val answer = response.text?.ifBlank { chatText(R.string.chat_no_answer) } ?: chatText(R.string.chat_no_answer)
-                pushAi(answer, message = ChatMessage(role = ChatRole.AI, text = answer, gallery = response.gallery, speakText = answer, responseLanguage = response.language ?: requestLanguage))
+                val shown = if (fallbackNote.isBlank()) answer else "$fallbackNote\n\n$answer"
+                pushAi(shown, message = ChatMessage(role = ChatRole.AI, text = shown, gallery = response.gallery, speakText = shown, responseLanguage = response.language ?: requestLanguage))
             } catch (failure: Exception) {
                 pushAi(chatText(R.string.chat_query_failed))
             } finally {
@@ -393,7 +394,7 @@ internal fun AiChat(
         }
     }
 
-    fun runFaceSearch(probe: PendingChatProbe, fromVoice: Boolean) {
+    fun runFaceSearch(probe: PendingChatProbe, fromVoice: Boolean, personQuery: String = "") {
         if (guestsBlocked) {
             pushAi(localizedText(R.string.ui_guests_cannot_search_for_meta_people))
             return
@@ -401,10 +402,12 @@ internal fun AiChat(
         scope.launch {
             busy = true
             try {
+                val fields = mutableMapOf("workspace_id" to workspaceId)
+                if (personQuery.isNotBlank()) fields["person_query"] = personQuery
                 val raw = withContext(Dispatchers.IO) {
                     SocialSession.requestMultipart(
                         "faces/search",
-                        mapOf("workspace_id" to workspaceId),
+                        fields,
                         probe.bytes,
                         "busqueda.jpg",
                         probe.mime
@@ -413,13 +416,48 @@ internal fun AiChat(
                 val response = JSONObject(raw)
                 val found = response.optJSONArray("matches") ?: JSONArray()
                 val foundRecords = response.optJSONArray("matches_records") ?: JSONArray()
-                val gallery = (0 until found.length()).mapNotNull { decodeFaceThumb(found.optJSONObject(it)) } +
-                    (0 until foundRecords.length()).mapNotNull { decodeRecordFaceThumb(foundRecords.optJSONObject(it)) }
-                val names = gallery.joinToString { faceMatchLabel(it.caption, it.confidence) }
-                val message = if (gallery.isEmpty()) {
-                    chatText(R.string.chat_face_none)
-                } else {
-                    localizedQuantityText(R.plurals.chat_face_found, gallery.size, gallery.size, names)
+                val gallery = (0 until found.length()).mapNotNull {
+                    val match = found.optJSONObject(it)
+                    decodeFaceThumb(match)?.copy(probeBox = faceMatchProbeBox(match))
+                } + (0 until foundRecords.length()).mapNotNull {
+                    val match = foundRecords.optJSONObject(it)
+                    decodeRecordFaceThumb(match)?.copy(probeBox = faceMatchProbeBox(match))
+                }
+                if (gallery.isEmpty()) {
+                    if (personQuery.isNotBlank()) {
+                        runPeopleText(personQuery, fromVoice, chatText(R.string.chat_face_none))
+                    } else {
+                        pushAi(chatText(R.string.chat_face_none))
+                    }
+                    return@launch
+                }
+                val rows = faceGroupRows(gallery, MetaDisplayPolicy.faceGroupPalette())
+                val names = rows.take(MetaDisplayPolicy.FACE_GROUP_MAX_ROWS).joinToString("\n") { row ->
+                    "${row.number}. ${faceMatchLabel(row.thumb.caption, row.thumb.confidence)} \u2014 ${localizedText(MetaDisplayPolicy.faceMarkColorName(row.colorIndex))}"
+                }
+                val header = localizedQuantityText(R.plurals.chat_face_found, gallery.size, gallery.size, "")
+                val message = "$header\n$names"
+                val groupUrl = try {
+                    val marks = faceGroupMarks(rows)
+                    if (marks.isEmpty()) {
+                        null
+                    } else {
+                        withContext(Dispatchers.IO) {
+                            DisplayImageLink.decode(
+                                JSONObject(
+                                    SocialSession.requestMultipart(
+                                        "display/face-group-links",
+                                        mapOf("marks" to faceGroupMarksJson(marks)),
+                                        probe.bytes,
+                                        "grupo.jpg",
+                                        probe.mime
+                                    )
+                                )
+                            ).url
+                        }
+                    }
+                } catch (_: Exception) {
+                    null
                 }
                 pushAi(
                     message,
@@ -428,6 +466,7 @@ internal fun AiChat(
                         role = ChatRole.AI,
                         text = message,
                         gallery = gallery,
+                        evidenceUrl = groupUrl,
                         responseLanguage = deviceLanguage,
                         simulated = response.optBoolean("simulated"),
                         speakText = message
@@ -552,7 +591,7 @@ internal fun AiChat(
                             runPeopleText(question, fromVoice)
                         }
                     }
-                    ChatRoutePolicy.ImageRoute.FACE_PROBE -> runFaceSearch(probe, fromVoice)
+                    ChatRoutePolicy.ImageRoute.FACE_PROBE -> runFaceSearch(probe, fromVoice, question)
                     ChatRoutePolicy.ImageRoute.OBJECT_QUERY -> runObjectQuery(question, probe, fromVoice)
                     null -> pushAi(chatText(R.string.chat_image_failed))
                 }

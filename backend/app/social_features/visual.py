@@ -20,6 +20,12 @@ INDEX_VERSION = 2
 DEFAULT_GROUNDING_TIMEOUT_SECONDS = 300.0
 
 
+def clean_label(label: str) -> str:
+    """Labels travel as comma-joined query values; commas would corrupt them."""
+
+    return " ".join(str(label).replace(",", " ").split())
+
+
 def grounding_timeout_seconds() -> float:
     raw = (os.environ.get("META_GROUNDING_TIMEOUT_SECONDS") or "").strip()
     try:
@@ -63,7 +69,9 @@ def ground(client, raw: bytes) -> tuple[bytes, str, str, list[dict]]:
     for item in analysis.detections:
         box = valid_box(item.bounding_box)
         if box is not None and item.confidence >= MIN_CONFIDENCE:
-            eligible.append(item.model_copy(update={"bounding_box": box}))
+            eligible.append(
+                item.model_copy(update={"label": clean_label(item.label), "bounding_box": box})
+            )
     localized = client.segment_gallery(image, width, height, eligible) if eligible else []
     if len(localized) != len(eligible):
         from app.providers.contracts import MetaProviderError

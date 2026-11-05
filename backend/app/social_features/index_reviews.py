@@ -12,7 +12,7 @@ from app.providers.contracts import MetaProviderError
 from app.schemas import MetaDetection
 from app.social_features.evidence_models import GalleryEvidence, GalleryIndexRun
 from app.social_features.review_localization import localize
-from app.social_features.visual import MIN_CONFIDENCE, normalize, overlap, valid_box
+from app.social_features.visual import MIN_CONFIDENCE, clean_label, normalize, overlap, valid_box
 
 
 def prior_candidates(db, post, recover_legacy=False):
@@ -170,7 +170,7 @@ def review_omissions(db, post, asset, client, run, pending, checkpoint):
                 continue
             detections.append(
                 dict(
-                    label=item.label,
+                    label=clean_label(item.label),
                     box=box,
                     confidence=item.confidence,
                     localization_confidence=mask.confidence,

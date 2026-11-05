@@ -51,9 +51,11 @@ internal object ChatRoutePolicy {
     }
 
     /**
-     * Image-plus-text routing: explicit words win over the detected faces, so
-     * "people with arrest warrants" searches group records instead of running
-     * a biometric probe. Null when there is nothing to route on.
+     * Image-plus-text routing: faces in the probe lead person searches,
+     * so the photo is identified first and the server filters those
+     * matches by the words (arrest warrants, missing, proceedings).
+     * Text-only record search stays for person questions without
+     * usable faces. Null when there is nothing to route on.
      */
     fun imageRoute(question: String, serverTarget: String?, faceCount: Int?): ImageRoute? {
         if (question.isNotBlank()) {
@@ -62,7 +64,7 @@ internal object ChatRoutePolicy {
                 return if (faceCount > 0) ImageRoute.FACE_PROBE else ImageRoute.OBJECT_QUERY
             }
             return when (resolveRoute(serverTarget)) {
-                ResolvedRoute.PEOPLE_SEARCH -> ImageRoute.PEOPLE_TEXT
+                ResolvedRoute.PEOPLE_SEARCH -> if ((faceCount ?: 1) > 0) ImageRoute.FACE_PROBE else ImageRoute.PEOPLE_TEXT
                 else -> ImageRoute.OBJECT_QUERY
             }
         }

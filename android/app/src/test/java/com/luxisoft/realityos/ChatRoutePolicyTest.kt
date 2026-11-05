@@ -121,10 +121,18 @@ class ChatRoutePolicyTest {
     }
 
     @Test
-    fun imageRouteLetsWordsWinOverFaces() {
+    fun imageRouteLetsFacesLeadPersonSearch() {
+        assertEquals(
+            ChatRoutePolicy.ImageRoute.FACE_PROBE,
+            ChatRoutePolicy.imageRoute("Find people with arrest warrants", "person", 2),
+        )
         assertEquals(
             ChatRoutePolicy.ImageRoute.PEOPLE_TEXT,
-            ChatRoutePolicy.imageRoute("Find people with arrest warrants", "person", 2),
+            ChatRoutePolicy.imageRoute("Find people with arrest warrants", "person", 0),
+        )
+        assertEquals(
+            ChatRoutePolicy.ImageRoute.FACE_PROBE,
+            ChatRoutePolicy.imageRoute("Find people with arrest warrants", "person", null),
         )
         assertEquals(
             ChatRoutePolicy.ImageRoute.OBJECT_QUERY,

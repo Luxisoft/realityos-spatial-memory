@@ -124,3 +124,57 @@ def test_enrolled_record_found_by_probe_without_strangers(evaluation, monkeypatc
     assert [item["title"] for item in payload["matches_records"]] == ["Esteban Pardo"]
     assert payload["matches_records"][0]["similarity"] == 1.0
     assert payload["matches"] == []
+def _portrait_bytes(db, title):
+    target = db.scalar(
+        select(Record).where(
+            Record.workspace_id == WORKSPACE, Record.title == title
+        )
+    )
+    link = db.scalar(
+        select(RecordMedia).where(
+            RecordMedia.record_id == target.id,
+            RecordMedia.publication_id.is_not(None),
+        )
+    )
+    return db.get(MediaAsset, link.media_id).original_bytes
+
+
+def _consented_search(client, maya, probe, person_query):
+    consent = client.post(
+        "/v1/faces/consent", headers=headers(client, maya), json={"confirm": True}
+    )
+    assert consent.status_code in (200, 201), consent.text
+    data = {"workspace_id": str(WORKSPACE)}
+    if person_query:
+        data["person_query"] = person_query
+    response = client.request(
+        "POST",
+        "/v1/faces/search",
+        headers=headers(client, maya),
+        data=data,
+        files={"probe": ("probe.png", probe, "image/png")},
+    )
+    assert response.status_code == 200, response.text
+    return response.json()
+
+
+def test_record_matches_respect_person_query(evaluation, monkeypatch):
+    engine = FixtureEngine()
+    monkeypatch.setattr("app.faces.build_face_engine", lambda settings: engine)
+    database = evaluation.app.state.database
+    with database.session_factory() as db:
+        seed(db, evaluation.app.state.settings)
+        esteban = _portrait_bytes(db, "Esteban Pardo")
+        tomas = _portrait_bytes(db, "Tom\u00e1s Beltr\u00e1n")
+    maya = uuid.UUID("002698d6-5b51-5f23-a6b7-8f9ac69767a8")
+    payload = _consented_search(
+        evaluation, maya, esteban, "Find people with arrest warrants"
+    )
+    assert [item["title"] for item in payload["matches_records"]] == ["Esteban Pardo"]
+    payload = _consented_search(
+        evaluation, maya, tomas, "Find people with arrest warrants"
+    )
+    assert payload["matches_records"] == []
+    assert payload["found"] is False
+    payload = _consented_search(evaluation, maya, tomas, "Find people")
+    assert [item["title"] for item in payload["matches_records"]] == ["Tom\u00e1s Beltr\u00e1n"]
