@@ -13,6 +13,8 @@
 
 Android app for saving photos, videos and records in groups and searching evidence with AI. The local server runs PostgreSQL, Redis, API and worker in Docker.
 
+**[Download the 3:00 hackathon demo](https://media.githubusercontent.com/media/Luxisoft/realityos-spatial-memory/main/demo-video/realityos-demo.mp4)** — English narration and subtitles. Build for Your World · Indie Developer track.
+
 <p align="center">
   <a href="deployment/DEPLOYMENT_LINUX.md"><img src="../assets/readme/linux-server-en.svg" alt="Deploy on a Linux server — private evaluation steps" height="40"></a>
 </p>

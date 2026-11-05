@@ -13,6 +13,8 @@
 
 App Android para guardar fotos, videos y expedientes en grupos y consultar evidencia con IA. El servidor local ejecuta PostgreSQL, Redis, API y worker en Docker.
 
+**[Descargar el demo de 3:00 para la hackathon](https://media.githubusercontent.com/media/Luxisoft/realityos-spatial-memory/main/demo-video/realityos-demo.mp4)** — Narración y subtítulos en inglés. Build for Your World · categoría Indie Developer.
+
 <p align="center">
   <a href="deployment/DEPLOYMENT_LINUX.md"><img src="../assets/readme/linux-server-es.svg" alt="Desplegar en servidor Linux — pasos de evaluación privada" height="40"></a>
 </p>
