@@ -1,0 +1,25 @@
+Hey everyone! I’m José Marín, a solo developer building RealityOS for the Indie Developer track.
+
+Theme: Build for Your World
+
+What if a photo could connect you to the information you need, right when you need it?
+
+RealityOS is an Android app that connects visual search with shared photos, videos and records inside authorized work groups. The goal is to spend less time navigating information and more time understanding what’s in front of you.
+
+My demo shows two workflows:
+
+• Public safety: submit a photo and a question, review returned case records, and inspect information about arrest warrants or missing-person search orders.
+• Social connections: use a simulated Meta Display interaction to capture a photo and open an authorized profile.
+
+Under the hood, Muse Spark supports visual and contextual reasoning, SAM 3.1 handles object segmentation, and Muse Voice Transcribe turns speech into searchable requests. Face comparison is a separate component, with its own permissions and consent requirements.
+
+During the hackathon, I extended the existing foundation with video support, segmentation refinements, Android/glasses interaction workflows, and authorized profiles linked to records.
+
+The demo uses fictional case records and synthetic social profiles. The glasses experience is an in-app preview, and the social connection is simulated. Returned case records require review; they are not proof of someone’s identity.
+
+🎬 X video:
+🎬 YouTube video:
+💻 GitHub: https://github.com/Luxisoft/realityos-spatial-memory
+🤝 LinkedIn: https://www.linkedin.com/in/jose-wilson-marin-giraldo-b1a881304/
+
+What would you use RealityOS for in your work or everyday life? I’d love your feedback!

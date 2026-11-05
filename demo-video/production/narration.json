@@ -1,0 +1,3910 @@
+{
+  "voice": {
+    "id": "16swapJezO8OF8CQPKLM",
+    "name": "Clon - Jose Marin Voz",
+    "model": "eleven_multilingual_v2"
+  },
+  "fps": 30,
+  "main": {
+    "duration": 180,
+    "scenes": [
+      {
+        "id": "s01",
+        "duration": 12,
+        "text": "What if a photo could take you straight to the information you are allowed to see? This is Reality O S.",
+        "audio": "audio/s01.mp3",
+        "audio_duration": 6.4,
+        "captions": [
+          {
+            "text": "What if a photo could take you straight to",
+            "start": 0.043750000000000004,
+            "end": 2.3075
+          },
+          {
+            "text": "the information you are allowed to see?",
+            "start": 2.3949999999999996,
+            "end": 4.382499999999999
+          },
+          {
+            "text": "This is RealityOS.",
+            "start": 4.441249999999999,
+            "end": 6.27
+          }
+        ],
+        "words": [
+          {
+            "text": "What",
+            "start": 0.043750000000000004,
+            "end": 0.29
+          },
+          {
+            "text": "if",
+            "start": 0.37749999999999995,
+            "end": 0.49375
+          },
+          {
+            "text": "a",
+            "start": 0.595,
+            "end": 0.6237499999999999
+          },
+          {
+            "text": "photo",
+            "start": 0.6825,
+            "end": 0.98625
+          },
+          {
+            "text": "could",
+            "start": 1.0599999999999998,
+            "end": 1.2912499999999998
+          },
+          {
+            "text": "take",
+            "start": 1.335,
+            "end": 1.5812499999999998
+          },
+          {
+            "text": "you",
+            "start": 1.625,
+            "end": 1.7125000000000001
+          },
+          {
+            "text": "straight",
+            "start": 1.7699999999999998,
+            "end": 2.17625
+          },
+          {
+            "text": "to",
+            "start": 2.2199999999999998,
+            "end": 2.3075
+          },
+          {
+            "text": "the",
+            "start": 2.3949999999999996,
+            "end": 2.48125
+          },
+          {
+            "text": "information",
+            "start": 2.54,
+            "end": 3.2074999999999996
+          },
+          {
+            "text": "you",
+            "start": 3.28,
+            "end": 3.3674999999999997
+          },
+          {
+            "text": "are",
+            "start": 3.41,
+            "end": 3.52625
+          },
+          {
+            "text": "allowed",
+            "start": 3.57,
+            "end": 3.875
+          },
+          {
+            "text": "to",
+            "start": 3.90375,
+            "end": 3.97625
+          },
+          {
+            "text": "see?",
+            "start": 4.048749999999999,
+            "end": 4.382499999999999
+          },
+          {
+            "text": "This",
+            "start": 4.441249999999999,
+            "end": 4.73125
+          },
+          {
+            "text": "is",
+            "start": 4.81875,
+            "end": 4.9487499999999995
+          },
+          {
+            "text": "Reality",
+            "start": 5.09375,
+            "end": 5.601249999999999
+          },
+          {
+            "text": "O",
+            "start": 5.673749999999999,
+            "end": 5.77625
+          },
+          {
+            "text": "S.",
+            "start": 5.8925,
+            "end": 6.27
+          }
+        ],
+        "start": 0,
+        "speech_tempo": 0.8
+      },
+      {
+        "id": "s02",
+        "duration": 13,
+        "text": "I'm José Marín, a solo builder in Build for Your World. Reality O S connects visual search, authorized records, and shared context through Android and a Meta glasses preview.",
+        "audio": "audio/s02.mp3",
+        "audio_duration": 10.370612,
+        "captions": [
+          {
+            "text": "I'm José Marín, a solo builder in Build for",
+            "start": 0.043750000000000004,
+            "end": 2.65625
+          },
+          {
+            "text": "Your World. RealityOS connects visual search, authorized",
+            "start": 2.7137499999999997,
+            "end": 6.1674999999999995
+          },
+          {
+            "text": "records, and shared context through Android and a Meta",
+            "start": 6.226249999999999,
+            "end": 8.9975
+          },
+          {
+            "text": "glasses preview.",
+            "start": 9.05625,
+            "end": 10.101249999999999
+          }
+        ],
+        "words": [
+          {
+            "text": "I'm",
+            "start": 0.043750000000000004,
+            "end": 0.24625
+          },
+          {
+            "text": "José",
+            "start": 0.31875,
+            "end": 0.595
+          },
+          {
+            "text": "Marín,",
+            "start": 0.6525,
+            "end": 1.0599999999999998
+          },
+          {
+            "text": "a",
+            "start": 1.0887499999999999,
+            "end": 1.1325
+          },
+          {
+            "text": "solo",
+            "start": 1.2049999999999998,
+            "end": 1.52375
+          },
+          {
+            "text": "builder",
+            "start": 1.5962499999999997,
+            "end": 2.0025
+          },
+          {
+            "text": "in",
+            "start": 2.06125,
+            "end": 2.13375
+          },
+          {
+            "text": "Build",
+            "start": 2.25,
+            "end": 2.4675
+          },
+          {
+            "text": "for",
+            "start": 2.5112499999999995,
+            "end": 2.65625
+          },
+          {
+            "text": "Your",
+            "start": 2.7137499999999997,
+            "end": 2.8449999999999998
+          },
+          {
+            "text": "World.",
+            "start": 2.9025,
+            "end": 3.2074999999999996
+          },
+          {
+            "text": "Reality",
+            "start": 3.3087499999999994,
+            "end": 3.83125
+          },
+          {
+            "text": "O",
+            "start": 3.90375,
+            "end": 3.9475
+          },
+          {
+            "text": "S",
+            "start": 4.06375,
+            "end": 4.1075
+          },
+          {
+            "text": "connects",
+            "start": 4.208749999999999,
+            "end": 4.57125
+          },
+          {
+            "text": "visual",
+            "start": 4.6875,
+            "end": 5.078749999999999
+          },
+          {
+            "text": "search,",
+            "start": 5.16625,
+            "end": 5.5725
+          },
+          {
+            "text": "authorized",
+            "start": 5.601249999999999,
+            "end": 6.1674999999999995
+          },
+          {
+            "text": "records,",
+            "start": 6.226249999999999,
+            "end": 6.69
+          },
+          {
+            "text": "and",
+            "start": 6.71875,
+            "end": 6.835
+          },
+          {
+            "text": "shared",
+            "start": 6.87875,
+            "end": 7.155
+          },
+          {
+            "text": "context",
+            "start": 7.2275,
+            "end": 7.691249999999999
+          },
+          {
+            "text": "through",
+            "start": 7.7212499999999995,
+            "end": 8.011249999999999
+          },
+          {
+            "text": "Android",
+            "start": 8.055,
+            "end": 8.44625
+          },
+          {
+            "text": "and",
+            "start": 8.50375,
+            "end": 8.60625
+          },
+          {
+            "text": "a",
+            "start": 8.66375,
+            "end": 8.692499999999999
+          },
+          {
+            "text": "Meta",
+            "start": 8.764999999999999,
+            "end": 8.9975
+          },
+          {
+            "text": "glasses",
+            "start": 9.05625,
+            "end": 9.4625
+          },
+          {
+            "text": "preview.",
+            "start": 9.535,
+            "end": 10.101249999999999
+          }
+        ],
+        "start": 12,
+        "speech_tempo": 0.8
+      },
+      {
+        "id": "s03",
+        "duration": 15,
+        "text": "First, I select a local Police account. Its fictional case records distinguish active arrest warrants from missing-person search orders. Each account sees only information shared within its workspace.",
+        "audio": "audio/s03.mp3",
+        "audio_duration": 11.180408,
+        "captions": [
+          {
+            "text": "First, I select a local Police account.",
+            "start": 0.040448111418863,
+            "end": 2.3344338590315217
+          },
+          {
+            "text": "Its fictional case records distinguish active arrest",
+            "start": 2.3887498943654237,
+            "end": 5.232829957274618
+          },
+          {
+            "text": "warrants from missing-person search orders.",
+            "start": 5.2732780686934815,
+            "end": 7.392759107041903
+          },
+          {
+            "text": "Each account sees only information shared within its",
+            "start": 7.473655329879628,
+            "end": 10.197546718858488
+          },
+          {
+            "text": "workspace.",
+            "start": 10.250707093866136,
+            "end": 10.908277819504224
+          }
+        ],
+        "words": [
+          {
+            "text": "First,",
+            "start": 0.040448111418863,
+            "end": 0.349009418528475
+          },
+          {
+            "text": "I",
+            "start": 0.429905641366201,
+            "end": 0.49693394028888827
+          },
+          {
+            "text": "select",
+            "start": 0.5905424267153998,
+            "end": 0.9395518452438747
+          },
+          {
+            "text": "a",
+            "start": 1.006580144166562,
+            "end": 1.0331603316703863
+          },
+          {
+            "text": "local",
+            "start": 1.1001886305930735,
+            "end": 1.4353301252065098
+          },
+          {
+            "text": "Police",
+            "start": 1.5023584241291972,
+            "end": 1.8513678426576723
+          },
+          {
+            "text": "account.",
+            "start": 1.8779480301614964,
+            "end": 2.3344338590315217
+          },
+          {
+            "text": "Its",
+            "start": 2.3887498943654237,
+            "end": 2.589834791133485
+          },
+          {
+            "text": "fictional",
+            "start": 2.6568630900561723,
+            "end": 3.1133489189261976
+          },
+          {
+            "text": "case",
+            "start": 3.1803772178488847,
+            "end": 3.394174378205732
+          },
+          {
+            "text": "records",
+            "start": 3.448490413539634,
+            "end": 3.7974998320681093
+          },
+          {
+            "text": "distinguish",
+            "start": 3.8367922831607184,
+            "end": 4.347594147364646
+          },
+          {
+            "text": "active",
+            "start": 4.455070557706196,
+            "end": 4.910400726249968
+          },
+          {
+            "text": "arrest",
+            "start": 4.950848837668831,
+            "end": 5.232829957274618
+          },
+          {
+            "text": "warrants",
+            "start": 5.2732780686934815,
+            "end": 5.622287487221957
+          },
+          {
+            "text": "from",
+            "start": 5.661579938314567,
+            "end": 5.8360846475788035
+          },
+          {
+            "text": "missing-person",
+            "start": 5.8904006829127065,
+            "end": 6.560683672139578
+          },
+          {
+            "text": "search",
+            "start": 6.627711971062266,
+            "end": 6.86924497924919
+          },
+          {
+            "text": "orders.",
+            "start": 6.950141202086916,
+            "end": 7.392759107041903
+          },
+          {
+            "text": "Each",
+            "start": 7.473655329879628,
+            "end": 7.701320414151515
+          },
+          {
+            "text": "account",
+            "start": 7.755636449485417,
+            "end": 8.103490207687639
+          },
+          {
+            "text": "sees",
+            "start": 8.15780624302154,
+            "end": 8.345023215874564
+          },
+          {
+            "text": "only",
+            "start": 8.42591943871229,
+            "end": 8.653584522984175
+          },
+          {
+            "text": "information",
+            "start": 8.694032634403039,
+            "end": 9.33889109645234
+          },
+          {
+            "text": "shared",
+            "start": 9.39205147145999,
+            "end": 9.660164667150738
+          },
+          {
+            "text": "within",
+            "start": 9.71448070248464,
+            "end": 9.995306161764173
+          },
+          {
+            "text": "its",
+            "start": 10.062334460686861,
+            "end": 10.197546718858488
+          },
+          {
+            "text": "workspace.",
+            "start": 10.250707093866136,
+            "end": 10.908277819504224
+          }
+        ],
+        "start": 25,
+        "speech_tempo": 0.8653061607142857
+      },
+      {
+        "id": "s04",
+        "duration": 40,
+        "text": "I attach a photo and ask the chat to search for people with outstanding arrest warrants. The response brings five warrant-related records into view. I open the record labeled Esteban Pardo to inspect its details and original portrait. The app also flags uncertainty about the photo match, so these results require review. Warrant status comes from stored case information, never from assumptions about someone's appearance.",
+        "audio": "audio/s04.mp3",
+        "audio_duration": 25.991837,
+        "captions": [
+          {
+            "text": "I attach a photo and ask the chat to",
+            "start": 0.043490557913126136,
+            "end": 2.1061855903642512
+          },
+          {
+            "text": "search for people with outstanding arrest warrants.",
+            "start": 2.178255657763146,
+            "end": 4.904492345231681
+          },
+          {
+            "text": "The response brings five warrant-related records into",
+            "start": 5.020052970543702,
+            "end": 8.237111668746088
+          },
+          {
+            "text": "view. I open the record labeled Esteban Pardo to",
+            "start": 8.309181736144984,
+            "end": 11.67038056914516
+          },
+          {
+            "text": "inspect its details and original portrait.",
+            "start": 11.77227273339877,
+            "end": 14.425196766099464
+          },
+          {
+            "text": "The app also flags uncertainty about the photo match,",
+            "start": 14.570579488266201,
+            "end": 17.844797205440127
+          },
+          {
+            "text": "so these results require review.",
+            "start": 17.960357830752145,
+            "end": 19.937314334745967
+          },
+          {
+            "text": "Warrant status comes from stored case information, never",
+            "start": 20.03796391163063,
+            "end": 23.384251696203446
+          },
+          {
+            "text": "from assumptions about someone's appearance.",
+            "start": 23.45632176360234,
+            "end": 25.909189229902655
+          }
+        ],
+        "words": [
+          {
+            "text": "I",
+            "start": 0.043490557913126136,
+            "end": 0.07207006739889474
+          },
+          {
+            "text": "attach",
+            "start": 0.12922908637043193,
+            "end": 0.4324204043933684
+          },
+          {
+            "text": "a",
+            "start": 0.5044904717922631,
+            "end": 0.5343125686469782
+          },
+          {
+            "text": "photo",
+            "start": 0.5914715876185154,
+            "end": 0.9518219246129891
+          },
+          {
+            "text": "and",
+            "start": 0.9804014340987577,
+            "end": 1.110873107838136
+          },
+          {
+            "text": "ask",
+            "start": 1.1829431752370307,
+            "end": 1.4426439353468412
+          },
+          {
+            "text": "the",
+            "start": 1.4861344932599672,
+            "end": 1.6153635796303991
+          },
+          {
+            "text": "chat",
+            "start": 1.6874336470292939,
+            "end": 1.9471344071391041
+          },
+          {
+            "text": "to",
+            "start": 2.019204474537999,
+            "end": 2.1061855903642512
+          },
+          {
+            "text": "search",
+            "start": 2.178255657763146,
+            "end": 2.437956417872956
+          },
+          {
+            "text": "for",
+            "start": 2.510026485271851,
+            "end": 2.6541666200696405
+          },
+          {
+            "text": "people",
+            "start": 2.7560587843232502,
+            "end": 3.1449886308034927
+          },
+          {
+            "text": "with",
+            "start": 3.1884791887166184,
+            "end": 3.3611988330001767
+          },
+          {
+            "text": "outstanding",
+            "start": 3.4196004393406603,
+            "end": 3.9526704206186922
+          },
+          {
+            "text": "arrest",
+            "start": 4.011072026959176,
+            "end": 4.299352296554755
+          },
+          {
+            "text": "warrants.",
+            "start": 4.371422363953649,
+            "end": 4.904492345231681
+          },
+          {
+            "text": "The",
+            "start": 5.020052970543702,
+            "end": 5.164193105341491
+          },
+          {
+            "text": "response",
+            "start": 5.2511742211677435,
+            "end": 5.799155250873133
+          },
+          {
+            "text": "brings",
+            "start": 5.842645808786259,
+            "end": 6.174416636294964
+          },
+          {
+            "text": "five",
+            "start": 6.2750662131796275,
+            "end": 6.5782575312025635
+          },
+          {
+            "text": "warrant-related",
+            "start": 6.62174808911569,
+            "end": 7.487831485271373
+          },
+          {
+            "text": "records",
+            "start": 7.559901552670268,
+            "end": 7.94883139915051
+          },
+          {
+            "text": "into",
+            "start": 8.020901466549406,
+            "end": 8.237111668746088
+          },
+          {
+            "text": "view.",
+            "start": 8.309181736144984,
+            "end": 8.713022631052583
+          },
+          {
+            "text": "I",
+            "start": 8.828583256364604,
+            "end": 8.886984862705088
+          },
+          {
+            "text": "open",
+            "start": 9.031124997502877,
+            "end": 9.334316315525813
+          },
+          {
+            "text": "the",
+            "start": 9.40638638292471,
+            "end": 9.492124911382016
+          },
+          {
+            "text": "record",
+            "start": 9.550526517722497,
+            "end": 9.910876854716973
+          },
+          {
+            "text": "labeled",
+            "start": 9.997857970543224,
+            "end": 10.415367326509235
+          },
+          {
+            "text": "Esteban",
+            "start": 10.48743739390813,
+            "end": 11.065240520468233
+          },
+          {
+            "text": "Pardo",
+            "start": 11.165890097352898,
+            "end": 11.51257197328896
+          },
+          {
+            "text": "to",
+            "start": 11.584642040687855,
+            "end": 11.67038056914516
+          },
+          {
+            "text": "inspect",
+            "start": 11.77227273339877,
+            "end": 12.233272647277909
+          },
+          {
+            "text": "its",
+            "start": 12.29167425361839,
+            "end": 12.43581438841618
+          },
+          {
+            "text": "details",
+            "start": 12.507884455815075,
+            "end": 13.027285976034696
+          },
+          {
+            "text": "and",
+            "start": 13.084444995006232,
+            "end": 13.200005620318253
+          },
+          {
+            "text": "original",
+            "start": 13.272075687717148,
+            "end": 13.747986650023643
+          },
+          {
+            "text": "portrait.",
+            "start": 13.820056717422538,
+            "end": 14.425196766099464
+          },
+          {
+            "text": "The",
+            "start": 14.570579488266201,
+            "end": 14.71471962306399
+          },
+          {
+            "text": "app",
+            "start": 14.786789690462886,
+            "end": 14.98808884423221
+          },
+          {
+            "text": "also",
+            "start": 15.060158911631104,
+            "end": 15.34968176859563
+          },
+          {
+            "text": "flags",
+            "start": 15.435420297052937,
+            "end": 15.795770634047411
+          },
+          {
+            "text": "uncertainty",
+            "start": 15.854172240387895,
+            "end": 16.5897839628042
+          },
+          {
+            "text": "about",
+            "start": 16.646942981775737,
+            "end": 16.96504534822603
+          },
+          {
+            "text": "the",
+            "start": 17.00853590613916,
+            "end": 17.09427443459646
+          },
+          {
+            "text": "photo",
+            "start": 17.152676040936946,
+            "end": 17.455867358959882
+          },
+          {
+            "text": "match,",
+            "start": 17.527937426358775,
+            "end": 17.844797205440127
+          },
+          {
+            "text": "so",
+            "start": 17.960357830752145,
+            "end": 18.191479081376187
+          },
+          {
+            "text": "these",
+            "start": 18.263549148775084,
+            "end": 18.464848302544407
+          },
+          {
+            "text": "results",
+            "start": 18.508338860457535,
+            "end": 18.95567031327826
+          },
+          {
+            "text": "require",
+            "start": 19.012829332249797,
+            "end": 19.431581275584755
+          },
+          {
+            "text": "review.",
+            "start": 19.460160785070524,
+            "end": 19.937314334745967
+          },
+          {
+            "text": "Warrant",
+            "start": 20.03796391163063,
+            "end": 20.455473267596638
+          },
+          {
+            "text": "status",
+            "start": 20.498963825509765,
+            "end": 20.96120632675785
+          },
+          {
+            "text": "comes",
+            "start": 21.046944855215152,
+            "end": 21.350136173238088
+          },
+          {
+            "text": "from",
+            "start": 21.393626731151215,
+            "end": 21.58125742386213
+          },
+          {
+            "text": "stored",
+            "start": 21.638416442833673,
+            "end": 21.927939299798194
+          },
+          {
+            "text": "case",
+            "start": 21.985098318769733,
+            "end": 22.244799078879545
+          },
+          {
+            "text": "information,",
+            "start": 22.28828963679267,
+            "end": 23.038812407636332
+          },
+          {
+            "text": "never",
+            "start": 23.110882475035226,
+            "end": 23.384251696203446
+          },
+          {
+            "text": "from",
+            "start": 23.45632176360234,
+            "end": 23.643952456313254
+          },
+          {
+            "text": "assumptions",
+            "start": 23.73093357213951,
+            "end": 24.39447522715692
+          },
+          {
+            "text": "about",
+            "start": 24.43796578507005,
+            "end": 24.726246054665626
+          },
+          {
+            "text": "someone's",
+            "start": 24.769736612578754,
+            "end": 25.23073652645789
+          },
+          {
+            "text": "appearance.",
+            "start": 25.260558623312605,
+            "end": 25.909189229902655
+          }
+        ],
+        "start": 40,
+        "speech_tempo": 0.8047723846153846
+      },
+      {
+        "id": "s05",
+        "duration": 12,
+        "text": "Next, I enter Meta Social Media with a separate account. This local workspace simulates a social network using synthetic profiles, without a live Facebook connection.",
+        "audio": "audio/s05.mp3",
+        "audio_duration": 9.978776,
+        "captions": [
+          {
+            "text": "Next, I enter Meta Social Media with a separate",
+            "start": 0.039757976159981556,
+            "end": 3.0329656099185924
+          },
+          {
+            "text": "account. This local workspace simulates a social network",
+            "start": 3.06022822214258,
+            "end": 6.316974440733069
+          },
+          {
+            "text": "using synthetic profiles, without a live Facebook",
+            "start": 6.396490393053032,
+            "end": 9.126159441979766
+          },
+          {
+            "text": "connection.",
+            "start": 9.152286112027754,
+            "end": 9.772510540123465
+          }
+        ],
+        "words": [
+          {
+            "text": "Next,",
+            "start": 0.039757976159981556,
+            "end": 0.44869715951979183
+          },
+          {
+            "text": "I",
+            "start": 0.5145818057277612,
+            "end": 0.6065931219837186
+          },
+          {
+            "text": "enter",
+            "start": 0.7383624143996574,
+            "end": 1.095048257663492
+          },
+          {
+            "text": "Meta",
+            "start": 1.1609329038714613,
+            "end": 1.4108401825913452
+          },
+          {
+            "text": "Social",
+            "start": 1.4642294648633205,
+            "end": 1.8197793659511556
+          },
+          {
+            "text": "Media",
+            "start": 1.8856640121591248,
+            "end": 2.1492025969910027
+          },
+          {
+            "text": "with",
+            "start": 2.228718549310966,
+            "end": 2.4400037940468677
+          },
+          {
+            "text": "a",
+            "start": 2.4797617702068493,
+            "end": 2.505888440254837
+          },
+          {
+            "text": "separate",
+            "start": 2.5717730864628066,
+            "end": 3.0329656099185924
+          },
+          {
+            "text": "account.",
+            "start": 3.06022822214258,
+            "end": 3.4816627694383846
+          },
+          {
+            "text": "This",
+            "start": 3.5077894394863725,
+            "end": 3.692948014174286
+          },
+          {
+            "text": "local",
+            "start": 3.7713280243182496,
+            "end": 4.101887197534097
+          },
+          {
+            "text": "workspace",
+            "start": 4.154140537630073,
+            "end": 4.76073365961379
+          },
+          {
+            "text": "simulates",
+            "start": 4.7868603296617795,
+            "end": 5.354831417661516
+          },
+          {
+            "text": "a",
+            "start": 5.393453451645498,
+            "end": 5.420716063869485
+          },
+          {
+            "text": "social",
+            "start": 5.47296940396546,
+            "end": 5.816023941117302
+          },
+          {
+            "text": "network",
+            "start": 5.895539893437265,
+            "end": 6.316974440733069
+          },
+          {
+            "text": "using",
+            "start": 6.396490393053032,
+            "end": 6.673660283996903
+          },
+          {
+            "text": "synthetic",
+            "start": 6.739544930204873,
+            "end": 7.24049542982064
+          },
+          {
+            "text": "profiles,",
+            "start": 7.292748769916616,
+            "end": 7.88684652796434
+          },
+          {
+            "text": "without",
+            "start": 7.912973198012328,
+            "end": 8.268523099100163
+          },
+          {
+            "text": "a",
+            "start": 8.335543687484133,
+            "end": 8.36167035753212
+          },
+          {
+            "text": "live",
+            "start": 8.440050367676083,
+            "end": 8.677462282459974
+          },
+          {
+            "text": "Facebook",
+            "start": 8.717220258619955,
+            "end": 9.126159441979766
+          },
+          {
+            "text": "connection.",
+            "start": 9.152286112027754,
+            "end": 9.772510540123465
+          }
+        ],
+        "start": 80,
+        "speech_tempo": 0.8803265
+      },
+      {
+        "id": "s06",
+        "duration": 34,
+        "text": "Here is the simulated Meta Display preview inside the app. I choose person search and capture a reference portrait with the phone camera. A profile candidate appears. Opening it brings the authorized profile into Android, where I can inspect the information shared with me. This demonstrates the glasses interaction through a working phone preview, rather than physical glasses footage.",
+        "audio": "audio/s06.mp3",
+        "audio_duration": 23.301224,
+        "captions": [
+          {
+            "text": "Here is the simulated Meta Display preview inside the",
+            "start": 0.043750000000000004,
+            "end": 3.3524999999999996
+          },
+          {
+            "text": "app. I choose person search and capture a reference",
+            "start": 3.45375,
+            "end": 6.53
+          },
+          {
+            "text": "portrait with the phone camera.",
+            "start": 6.57375,
+            "end": 8.417499999999999
+          },
+          {
+            "text": "A profile candidate appears.",
+            "start": 8.44625,
+            "end": 10.3475
+          },
+          {
+            "text": "Opening it brings the authorized profile into Android,",
+            "start": 10.4925,
+            "end": 13.6125
+          },
+          {
+            "text": "where I can inspect the information shared with me.",
+            "start": 13.64125,
+            "end": 16.384999999999998
+          },
+          {
+            "text": "This demonstrates the glasses interaction through a",
+            "start": 16.4575,
+            "end": 19.3025
+          },
+          {
+            "text": "working phone preview, rather than physical glasses",
+            "start": 19.36,
+            "end": 22.552500000000002
+          },
+          {
+            "text": "footage.",
+            "start": 22.625,
+            "end": 23.22
+          }
+        ],
+        "words": [
+          {
+            "text": "Here",
+            "start": 0.043750000000000004,
+            "end": 0.26125
+          },
+          {
+            "text": "is",
+            "start": 0.31875,
+            "end": 0.42125
+          },
+          {
+            "text": "the",
+            "start": 0.44999999999999996,
+            "end": 0.5375
+          },
+          {
+            "text": "simulated",
+            "start": 0.595,
+            "end": 1.2049999999999998
+          },
+          {
+            "text": "Meta",
+            "start": 1.2912499999999998,
+            "end": 1.5962499999999997
+          },
+          {
+            "text": "Display",
+            "start": 1.66875,
+            "end": 2.17625
+          },
+          {
+            "text": "preview",
+            "start": 2.25,
+            "end": 2.7137499999999997
+          },
+          {
+            "text": "inside",
+            "start": 2.8149999999999995,
+            "end": 3.22125
+          },
+          {
+            "text": "the",
+            "start": 3.2512499999999998,
+            "end": 3.3524999999999996
+          },
+          {
+            "text": "app.",
+            "start": 3.45375,
+            "end": 3.74375
+          },
+          {
+            "text": "I",
+            "start": 3.7874999999999996,
+            "end": 3.86
+          },
+          {
+            "text": "choose",
+            "start": 3.97625,
+            "end": 4.29625
+          },
+          {
+            "text": "person",
+            "start": 4.35375,
+            "end": 4.7025
+          },
+          {
+            "text": "search",
+            "start": 4.788749999999999,
+            "end": 5.1225
+          },
+          {
+            "text": "and",
+            "start": 5.1812499999999995,
+            "end": 5.2975
+          },
+          {
+            "text": "capture",
+            "start": 5.38375,
+            "end": 5.833749999999999
+          },
+          {
+            "text": "a",
+            "start": 5.8925,
+            "end": 5.935
+          },
+          {
+            "text": "reference",
+            "start": 6.0375,
+            "end": 6.53
+          },
+          {
+            "text": "portrait",
+            "start": 6.57375,
+            "end": 7.0825000000000005
+          },
+          {
+            "text": "with",
+            "start": 7.14,
+            "end": 7.32875
+          },
+          {
+            "text": "the",
+            "start": 7.3725,
+            "end": 7.46
+          },
+          {
+            "text": "phone",
+            "start": 7.5325,
+            "end": 7.86625
+          },
+          {
+            "text": "camera.",
+            "start": 7.9087499999999995,
+            "end": 8.417499999999999
+          },
+          {
+            "text": "A",
+            "start": 8.44625,
+            "end": 8.51875
+          },
+          {
+            "text": "profile",
+            "start": 8.635,
+            "end": 9.12875
+          },
+          {
+            "text": "candidate",
+            "start": 9.1725,
+            "end": 9.737499999999999
+          },
+          {
+            "text": "appears.",
+            "start": 9.7675,
+            "end": 10.3475
+          },
+          {
+            "text": "Opening",
+            "start": 10.4925,
+            "end": 11.0
+          },
+          {
+            "text": "it",
+            "start": 11.087499999999999,
+            "end": 11.174999999999999
+          },
+          {
+            "text": "brings",
+            "start": 11.2325,
+            "end": 11.5375
+          },
+          {
+            "text": "the",
+            "start": 11.56625,
+            "end": 11.65375
+          },
+          {
+            "text": "authorized",
+            "start": 11.6975,
+            "end": 12.219999999999999
+          },
+          {
+            "text": "profile",
+            "start": 12.2625,
+            "end": 12.799999999999999
+          },
+          {
+            "text": "into",
+            "start": 12.82875,
+            "end": 13.06125
+          },
+          {
+            "text": "Android,",
+            "start": 13.13375,
+            "end": 13.6125
+          },
+          {
+            "text": "where",
+            "start": 13.64125,
+            "end": 13.859999999999998
+          },
+          {
+            "text": "I",
+            "start": 13.903749999999999,
+            "end": 13.932500000000001
+          },
+          {
+            "text": "can",
+            "start": 14.005,
+            "end": 14.178749999999999
+          },
+          {
+            "text": "inspect",
+            "start": 14.251249999999999,
+            "end": 14.701249999999998
+          },
+          {
+            "text": "the",
+            "start": 14.73,
+            "end": 14.817499999999999
+          },
+          {
+            "text": "information",
+            "start": 14.861249999999998,
+            "end": 15.513749999999998
+          },
+          {
+            "text": "shared",
+            "start": 15.5725,
+            "end": 15.8775
+          },
+          {
+            "text": "with",
+            "start": 15.92,
+            "end": 16.095
+          },
+          {
+            "text": "me.",
+            "start": 16.1525,
+            "end": 16.384999999999998
+          },
+          {
+            "text": "This",
+            "start": 16.4575,
+            "end": 16.71875
+          },
+          {
+            "text": "demonstrates",
+            "start": 16.776249999999997,
+            "end": 17.5025
+          },
+          {
+            "text": "the",
+            "start": 17.53125,
+            "end": 17.61875
+          },
+          {
+            "text": "glasses",
+            "start": 17.69125,
+            "end": 18.12625
+          },
+          {
+            "text": "interaction",
+            "start": 18.185,
+            "end": 18.881249999999998
+          },
+          {
+            "text": "through",
+            "start": 18.95375,
+            "end": 19.24375
+          },
+          {
+            "text": "a",
+            "start": 19.272499999999997,
+            "end": 19.3025
+          },
+          {
+            "text": "working",
+            "start": 19.36,
+            "end": 19.76625
+          },
+          {
+            "text": "phone",
+            "start": 19.825,
+            "end": 20.086249999999996
+          },
+          {
+            "text": "preview,",
+            "start": 20.143749999999997,
+            "end": 20.75375
+          },
+          {
+            "text": "rather",
+            "start": 20.912499999999998,
+            "end": 21.232499999999998
+          },
+          {
+            "text": "than",
+            "start": 21.29,
+            "end": 21.45
+          },
+          {
+            "text": "physical",
+            "start": 21.537499999999998,
+            "end": 22.044999999999998
+          },
+          {
+            "text": "glasses",
+            "start": 22.117499999999996,
+            "end": 22.552500000000002
+          },
+          {
+            "text": "footage.",
+            "start": 22.625,
+            "end": 23.22
+          }
+        ],
+        "start": 92,
+        "speech_tempo": 0.8
+      },
+      {
+        "id": "s07",
+        "duration": 22,
+        "text": "Meta models support the broader system. Muse Spark interprets visual and contextual requests. SAM supports object segmentation, and Muse Voice Transcribe handles speech input. Face comparison uses a separate component. Workspace permissions and consent requirements remain part of the application.",
+        "audio": "audio/s07.mp3",
+        "audio_duration": 15.986939,
+        "captions": [
+          {
+            "text": "Meta models support the broader system.",
+            "start": 0.03578881455111848,
+            "end": 1.8518155186307301
+          },
+          {
+            "text": "Muse Spark interprets visual and contextual requests.",
+            "start": 1.9704298754287228,
+            "end": 5.282429027745088
+          },
+          {
+            "text": "SAM supports object segmentation, and Muse Voice",
+            "start": 5.496139377493194,
+            "end": 8.049415661325847
+          },
+          {
+            "text": "Transcribe handles speech input.",
+            "start": 8.072934025173724,
+            "end": 9.782616823158584
+          },
+          {
+            "text": "Face comparison uses a separate component.",
+            "start": 9.8173831001511,
+            "end": 12.013793776031171
+          },
+          {
+            "text": "Workspace permissions and consent requirements remain part",
+            "start": 12.04958259058229,
+            "end": 14.839065050452323
+          },
+          {
+            "text": "of the application.",
+            "start": 14.874853865003441,
+            "end": 15.765484078546988
+          }
+        ],
+        "words": [
+          {
+            "text": "Meta",
+            "start": 0.03578881455111848,
+            "end": 0.3200542558428595
+          },
+          {
+            "text": "models",
+            "start": 0.36811352109721857,
+            "end": 0.6176126853964445
+          },
+          {
+            "text": "support",
+            "start": 0.6411310492443224,
+            "end": 0.985726206493663
+          },
+          {
+            "text": "the",
+            "start": 1.009244570341541,
+            "end": 1.0808221994437779
+          },
+          {
+            "text": "broader",
+            "start": 1.1278589271395336,
+            "end": 1.4008764552866375
+          },
+          {
+            "text": "system.",
+            "start": 1.436665269837756,
+            "end": 1.8518155186307301
+          },
+          {
+            "text": "Muse",
+            "start": 1.9704298754287228,
+            "end": 2.291506668830186
+          },
+          {
+            "text": "Spark",
+            "start": 2.4101210256281784,
+            "end": 2.7894824598700345
+          },
+          {
+            "text": "interprets",
+            "start": 2.861060088972271,
+            "end": 3.3713063307153606
+          },
+          {
+            "text": "visual",
+            "start": 3.455154410520838,
+            "end": 3.798727030211575
+          },
+          {
+            "text": "and",
+            "start": 3.8703046593138124,
+            "end": 3.976648565408564
+          },
+          {
+            "text": "contextual",
+            "start": 4.060496645214042,
+            "end": 4.617779614652886
+          },
+          {
+            "text": "requests.",
+            "start": 4.689357243755124,
+            "end": 5.282429027745088
+          },
+          {
+            "text": "SAM",
+            "start": 5.496139377493194,
+            "end": 5.74563854179242
+          },
+          {
+            "text": "supports",
+            "start": 5.804945720191416,
+            "end": 6.221118506542994
+          },
+          {
+            "text": "object",
+            "start": 6.280425684941991,
+            "end": 6.5411727623858535
+          },
+          {
+            "text": "segmentation,",
+            "start": 6.564691126233732,
+            "end": 7.277399804580291
+          },
+          {
+            "text": "and",
+            "start": 7.3009181684281685,
+            "end": 7.455321339777281
+          },
+          {
+            "text": "Muse",
+            "start": 7.526898968879516,
+            "end": 7.776398133178743
+          },
+          {
+            "text": "Voice",
+            "start": 7.8111644101712585,
+            "end": 8.049415661325847
+          },
+          {
+            "text": "Transcribe",
+            "start": 8.072934025173724,
+            "end": 8.547391452365694
+          },
+          {
+            "text": "handles",
+            "start": 8.583180266916814,
+            "end": 8.903234522759673
+          },
+          {
+            "text": "speech",
+            "start": 8.951293788014032,
+            "end": 9.319407309111252
+          },
+          {
+            "text": "input.",
+            "start": 9.389962400654884,
+            "end": 9.782616823158584
+          },
+          {
+            "text": "Face",
+            "start": 9.8173831001511,
+            "end": 10.043363900602447
+          },
+          {
+            "text": "comparison",
+            "start": 10.079152715153565,
+            "end": 10.589398956896655
+          },
+          {
+            "text": "uses",
+            "start": 10.660976585998892,
+            "end": 10.957512477993873
+          },
+          {
+            "text": "a",
+            "start": 11.016819656392869,
+            "end": 11.040338020240748
+          },
+          {
+            "text": "separate",
+            "start": 11.099645198639744,
+            "end": 11.467758719736963
+          },
+          {
+            "text": "component.",
+            "start": 11.503547534288082,
+            "end": 12.013793776031171
+          },
+          {
+            "text": "Workspace",
+            "start": 12.04958259058229,
+            "end": 12.50052165392638
+          },
+          {
+            "text": "permissions",
+            "start": 12.536310468477499,
+            "end": 12.987249531821593
+          },
+          {
+            "text": "and",
+            "start": 13.023038346372712,
+            "end": 13.105863888619586
+          },
+          {
+            "text": "consent",
+            "start": 13.165171067018582,
+            "end": 13.54555503881904
+          },
+          {
+            "text": "requirements",
+            "start": 13.617132667921277,
+            "end": 14.186686088063365
+          },
+          {
+            "text": "remain",
+            "start": 14.258263717165601,
+            "end": 14.542529158457342
+          },
+          {
+            "text": "part",
+            "start": 14.625354700704216,
+            "end": 14.839065050452323
+          },
+          {
+            "text": "of",
+            "start": 14.874853865003441,
+            "end": 14.934161043402439
+          },
+          {
+            "text": "the",
+            "start": 14.982220308656796,
+            "end": 15.05277540020043
+          },
+          {
+            "text": "application.",
+            "start": 15.08856421475155,
+            "end": 15.765484078546988
+          }
+        ],
+        "start": 126,
+        "speech_tempo": 0.9779591875
+      },
+      {
+        "id": "s08",
+        "duration": 13,
+        "text": "During the hackathon, I extended an existing foundation with video, segmentation refinements, Android and glasses workflows, authorized profile search, and linked records. The repository documents these contributions.",
+        "audio": "audio/s08.mp3",
+        "audio_duration": 11.546122,
+        "captions": [
+          {
+            "text": "During the hackathon, I extended an existing foundation",
+            "start": 0.035,
+            "end": 2.879
+          },
+          {
+            "text": "with video, segmentation refinements, Android and glasses",
+            "start": 2.937,
+            "end": 6.084
+          },
+          {
+            "text": "workflows, authorized profile search, and linked records.",
+            "start": 6.13,
+            "end": 9.067
+          },
+          {
+            "text": "The repository documents these contributions.",
+            "start": 9.091,
+            "end": 11.355
+          }
+        ],
+        "words": [
+          {
+            "text": "During",
+            "start": 0.035,
+            "end": 0.29
+          },
+          {
+            "text": "the",
+            "start": 0.325,
+            "end": 0.406
+          },
+          {
+            "text": "hackathon,",
+            "start": 0.464,
+            "end": 1.068
+          },
+          {
+            "text": "I",
+            "start": 1.138,
+            "end": 1.196
+          },
+          {
+            "text": "extended",
+            "start": 1.277,
+            "end": 1.718
+          },
+          {
+            "text": "an",
+            "start": 1.753,
+            "end": 1.823
+          },
+          {
+            "text": "existing",
+            "start": 1.892,
+            "end": 2.322
+          },
+          {
+            "text": "foundation",
+            "start": 2.38,
+            "end": 2.879
+          },
+          {
+            "text": "with",
+            "start": 2.937,
+            "end": 3.077
+          },
+          {
+            "text": "video,",
+            "start": 3.135,
+            "end": 3.576
+          },
+          {
+            "text": "segmentation",
+            "start": 3.646,
+            "end": 4.342
+          },
+          {
+            "text": "refinements,",
+            "start": 4.4,
+            "end": 5.039
+          },
+          {
+            "text": "Android",
+            "start": 5.12,
+            "end": 5.55
+          },
+          {
+            "text": "and",
+            "start": 5.584,
+            "end": 5.666
+          },
+          {
+            "text": "glasses",
+            "start": 5.724,
+            "end": 6.084
+          },
+          {
+            "text": "workflows,",
+            "start": 6.13,
+            "end": 6.711
+          },
+          {
+            "text": "authorized",
+            "start": 6.757,
+            "end": 7.279
+          },
+          {
+            "text": "profile",
+            "start": 7.338,
+            "end": 7.767
+          },
+          {
+            "text": "search,",
+            "start": 7.814,
+            "end": 8.127
+          },
+          {
+            "text": "and",
+            "start": 8.15,
+            "end": 8.255
+          },
+          {
+            "text": "linked",
+            "start": 8.313,
+            "end": 8.545
+          },
+          {
+            "text": "records.",
+            "start": 8.603,
+            "end": 9.067
+          },
+          {
+            "text": "The",
+            "start": 9.091,
+            "end": 9.195
+          },
+          {
+            "text": "repository",
+            "start": 9.253,
+            "end": 9.834
+          },
+          {
+            "text": "documents",
+            "start": 9.88,
+            "end": 10.31
+          },
+          {
+            "text": "these",
+            "start": 10.368,
+            "end": 10.53
+          },
+          {
+            "text": "contributions.",
+            "start": 10.577,
+            "end": 11.355
+          }
+        ],
+        "start": 148,
+        "speech_tempo": 1.0
+      },
+      {
+        "id": "s09",
+        "duration": 12,
+        "text": "The same foundation could support care teams accessing authorized records, or help people recall where an object was last seen. These scenes illustrate future applications.",
+        "audio": "audio/s09.mp3",
+        "audio_duration": 9.952653,
+        "captions": [
+          {
+            "text": "The same foundation could support care teams accessing",
+            "start": 0.04097381410367851,
+            "end": 2.7721711942145912
+          },
+          {
+            "text": "authorized records, or help people recall where an object",
+            "start": 2.81314500831827,
+            "end": 6.088708775806626
+          },
+          {
+            "text": "was last seen.",
+            "start": 6.129682589910304,
+            "end": 6.9725724800431195
+          },
+          {
+            "text": "These scenes illustrate future applications.",
+            "start": 7.217244684262228,
+            "end": 9.772840003928806
+          }
+        ],
+        "words": [
+          {
+            "text": "The",
+            "start": 0.04097381410367851,
+            "end": 0.16272457601175178
+          },
+          {
+            "text": "same",
+            "start": 0.23062403938356188,
+            "end": 0.4073967802308605
+          },
+          {
+            "text": "foundation",
+            "start": 0.4483705943345391,
+            "end": 0.9646406520408881
+          },
+          {
+            "text": "could",
+            "start": 1.0325401154126983,
+            "end": 1.2374091859310907
+          },
+          {
+            "text": "support",
+            "start": 1.2643348351992225,
+            "end": 1.6448059661619514
+          },
+          {
+            "text": "care",
+            "start": 1.6986572646982148,
+            "end": 1.9023556548136449
+          },
+          {
+            "text": "teams",
+            "start": 1.95737763375287,
+            "end": 2.2430236520756575
+          },
+          {
+            "text": "accessing",
+            "start": 2.2828267857763738,
+            "end": 2.7721711942145912
+          },
+          {
+            "text": "authorized",
+            "start": 2.81314500831827,
+            "end": 3.3024894167564876
+          },
+          {
+            "text": "records,",
+            "start": 3.3703888801282975,
+            "end": 3.8866589378346466
+          },
+          {
+            "text": "or",
+            "start": 3.995532215310135,
+            "end": 4.172304956157434
+          },
+          {
+            "text": "help",
+            "start": 4.2542525843647905,
+            "end": 4.457950974480221
+          },
+          {
+            "text": "people",
+            "start": 4.539898602687578,
+            "end": 4.90632156881476
+          },
+          {
+            "text": "recall",
+            "start": 4.9613435477539864,
+            "end": 5.327766513881168
+          },
+          {
+            "text": "where",
+            "start": 5.409714142088525,
+            "end": 5.613412532203955
+          },
+          {
+            "text": "an",
+            "start": 5.640338181472086,
+            "end": 5.722285809679444
+          },
+          {
+            "text": "object",
+            "start": 5.790185273051254,
+            "end": 6.088708775806626
+          },
+          {
+            "text": "was",
+            "start": 6.129682589910304,
+            "end": 6.265481516653924
+          },
+          {
+            "text": "last",
+            "start": 6.347429144861281,
+            "end": 6.565175699812258
+          },
+          {
+            "text": "seen.",
+            "start": 6.592101349080391,
+            "end": 6.9725724800431195
+          },
+          {
+            "text": "These",
+            "start": 7.217244684262228,
+            "end": 7.488842537749469
+          },
+          {
+            "text": "scenes",
+            "start": 7.5157681870176,
+            "end": 7.842388019444066
+          },
+          {
+            "text": "illustrate",
+            "start": 7.910287482815876,
+            "end": 8.385583726418547
+          },
+          {
+            "text": "future",
+            "start": 8.426557540522225,
+            "end": 8.753177372948691
+          },
+          {
+            "text": "applications.",
+            "start": 8.79415118705237,
+            "end": 9.772840003928806
+          }
+        ],
+        "start": 161,
+        "speech_tempo": 0.8542040999999999
+      },
+      {
+        "id": "s10",
+        "duration": 7,
+        "text": "Reality O S. Context within reach. What would you build with it?",
+        "audio": "audio/s10.mp3",
+        "audio_duration": 3.683265,
+        "captions": [
+          {
+            "text": "RealityOS.",
+            "start": 0.0725,
+            "end": 0.98625
+          },
+          {
+            "text": "Context within reach.",
+            "start": 1.0162499999999999,
+            "end": 2.20625
+          },
+          {
+            "text": "What would you build with it?",
+            "start": 2.235,
+            "end": 3.59875
+          }
+        ],
+        "words": [
+          {
+            "text": "Reality",
+            "start": 0.0725,
+            "end": 0.6387499999999999
+          },
+          {
+            "text": "O",
+            "start": 0.7249999999999999,
+            "end": 0.7549999999999999
+          },
+          {
+            "text": "S.",
+            "start": 0.8999999999999999,
+            "end": 0.98625
+          },
+          {
+            "text": "Context",
+            "start": 1.0162499999999999,
+            "end": 1.4799999999999998
+          },
+          {
+            "text": "within",
+            "start": 1.53875,
+            "end": 1.8424999999999998
+          },
+          {
+            "text": "reach.",
+            "start": 1.9162499999999998,
+            "end": 2.20625
+          },
+          {
+            "text": "What",
+            "start": 2.235,
+            "end": 2.4375
+          },
+          {
+            "text": "would",
+            "start": 2.48125,
+            "end": 2.685
+          },
+          {
+            "text": "you",
+            "start": 2.72875,
+            "end": 2.8149999999999995
+          },
+          {
+            "text": "build",
+            "start": 2.8874999999999997,
+            "end": 3.1199999999999997
+          },
+          {
+            "text": "with",
+            "start": 3.1924999999999994,
+            "end": 3.3674999999999997
+          },
+          {
+            "text": "it?",
+            "start": 3.4250000000000003,
+            "end": 3.59875
+          }
+        ],
+        "start": 173,
+        "speech_tempo": 0.8
+      }
+    ]
+  },
+  "x": {
+    "duration": 135,
+    "scenes": [
+      {
+        "id": "x01",
+        "duration": 10,
+        "text": "What if a photo could take you straight to the information you are allowed to see? This is Reality O S.",
+        "audio": "audio/x01.mp3",
+        "audio_duration": 6.4,
+        "captions": [
+          {
+            "text": "What if a photo could take you straight to",
+            "start": 0.043750000000000004,
+            "end": 2.3075
+          },
+          {
+            "text": "the information you are allowed to see?",
+            "start": 2.3949999999999996,
+            "end": 4.382499999999999
+          },
+          {
+            "text": "This is RealityOS.",
+            "start": 4.441249999999999,
+            "end": 6.27
+          }
+        ],
+        "words": [
+          {
+            "text": "What",
+            "start": 0.043750000000000004,
+            "end": 0.29
+          },
+          {
+            "text": "if",
+            "start": 0.37749999999999995,
+            "end": 0.49375
+          },
+          {
+            "text": "a",
+            "start": 0.595,
+            "end": 0.6237499999999999
+          },
+          {
+            "text": "photo",
+            "start": 0.6825,
+            "end": 0.98625
+          },
+          {
+            "text": "could",
+            "start": 1.0599999999999998,
+            "end": 1.2912499999999998
+          },
+          {
+            "text": "take",
+            "start": 1.335,
+            "end": 1.5812499999999998
+          },
+          {
+            "text": "you",
+            "start": 1.625,
+            "end": 1.7125000000000001
+          },
+          {
+            "text": "straight",
+            "start": 1.7699999999999998,
+            "end": 2.17625
+          },
+          {
+            "text": "to",
+            "start": 2.2199999999999998,
+            "end": 2.3075
+          },
+          {
+            "text": "the",
+            "start": 2.3949999999999996,
+            "end": 2.48125
+          },
+          {
+            "text": "information",
+            "start": 2.54,
+            "end": 3.2074999999999996
+          },
+          {
+            "text": "you",
+            "start": 3.28,
+            "end": 3.3674999999999997
+          },
+          {
+            "text": "are",
+            "start": 3.41,
+            "end": 3.52625
+          },
+          {
+            "text": "allowed",
+            "start": 3.57,
+            "end": 3.875
+          },
+          {
+            "text": "to",
+            "start": 3.90375,
+            "end": 3.97625
+          },
+          {
+            "text": "see?",
+            "start": 4.048749999999999,
+            "end": 4.382499999999999
+          },
+          {
+            "text": "This",
+            "start": 4.441249999999999,
+            "end": 4.73125
+          },
+          {
+            "text": "is",
+            "start": 4.81875,
+            "end": 4.9487499999999995
+          },
+          {
+            "text": "Reality",
+            "start": 5.09375,
+            "end": 5.601249999999999
+          },
+          {
+            "text": "O",
+            "start": 5.673749999999999,
+            "end": 5.77625
+          },
+          {
+            "text": "S.",
+            "start": 5.8925,
+            "end": 6.27
+          }
+        ],
+        "start": 0,
+        "speech_tempo": 0.8
+      },
+      {
+        "id": "x02",
+        "duration": 10,
+        "text": "I'm José Marín, a solo builder in Build for Your World. Reality O S connects visual search, authorized records, and shared context through Android and a Meta glasses preview.",
+        "audio": "audio/x02.mp3",
+        "audio_duration": 9.717551,
+        "captions": [
+          {
+            "text": "I'm José Marín, a solo builder in Build for",
+            "start": 0.04108011386625086,
+            "end": 2.494149770450945
+          },
+          {
+            "text": "Your World. RealityOS connects visual search, authorized",
+            "start": 2.5481407772465885,
+            "end": 5.791122337602335
+          },
+          {
+            "text": "records, and shared context through Android and a Meta",
+            "start": 5.846287061937014,
+            "end": 8.448418845979248
+          },
+          {
+            "text": "glasses preview.",
+            "start": 8.503583570313927,
+            "end": 9.484811432947804
+          }
+        ],
+        "words": [
+          {
+            "text": "I'm",
+            "start": 0.04108011386625086,
+            "end": 0.23122235519004053
+          },
+          {
+            "text": "José",
+            "start": 0.2992979724541134,
+            "end": 0.5586895485810116
+          },
+          {
+            "text": "Marín,",
+            "start": 0.6126805553766557,
+            "end": 0.9953124731023064
+          },
+          {
+            "text": "a",
+            "start": 1.0223079765001284,
+            "end": 1.0633880903663793
+          },
+          {
+            "text": "solo",
+            "start": 1.1314637076304521,
+            "end": 1.4307616800845655
+          },
+          {
+            "text": "builder",
+            "start": 1.4988372973486384,
+            "end": 1.8802954975352535
+          },
+          {
+            "text": "in",
+            "start": 1.9354602218699333,
+            "end": 2.003535839134006
+          },
+          {
+            "text": "Build",
+            "start": 2.11269157026433,
+            "end": 2.316918422056548
+          },
+          {
+            "text": "for",
+            "start": 2.357998535922799,
+            "end": 2.494149770450945
+          },
+          {
+            "text": "Your",
+            "start": 2.5481407772465885,
+            "end": 2.671381118845341
+          },
+          {
+            "text": "World.",
+            "start": 2.7253721256409853,
+            "end": 3.0117592051657054
+          },
+          {
+            "text": "Reality",
+            "start": 3.1068303258276,
+            "end": 3.5974442571445393
+          },
+          {
+            "text": "O",
+            "start": 3.6655198744086124,
+            "end": 3.7065999882748626
+          },
+          {
+            "text": "S",
+            "start": 3.8157557194051863,
+            "end": 3.8568358332714374
+          },
+          {
+            "text": "connects",
+            "start": 3.9519069539333325,
+            "end": 4.292285040253697
+          },
+          {
+            "text": "visual",
+            "start": 4.40144077138402,
+            "end": 4.768814361102206
+          },
+          {
+            "text": "search,",
+            "start": 4.850974588834708,
+            "end": 5.232432789021323
+          },
+          {
+            "text": "authorized",
+            "start": 5.259428292419145,
+            "end": 5.791122337602335
+          },
+          {
+            "text": "records,",
+            "start": 5.846287061937014,
+            "end": 6.281736268919274
+          },
+          {
+            "text": "and",
+            "start": 6.3087317723170955,
+            "end": 6.417887503447419
+          },
+          {
+            "text": "shared",
+            "start": 6.458967617313671,
+            "end": 6.718359193440569
+          },
+          {
+            "text": "context",
+            "start": 6.786434810704641,
+            "end": 7.2218840176869
+          },
+          {
+            "text": "through",
+            "start": 7.2500532386237575,
+            "end": 7.522355707680049
+          },
+          {
+            "text": "Android",
+            "start": 7.5634358215463005,
+            "end": 7.9308094112644865
+          },
+          {
+            "text": "and",
+            "start": 7.98480041806013,
+            "end": 8.08104525626106
+          },
+          {
+            "text": "a",
+            "start": 8.135036263056705,
+            "end": 8.162031766454527
+          },
+          {
+            "text": "Meta",
+            "start": 8.230107383718599,
+            "end": 8.448418845979248
+          },
+          {
+            "text": "glasses",
+            "start": 8.503583570313927,
+            "end": 8.885041770500543
+          },
+          {
+            "text": "preview.",
+            "start": 8.953117387764616,
+            "end": 9.484811432947804
+          }
+        ],
+        "start": 10,
+        "speech_tempo": 0.8519937435897436
+      },
+      {
+        "id": "x03",
+        "duration": 10,
+        "text": "First, I select a local Police account. Its fictional case records distinguish active arrest warrants from missing-person search orders. Each account sees only information shared within its workspace.",
+        "audio": "audio/x03.mp3",
+        "audio_duration": 9.743673,
+        "captions": [
+          {
+            "text": "First, I select a local Police account.",
+            "start": 0.03521152556552806,
+            "end": 2.032208046924762
+          },
+          {
+            "text": "Its fictional case records distinguish active arrest",
+            "start": 2.0794920955413287,
+            "end": 4.555365364591744
+          },
+          {
+            "text": "warrants from missing-person search orders.",
+            "start": 4.590576890157272,
+            "end": 6.435660829790943
+          },
+          {
+            "text": "Each account sees only information shared within its",
+            "start": 6.506083880921998,
+            "end": 8.877328616863416
+          },
+          {
+            "text": "workspace.",
+            "start": 8.923606621892395,
+            "end": 9.496045423229123
+          }
+        ],
+        "words": [
+          {
+            "text": "First,",
+            "start": 0.03521152556552806,
+            "end": 0.3038251634511278
+          },
+          {
+            "text": "I",
+            "start": 0.37424821458218394,
+            "end": 0.43259874266220183
+          },
+          {
+            "text": "select",
+            "start": 0.5140882732567097,
+            "end": 0.8179134367078373
+          },
+          {
+            "text": "a",
+            "start": 0.8762639647878554,
+            "end": 0.8994029673023453
+          },
+          {
+            "text": "local",
+            "start": 0.9577534953823631,
+            "end": 1.2495061357824528
+          },
+          {
+            "text": "Police",
+            "start": 1.3078566638624707,
+            "end": 1.6116818273135987
+          },
+          {
+            "text": "account.",
+            "start": 1.6348208298280884,
+            "end": 2.032208046924762
+          },
+          {
+            "text": "Its",
+            "start": 2.0794920955413287,
+            "end": 2.2545436797813823
+          },
+          {
+            "text": "fictional",
+            "start": 2.3128942078614,
+            "end": 2.710281424958074
+          },
+          {
+            "text": "case",
+            "start": 2.7686319530380916,
+            "end": 2.954750016741597
+          },
+          {
+            "text": "records",
+            "start": 3.0020340653581634,
+            "end": 3.3058592288092914
+          },
+          {
+            "text": "distinguish",
+            "start": 3.3400647107872325,
+            "end": 3.784735976500473
+          },
+          {
+            "text": "active",
+            "start": 3.878298030146019,
+            "end": 4.274679203655106
+          },
+          {
+            "text": "arrest",
+            "start": 4.309890729220634,
+            "end": 4.555365364591744
+          },
+          {
+            "text": "warrants",
+            "start": 4.590576890157272,
+            "end": 4.8944020536084
+          },
+          {
+            "text": "from",
+            "start": 4.928607535586342,
+            "end": 5.080520117311905
+          },
+          {
+            "text": "missing-person",
+            "start": 5.127804165928472,
+            "end": 5.7113094467286505
+          },
+          {
+            "text": "search",
+            "start": 5.769659974808669,
+            "end": 5.97992308461425
+          },
+          {
+            "text": "orders.",
+            "start": 6.050346135745307,
+            "end": 6.435660829790943
+          },
+          {
+            "text": "Each",
+            "start": 6.506083880921998,
+            "end": 6.704274467676542
+          },
+          {
+            "text": "account",
+            "start": 6.751558516293109,
+            "end": 7.054377636156649
+          },
+          {
+            "text": "sees",
+            "start": 7.101661684773216,
+            "end": 7.2646407459622315
+          },
+          {
+            "text": "only",
+            "start": 7.335063797093288,
+            "end": 7.533254383847832
+          },
+          {
+            "text": "information",
+            "start": 7.568465909413359,
+            "end": 8.129838231286636
+          },
+          {
+            "text": "shared",
+            "start": 8.176116236315616,
+            "end": 8.409518348635686
+          },
+          {
+            "text": "within",
+            "start": 8.456802397252254,
+            "end": 8.701270989035775
+          },
+          {
+            "text": "its",
+            "start": 8.759621517115795,
+            "end": 8.877328616863416
+          },
+          {
+            "text": "workspace.",
+            "start": 8.923606621892395,
+            "end": 9.496045423229123
+          }
+        ],
+        "start": 20,
+        "speech_tempo": 0.9939927179487179
+      },
+      {
+        "id": "x04",
+        "duration": 30,
+        "text": "I attach a photo and ask the chat to search for people with outstanding arrest warrants. The response brings five warrant-related records into view. I open the record labeled Esteban Pardo to inspect its details and original portrait. The app also flags uncertainty about the photo match, so these results require review. Warrant status comes from stored case information, never from assumptions about someone's appearance.",
+        "audio": "audio/x04.mp3",
+        "audio_duration": 25.991837,
+        "captions": [
+          {
+            "text": "I attach a photo and ask the chat to",
+            "start": 0.043490557913126136,
+            "end": 2.1061855903642512
+          },
+          {
+            "text": "search for people with outstanding arrest warrants.",
+            "start": 2.178255657763146,
+            "end": 4.904492345231681
+          },
+          {
+            "text": "The response brings five warrant-related records into",
+            "start": 5.020052970543702,
+            "end": 8.237111668746088
+          },
+          {
+            "text": "view. I open the record labeled Esteban Pardo to",
+            "start": 8.309181736144984,
+            "end": 11.67038056914516
+          },
+          {
+            "text": "inspect its details and original portrait.",
+            "start": 11.77227273339877,
+            "end": 14.425196766099464
+          },
+          {
+            "text": "The app also flags uncertainty about the photo match,",
+            "start": 14.570579488266201,
+            "end": 17.844797205440127
+          },
+          {
+            "text": "so these results require review.",
+            "start": 17.960357830752145,
+            "end": 19.937314334745967
+          },
+          {
+            "text": "Warrant status comes from stored case information, never",
+            "start": 20.03796391163063,
+            "end": 23.384251696203446
+          },
+          {
+            "text": "from assumptions about someone's appearance.",
+            "start": 23.45632176360234,
+            "end": 25.909189229902655
+          }
+        ],
+        "words": [
+          {
+            "text": "I",
+            "start": 0.043490557913126136,
+            "end": 0.07207006739889474
+          },
+          {
+            "text": "attach",
+            "start": 0.12922908637043193,
+            "end": 0.4324204043933684
+          },
+          {
+            "text": "a",
+            "start": 0.5044904717922631,
+            "end": 0.5343125686469782
+          },
+          {
+            "text": "photo",
+            "start": 0.5914715876185154,
+            "end": 0.9518219246129891
+          },
+          {
+            "text": "and",
+            "start": 0.9804014340987577,
+            "end": 1.110873107838136
+          },
+          {
+            "text": "ask",
+            "start": 1.1829431752370307,
+            "end": 1.4426439353468412
+          },
+          {
+            "text": "the",
+            "start": 1.4861344932599672,
+            "end": 1.6153635796303991
+          },
+          {
+            "text": "chat",
+            "start": 1.6874336470292939,
+            "end": 1.9471344071391041
+          },
+          {
+            "text": "to",
+            "start": 2.019204474537999,
+            "end": 2.1061855903642512
+          },
+          {
+            "text": "search",
+            "start": 2.178255657763146,
+            "end": 2.437956417872956
+          },
+          {
+            "text": "for",
+            "start": 2.510026485271851,
+            "end": 2.6541666200696405
+          },
+          {
+            "text": "people",
+            "start": 2.7560587843232502,
+            "end": 3.1449886308034927
+          },
+          {
+            "text": "with",
+            "start": 3.1884791887166184,
+            "end": 3.3611988330001767
+          },
+          {
+            "text": "outstanding",
+            "start": 3.4196004393406603,
+            "end": 3.9526704206186922
+          },
+          {
+            "text": "arrest",
+            "start": 4.011072026959176,
+            "end": 4.299352296554755
+          },
+          {
+            "text": "warrants.",
+            "start": 4.371422363953649,
+            "end": 4.904492345231681
+          },
+          {
+            "text": "The",
+            "start": 5.020052970543702,
+            "end": 5.164193105341491
+          },
+          {
+            "text": "response",
+            "start": 5.2511742211677435,
+            "end": 5.799155250873133
+          },
+          {
+            "text": "brings",
+            "start": 5.842645808786259,
+            "end": 6.174416636294964
+          },
+          {
+            "text": "five",
+            "start": 6.2750662131796275,
+            "end": 6.5782575312025635
+          },
+          {
+            "text": "warrant-related",
+            "start": 6.62174808911569,
+            "end": 7.487831485271373
+          },
+          {
+            "text": "records",
+            "start": 7.559901552670268,
+            "end": 7.94883139915051
+          },
+          {
+            "text": "into",
+            "start": 8.020901466549406,
+            "end": 8.237111668746088
+          },
+          {
+            "text": "view.",
+            "start": 8.309181736144984,
+            "end": 8.713022631052583
+          },
+          {
+            "text": "I",
+            "start": 8.828583256364604,
+            "end": 8.886984862705088
+          },
+          {
+            "text": "open",
+            "start": 9.031124997502877,
+            "end": 9.334316315525813
+          },
+          {
+            "text": "the",
+            "start": 9.40638638292471,
+            "end": 9.492124911382016
+          },
+          {
+            "text": "record",
+            "start": 9.550526517722497,
+            "end": 9.910876854716973
+          },
+          {
+            "text": "labeled",
+            "start": 9.997857970543224,
+            "end": 10.415367326509235
+          },
+          {
+            "text": "Esteban",
+            "start": 10.48743739390813,
+            "end": 11.065240520468233
+          },
+          {
+            "text": "Pardo",
+            "start": 11.165890097352898,
+            "end": 11.51257197328896
+          },
+          {
+            "text": "to",
+            "start": 11.584642040687855,
+            "end": 11.67038056914516
+          },
+          {
+            "text": "inspect",
+            "start": 11.77227273339877,
+            "end": 12.233272647277909
+          },
+          {
+            "text": "its",
+            "start": 12.29167425361839,
+            "end": 12.43581438841618
+          },
+          {
+            "text": "details",
+            "start": 12.507884455815075,
+            "end": 13.027285976034696
+          },
+          {
+            "text": "and",
+            "start": 13.084444995006232,
+            "end": 13.200005620318253
+          },
+          {
+            "text": "original",
+            "start": 13.272075687717148,
+            "end": 13.747986650023643
+          },
+          {
+            "text": "portrait.",
+            "start": 13.820056717422538,
+            "end": 14.425196766099464
+          },
+          {
+            "text": "The",
+            "start": 14.570579488266201,
+            "end": 14.71471962306399
+          },
+          {
+            "text": "app",
+            "start": 14.786789690462886,
+            "end": 14.98808884423221
+          },
+          {
+            "text": "also",
+            "start": 15.060158911631104,
+            "end": 15.34968176859563
+          },
+          {
+            "text": "flags",
+            "start": 15.435420297052937,
+            "end": 15.795770634047411
+          },
+          {
+            "text": "uncertainty",
+            "start": 15.854172240387895,
+            "end": 16.5897839628042
+          },
+          {
+            "text": "about",
+            "start": 16.646942981775737,
+            "end": 16.96504534822603
+          },
+          {
+            "text": "the",
+            "start": 17.00853590613916,
+            "end": 17.09427443459646
+          },
+          {
+            "text": "photo",
+            "start": 17.152676040936946,
+            "end": 17.455867358959882
+          },
+          {
+            "text": "match,",
+            "start": 17.527937426358775,
+            "end": 17.844797205440127
+          },
+          {
+            "text": "so",
+            "start": 17.960357830752145,
+            "end": 18.191479081376187
+          },
+          {
+            "text": "these",
+            "start": 18.263549148775084,
+            "end": 18.464848302544407
+          },
+          {
+            "text": "results",
+            "start": 18.508338860457535,
+            "end": 18.95567031327826
+          },
+          {
+            "text": "require",
+            "start": 19.012829332249797,
+            "end": 19.431581275584755
+          },
+          {
+            "text": "review.",
+            "start": 19.460160785070524,
+            "end": 19.937314334745967
+          },
+          {
+            "text": "Warrant",
+            "start": 20.03796391163063,
+            "end": 20.455473267596638
+          },
+          {
+            "text": "status",
+            "start": 20.498963825509765,
+            "end": 20.96120632675785
+          },
+          {
+            "text": "comes",
+            "start": 21.046944855215152,
+            "end": 21.350136173238088
+          },
+          {
+            "text": "from",
+            "start": 21.393626731151215,
+            "end": 21.58125742386213
+          },
+          {
+            "text": "stored",
+            "start": 21.638416442833673,
+            "end": 21.927939299798194
+          },
+          {
+            "text": "case",
+            "start": 21.985098318769733,
+            "end": 22.244799078879545
+          },
+          {
+            "text": "information,",
+            "start": 22.28828963679267,
+            "end": 23.038812407636332
+          },
+          {
+            "text": "never",
+            "start": 23.110882475035226,
+            "end": 23.384251696203446
+          },
+          {
+            "text": "from",
+            "start": 23.45632176360234,
+            "end": 23.643952456313254
+          },
+          {
+            "text": "assumptions",
+            "start": 23.73093357213951,
+            "end": 24.39447522715692
+          },
+          {
+            "text": "about",
+            "start": 24.43796578507005,
+            "end": 24.726246054665626
+          },
+          {
+            "text": "someone's",
+            "start": 24.769736612578754,
+            "end": 25.23073652645789
+          },
+          {
+            "text": "appearance.",
+            "start": 25.260558623312605,
+            "end": 25.909189229902655
+          }
+        ],
+        "start": 30,
+        "speech_tempo": 0.8047723846153846
+      },
+      {
+        "id": "x05",
+        "duration": 9,
+        "text": "Next, Meta Social Media demonstrates a social network with synthetic profiles. This local example does not connect to Facebook live.",
+        "audio": "audio/x05.mp3",
+        "audio_duration": 7.967347,
+        "captions": [
+          {
+            "text": "Next, Meta Social Media demonstrates a social network with",
+            "start": 0.03940716979676879,
+            "end": 3.4250460149077324
+          },
+          {
+            "text": "synthetic profiles. This local example does not connect to",
+            "start": 3.4644531847045013,
+            "end": 6.797173830374089
+          },
+          {
+            "text": "Facebook live.",
+            "start": 6.875988169967628,
+            "end": 7.7384422289483386
+          }
+        ],
+        "words": [
+          {
+            "text": "Next,",
+            "start": 0.03940716979676879,
+            "end": 0.444738059134962
+          },
+          {
+            "text": "Meta",
+            "start": 0.5877297895403801,
+            "end": 0.9547794282188551
+          },
+          {
+            "text": "Social",
+            "start": 1.0065717085231798,
+            "end": 1.2936810884710666
+          },
+          {
+            "text": "Media",
+            "start": 1.3465992879124418,
+            "end": 1.5560202474038416
+          },
+          {
+            "text": "demonstrates",
+            "start": 1.6078125277081663,
+            "end": 2.209053346893153
+          },
+          {
+            "text": "a",
+            "start": 2.261971546334528,
+            "end": 2.2878676864866905
+          },
+          {
+            "text": "social",
+            "start": 2.3531709964356216,
+            "end": 2.666176516535671
+          },
+          {
+            "text": "network",
+            "start": 2.7449908561292085,
+            "end": 3.1897289152641704
+          },
+          {
+            "text": "with",
+            "start": 3.2550322252131014,
+            "end": 3.4250460149077324
+          },
+          {
+            "text": "synthetic",
+            "start": 3.4644531847045013,
+            "end": 4.012775804448113
+          },
+          {
+            "text": "profiles.",
+            "start": 4.078079114397044,
+            "end": 4.692830963226637
+          },
+          {
+            "text": "This",
+            "start": 4.758134273175568,
+            "end": 4.941659092514806
+          },
+          {
+            "text": "local",
+            "start": 5.006962402463737,
+            "end": 5.30758281205623
+          },
+          {
+            "text": "example",
+            "start": 5.385271232512717,
+            "end": 5.881801571952003
+          },
+          {
+            "text": "does",
+            "start": 5.948230801037986,
+            "end": 6.117118671595565
+          },
+          {
+            "text": "not",
+            "start": 6.156525841392335,
+            "end": 6.300643490934803
+          },
+          {
+            "text": "connect",
+            "start": 6.352435771239128,
+            "end": 6.6924633506283895
+          },
+          {
+            "text": "to",
+            "start": 6.719485409917603,
+            "end": 6.797173830374089
+          },
+          {
+            "text": "Facebook",
+            "start": 6.875988169967628,
+            "end": 7.307215199457983
+          },
+          {
+            "text": "live.",
+            "start": 7.398414649559076,
+            "end": 7.7384422289483386
+          }
+        ],
+        "start": 60,
+        "speech_tempo": 0.88816325
+      },
+      {
+        "id": "x06",
+        "duration": 28,
+        "text": "Here is the simulated Meta Display preview inside the app. I choose person search and capture a reference portrait with the phone camera. A profile candidate appears. Opening it brings the authorized profile into Android, where I can inspect the information shared with me. This demonstrates the glasses interaction through a working phone preview, rather than physical glasses footage.",
+        "audio": "audio/x06.mp3",
+        "audio_duration": 23.301224,
+        "captions": [
+          {
+            "text": "Here is the simulated Meta Display preview inside the",
+            "start": 0.043750000000000004,
+            "end": 3.3524999999999996
+          },
+          {
+            "text": "app. I choose person search and capture a reference",
+            "start": 3.45375,
+            "end": 6.53
+          },
+          {
+            "text": "portrait with the phone camera.",
+            "start": 6.57375,
+            "end": 8.417499999999999
+          },
+          {
+            "text": "A profile candidate appears.",
+            "start": 8.44625,
+            "end": 10.3475
+          },
+          {
+            "text": "Opening it brings the authorized profile into Android,",
+            "start": 10.4925,
+            "end": 13.6125
+          },
+          {
+            "text": "where I can inspect the information shared with me.",
+            "start": 13.64125,
+            "end": 16.384999999999998
+          },
+          {
+            "text": "This demonstrates the glasses interaction through a",
+            "start": 16.4575,
+            "end": 19.3025
+          },
+          {
+            "text": "working phone preview, rather than physical glasses",
+            "start": 19.36,
+            "end": 22.552500000000002
+          },
+          {
+            "text": "footage.",
+            "start": 22.625,
+            "end": 23.22
+          }
+        ],
+        "words": [
+          {
+            "text": "Here",
+            "start": 0.043750000000000004,
+            "end": 0.26125
+          },
+          {
+            "text": "is",
+            "start": 0.31875,
+            "end": 0.42125
+          },
+          {
+            "text": "the",
+            "start": 0.44999999999999996,
+            "end": 0.5375
+          },
+          {
+            "text": "simulated",
+            "start": 0.595,
+            "end": 1.2049999999999998
+          },
+          {
+            "text": "Meta",
+            "start": 1.2912499999999998,
+            "end": 1.5962499999999997
+          },
+          {
+            "text": "Display",
+            "start": 1.66875,
+            "end": 2.17625
+          },
+          {
+            "text": "preview",
+            "start": 2.25,
+            "end": 2.7137499999999997
+          },
+          {
+            "text": "inside",
+            "start": 2.8149999999999995,
+            "end": 3.22125
+          },
+          {
+            "text": "the",
+            "start": 3.2512499999999998,
+            "end": 3.3524999999999996
+          },
+          {
+            "text": "app.",
+            "start": 3.45375,
+            "end": 3.74375
+          },
+          {
+            "text": "I",
+            "start": 3.7874999999999996,
+            "end": 3.86
+          },
+          {
+            "text": "choose",
+            "start": 3.97625,
+            "end": 4.29625
+          },
+          {
+            "text": "person",
+            "start": 4.35375,
+            "end": 4.7025
+          },
+          {
+            "text": "search",
+            "start": 4.788749999999999,
+            "end": 5.1225
+          },
+          {
+            "text": "and",
+            "start": 5.1812499999999995,
+            "end": 5.2975
+          },
+          {
+            "text": "capture",
+            "start": 5.38375,
+            "end": 5.833749999999999
+          },
+          {
+            "text": "a",
+            "start": 5.8925,
+            "end": 5.935
+          },
+          {
+            "text": "reference",
+            "start": 6.0375,
+            "end": 6.53
+          },
+          {
+            "text": "portrait",
+            "start": 6.57375,
+            "end": 7.0825000000000005
+          },
+          {
+            "text": "with",
+            "start": 7.14,
+            "end": 7.32875
+          },
+          {
+            "text": "the",
+            "start": 7.3725,
+            "end": 7.46
+          },
+          {
+            "text": "phone",
+            "start": 7.5325,
+            "end": 7.86625
+          },
+          {
+            "text": "camera.",
+            "start": 7.9087499999999995,
+            "end": 8.417499999999999
+          },
+          {
+            "text": "A",
+            "start": 8.44625,
+            "end": 8.51875
+          },
+          {
+            "text": "profile",
+            "start": 8.635,
+            "end": 9.12875
+          },
+          {
+            "text": "candidate",
+            "start": 9.1725,
+            "end": 9.737499999999999
+          },
+          {
+            "text": "appears.",
+            "start": 9.7675,
+            "end": 10.3475
+          },
+          {
+            "text": "Opening",
+            "start": 10.4925,
+            "end": 11.0
+          },
+          {
+            "text": "it",
+            "start": 11.087499999999999,
+            "end": 11.174999999999999
+          },
+          {
+            "text": "brings",
+            "start": 11.2325,
+            "end": 11.5375
+          },
+          {
+            "text": "the",
+            "start": 11.56625,
+            "end": 11.65375
+          },
+          {
+            "text": "authorized",
+            "start": 11.6975,
+            "end": 12.219999999999999
+          },
+          {
+            "text": "profile",
+            "start": 12.2625,
+            "end": 12.799999999999999
+          },
+          {
+            "text": "into",
+            "start": 12.82875,
+            "end": 13.06125
+          },
+          {
+            "text": "Android,",
+            "start": 13.13375,
+            "end": 13.6125
+          },
+          {
+            "text": "where",
+            "start": 13.64125,
+            "end": 13.859999999999998
+          },
+          {
+            "text": "I",
+            "start": 13.903749999999999,
+            "end": 13.932500000000001
+          },
+          {
+            "text": "can",
+            "start": 14.005,
+            "end": 14.178749999999999
+          },
+          {
+            "text": "inspect",
+            "start": 14.251249999999999,
+            "end": 14.701249999999998
+          },
+          {
+            "text": "the",
+            "start": 14.73,
+            "end": 14.817499999999999
+          },
+          {
+            "text": "information",
+            "start": 14.861249999999998,
+            "end": 15.513749999999998
+          },
+          {
+            "text": "shared",
+            "start": 15.5725,
+            "end": 15.8775
+          },
+          {
+            "text": "with",
+            "start": 15.92,
+            "end": 16.095
+          },
+          {
+            "text": "me.",
+            "start": 16.1525,
+            "end": 16.384999999999998
+          },
+          {
+            "text": "This",
+            "start": 16.4575,
+            "end": 16.71875
+          },
+          {
+            "text": "demonstrates",
+            "start": 16.776249999999997,
+            "end": 17.5025
+          },
+          {
+            "text": "the",
+            "start": 17.53125,
+            "end": 17.61875
+          },
+          {
+            "text": "glasses",
+            "start": 17.69125,
+            "end": 18.12625
+          },
+          {
+            "text": "interaction",
+            "start": 18.185,
+            "end": 18.881249999999998
+          },
+          {
+            "text": "through",
+            "start": 18.95375,
+            "end": 19.24375
+          },
+          {
+            "text": "a",
+            "start": 19.272499999999997,
+            "end": 19.3025
+          },
+          {
+            "text": "working",
+            "start": 19.36,
+            "end": 19.76625
+          },
+          {
+            "text": "phone",
+            "start": 19.825,
+            "end": 20.086249999999996
+          },
+          {
+            "text": "preview,",
+            "start": 20.143749999999997,
+            "end": 20.75375
+          },
+          {
+            "text": "rather",
+            "start": 20.912499999999998,
+            "end": 21.232499999999998
+          },
+          {
+            "text": "than",
+            "start": 21.29,
+            "end": 21.45
+          },
+          {
+            "text": "physical",
+            "start": 21.537499999999998,
+            "end": 22.044999999999998
+          },
+          {
+            "text": "glasses",
+            "start": 22.117499999999996,
+            "end": 22.552500000000002
+          },
+          {
+            "text": "footage.",
+            "start": 22.625,
+            "end": 23.22
+          }
+        ],
+        "start": 69,
+        "speech_tempo": 0.8
+      },
+      {
+        "id": "x07",
+        "duration": 19,
+        "text": "Meta models support the broader system. Muse Spark interprets visual and contextual requests. SAM supports object segmentation, and Muse Voice Transcribe handles speech input. Face comparison uses a separate component. Workspace permissions and consent requirements remain part of the application.",
+        "audio": "audio/x07.mp3",
+        "audio_duration": 15.986939,
+        "captions": [
+          {
+            "text": "Meta models support the broader system.",
+            "start": 0.03578881455111848,
+            "end": 1.8518155186307301
+          },
+          {
+            "text": "Muse Spark interprets visual and contextual requests.",
+            "start": 1.9704298754287228,
+            "end": 5.282429027745088
+          },
+          {
+            "text": "SAM supports object segmentation, and Muse Voice",
+            "start": 5.496139377493194,
+            "end": 8.049415661325847
+          },
+          {
+            "text": "Transcribe handles speech input.",
+            "start": 8.072934025173724,
+            "end": 9.782616823158584
+          },
+          {
+            "text": "Face comparison uses a separate component.",
+            "start": 9.8173831001511,
+            "end": 12.013793776031171
+          },
+          {
+            "text": "Workspace permissions and consent requirements remain part",
+            "start": 12.04958259058229,
+            "end": 14.839065050452323
+          },
+          {
+            "text": "of the application.",
+            "start": 14.874853865003441,
+            "end": 15.765484078546988
+          }
+        ],
+        "words": [
+          {
+            "text": "Meta",
+            "start": 0.03578881455111848,
+            "end": 0.3200542558428595
+          },
+          {
+            "text": "models",
+            "start": 0.36811352109721857,
+            "end": 0.6176126853964445
+          },
+          {
+            "text": "support",
+            "start": 0.6411310492443224,
+            "end": 0.985726206493663
+          },
+          {
+            "text": "the",
+            "start": 1.009244570341541,
+            "end": 1.0808221994437779
+          },
+          {
+            "text": "broader",
+            "start": 1.1278589271395336,
+            "end": 1.4008764552866375
+          },
+          {
+            "text": "system.",
+            "start": 1.436665269837756,
+            "end": 1.8518155186307301
+          },
+          {
+            "text": "Muse",
+            "start": 1.9704298754287228,
+            "end": 2.291506668830186
+          },
+          {
+            "text": "Spark",
+            "start": 2.4101210256281784,
+            "end": 2.7894824598700345
+          },
+          {
+            "text": "interprets",
+            "start": 2.861060088972271,
+            "end": 3.3713063307153606
+          },
+          {
+            "text": "visual",
+            "start": 3.455154410520838,
+            "end": 3.798727030211575
+          },
+          {
+            "text": "and",
+            "start": 3.8703046593138124,
+            "end": 3.976648565408564
+          },
+          {
+            "text": "contextual",
+            "start": 4.060496645214042,
+            "end": 4.617779614652886
+          },
+          {
+            "text": "requests.",
+            "start": 4.689357243755124,
+            "end": 5.282429027745088
+          },
+          {
+            "text": "SAM",
+            "start": 5.496139377493194,
+            "end": 5.74563854179242
+          },
+          {
+            "text": "supports",
+            "start": 5.804945720191416,
+            "end": 6.221118506542994
+          },
+          {
+            "text": "object",
+            "start": 6.280425684941991,
+            "end": 6.5411727623858535
+          },
+          {
+            "text": "segmentation,",
+            "start": 6.564691126233732,
+            "end": 7.277399804580291
+          },
+          {
+            "text": "and",
+            "start": 7.3009181684281685,
+            "end": 7.455321339777281
+          },
+          {
+            "text": "Muse",
+            "start": 7.526898968879516,
+            "end": 7.776398133178743
+          },
+          {
+            "text": "Voice",
+            "start": 7.8111644101712585,
+            "end": 8.049415661325847
+          },
+          {
+            "text": "Transcribe",
+            "start": 8.072934025173724,
+            "end": 8.547391452365694
+          },
+          {
+            "text": "handles",
+            "start": 8.583180266916814,
+            "end": 8.903234522759673
+          },
+          {
+            "text": "speech",
+            "start": 8.951293788014032,
+            "end": 9.319407309111252
+          },
+          {
+            "text": "input.",
+            "start": 9.389962400654884,
+            "end": 9.782616823158584
+          },
+          {
+            "text": "Face",
+            "start": 9.8173831001511,
+            "end": 10.043363900602447
+          },
+          {
+            "text": "comparison",
+            "start": 10.079152715153565,
+            "end": 10.589398956896655
+          },
+          {
+            "text": "uses",
+            "start": 10.660976585998892,
+            "end": 10.957512477993873
+          },
+          {
+            "text": "a",
+            "start": 11.016819656392869,
+            "end": 11.040338020240748
+          },
+          {
+            "text": "separate",
+            "start": 11.099645198639744,
+            "end": 11.467758719736963
+          },
+          {
+            "text": "component.",
+            "start": 11.503547534288082,
+            "end": 12.013793776031171
+          },
+          {
+            "text": "Workspace",
+            "start": 12.04958259058229,
+            "end": 12.50052165392638
+          },
+          {
+            "text": "permissions",
+            "start": 12.536310468477499,
+            "end": 12.987249531821593
+          },
+          {
+            "text": "and",
+            "start": 13.023038346372712,
+            "end": 13.105863888619586
+          },
+          {
+            "text": "consent",
+            "start": 13.165171067018582,
+            "end": 13.54555503881904
+          },
+          {
+            "text": "requirements",
+            "start": 13.617132667921277,
+            "end": 14.186686088063365
+          },
+          {
+            "text": "remain",
+            "start": 14.258263717165601,
+            "end": 14.542529158457342
+          },
+          {
+            "text": "part",
+            "start": 14.625354700704216,
+            "end": 14.839065050452323
+          },
+          {
+            "text": "of",
+            "start": 14.874853865003441,
+            "end": 14.934161043402439
+          },
+          {
+            "text": "the",
+            "start": 14.982220308656796,
+            "end": 15.05277540020043
+          },
+          {
+            "text": "application.",
+            "start": 15.08856421475155,
+            "end": 15.765484078546988
+          }
+        ],
+        "start": 97,
+        "speech_tempo": 0.9779591875
+      },
+      {
+        "id": "x08",
+        "duration": 12,
+        "text": "During the hackathon, I added video, glasses workflows, profile search, and linked records. The same foundation could extend to care workflows and everyday memory.",
+        "audio": "audio/x08.mp3",
+        "audio_duration": 9.560816,
+        "captions": [
+          {
+            "text": "During the hackathon, I added video, glasses workflows,",
+            "start": 0.040195310929870665,
+            "end": 3.4005233046670575
+          },
+          {
+            "text": "profile search, and linked records.",
+            "start": 3.4395701781417896,
+            "end": 5.306929480198067
+          },
+          {
+            "text": "The same foundation could extend to care workflows and",
+            "start": 5.3471247911279365,
+            "end": 8.253819990085155
+          },
+          {
+            "text": "everyday memory.",
+            "start": 8.306648113021556,
+            "end": 9.347132447377637
+          }
+        ],
+        "words": [
+          {
+            "text": "During",
+            "start": 0.040195310929870665,
+            "end": 0.3330468619903569
+          },
+          {
+            "text": "the",
+            "start": 0.3732421729202276,
+            "end": 0.4662656067864997
+          },
+          {
+            "text": "hackathon,",
+            "start": 0.532874979184571,
+            "end": 1.2265312020886248
+          },
+          {
+            "text": "I",
+            "start": 1.306921823948366,
+            "end": 1.3735311963464374
+          },
+          {
+            "text": "added",
+            "start": 1.4803358796743793,
+            "end": 1.7203593077984642
+          },
+          {
+            "text": "video,",
+            "start": 1.7869686801965357,
+            "end": 2.307210847374576
+          },
+          {
+            "text": "glasses",
+            "start": 2.3600389703109776,
+            "end": 2.7734764541610755
+          },
+          {
+            "text": "workflows,",
+            "start": 2.8400858265591467,
+            "end": 3.4005233046670575
+          },
+          {
+            "text": "profile",
+            "start": 3.4395701781417896,
+            "end": 3.8805701609152274
+          },
+          {
+            "text": "search,",
+            "start": 3.919617034389959,
+            "end": 4.266445145841986
+          },
+          {
+            "text": "and",
+            "start": 4.292859207310187,
+            "end": 4.399663890638129
+          },
+          {
+            "text": "linked",
+            "start": 4.48005451249787,
+            "end": 4.7464920020901555
+          },
+          {
+            "text": "records.",
+            "start": 4.826882623949897,
+            "end": 5.306929480198067
+          },
+          {
+            "text": "The",
+            "start": 5.3471247911279365,
+            "end": 5.48034353592408
+          },
+          {
+            "text": "same",
+            "start": 5.546952908322151,
+            "end": 5.786976336446235
+          },
+          {
+            "text": "foundation",
+            "start": 5.827171647376106,
+            "end": 6.360046626560678
+          },
+          {
+            "text": "could",
+            "start": 6.426655998958749,
+            "end": 6.626484116152962
+          },
+          {
+            "text": "extend",
+            "start": 6.680460676544504,
+            "end": 7.053702849464732
+          },
+          {
+            "text": "to",
+            "start": 7.120312221862803,
+            "end": 7.186921594260874
+          },
+          {
+            "text": "care",
+            "start": 7.2799450281271465,
+            "end": 7.493554394783031
+          },
+          {
+            "text": "workflows",
+            "start": 7.533749705712901,
+            "end": 8.093038746365673
+          },
+          {
+            "text": "and",
+            "start": 8.147015306757213,
+            "end": 8.253819990085155
+          },
+          {
+            "text": "everyday",
+            "start": 8.306648113021556,
+            "end": 8.693671535403455
+          },
+          {
+            "text": "memory.",
+            "start": 8.772913719808058,
+            "end": 9.347132447377637
+          }
+        ],
+        "start": 116,
+        "speech_tempo": 0.8707483333333335
+      },
+      {
+        "id": "x09",
+        "duration": 7,
+        "text": "Reality O S. Context within reach. What would you build with it?",
+        "audio": "audio/x09.mp3",
+        "audio_duration": 3.683265,
+        "captions": [
+          {
+            "text": "RealityOS.",
+            "start": 0.0725,
+            "end": 0.98625
+          },
+          {
+            "text": "Context within reach.",
+            "start": 1.0162499999999999,
+            "end": 2.20625
+          },
+          {
+            "text": "What would you build with it?",
+            "start": 2.235,
+            "end": 3.59875
+          }
+        ],
+        "words": [
+          {
+            "text": "Reality",
+            "start": 0.0725,
+            "end": 0.6387499999999999
+          },
+          {
+            "text": "O",
+            "start": 0.7249999999999999,
+            "end": 0.7549999999999999
+          },
+          {
+            "text": "S.",
+            "start": 0.8999999999999999,
+            "end": 0.98625
+          },
+          {
+            "text": "Context",
+            "start": 1.0162499999999999,
+            "end": 1.4799999999999998
+          },
+          {
+            "text": "within",
+            "start": 1.53875,
+            "end": 1.8424999999999998
+          },
+          {
+            "text": "reach.",
+            "start": 1.9162499999999998,
+            "end": 2.20625
+          },
+          {
+            "text": "What",
+            "start": 2.235,
+            "end": 2.4375
+          },
+          {
+            "text": "would",
+            "start": 2.48125,
+            "end": 2.685
+          },
+          {
+            "text": "you",
+            "start": 2.72875,
+            "end": 2.8149999999999995
+          },
+          {
+            "text": "build",
+            "start": 2.8874999999999997,
+            "end": 3.1199999999999997
+          },
+          {
+            "text": "with",
+            "start": 3.1924999999999994,
+            "end": 3.3674999999999997
+          },
+          {
+            "text": "it?",
+            "start": 3.4250000000000003,
+            "end": 3.59875
+          }
+        ],
+        "start": 128,
+        "speech_tempo": 0.8
+      }
+    ]
+  },
+  "audio_processing": {
+    "tempo": "pitch-preserving ffmpeg atempo, 0.8–1.0",
+    "source_directory": "audio/source",
+    "loudness": "Final mix normalization belongs to compositor"
+  }
+}

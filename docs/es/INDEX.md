@@ -7,6 +7,7 @@
 ## Uso y datos
 
 - [Recorridos de evaluación](guides/DEMO.md)
+- [Producción y reproducción del video demo](guides/DEMO_VIDEO.md)
 - [Conectar tu bucket y utilizar sus recursos](guides/STORAGE_CONNECTIONS.md)
 - [Catálogos y filtros de publicaciones](guides/PUBLICATION_CLASSIFICATION.md)
 - [Cuentas, expedientes e importaciones](guides/WORKSPACE_DATA.md)

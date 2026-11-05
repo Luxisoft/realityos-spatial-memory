@@ -1,0 +1,19 @@
+What if a photo could take you straight to the information you are allowed to see? This is Reality O S.
+
+I'm José Marín, a solo builder in Build for Your World. Reality O S connects visual search, authorized records, and shared context through Android and a Meta glasses preview.
+
+First, I select a local Police account. Its fictional case records distinguish active arrest warrants from missing-person search orders. Each account sees only information shared within its workspace.
+
+I attach a photo and ask the chat to search for people with outstanding arrest warrants. The response brings five warrant-related records into view. I open the record labeled Esteban Pardo to inspect its details and original portrait. The app also flags uncertainty about the photo match, so these results require review. Warrant status comes from stored case information, never from assumptions about someone's appearance.
+
+Next, I enter Meta Social Media with a separate account. This local workspace simulates a social network using synthetic profiles, without a live Facebook connection.
+
+Here is the simulated Meta Display preview inside the app. I choose person search and capture a reference portrait with the phone camera. A profile candidate appears. Opening it brings the authorized profile into Android, where I can inspect the information shared with me. This demonstrates the glasses interaction through a working phone preview, rather than physical glasses footage.
+
+Meta models support the broader system. Muse Spark interprets visual and contextual requests. SAM supports object segmentation, and Muse Voice Transcribe handles speech input. Face comparison uses a separate component. Workspace permissions and consent requirements remain part of the application.
+
+During the hackathon, I extended an existing foundation with video, segmentation refinements, Android and glasses workflows, authorized profile search, and linked records. The repository documents these contributions.
+
+The same foundation could support care teams accessing authorized records, or help people recall where an object was last seen. These scenes illustrate future applications.
+
+Reality O S. Context within reach. What would you build with it?

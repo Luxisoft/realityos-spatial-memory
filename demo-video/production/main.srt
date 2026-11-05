@@ -1,0 +1,207 @@
+1
+00:00:00,044 --> 00:00:02,308
+What if a photo could take you straight to
+
+2
+00:00:02,395 --> 00:00:04,382
+the information you are allowed to see?
+
+3
+00:00:04,441 --> 00:00:06,270
+This is RealityOS.
+
+4
+00:00:12,044 --> 00:00:14,656
+I'm José Marín, a solo builder in Build for
+
+5
+00:00:14,714 --> 00:00:18,168
+Your World. RealityOS connects visual search, authorized
+
+6
+00:00:18,226 --> 00:00:20,998
+records, and shared context through Android and a Meta
+
+7
+00:00:21,056 --> 00:00:22,101
+glasses preview.
+
+8
+00:00:25,040 --> 00:00:27,334
+First, I select a local Police account.
+
+9
+00:00:27,389 --> 00:00:30,233
+Its fictional case records distinguish active arrest
+
+10
+00:00:30,273 --> 00:00:32,393
+warrants from missing-person search orders.
+
+11
+00:00:32,474 --> 00:00:35,198
+Each account sees only information shared within its
+
+12
+00:00:35,251 --> 00:00:35,908
+workspace.
+
+13
+00:00:40,043 --> 00:00:42,106
+I attach a photo and ask the chat to
+
+14
+00:00:42,178 --> 00:00:44,904
+search for people with outstanding arrest warrants.
+
+15
+00:00:45,020 --> 00:00:48,237
+The response brings five warrant-related records into
+
+16
+00:00:48,309 --> 00:00:51,670
+view. I open the record labeled Esteban Pardo to
+
+17
+00:00:51,772 --> 00:00:54,425
+inspect its details and original portrait.
+
+18
+00:00:54,571 --> 00:00:57,845
+The app also flags uncertainty about the photo match,
+
+19
+00:00:57,960 --> 00:00:59,937
+so these results require review.
+
+20
+00:01:00,038 --> 00:01:03,384
+Warrant status comes from stored case information, never
+
+21
+00:01:03,456 --> 00:01:05,909
+from assumptions about someone's appearance.
+
+22
+00:01:20,040 --> 00:01:23,033
+Next, I enter Meta Social Media with a separate
+
+23
+00:01:23,060 --> 00:01:26,317
+account. This local workspace simulates a social network
+
+24
+00:01:26,396 --> 00:01:29,126
+using synthetic profiles, without a live Facebook
+
+25
+00:01:29,152 --> 00:01:29,773
+connection.
+
+26
+00:01:32,044 --> 00:01:35,352
+Here is the simulated Meta Display preview inside the
+
+27
+00:01:35,454 --> 00:01:38,530
+app. I choose person search and capture a reference
+
+28
+00:01:38,574 --> 00:01:40,418
+portrait with the phone camera.
+
+29
+00:01:40,446 --> 00:01:42,348
+A profile candidate appears.
+
+30
+00:01:42,492 --> 00:01:45,612
+Opening it brings the authorized profile into Android,
+
+31
+00:01:45,641 --> 00:01:48,385
+where I can inspect the information shared with me.
+
+32
+00:01:48,458 --> 00:01:51,302
+This demonstrates the glasses interaction through a
+
+33
+00:01:51,360 --> 00:01:54,553
+working phone preview, rather than physical glasses
+
+34
+00:01:54,625 --> 00:01:55,220
+footage.
+
+35
+00:02:06,036 --> 00:02:07,852
+Meta models support the broader system.
+
+36
+00:02:07,970 --> 00:02:11,282
+Muse Spark interprets visual and contextual requests.
+
+37
+00:02:11,496 --> 00:02:14,049
+SAM supports object segmentation, and Muse Voice
+
+38
+00:02:14,073 --> 00:02:15,783
+Transcribe handles speech input.
+
+39
+00:02:15,817 --> 00:02:18,014
+Face comparison uses a separate component.
+
+40
+00:02:18,050 --> 00:02:20,839
+Workspace permissions and consent requirements remain part
+
+41
+00:02:20,875 --> 00:02:21,765
+of the application.
+
+42
+00:02:28,035 --> 00:02:30,879
+During the hackathon, I extended an existing foundation
+
+43
+00:02:30,937 --> 00:02:34,084
+with video, segmentation refinements, Android and glasses
+
+44
+00:02:34,130 --> 00:02:37,067
+workflows, authorized profile search, and linked records.
+
+45
+00:02:37,091 --> 00:02:39,355
+The repository documents these contributions.
+
+46
+00:02:41,041 --> 00:02:43,772
+The same foundation could support care teams accessing
+
+47
+00:02:43,813 --> 00:02:47,089
+authorized records, or help people recall where an object
+
+48
+00:02:47,130 --> 00:02:47,973
+was last seen.
+
+49
+00:02:48,217 --> 00:02:50,773
+These scenes illustrate future applications.
+
+50
+00:02:53,072 --> 00:02:53,986
+RealityOS.
+
+51
+00:02:54,016 --> 00:02:55,206
+Context within reach.
+
+52
+00:02:55,235 --> 00:02:56,599
+What would you build with it?

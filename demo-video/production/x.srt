@@ -1,0 +1,187 @@
+1
+00:00:00,044 --> 00:00:02,308
+What if a photo could take you straight to
+
+2
+00:00:02,395 --> 00:00:04,382
+the information you are allowed to see?
+
+3
+00:00:04,441 --> 00:00:06,270
+This is RealityOS.
+
+4
+00:00:10,041 --> 00:00:12,494
+I'm José Marín, a solo builder in Build for
+
+5
+00:00:12,548 --> 00:00:15,791
+Your World. RealityOS connects visual search, authorized
+
+6
+00:00:15,846 --> 00:00:18,448
+records, and shared context through Android and a Meta
+
+7
+00:00:18,504 --> 00:00:19,485
+glasses preview.
+
+8
+00:00:20,035 --> 00:00:22,032
+First, I select a local Police account.
+
+9
+00:00:22,079 --> 00:00:24,555
+Its fictional case records distinguish active arrest
+
+10
+00:00:24,591 --> 00:00:26,436
+warrants from missing-person search orders.
+
+11
+00:00:26,506 --> 00:00:28,877
+Each account sees only information shared within its
+
+12
+00:00:28,924 --> 00:00:29,496
+workspace.
+
+13
+00:00:30,043 --> 00:00:32,106
+I attach a photo and ask the chat to
+
+14
+00:00:32,178 --> 00:00:34,904
+search for people with outstanding arrest warrants.
+
+15
+00:00:35,020 --> 00:00:38,237
+The response brings five warrant-related records into
+
+16
+00:00:38,309 --> 00:00:41,670
+view. I open the record labeled Esteban Pardo to
+
+17
+00:00:41,772 --> 00:00:44,425
+inspect its details and original portrait.
+
+18
+00:00:44,571 --> 00:00:47,845
+The app also flags uncertainty about the photo match,
+
+19
+00:00:47,960 --> 00:00:49,937
+so these results require review.
+
+20
+00:00:50,038 --> 00:00:53,384
+Warrant status comes from stored case information, never
+
+21
+00:00:53,456 --> 00:00:55,909
+from assumptions about someone's appearance.
+
+22
+00:01:00,039 --> 00:01:03,425
+Next, Meta Social Media demonstrates a social network with
+
+23
+00:01:03,464 --> 00:01:06,797
+synthetic profiles. This local example does not connect to
+
+24
+00:01:06,876 --> 00:01:07,738
+Facebook live.
+
+25
+00:01:09,044 --> 00:01:12,352
+Here is the simulated Meta Display preview inside the
+
+26
+00:01:12,454 --> 00:01:15,530
+app. I choose person search and capture a reference
+
+27
+00:01:15,574 --> 00:01:17,418
+portrait with the phone camera.
+
+28
+00:01:17,446 --> 00:01:19,348
+A profile candidate appears.
+
+29
+00:01:19,492 --> 00:01:22,612
+Opening it brings the authorized profile into Android,
+
+30
+00:01:22,641 --> 00:01:25,385
+where I can inspect the information shared with me.
+
+31
+00:01:25,458 --> 00:01:28,302
+This demonstrates the glasses interaction through a
+
+32
+00:01:28,360 --> 00:01:31,553
+working phone preview, rather than physical glasses
+
+33
+00:01:31,625 --> 00:01:32,220
+footage.
+
+34
+00:01:37,036 --> 00:01:38,852
+Meta models support the broader system.
+
+35
+00:01:38,970 --> 00:01:42,282
+Muse Spark interprets visual and contextual requests.
+
+36
+00:01:42,496 --> 00:01:45,049
+SAM supports object segmentation, and Muse Voice
+
+37
+00:01:45,073 --> 00:01:46,783
+Transcribe handles speech input.
+
+38
+00:01:46,817 --> 00:01:49,014
+Face comparison uses a separate component.
+
+39
+00:01:49,050 --> 00:01:51,839
+Workspace permissions and consent requirements remain part
+
+40
+00:01:51,875 --> 00:01:52,765
+of the application.
+
+41
+00:01:56,040 --> 00:01:59,401
+During the hackathon, I added video, glasses workflows,
+
+42
+00:01:59,440 --> 00:02:01,307
+profile search, and linked records.
+
+43
+00:02:01,347 --> 00:02:04,254
+The same foundation could extend to care workflows and
+
+44
+00:02:04,307 --> 00:02:05,347
+everyday memory.
+
+45
+00:02:08,072 --> 00:02:08,986
+RealityOS.
+
+46
+00:02:09,016 --> 00:02:10,206
+Context within reach.
+
+47
+00:02:10,235 --> 00:02:11,599
+What would you build with it?

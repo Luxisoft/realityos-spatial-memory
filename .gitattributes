@@ -2,3 +2,5 @@
 /simulator/media/police/videos/*.mp4 filter=lfs diff=lfs merge=lfs -text
 /simulator/media/meta-social/videos/*.mp4 filter=lfs diff=lfs merge=lfs -text
 /simulator/media/regression/documents/*.pdf binary
+demo-video/realityos-demo.mp4 filter=lfs diff=lfs merge=lfs -text
+demo-video/realityos-x.mp4 filter=lfs diff=lfs merge=lfs -text

@@ -1,0 +1,24 @@
+REALITYOS — PUBLICATION COPY
+
+X POST (246 characters)
+I'm José Marín. Meet RealityOS: visual search, authorized records and a Meta glasses preview. My Build for Your World demo for the Meta Global AI Developer Hackathon. What would you use it for?
+https://github.com/Luxisoft/realityos-spatial-memory
+
+VIDEO TITLE
+RealityOS — Visual Context Within Reach | Meta Global AI Developer Hackathon
+
+VIDEO DESCRIPTION
+I'm José Marín, an indie developer building RealityOS for Build for Your World.
+
+This working Android demonstration connects visual search with authorized records and shared context. It shows local account selection, a photo-and-text query that returns case records for review, and a simulated Meta Display workflow that opens an authorized profile on the phone.
+
+The local evaluation uses fictional case records and synthetic social profiles. The social workspace simulates a social-network connection; the glasses footage is an in-app preview. The Police recording flags uncertainty about the photo match, so the returned records require review.
+
+The broader implementation uses Muse Spark for visual and contextual requests, SAM for object segmentation, and Muse Voice Transcribe for speech input. Face comparison is a separate component. The public repository documents the existing foundation and contributions added during the hackathon.
+
+The Higgsfield scenes illustrate use cases. Nursing and Memory appear as potential applications. Narration uses my existing José Marín voice in ElevenLabs.
+
+Explore the code and local evaluation instructions:
+https://github.com/Luxisoft/realityos-spatial-memory
+
+What would you build with RealityOS?

@@ -1,0 +1,32 @@
+{
+  "file": "demo-video/realityos-demo.mp4",
+  "sha256": "69ff4095dc4bf4c0730dc9debbdfaa9f7a7c21b49cef053a9d9635d55513bb58",
+  "duration_seconds": 180,
+  "resolution": "1920x1080",
+  "fps": 30,
+  "video_codec": "h264",
+  "audio_codec": "aac",
+  "audio_sample_rate": 48000,
+  "audio_channels": 2,
+  "voice": "Clon - Jose Marin Voz / ElevenLabs eleven_multilingual_v2",
+  "openmontage_commit": "d21f5d4eaa08422b09c7091757a05affcbabb35b",
+  "render_runtime": "remotion 4.0.484",
+  "audio_measurements": {
+    "input_i": "-21.67",
+    "input_tp": "-4.71",
+    "input_lra": "13.80",
+    "input_thresh": "-33.03",
+    "output_i": "-16.08",
+    "output_tp": "-1.50",
+    "output_lra": "8.80",
+    "output_thresh": "-26.35",
+    "normalization_type": "dynamic",
+    "target_offset": "0.08"
+  },
+  "visual_review": "Pending owner review, at owner request",
+  "technical_checks": [
+    "ffprobe container and stream metadata",
+    "First second decoded successfully",
+    "Two-pass audio mastering"
+  ]
+}
